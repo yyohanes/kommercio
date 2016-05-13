@@ -41,6 +41,15 @@ class CreateStockTables extends Migration
         Schema::table('product_details', function(Blueprint $table){
             $table->boolean('manage_stock')->default(false);
         });
+
+        //Create default warehouse
+        $warehouse = \Kommercio\Models\Warehouse::create([
+            'name' => 'Default Warehouse'
+        ]);
+
+        $stores = \Kommercio\Models\Store::all();
+
+        $warehouse->stores()->sync($stores->pluck('id')->all());
     }
 
     /**

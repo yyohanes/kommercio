@@ -20,8 +20,6 @@ trait ToggleDate
             $this->fillable = array_merge($this->fillable, $this->toggleDates);
         }
         $this->dates = array_merge($this->dates, $this->toggleDates);
-
-        parent::__construct();
     }
 
     public function setAttribute($key, $value)

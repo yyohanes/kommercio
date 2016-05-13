@@ -12,10 +12,6 @@ class CreateProfilesTable extends Migration
      */
     public function up()
     {
-        Schema::table('users', function(Blueprint $table){
-            $table->string('status')->default(\Kommercio\Models\User::STATUS_ACTIVE);
-        });
-
         Schema::create('user_profile_details', function(Blueprint $table){
             $table->integer('user_id')->unsigned();
             $table->string('identifier');
@@ -34,9 +30,5 @@ class CreateProfilesTable extends Migration
     public function down()
     {
         Schema::drop('user_profile_details');
-
-        Schema::table('users', function(Blueprint $table){
-            $table->dropColumn('status');
-        });
     }
 }
