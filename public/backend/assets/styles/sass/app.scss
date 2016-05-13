@@ -1,0 +1,51 @@
+//Global
+.images-upload{
+  .dropzone{
+    padding: 2em;
+    border: 1px dashed #ccc;
+    text-align: center;
+    color: #999;
+  }
+
+  &.is-dragover{
+    .dropzone{
+      background: #eee;
+    }
+  }
+}
+
+.page-header{
+  &.navbar{
+    .page-logo{
+      .logo-default{
+        margin: 2px 0 0;
+        height: 40px;
+      }
+    }
+  }
+}
+
+.note-editor.panel{
+  overflow: visible;
+}
+
+.table{
+  .btn-group{
+    .btn{
+      margin-right: 0;
+    }
+  }
+}
+
+//Sortable
+.sortable-placeholder{
+  border: 2px dashed #ccc;
+  height: 150px;
+}
+
+//Pages
+#products-dataset{
+  .product-image{
+    width: 40px;
+  }
+}

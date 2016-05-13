@@ -1,0 +1,10 @@
+/vendor
+/node_modules
+
+.env.*.php
+.env.php
+.env
+.env.example
+.idea
+.sass-cache
+.DS_STORE

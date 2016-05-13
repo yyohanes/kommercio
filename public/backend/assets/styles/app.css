@@ -1,0 +1,38 @@
+/* line 3, sass/app.scss */
+.images-upload .dropzone {
+  padding: 2em;
+  border: 1px dashed #ccc;
+  text-align: center;
+  color: #999;
+}
+/* line 11, sass/app.scss */
+.images-upload.is-dragover .dropzone {
+  background: #eee;
+}
+
+/* line 20, sass/app.scss */
+.page-header.navbar .page-logo .logo-default {
+  margin: 2px 0 0;
+  height: 40px;
+}
+
+/* line 28, sass/app.scss */
+.note-editor.panel {
+  overflow: visible;
+}
+
+/* line 34, sass/app.scss */
+.table .btn-group .btn {
+  margin-right: 0;
+}
+
+/* line 41, sass/app.scss */
+.sortable-placeholder {
+  border: 2px dashed #ccc;
+  height: 150px;
+}
+
+/* line 48, sass/app.scss */
+#products-dataset .product-image {
+  width: 40px;
+}

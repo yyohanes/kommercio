@@ -1,0 +1,245 @@
+var ProductForm = function () {
+    var categoriesCheckbox = function () {
+        $('#categories-checkbox input[type="checkbox"]').on('change', function(){
+            refreshDefaultCategory();
+        });
+    }
+
+    var $defaultCategoryOptions;
+    var $currentCheckbox = $('#default_category').data('default');
+    var refreshDefaultCategory = function(){
+        $defaultCategoryOptions = '';
+
+        var $checkbox;
+        $('#categories-checkbox label').each(function(idx, obj){
+            $checkbox = $(obj).find('input[type="checkbox"]');
+            if($checkbox.is(':checked')){
+                $defaultCategoryOptions += '<option '+(($currentCheckbox == $checkbox.val())?'selected':'')+' value="'+$checkbox.val()+'">'+$(obj).find('.checkbox-label').text()+'</option>';
+            }
+        });
+
+        $('#default_category').html($defaultCategoryOptions);
+        $('#default_category').change();
+    }
+
+    $('#default_category').on('change', function(){
+        $currentCheckbox = $(this).val();
+    });
+
+    return {
+
+        //main function to initiate the module
+        init: function () {
+            var $variationContext = $('[data-tab_context="variations"]');
+
+            $('#combination_type').on('change', function(){
+                if($(this).val() == 'variable'){
+                    $variationContext.show();
+                }else{
+                    $variationContext.hide();
+                }
+            }).change();
+
+            $('#product-variation-add-btn').click(function(e){
+                e.preventDefault();
+                e.stopPropagation();
+
+                variationFormBehaviors.loadForm('?new_form');
+            });
+
+            refreshDefaultCategory();
+
+            categoriesCheckbox();
+
+            variationFormBehaviors.init();
+        }
+
+    };
+}();
+
+var variationFormBehaviors = function(){
+    var $variationFormUrl = $('#product-variation-form-wrapper').data('variation_form');
+
+    var handleActions = function(context){
+        $('.remove-attribute-btn', context).click(function(e){
+            e.preventDefault();
+
+            variationFormBehaviors.loadForm($('#product-variation-form-wrapper :input').serialize() + '&variation[remove_attribute]=' + $(this).data('attribute'), 'Removing attribute...', $('#product-variation-form-accordion').data('variation_edit'));
+        });
+
+        $('#add-new-attribute-btn', context).click(function(e){
+            e.preventDefault();
+
+            variationFormBehaviors.loadForm($('#product-variation-form-wrapper :input').serialize(), 'Adding attribute...', $('#product-variation-form-accordion').data('variation_edit'));
+        });
+
+        $('#variation-cancel', context).click(function(e){
+            e.preventDefault();
+
+            variationFormBehaviors.closeForm();
+        });
+
+        $('#variation-save', context).click(function(e){
+            e.preventDefault();
+
+            $('[data-inputmask]', '#product-variation-form-wrapper').inputmask('remove');
+            formHelper.clearFormError({
+                'wrapper': '#product-variation-form-wrapper',
+                'highlightParentPrefix': 'panel'
+            });
+
+            App.blockUI({
+                target: '#tab_variations',
+                boxed: true,
+                message: 'Saving variation...'
+            });
+
+            $.ajax($(this).data('variation_save'), {
+                'method': 'POST',
+                'data': $('#product-variation-form-wrapper :input').serialize(),
+                'success': function(data){
+                    if(data.result == 'success'){
+                        $.bootstrapGrowl(data.message, {
+                            ele: 'body', // which element to append to
+                            type: 'success', // (null, 'info', 'danger', 'success')
+                            offset: {from: 'top', amount: 20}, // 'top', or 'bottom'
+                            align: 'right', // ('left', 'right', or 'center')
+                            width: 250, // (integer, or 'auto')
+                            delay: 4000, // Time while the message will be displayed. It's not equivalent to the *demo* timeOut!
+                            allow_dismiss: true, // If true then will display a cross to close the popup.
+                            stackup_spacing: 10 // spacing between consecutively stacked growls.
+                        });
+
+                        variationFormBehaviors.closeForm();
+                        variationFormBehaviors.refreshVariationIndex();
+                    }
+                },
+                'error': function(xhr){
+                    for(var i in xhr.responseJSON){
+                        var $errorName = formHelper.convertDotToSquareBracket(i);
+                        formHelper.addFieldError({
+                            'name': $errorName,
+                            'message': xhr.responseJSON[i][0],
+                            'context': '#product-variation-form-wrapper',
+                            'highlightParentPrefix': 'panel'
+                        });
+
+                        App.scrollTo($('#product-variation-form-wrapper'));
+                    }
+
+                    formBehaviors.initComponents(context);
+                }
+            });
+        });
+
+        $('[data-variation_delete]', context).on('click', function (e) {
+            e.preventDefault();
+        });
+
+        $('.variation-edit-btn', context).on('click', function(e){
+            e.preventDefault();
+
+            variationFormBehaviors.loadForm('?edit_form', 'Loading edit form...', $(this).data('variation_edit'));
+        });
+    }
+
+    return {
+        init: function(context){
+            if(typeof context === 'undefined'){
+                context = document;
+            }
+
+            handleActions(context);
+
+            $(document).ajaxComplete(function( event,request, settings ) {
+                App.unblockUI('#tab_variations');
+            });
+        },
+        loadForm: function(formData, message, formUrl){
+            if(typeof message === 'undefined'){
+                message = 'Loading form...';
+            }
+
+            if(typeof formUrl === 'undefined'){
+                formUrl = $variationFormUrl;
+            }
+
+            $('#product-variation-form-wrapper').removeData('variation_form');
+            $('#product-variation-form-wrapper').attr('data-variation_form', formUrl);
+
+            App.blockUI({
+                target: '#tab_variations',
+                boxed: true,
+                message: message
+            });
+
+            $.ajax(formUrl, {
+                'method': 'POST',
+                'data': formData,
+                'success': function(data){
+                    var $variationForm = $(data.html);
+
+                    $('#product-variation-form-wrapper').html($variationForm);
+                    App.unblockUI('#tab_variations');
+
+                    formBehaviors.init($variationForm);
+                    variationFormBehaviors.init($variationForm);
+                    App.initAjax();
+                },
+                'error': function(){
+                    alert('An error occured. Please refresh this page.');
+                }
+            });
+        },
+        closeForm: function()
+        {
+            $('#product-variation-form-wrapper').empty();
+            $('#product-variation-form-wrapper').attr('data-variation_form', $variationFormUrl);
+        },
+        refreshVariationIndex: function()
+        {
+            $.ajax($('#product-variation-form-wrapper').data('variation_index'), {
+                'method': 'GET',
+                'success': function(data){
+                    var $variationIndex = $(data.html);
+
+                    $('#product-variations-wrapper').html($variationIndex);
+
+                    formBehaviors.init($variationIndex);
+                    variationFormBehaviors.init($variationIndex);
+                    App.initAjax();
+                }
+            });
+        },
+        deleteVariation: function()
+        {
+            App.blockUI({
+                target: '#tab_variations',
+                boxed: true,
+                message: 'Deleting variation...'
+            });
+
+            $.ajax($(this).data('variation_delete'), {
+                method: 'POST',
+                success: function(data){
+                    $.bootstrapGrowl(data.message, {
+                        ele: 'body', // which element to append to
+                        type: 'success', // (null, 'info', 'danger', 'success')
+                        offset: {from: 'top', amount: 20}, // 'top', or 'bottom'
+                        align: 'right', // ('left', 'right', or 'center')
+                        width: 250, // (integer, or 'auto')
+                        delay: 4000, // Time while the message will be displayed. It's not equivalent to the *demo* timeOut!
+                        allow_dismiss: true, // If true then will display a cross to close the popup.
+                        stackup_spacing: 10 // spacing between consecutively stacked growls.
+                    });
+
+                    variationFormBehaviors.refreshVariationIndex();
+                }
+            });
+        }
+    }
+}();
+
+jQuery(document).ready(function() {
+    ProductForm.init();
+});
