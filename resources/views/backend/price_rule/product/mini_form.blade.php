@@ -136,6 +136,19 @@
             </div>
         </div>
 
+        @include('backend.master.form.fields.checkbox', [
+            'name' => 'price_rule[is_discount]',
+            'label' => 'Is Discount',
+            'key' => 'price_rule.is_discount',
+            'value' => 1,
+            'attr' => [
+                'class' => 'make-switch',
+                'id' => 'price_rule[is_discount]',
+                'data-on-color' => 'warning'
+            ],
+            'checked' => $priceRule->is_discount
+        ])
+
         <div class="margin-top-15 text-center">
             <button id="price-rule-save" data-form_token="{{ csrf_token() }}" data-price_rule_save="{{ route('backend.price_rule.product.mini_save', ['product_id' => $product->id, 'id' => $priceRule->exists?$priceRule->id:null]) }}" class="btn btn-info"><i class="fa fa-save"></i> Save Price Rule</button>
             <button id="price-rule-cancel" class="btn btn-default"><i class="fa fa-remove"></i> Cancel</button>

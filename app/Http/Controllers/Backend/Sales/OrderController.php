@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 use Kommercio\Facades\OrderHelper;
 use Kommercio\Http\Controllers\Controller;
+use Kommercio\Models\Customer;
 use Kommercio\Models\Order\Order;
 use Kommercio\Models\Order\LineItem;
 use Kommercio\Http\Requests\Backend\Order\OrderFormRequest;
@@ -109,14 +110,27 @@ class OrderController extends Controller{
     {
         $order = new Order();
 
+        $lineItems = old('line_items', []);
+
         return view('backend.order.create', [
-            'order' => $order
+            'order' => $order,
+            'lineItems' => $lineItems
         ]);
     }
 
     public function store(OrderFormRequest $request)
     {
+        $order = new Order();
 
+        if($request->has('existing_customer')){
+            $customer = Customer::whereField('email', $request->get('existing_customer'))->first();
+        }
+
+        $order->save();
+
+        $order->saveProfile('billing', $request->input('profile'));
+        $order->saveProfile('shipping', $request->input('shipping_profile'));
+        dd($order);
     }
 
     public function edit($id)

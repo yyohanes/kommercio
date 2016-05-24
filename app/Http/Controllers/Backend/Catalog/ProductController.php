@@ -6,6 +6,7 @@ use Collective\Html\FormFacade;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Request as RequestFacade;
 use Illuminate\Support\Facades\Session;
+use Kommercio\Facades\CurrencyHelper;
 use Kommercio\Http\Controllers\Controller;
 use Kommercio\Http\Requests\Backend\Catalog\ProductFormRequest;
 use Kommercio\Http\Requests\Backend\Catalog\ProductVariationFormRequest;
@@ -192,10 +193,13 @@ class ProductController extends Controller{
             }
         }
 
+        $currencyOptions = CurrencyHelper::getCurrencyOptions();
+
         return view('backend.catalog.product.edit', [
             'product' => $product,
             'featureOptions' => $featureOptions,
-            'features' => $features
+            'features' => $features,
+            'currencyOptions' => $currencyOptions
         ]);
     }
 

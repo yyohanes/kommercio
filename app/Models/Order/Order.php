@@ -58,6 +58,30 @@ class Order extends Model implements AuthorSignatureInterface
         return $this->belongsTo('Kommercio\Models\ShippingMethod\ShippingMethod');
     }
 
+    //Methods
+    public function saveProfile($type, $data)
+    {
+        if($type == 'billing'){
+            $profileRelation = 'billingProfile';
+            $profile = $this->billingProfile;
+        }else{
+            $profileRelation = 'shippingProfile';
+            $profile = $this->shippingProfile;
+        }
+
+        if(!$profile){
+            $profile = new Profile();
+            $profile->profileable()->associate($this);
+            $profile->save();
+
+            $this->$profileRelation()->associate($profile);
+            $this->save();
+            $this->load($profileRelation);
+        }
+
+        $profile->saveDetails($data);
+    }
+
     //Scopes
     public function scopeJoinBillingProfile($query)
     {

@@ -111,7 +111,7 @@ class Product extends Model
             $price = $this->productDetail->retail_price;
         }
 
-        $priceRules = $this->getSpecificPriceRules();
+        $priceRules = $this->getSpecificPriceRules(FALSE);
 
         foreach($priceRules as $priceRule){
             if($priceRule->validateProduct($this)){
@@ -127,6 +127,14 @@ class Product extends Model
         $catalogPriceRules = $this->getCatalogPriceRules();
 
         $price = $this->getRetailPrice();
+
+        $specificDiscountPriceRules = $this->getSpecificPriceRules(TRUE);
+
+        foreach($specificDiscountPriceRules as $specificDiscountPriceRule){
+            if($specificDiscountPriceRule->validateProduct($this)){
+                $price = $specificDiscountPriceRule->getValue($price);
+            }
+        }
 
         foreach($catalogPriceRules as $catalogPriceRule){
             if($catalogPriceRule->validateProduct($this)){
@@ -217,9 +225,15 @@ class Product extends Model
         }
     }
 
-    public function getSpecificPriceRules()
+    public function getSpecificPriceRules($is_discount = NULL)
     {
         $qb = $this->priceRules()->active();
+
+        if($is_discount === TRUE){
+            $qb->isDiscount();
+        }elseif($is_discount === FALSE){
+            $qb->isNotDiscount();
+        }
 
         return $qb->get();
     }

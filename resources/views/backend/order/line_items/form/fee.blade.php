@@ -1,12 +1,13 @@
 <tr class="line-item" data-line_item="fee" data-line_item_key="{{ $key }}">
     <td colspan="2">
+        {!! Form::hidden('line_items['.$key.'][type]', 'fee') !!}
         @include('backend.master.form.fields.text', [
-            'name' => 'line_items[fees][sku]['.$key.']',
+            'name' => 'line_items['.$key.'][name]',
             'label' => FALSE,
-            'key' => 'line_items.fees.sku.'.$key,
+            'key' => 'line_items.'.$key.'.name',
             'attr' => [
                 'class' => 'form-control input-sm',
-                'id' => 'line_items[fees][sku]['.$key.']',
+                'id' => 'line_items['.$key.'][name]',
                 'placeholder' => 'Fee name',
             ],
             'required' => TRUE,
@@ -15,12 +16,12 @@
     <td colspan="2"></td>
     <td>
         @include('backend.master.form.fields.number', [
-            'name' => 'line_items[fees][lineitem_total_amount]['.$key.']',
+            'name' => 'line_items['.$key.'][lineitem_total_amount]',
             'label' => FALSE,
-            'key' => 'line_items.fees.lineitem_total_amount.'.$key,
+            'key' => 'line_items.'.$key.'.lineitem_total_amount',
             'attr' => [
                 'class' => 'form-control input-sm lineitem-total-amount',
-                'id' => 'line_items[fees][lineitem_total_amount]['.$key.']',
+                'id' => 'line_items['.$key.'][lineitem_total_amount]',
             ],
             'required' => TRUE,
             'unitPosition' => 'front',

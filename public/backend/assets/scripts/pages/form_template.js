@@ -529,6 +529,10 @@ var formBehaviors = function(){
         },
         initComponents: function(context){
             handleInputMask(context);
+        },
+        reInitInputMask: function(context){
+            //Re-init inputmask on #line-items-table level so auto remove mask will work
+            $('input[data-inputmask]', context).inputmask('remove');
         }
     }
 }();

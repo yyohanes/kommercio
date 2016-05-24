@@ -9,6 +9,7 @@
             <th> Currency </th>
             <th> Store </th>
             <th> Active </th>
+            <th> Discount </th>
             <th> Actions </th>
         </tr>
         </thead>
@@ -22,6 +23,7 @@
                 <td> {{ $priceRule->currency?CurrencyHelper::getCurrency($priceRule->currency)['iso']:'All' }} </td>
                 <td> {{ $priceRule->store?$priceRule->store->name:'All' }} </td>
                 <td> <i class="fa {{ $priceRule->active?'fa-check text-success':'fa-remove text-danger' }}"></i> </td>
+                <td> <i class="fa {{ $priceRule->is_discount?'fa-check text-success':'fa-remove text-danger' }}"></i> </td>
                 <td style="width: 20%;">
                     <div class="btn-group btn-group-sm">
                         <a class="price-rule-edit-btn btn btn-default" href="#" data-price_rule_edit="{{ route('backend.price_rule.product.mini_form', ['id' => $priceRule->id, 'product_id' => $priceRule->product_id]) }}"><i class="fa fa-pencil"></i> Edit</a>

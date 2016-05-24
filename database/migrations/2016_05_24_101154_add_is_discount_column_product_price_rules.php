@@ -3,7 +3,7 @@
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class AddCurrencyColumnProducts extends Migration
+class AddIsDiscountColumnProductPriceRules extends Migration
 {
     /**
      * Run the migrations.
@@ -12,8 +12,8 @@ class AddCurrencyColumnProducts extends Migration
      */
     public function up()
     {
-        Schema::table('product_details', function(Blueprint $table){
-            $table->string('currency', 4)->default(\Kommercio\Facades\CurrencyHelper::getDefaultCurrency());
+        Schema::table('price_rules', function(Blueprint $table){
+            $table->boolean('is_discount')->after('sort_order')->nullable();
         });
     }
 
@@ -24,8 +24,8 @@ class AddCurrencyColumnProducts extends Migration
      */
     public function down()
     {
-        Schema::table('product_details', function(Blueprint $table){
-            $table->dropColumn('currency');
+        Schema::table('price_rules', function(Blueprint $table){
+            $table->dropColumn('is_discount');
         });
     }
 }

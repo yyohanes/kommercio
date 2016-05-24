@@ -25,7 +25,27 @@ class OrderFormRequest extends Request
     {
         $rules = [
             'store_id' => 'required|integer',
+            'profile.email' => 'required|email',
+            'profile.full_name' => 'required',
+            'profile.phone_number' => 'required',
+            'profile.address_1' => 'required',
+            'shipping_profile.email' => 'required|email',
+            'shipping_profile.full_name' => 'required',
+            'shipping_profile.phone_number' => 'required',
+            'shipping_profile.address_1' => 'required',
+            'line_items' => 'required',
         ];
+
+        foreach($this->input('line_items', []) as $idx => $lineItem){
+            if($lineItem['type'] == 'product'){
+                $rules['line_items.'.$idx.'.sku'] = 'product_sku|required_with:line_items.'.$idx.'.net_price,line_items.'.$idx.'.quantity';
+                $rules['line_items.'.$idx.'.net_price'] = 'numeric|required_with:line_items.'.$idx.'.sku,line_items.'.$idx.'.quantity';
+                $rules['line_items.'.$idx.'.quantity'] = 'numeric|required_with:line_items.'.$idx.'.sku,line_items.'.$idx.'.net_price';
+            }elseif($lineItem['type'] == 'fee'){
+                $rules['line_items.'.$idx.'.name'] = 'required_with:line_items.'.$idx.'.lineitem_total_amount';
+                $rules['line_items.'.$idx.'.lineitem_total_amount'] = 'numeric|required_with:line_items.'.$idx.'.name';
+            }
+        }
 
         return $rules;
     }

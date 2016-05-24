@@ -79,7 +79,17 @@
                     </tr>
                     </thead>
                     <tbody>
-                        @include('backend.order.line_items.form.product', ['key' => 0])
+                        @if($lineItems)
+                            @foreach($lineItems as $idx=>$lineItem)
+                                @if($lineItem['type'] == 'fee')
+                                    @include('backend.order.line_items.form.fee', ['key' => $idx])
+                                @else
+                                    @include('backend.order.line_items.form.product', ['key' => $idx])
+                                @endif
+                            @endforeach
+                        @else
+                            @include('backend.order.line_items.form.product', ['key' => 0])
+                        @endif
                     </tbody>
                 </table>
                 <div class="clearfix">
@@ -99,10 +109,6 @@
             </div>
             <div class="row static-info align-reverse shipping">
                 <div class="col-md-8 name"> Shipping: </div>
-                <div class="col-md-3 value"> <span class="currency-symbol">{{ CurrencyHelper::getCurrentCurrency()['symbol'] }}</span> <span class="amount">0</span> </div>
-            </div>
-            <div class="row static-info align-reverse fee">
-                <div class="col-md-8 name"> Fee: </div>
                 <div class="col-md-3 value"> <span class="currency-symbol">{{ CurrencyHelper::getCurrentCurrency()['symbol'] }}</span> <span class="amount">0</span> </div>
             </div>
             <div class="row static-info align-reverse discount">

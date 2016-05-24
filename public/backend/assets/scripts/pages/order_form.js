@@ -1,6 +1,4 @@
 var OrderForm = function () {
-    var $productRowCounter = 0;
-    var $feeRowCounter = 0;
     var $orderProductTotal;
     var $orderOriginalProductTotal;
     var $orderFeeTotal;
@@ -48,9 +46,9 @@ var OrderForm = function () {
                     success: function(data){
                         var $information = $(data.data);
 
-                        formBehaviors.init($information);
-
                         $('#billing-information-wrapper').html($information);
+
+                        formBehaviors.init($information);
 
                         App.unblockUI('#billing-information-wrapper');
                     }
@@ -73,9 +71,9 @@ var OrderForm = function () {
                 success: function(data){
                     var $information = $(data.data);
 
-                    formBehaviors.init($information);
-
                     $('#shipping-information-wrapper').html($information);
+
+                    formBehaviors.init($information);
 
                     App.unblockUI('#shipping-information-wrapper');
                 }
@@ -92,30 +90,41 @@ var OrderForm = function () {
 
         $('#add-product-lineitem').click(function(e){
             e.preventDefault();
-            $productRowCounter += 1;
+            $lastLineItem = $('.line-item:last-child', '#line-items-table tbody');
 
-            var $newProductLineItem = $($productLineItemPrototype({key: $productRowCounter}));
+            if($lastLineItem.length > 0){
+                $nextIndex = $lastLineItem.data('line_item_key') + 1;
+            }else{
+                $nextIndex = 0;
+            }
+
+            var $newProductLineItem = $($productLineItemPrototype({key: $nextIndex}));
+            $('#line-items-table tbody').append($newProductLineItem);
+
             formBehaviors.init($newProductLineItem);
             OrderForm.lineItemInit($newProductLineItem);
-
-            $('#line-items-table tbody').append($newProductLineItem);
         });
 
         $('#add-fee-lineitem').click(function(e){
             e.preventDefault();
-            $feeRowCounter += 1;
 
-            var $newFeeLineItem = $($feeLineItemPrototype({key: $feeRowCounter}));
+            $lastLineItem = $('.line-item:last-child', '#line-items-table tbody');
+
+            if($lastLineItem.length > 0){
+                $nextIndex = $lastLineItem.data('line_item_key') + 1;
+            }else{
+                $nextIndex = 0;
+            }
+
+            var $newFeeLineItem = $($feeLineItemPrototype({key: $nextIndex}));
+            $('#line-items-table tbody').append($newFeeLineItem);
+
             formBehaviors.init($newFeeLineItem);
             OrderForm.lineItemInit($newFeeLineItem);
-
-            $('#line-items-table tbody').append($newFeeLineItem);
         });
 
         $('#order-clear').click(function(e){
             e.preventDefault();
-
-            $productRowCounter = 0;
 
             $('#line-items-table tbody').empty();
         });
@@ -131,7 +140,6 @@ var OrderForm = function () {
             $('.line-item', '#line-items-table').each(function(idx, obj){
                 OrderForm.lineItemInit($(obj));
             });
-            $productRowCounter = $('.line-item', '#line-items-table').length;
         },
         lineItemInit: function(lineItem)
         {
@@ -152,11 +160,10 @@ var OrderForm = function () {
                         App.unblockUI($lineItem);
 
                         var $row = $(data.data);
+                        $lineItem.replaceWith($row);
 
                         formBehaviors.init($row);
                         OrderForm.lineItemInit($row);
-
-                        $lineItem.replaceWith($row);
 
                         $row.find('.net-price-field').trigger('change');
                     }

@@ -243,11 +243,26 @@
                     'attr' => [
                         'class' => 'form-control',
                         'id' => 'productDetail[retail_price]',
+                        'data-currency_dependent' => '#productDetail\\[currency\\]',
+                        'data-number_type' => 'amount',
                     ],
                     'unit' => CurrencyHelper::getCurrentCurrency()['symbol'],
                     'valueColumnClass' => 'col-md-4',
                     'unitPosition' => 'front',
                     'required' => TRUE
+                ])
+
+                @include('backend.master.form.fields.select', [
+                    'name' => 'productDetail[currency]',
+                    'label' => 'Currency',
+                    'key' => 'productDetail.currency',
+                    'attr' => [
+                        'class' => 'form-control',
+                        'id' => 'productDetail[currency]',
+                    ],
+                    'options' => $currencyOptions,
+                    'valueColumnClass' => 'col-md-4',
+                    'defaultOptions' => old('productDetail.currency', $product->productDetail->currency?$product->productDetail->currency:CurrencyHelper::getCurrentCurrency()['iso'])
                 ])
 
                 <div class="margin-top-30 portlet light bordered">

@@ -99,6 +99,10 @@ class PriceRuleFormRequest extends Request
             $attributes['price_rule']['active'] = false;
         }
 
+        if(!$this->has('price_rule.is_discount')){
+            $attributes['price_rule']['is_discount'] = false;
+        }
+
         $this->replace($attributes);
 
         return parent::all();

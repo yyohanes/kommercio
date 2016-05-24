@@ -14,10 +14,11 @@ class PriceRule extends Model
     const MODIFICATION_TYPE_AMOUNT = 'amount';
 
     protected $fillable = ['name', 'product_id', 'variation_id', 'price', 'modification', 'modification_type',
-        'currency', 'store_id', 'active', 'active_date_from', 'active_date_to', 'sort_order'];
+        'currency', 'store_id', 'active', 'active_date_from', 'active_date_to', 'is_discount', 'sort_order'];
     protected $toggleFields = ['active'];
     protected $casts = [
-        'active' => 'boolean'
+        'active' => 'boolean',
+        'is_discount' => 'boolean'
     ];
 
     //Relations
@@ -45,6 +46,18 @@ class PriceRule extends Model
     public function scopeNotProductSpecific($query)
     {
         $query->whereNull('product_id');
+    }
+
+    public function scopeIsDiscount($query)
+    {
+        $query->where('is_discount', 1);
+    }
+
+    public function scopeIsNotDiscount($query)
+    {
+        $query->where(function($query){
+            $query->where('is_discount', 0)->orWhereNull('is_discount');
+        });
     }
 
     public function scopeActive($query)

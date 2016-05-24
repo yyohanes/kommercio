@@ -27,4 +27,9 @@ class BackendValidator extends Validator
 
         return $variations->count() < 1;
     }
+
+    public function validateProductSKU($attribute, $value, $parameters)
+    {
+        return Product::where('sku', $value)->count() > 0;
+    }
 }
