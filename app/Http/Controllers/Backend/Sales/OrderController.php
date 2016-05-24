@@ -164,7 +164,8 @@ class OrderController extends Controller{
         }
 
         $render = view('backend.order.line_items.form.product', [
-            'product' => $model
+            'product' => $model,
+            'key' => $request->get('product_index')
         ])->render();
 
         return response()->json(['data' => $render, '_token' => csrf_token()]);

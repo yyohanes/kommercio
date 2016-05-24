@@ -56,7 +56,7 @@
                             <td><i class="fa fa-reorder"></i></td>
                             <td class="price-rule-name" data-price_rule_id="{{ $priceRule->id }}">{{ $priceRule->name?$priceRule->name:'-' }}</td>
                             <td> {{ $priceRule->price?$priceRule->getPrice():'-' }} </td>
-                            <td> {{ $priceRule->modification?$priceRule->getModification():'-' }} </td>
+                            <td> {{ $priceRule->modification?$priceRule->getModificationOutput():'-' }} </td>
                             <td> {{ $priceRule->currency?CurrencyHelper::getCurrency($priceRule->currency)['iso']:'All' }} </td>
                             <td> {{ $priceRule->store?$priceRule->store->name:'All' }} </td>
                             <td> <i class="fa {{ $priceRule->active?'fa-check text-success':'fa-remove text-danger' }}"></i> </td>

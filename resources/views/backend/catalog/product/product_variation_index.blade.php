@@ -2,6 +2,7 @@
     <tr>
         <td> {{ $variation->sku }} </td>
         <td> {{ PriceFormatter::formatNumber($variation->getRetailPrice()) }} </td>
+        <td> {{ PriceFormatter::formatNumber($variation->getNetPrice()) }} </td>
         <td>
             <ul class="list-unstyled">
             @foreach($variation->productAttributes as $attribute)

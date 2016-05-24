@@ -3,7 +3,6 @@
 namespace Kommercio\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Kommercio\Facades\CurrencyHelper;
 use Kommercio\Facades\PriceFormatter;
 use Kommercio\Traits\Model\ToggleDate;
 
@@ -48,13 +47,56 @@ class PriceRule extends Model
         $query->whereNull('product_id');
     }
 
-    //Methods
-    public function getPrice()
+    public function scopeActive($query)
     {
-        return PriceFormatter::formatNumber($this->price, $this->currency);
+        $query->where('active', 1);
     }
 
-    public function getModification()
+    //Methods
+    public function validateProduct(Product $product, $options = [])
+    {
+        //If not specific price rule
+        if(empty($this->product_id)){
+            $validateResults = [];
+
+            foreach($this->priceRuleOptionGroups as $priceRuleOptionGroup){
+                $validateResults[] = $priceRuleOptionGroup->validateProduct($product);
+            }
+
+            if(count(array_unique($validateResults)) === 1){
+                return current($validateResults);
+            }
+        }else{
+            if(!empty($this->currency) && isset($options['currency']) && $this->currency != $options['currency']){
+                return false;
+            }
+
+            if(!empty($this->store_id) && isset($options['store_id']) && $this->store_id != $options['store_id']){
+                return false;
+            }
+        }
+
+        return TRUE;
+    }
+
+    public function getValue($price = null)
+    {
+        if(!is_null($this->price)){
+            return $this->price;
+        }else{
+            if(is_null($price)){
+                $price = $this->price;
+            }
+
+            if($this->modification_type == 'amount'){
+                return $price + $this->modification;
+            }else{
+                return $price + ($price * $this->modification / 100);
+            }
+        }
+    }
+
+    public function getModificationOutput()
     {
         if($this->modification_type == 'amount'){
             return PriceFormatter::formatNumber($this->modification, $this->currency);

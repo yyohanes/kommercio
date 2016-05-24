@@ -42,7 +42,7 @@ var ProductIndex = function () {
                 "processing": true,
                 "serverSide": true,
                 "order": [
-                    [8, "desc"]
+                    [9, "desc"]
                 ],
                 "columnDefs": [
                     {"name": "no", "targets": 0, "orderable": false},
@@ -52,9 +52,10 @@ var ProductIndex = function () {
                     {"name": "category", "targets": 4, "orderable": false},
                     {"name": "manufacturer", "targets": 5, "orderable": false},
                     {"name": "retail_price", "targets": 6},
-                    {"name": "active", "targets": 7, "orderable": false},
-                    {"name": "products.created_at", "targets": 8},
-                    {"name": "action", "orderable" : false, "targets": 9}
+                    {"name": "net_price", "targets": 7, "orderable": false},
+                    {"name": "active", "targets": 8, "orderable": false},
+                    {"name": "products.created_at", "targets": 9},
+                    {"name": "action", "orderable" : false, "targets": 10}
                 ]
             }
         });

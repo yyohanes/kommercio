@@ -47,6 +47,7 @@
                         <th>Category</th>
                         <th>Manufacturer</th>
                         <th>Price</th>
+                        <th>Net Price</th>
                         <th>Status</th>
                         <th>Created At</th>
                         <th>Action</th>
@@ -58,6 +59,7 @@
                         <td>{!! Form::text('filter[sku]', null, ['class' => 'form-control form-filter input-sm']) !!}</td>
                         <td>{!! Form::text('filter[category_name]', null, ['class' => 'form-control form-filter input-sm']) !!}</td>
                         <td>{!! Form::text('filter[manufacturer]', null, ['class' => 'form-control form-filter input-sm']) !!}</td>
+                        <td></td>
                         <td></td>
                         <td>{!! Form::select('filter[active]', ['' => 'All', '1' => 'Active', '0' => 'Inactive'], null, ['class' => 'form-control form-filter input-sm']) !!}</td>
                         <td></td>

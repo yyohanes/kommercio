@@ -72,34 +72,46 @@
                     <tr>
                         <th> Item </th>
                         <th style="width: 20%;"> Original Price </th>
-                        <th style="width: 25%;"> Net Price </th>
+                        <th style="width: 20%;"> Net Price </th>
                         <th style="width: 5%;"> Quantity </th>
-                        <th> Total </th>
+                        <th style="width: 20%;"> Total </th>
                         <th>  </th>
                     </tr>
                     </thead>
                     <tbody>
-                        @include('backend.order.line_items.form.product')
+                        @include('backend.order.line_items.form.product', ['key' => 0])
                     </tbody>
                 </table>
+                <div class="clearfix">
+                    <a href="#" id="add-product-lineitem" class="btn btn-warning btn-sm">Add Product</a>
+                    <a href="#" id="add-fee-lineitem" class="btn btn-warning btn-sm">Add Fee</a>
+                </div>
             </div>
         </div>
     </div>
 
     <div class="col-md-6"></div>
     <div class="col-md-6">
-        <div class="well">
-            <div class="row static-info align-reverse">
+        <div class="well" id="order-summary">
+            <div class="row static-info align-reverse subtotal">
                 <div class="col-md-8 name"> Sub Total: </div>
-                <div class="col-md-3 value"> $1,124.50 </div>
+                <div class="col-md-3 value"> <span class="currency-symbol">{{ CurrencyHelper::getCurrentCurrency()['symbol'] }}</span> <span class="amount">0</span> </div>
             </div>
-            <div class="row static-info align-reverse">
+            <div class="row static-info align-reverse shipping">
                 <div class="col-md-8 name"> Shipping: </div>
-                <div class="col-md-3 value"> $40.50 </div>
+                <div class="col-md-3 value"> <span class="currency-symbol">{{ CurrencyHelper::getCurrentCurrency()['symbol'] }}</span> <span class="amount">0</span> </div>
             </div>
-            <div class="row static-info align-reverse">
+            <div class="row static-info align-reverse fee">
+                <div class="col-md-8 name"> Fee: </div>
+                <div class="col-md-3 value"> <span class="currency-symbol">{{ CurrencyHelper::getCurrentCurrency()['symbol'] }}</span> <span class="amount">0</span> </div>
+            </div>
+            <div class="row static-info align-reverse discount">
+                <div class="col-md-8 name"> Discount: </div>
+                <div class="col-md-3 value"> <span class="currency-symbol">{{ CurrencyHelper::getCurrentCurrency()['symbol'] }}</span> <span class="amount">0</span> </div>
+            </div>
+            <div class="row static-info align-reverse total">
                 <div class="col-md-8 name"> Grand Total: </div>
-                <div class="col-md-3 value"> $1,260.00 </div>
+                <div class="col-md-3 value"> <span class="currency-symbol">{{ CurrencyHelper::getCurrentCurrency()['symbol'] }}</span> <span class="amount">0</span> </div>
             </div>
         </div>
     </div>
@@ -112,6 +124,14 @@
 
     <script>
         global_vars.product_line_item = '{{ route('backend.sales.order.line_item.row', ['type' => 'product']) }}';
+    </script>
+
+    <script id="lineitem-product-template" type="text/x-handlebars-template">
+        @include('backend.order.line_items.form.product', ['key' => '@{{key}}'])
+    </script>
+
+    <script id="lineitem-fee-template" type="text/x-handlebars-template">
+        @include('backend.order.line_items.form.fee', ['key' => '@{{key}}'])
     </script>
 
     <script src="{{ asset('backend/assets/scripts/pages/order_form.js') }}" type="text/javascript"></script>

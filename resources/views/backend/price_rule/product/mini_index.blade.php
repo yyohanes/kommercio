@@ -17,8 +17,8 @@
             <tr>
                 <td> {{ $priceRule->name?$priceRule->name:'-' }} </td>
                 <td> {{ $priceRule->variation?$priceRule->variation->name:'-' }} </td>
-                <td> {{ $priceRule->price?$priceRule->getPrice():'-' }} </td>
-                <td> {{ $priceRule->modification?$priceRule->getModification():'-' }} </td>
+                <td> {{ $priceRule->price?PriceFormatter::formatNumber($priceRule->price, $priceRule->currency):'-' }} </td>
+                <td> {{ $priceRule->modification?$priceRule->getModificationOutput():'-' }} </td>
                 <td> {{ $priceRule->currency?CurrencyHelper::getCurrency($priceRule->currency)['iso']:'All' }} </td>
                 <td> {{ $priceRule->store?$priceRule->store->name:'All' }} </td>
                 <td> <i class="fa {{ $priceRule->active?'fa-check text-success':'fa-remove text-danger' }}"></i> </td>

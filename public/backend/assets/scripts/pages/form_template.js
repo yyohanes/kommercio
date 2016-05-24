@@ -534,6 +534,18 @@ var formBehaviors = function(){
 }();
 
 var formHelper = {
+    convertNumber: function(n, thousand_separator, decimal_separator){
+        if(typeof thousand_separator === 'undefined'){
+            thousand_separator = ',';
+        }
+
+        if(typeof decimal_separator === 'undefined'){
+            decimal_separator = '.';
+        }
+
+        var parts=n.toString().split(decimal_separator);
+        return parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, thousand_separator) + (parts[1] ? decimal_separator + parts[1] : "");
+    },
     convertDotToSquareBracket: function(name){
         var parts = String(name).split('.');
         var returnText = '';

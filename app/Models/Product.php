@@ -5,7 +5,6 @@ namespace Kommercio\Models;
 use Dimsav\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Kommercio\Facades\PriceFormatter;
 use Kommercio\Facades\ProjectHelper;
 use Kommercio\Models\ProductAttribute\ProductAttributeValue;
 
@@ -29,6 +28,7 @@ class Product extends Model
     protected $with = ['productDetail'];
     private $_warehouse;
     private $_store;
+    private $_assessedCatalogPriceRules = [];
 
     public $translatedAttributes = ['name', 'description_short', 'description', 'slug', 'meta_title', 'meta_description', 'locale', 'thumbnail', 'thumbnails', 'images'];
 
@@ -106,10 +106,35 @@ class Product extends Model
     public function getRetailPrice()
     {
         if($this->combination_type == self::COMBINATION_TYPE_VARIATION){
-            return $this->productDetail->retail_price?$this->productDetail->retail_price:$this->parent->productDetail->retail_price;
+            $price = $this->productDetail->retail_price?$this->productDetail->retail_price:$this->parent->productDetail->retail_price;
+        }else{
+            $price = $this->productDetail->retail_price;
         }
 
-        return $this->productDetail->retail_price;
+        $priceRules = $this->getSpecificPriceRules();
+
+        foreach($priceRules as $priceRule){
+            if($priceRule->validateProduct($this)){
+                $price = $priceRule->getValue($price);
+            }
+        }
+
+        return $price;
+    }
+
+    public function getNetPrice($options=[])
+    {
+        $catalogPriceRules = $this->getCatalogPriceRules();
+
+        $price = $this->getRetailPrice();
+
+        foreach($catalogPriceRules as $catalogPriceRule){
+            if($catalogPriceRule->validateProduct($this)){
+                $price = $catalogPriceRule->getValue($price);
+            }
+        }
+
+        return $price;
     }
 
     public function getProductAttributeWithValues()
@@ -192,7 +217,163 @@ class Product extends Model
         }
     }
 
+    public function getSpecificPriceRules()
+    {
+        $qb = $this->priceRules()->active();
+
+        return $qb->get();
+    }
+
+    public function getCatalogPriceRules()
+    {
+        $qb = PriceRule::notProductSpecific()->active()->orderBy('sort_order', 'ASC');
+
+        $qb->where(function($qb){
+            $categories = $this->categories;
+            $manufacturer = $this->manufacturer_id;
+            $features = $this->productFeatureValues;
+            $attributeValueIds = [];
+
+            if($this->isVariation){
+                $attributeValues = $this->productAttributeValues;
+                $attributeValueIds = $attributeValues->pluck('id')->all();
+            }else{
+                if($this->variations->count() > 0){
+                    $attributeValues = ProductAttributeValue::whereHas('products', function($query){
+                        $query->whereIn('product_id', $this->variations->pluck('id')->all());
+                    })->get();
+                    $attributeValueIds = $attributeValues->pluck('id')->all();
+                }
+            }
+
+            $firstValidation = true;
+
+            if($categories->count() > 0){
+                $validationFunction = $firstValidation?'whereHas':'orWhereHas';
+
+                $qb->$validationFunction('priceRuleOptionGroups.categories', function($query) use ($categories){
+                    $query->whereIn('id', $categories->pluck('id')->all());
+                });
+                $firstValidation = false;
+            }
+
+            if($features->count() > 0){
+                $validationFunction = $firstValidation?'whereHas':'orWhereHas';
+
+                $qb->$validationFunction('priceRuleOptionGroups.featureValues', function($query) use ($features){
+                    $query->whereIn('id', $features->pluck('id')->all());
+                });
+                $firstValidation = false;
+            }
+
+            if($manufacturer){
+                $validationFunction = $firstValidation?'whereHas':'orWhereHas';
+
+                $qb->$validationFunction('priceRuleOptionGroups.manufacturers', function($query) use ($manufacturer){
+                    $query->whereIn('id', [$manufacturer]);
+                });
+                $firstValidation = false;
+            }
+
+            if($attributeValueIds){
+                $validationFunction = $firstValidation?'whereHas':'orWhereHas';
+
+                $qb->$validationFunction('priceRuleOptionGroups.attributeValues', function($query) use ($attributeValueIds){
+                    $query->whereIn('id', $attributeValueIds);
+                });
+                $firstValidation = false;
+            }
+        });
+
+        $includedPriceRules = $qb->get();
+
+        return $includedPriceRules;
+
+        /*
+        $includedPriceRules = [];
+
+        //By Categories
+        $categories = $this->categories;
+        $categoryPriceRules = [];
+        if($categories->count() > 0){
+            $categoryPriceRules = PriceRule::notProductSpecific()->whereHas('priceRuleOptionGroups.categories', function($query) use ($categories){
+                $query->whereIn('id', $categories->pluck('id')->all());
+            })->get();
+
+            foreach($categoryPriceRules as $categoryPriceRule){
+                if(!isset($includedPriceRules[$categoryPriceRule->id])){
+                    $includedPriceRules[$categoryPriceRule->id] = $categoryPriceRule;
+                }
+            }
+        }
+
+        //By manufacturer
+        $manufacturer = $this->manufacturer_id;
+        $manufacturerPriceRules = [];
+        if($manufacturer){
+            $manufacturerPriceRules = PriceRule::notProductSpecific()->whereHas('priceRuleOptionGroups.manufacturers', function($query) use ($manufacturer){
+                $query->whereIn('id', [$manufacturer]);
+            })->get();
+
+            foreach($manufacturerPriceRules as $manufacturerPriceRule){
+                if(!isset($includedPriceRules[$manufacturerPriceRule->id])){
+                    $includedPriceRules[$manufacturerPriceRule->id] = $manufacturerPriceRule;
+                }
+            }
+        }
+
+        //By attribute
+        $attributePriceRules = [];
+        $attributeValueIds = [];
+        if($this->isVariation){
+            $attributeValues = $this->productAttributeValues;
+            $attributeValueIds = $attributeValues->pluck('id')->all();
+        }else{
+            if($this->variations->count() > 0){
+                $attributeValues = ProductAttributeValue::whereHas('products', function($query){
+                    $query->whereIn('product_id', $this->variations->pluck('id')->all());
+                })->get();
+                $attributeValueIds = $attributeValues->pluck('id')->all();
+            }
+        }
+
+        if(count($attributeValueIds) > 0){
+            $attributePriceRules = PriceRule::notProductSpecific()->whereHas('priceRuleOptionGroups.attributeValues', function($query) use ($attributeValueIds){
+                $query->whereIn('id', $attributeValueIds);
+            })->get();
+
+            foreach($attributePriceRules as $attributePriceRule){
+                if(!isset($includedPriceRules[$attributePriceRule->id])){
+                    $includedPriceRules[$attributePriceRule->id] = $attributePriceRule;
+                }
+            }
+        }
+
+        //By features
+        $features = $this->productFeatureValues;
+        $featurePriceRules = [];
+        if($features->count() > 0){
+            $featurePriceRules = PriceRule::notProductSpecific()->whereHas('priceRuleOptionGroups.featureValues', function($query) use ($features){
+                $query->whereIn('id', $features->pluck('id')->all());
+            })->get();
+
+            foreach($featurePriceRules as $featurePriceRule){
+                if(!isset($includedPriceRules[$featurePriceRule->id])){
+                    $includedPriceRules[$featurePriceRule->id] = $featurePriceRule;
+                }
+            }
+        }
+
+        return $includedPriceRules;
+        */
+    }
+
     //Accessors
+    public function getIsVariationAttribute()
+    {
+        return $this->combination_type == self::COMBINATION_TYPE_VARIATION;
+    }
+
     public function getStoreAttribute()
     {
         if(!$this->_store){

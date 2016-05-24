@@ -304,6 +304,7 @@
                             <tr>
                                 <th> SKU </th>
                                 <th> Price </th>
+                                <th> Net Price </th>
                                 <th> Attributes </th>
                                 <th> Actions </th>
                             </tr>

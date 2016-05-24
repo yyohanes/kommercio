@@ -98,6 +98,7 @@ class ProductController extends Controller{
                 $product->defaultCategory?$product->defaultCategory->name:'',
                 $product->manufacturer?$product->manufacturer->name:'',
                 PriceFormatter::formatNumber($product->getRetailPrice()),
+                PriceFormatter::formatNumber($product->getNetPrice()),
                 '<i class="fa fa-'.($product->productDetail->active?'check text-success':'remove text-danger').'"></i>',
                 $product->created_at->format('d M Y H:i'),
                 $productAction
@@ -244,22 +245,6 @@ class ProductController extends Controller{
 
         $productDetail->save();
 
-        //Inventory
-        if($product->variations->count() > 0){
-            foreach($product->variations as $variation){
-                $variation->productDetail->manage_stock = $request->input('variation.'.$variation->id.'.productDetail.manage_stock', false);
-                $variation->productDetail->save();
-
-                if($variation->productDetail->manage_stock){
-                    $variation->saveStock($request->input('variation.'.$variation->id.'.stock'), $request->input('warehouse_id'));
-                }
-            }
-        }else{
-            if($productDetail->manage_stock){
-                $product->saveStock($request->input('stock'), $request->input('warehouse_id'));
-            }
-        }
-
         //Update Product Features and save custom feature value
         $syncFeatures = [];
         foreach($request->input('features', []) as $featureId=>$featureValue){
@@ -287,6 +272,33 @@ class ProductController extends Controller{
             }
         }
         $product->productFeatureValues()->sync($syncFeatures);
+
+        //Inventory
+        if($product->variations->count() > 0){
+            foreach($product->variations as $variation){
+                $variation->productDetail->manage_stock = $request->input('variation.'.$variation->id.'.productDetail.manage_stock', false);
+                $variation->productDetail->save();
+
+                //Update children product categories
+                $variation->categories()->sync($request->input('categories', []));
+
+                //Update children features
+                $variation->productFeatureValues()->sync($syncFeatures);
+
+                //Update manufacturer
+                $variation->manufacturer_id = $request->input('manufacturer_id', null);
+
+                if($variation->productDetail->manage_stock){
+                    $variation->saveStock($request->input('variation.'.$variation->id.'.stock'), $request->input('warehouse_id'));
+                }
+
+                $variation->save();
+            }
+        }else{
+            if($productDetail->manage_stock){
+                $product->saveStock($request->input('stock'), $request->input('warehouse_id'));
+            }
+        }
 
         $message = $product->name.' has successfully been updated.';
 
@@ -456,7 +468,25 @@ class ProductController extends Controller{
         }
 
         $product->parent()->associate($parentProduct);
+
+        //Update manufacturer
+        $product->manufacturer_id = $parentProduct->manufacturer_id;
+
         $product->save();
+
+        //Update children product categories
+        $product->categories()->sync($parentProduct->categories->pluck('id')->all());
+
+        //Update children features
+        $features = [];
+
+        foreach($parentProduct->productFeatureValues as $parentProductFeature){
+            $features[$parentProductFeature->id] = [
+                'product_feature_id' => $parentProductFeature->pivot->product_feature_id
+            ];
+        }
+
+        $product->productFeatureValues()->sync($features);
 
         $product->productAttributeValues()->sync($toSyncAttributeValues);
 

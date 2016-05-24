@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class PriceRuleOptionGroup extends Model
 {
-    public $optionFields = ['manufacturers', 'categories', 'attributeValues', 'featureValues'];
+    public $optionFields = ['categories', 'manufacturers', 'attributeValues', 'featureValues'];
     public $timestamps = FALSE;
 
     protected $guarded = [];
@@ -35,5 +35,39 @@ class PriceRuleOptionGroup extends Model
     public function featureValues()
     {
         return $this->morphedByMany('Kommercio\Models\ProductFeature\ProductFeatureValue', 'price_rule_optionable');
+    }
+
+    //Methods
+    public function validateProduct(Product $product)
+    {
+        //Validate one because it's an OR validation
+        foreach($this->optionFields as $optionField){
+            switch($optionField){
+                case 'categories':
+                    $productValues = $product->categories->pluck('id')->all();
+                    break;
+                case 'manufacturers':
+                    $productValues = $product->manufacturer_id?[$product->manufacturer_id]:null;
+                    break;
+                case 'attributeValues':
+                    $productValues = $product->productAttributeValues->pluck('id')->all();
+                    break;
+                case 'featureValues':
+                    $productValues = $product->productFeatureValues->pluck('id')->all();
+                    break;
+                default:
+                    break;
+            }
+
+            if($productValues){
+                $intersected = array_intersect($this->$optionField->pluck('id')->all(), $productValues);
+
+                if(!empty($intersected)){
+                    return TRUE;
+                }
+            }
+        }
+
+        return FALSE;
     }
 }
