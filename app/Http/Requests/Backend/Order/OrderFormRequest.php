@@ -36,6 +36,10 @@ class OrderFormRequest extends Request
             'line_items' => 'required',
         ];
 
+        if(config('kommercio.enable_delivery_date', FALSE)){
+            $rules['delivery_date'] = 'required|date_format:Y-m-d';
+        }
+
         foreach($this->input('line_items', []) as $idx => $lineItem){
             if($lineItem['line_item_type'] == 'product'){
                 $rules['line_items.'.$idx.'.sku'] = 'product_sku|required_with:line_items.'.$idx.'.net_price,line_items.'.$idx.'.quantity';

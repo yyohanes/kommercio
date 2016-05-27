@@ -13,5 +13,6 @@ return [
             'w' => 200,
             'h' => 200
         ],
-    ]
+    ],
+    'enable_delivery_date' => TRUE
 ];

@@ -202,7 +202,7 @@ License: You must have a valid license purchased only from themeforest(the above
         images_path: '{{ config('kommercio.images_path') }}',
         asset_path: '{{ asset('/backend/assets') }}',
         max_upload_size: {{ ProjectHelper::getMaxUploadSize() }},
-        default_currency: '{{ CurrencyHelper::getDefaultCurrency() }}',
+        default_currency: '{{ CurrencyHelper::getCurrentCurrency()['code'] }}',
         currencies: {!! json_encode(CurrencyHelper::getActiveCurrencies()) !!},
         csrf_token: '{{ csrf_token() }}'
     };

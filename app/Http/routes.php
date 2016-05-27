@@ -444,6 +444,11 @@ Route::group(['middleware' => ['web']], function () {
                         'as' => 'backend.sales.order.line_item.row',
                         'uses' => 'OrderController@lineItemRow'
                     ]);
+
+                    Route::any('shipping/options', [
+                        'as' => 'backend.sales.order.shipping_options',
+                        'uses' => 'OrderController@shippingOptions'
+                    ]);
                 });
             });
 

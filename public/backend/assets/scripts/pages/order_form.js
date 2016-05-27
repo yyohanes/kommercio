@@ -2,12 +2,14 @@ var OrderForm = function () {
     var $orderProductTotal;
     var $orderOriginalProductTotal;
     var $orderFeeTotal;
+    var $orderShippingTotal;
 
     var reserOrderSummary = function()
     {
         $orderProductTotal = 0;
         $orderOriginalProductTotal = 0;
         $orderFeeTotal = 0;
+        $orderShippingTotal = 0;
     }
 
     var calculateOrderSummary = function()
@@ -20,6 +22,8 @@ var OrderForm = function () {
                 $orderOriginalProductTotal += Number($(obj).find('.base-price-field').inputmask('unmaskedvalue') * $(obj).find('.quantity-field').val());
             }else if($(obj).data('line_item') == 'fee'){
                 $orderFeeTotal += Number($(obj).find('.lineitem-total-amount').inputmask('unmaskedvalue'));
+            }else if($(obj).data('line_item') == 'shipping'){
+                $orderShippingTotal += Number($(obj).find('.lineitem-total-amount').inputmask('unmaskedvalue'));
             }
         });
     }
@@ -27,8 +31,22 @@ var OrderForm = function () {
     var printOrderSummary = function()
     {
         $('.subtotal .amount', '#order-summary').text(formHelper.convertNumber($orderOriginalProductTotal + $orderFeeTotal));
+        $('.shipping .amount', '#order-summary').text(formHelper.convertNumber($orderShippingTotal));
         $('.discount .amount', '#order-summary').text(formHelper.convertNumber($orderProductTotal - $orderOriginalProductTotal));
-        $('.total .amount', '#order-summary').text(formHelper.convertNumber($orderProductTotal + $orderFeeTotal));
+        $('.total .amount', '#order-summary').text(formHelper.convertNumber($orderProductTotal + $orderShippingTotal + $orderFeeTotal));
+    }
+
+    var getNextIndex = function()
+    {
+        $lastLineItem = $('.line-item:last-child', '#line-items-table tbody');
+
+        if($lastLineItem.length > 0){
+            $nextIndex = $lastLineItem.data('line_item_key') + 1;
+        }else{
+            $nextIndex = 0;
+        }
+
+        return $nextIndex;
     }
 
     var handleBillingEmail = function()
@@ -88,15 +106,12 @@ var OrderForm = function () {
         var $feeLineItemPrototypeSource = $('#lineitem-fee-template').html();
         var $feeLineItemPrototype = Handlebars.compile($feeLineItemPrototypeSource);
 
+        var $shippingLineItemPrototypeSource = $('#lineitem-shipping-template').html();
+        var $shippingLineItemPrototype = Handlebars.compile($shippingLineItemPrototypeSource);
+
         $('#add-product-lineitem').click(function(e){
             e.preventDefault();
-            $lastLineItem = $('.line-item:last-child', '#line-items-table tbody');
-
-            if($lastLineItem.length > 0){
-                $nextIndex = $lastLineItem.data('line_item_key') + 1;
-            }else{
-                $nextIndex = 0;
-            }
+            $nextIndex = getNextIndex();
 
             var $newProductLineItem = $($productLineItemPrototype({key: $nextIndex}));
             $('#line-items-table tbody').append($newProductLineItem);
@@ -107,20 +122,77 @@ var OrderForm = function () {
 
         $('#add-fee-lineitem').click(function(e){
             e.preventDefault();
-
-            $lastLineItem = $('.line-item:last-child', '#line-items-table tbody');
-
-            if($lastLineItem.length > 0){
-                $nextIndex = $lastLineItem.data('line_item_key') + 1;
-            }else{
-                $nextIndex = 0;
-            }
+            $nextIndex = getNextIndex();
 
             var $newFeeLineItem = $($feeLineItemPrototype({key: $nextIndex}));
             $('#line-items-table tbody').append($newFeeLineItem);
 
             formBehaviors.init($newFeeLineItem);
             OrderForm.lineItemInit($newFeeLineItem);
+        });
+
+        $('#add-shipping-lineitem').click(function(e){
+            e.preventDefault();
+            $nextIndex = getNextIndex();
+
+            App.blockUI({
+                target: '#order-content-wrapper',
+                boxed: true,
+                message: 'Loading shipping options...'
+            });
+
+            $.ajax($(this).data('shipping_options'), {
+                data: $('#order-form :input').serialize(),
+                method: 'POST',
+                dataType: 'json',
+                success: function(data){
+                    if(Object.keys(data).length > 0){
+                        var $shippingSelect = $('<select class="form-control"></select>');
+
+                        for(var i in data){
+                            $shippingSelect.append('<option data-name="'+data[i].name+'" data-price="'+data[i].price.amount+'" value="'+i+'">'+data[i].name+': '+global_vars.currencies[global_vars.default_currency].iso +' '+ formHelper.convertNumber(data[i].price.amount)+'</option>');
+                        }
+
+                        $('#add-shipping-lineitem').hide();
+                        $('#shipping-options-wrapper').find('select').remove();
+                        $('#shipping-options-wrapper').show().find('.input-group').prepend($shippingSelect);
+                    }else{
+                        $('#shipping-options-wrapper').hide()
+                        $('#add-shipping-lineitem').show();
+                    }
+
+                    App.unblockUI('#order-content-wrapper');
+                }
+            });
+        });
+
+        $('.shipping-select', '#shipping-options-wrapper').on('click', function(e){
+            e.preventDefault();
+
+            var $selectedShippingOption = $('#shipping-options-wrapper select').find(':selected');
+            var $newShippingLineItem = $($shippingLineItemPrototype({key: $nextIndex}));
+
+            $('#line-items-table tbody').append($newShippingLineItem);
+
+            $newShippingLineItem.find('.shipping-method-hidden').val($selectedShippingOption.val());
+            $newShippingLineItem.find('.name-field').val($selectedShippingOption.data('name'));
+            $newShippingLineItem.find('.base-price-field').val($selectedShippingOption.data('price'));
+            $newShippingLineItem.find('.lineitem-total-amount').val($selectedShippingOption.data('price'));
+
+            formBehaviors.init($newShippingLineItem);
+            OrderForm.lineItemInit($newShippingLineItem);
+
+            $newShippingLineItem.find('.lineitem-total-amount').trigger('change');
+
+            $('#shipping-options-wrapper').hide()
+            $('#add-shipping-lineitem').show();
+        });
+
+        $('.shipping-cancel', '#shipping-options-wrapper').on('click', function(e){
+            e.preventDefault();
+
+            $('#shipping-options-wrapper').hide()
+            $('#add-shipping-lineitem').show();
         });
 
         $('#order-clear').click(function(e){

@@ -4,6 +4,7 @@ namespace Kommercio\Models\ShippingMethod;
 
 use Dimsav\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Model;
+use Kommercio\Models\Order\Order;
 
 class ShippingMethod extends Model
 {
@@ -14,4 +15,41 @@ class ShippingMethod extends Model
     public $translatedAttributes = ['name','message'];
 
     protected $fillable = ['name', 'class', 'message', 'sort_order'];
+
+    private $_processor;
+
+    //Methods
+    public function getProcessor()
+    {
+        if(!isset($this->_processor)){
+            $this->_processor = null;
+
+            $className = 'Kommercio\ShippingMethods\\'.$this->class;
+            if(class_exists($className)){
+                $this->_processor = new $className();
+                $this->_processor->setShippingMethod($this);
+            }
+        }
+
+        return $this->_processor;
+    }
+
+    //Statics
+    public static function getShippingMethods($options = null)
+    {
+        $shippingMethods = self::orderBy('sort_order', 'ASC')->get();
+
+        $return = [];
+        foreach($shippingMethods as $shippingMethod){
+            if($shippingMethod->getProcessor() && $shippingMethod->getProcessor()->validate($options)){
+                $shippingReturnedMethods = $shippingMethod->getProcessor()->getMethods($options);
+
+                if($shippingReturnedMethods){
+                    $return = array_merge($return, $shippingReturnedMethods);
+                }
+            }
+        }
+
+        return $return;
+    }
 }

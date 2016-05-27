@@ -83,16 +83,35 @@ class Order extends Model implements AuthorSignatureInterface
         $profile->saveDetails($data);
     }
 
+    public function calculateSubtotal()
+    {
+        $this->subtotal = 0;
+
+        foreach($this->lineItems as $lineItem){
+            if($lineItem->isProduct){
+                $this->subtotal += $lineItem->calculateSubtotal();
+            }
+        }
+
+        return $this->subtotal;
+    }
+
     public function calculateShippingTotal()
     {
         $this->shipping_total = 0;
+
+        foreach($this->lineItems as $lineItem){
+            if($lineItem->isShipping){
+                $this->shipping_total += $lineItem->calculateTotal();
+            }
+        }
 
         return $this->shipping_total;
     }
 
     public function calculateDiscountTotal()
     {
-        $this->discount_total = $this->calculateProductTotal() - $this->calculateProductSubtotal();
+        $this->discount_total = $this->calculateProductTotal() - $this->calculateSubtotal();
 
         return $this->discount_total;
     }
@@ -119,26 +138,13 @@ class Order extends Model implements AuthorSignatureInterface
 
     public function calculateTotal()
     {
-        $productSubtotal = $this->calculateProductSubtotal();
+        $subtotal = $this->calculateSubtotal();
         $shippingTotal = $this->calculateShippingTotal();
         $discountTotal = $this->calculateDiscountTotal();
         $additionalTotal = $this->calculateAdditionalTotal();
         $taxTotal = $this->calculateTaxTotal();
 
-        $this->total = $productSubtotal + $shippingTotal + $discountTotal + $additionalTotal + $taxTotal;
-    }
-
-    public function calculateProductSubtotal()
-    {
-        $this->subtotal = 0;
-
-        foreach($this->lineItems as $lineItem){
-            if($lineItem->isProduct){
-                $this->subtotal += $lineItem->calculateSubtotal();
-            }
-        }
-
-        return $this->subtotal;
+        $this->total = $subtotal + $shippingTotal + $discountTotal + $additionalTotal + $taxTotal;
     }
 
     public function calculateProductTotal()

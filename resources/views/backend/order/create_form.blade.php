@@ -34,6 +34,31 @@
                 </div>
             </div>
         </div>
+
+        @if(config('kommercio.enable_delivery_date', FALSE))
+        <div class="portlet light bordered">
+            <div class="portlet-title">
+                <div class="caption">
+                    <i class="fa fa-clock-o"></i>
+                    <span class="caption-subject">Delivery Date</span>
+                </div>
+            </div>
+            <div class="portlet-body">
+                @include('backend.master.form.fields.text', [
+                    'name' => 'delivery_date',
+                    'label' => 'Delivery Date',
+                    'key' => 'delivery_date',
+                    'attr' => [
+                        'class' => 'form-control date-picker',
+                        'data-date-format' => 'yyyy-mm-dd',
+                        'id' => 'delivery_date',
+                        'placeholder' => 'YYYY-MM-DD'
+                    ],
+                    'defaultValue' => old('delivery_date', $order->delivery_date?$order->delivery_date->format('Y-m-d'):null)
+                ])
+            </div>
+        </div>
+        @endif
     </div>
 
     <div class="col-md-6">
@@ -79,13 +104,20 @@
                     </tr>
                     </thead>
                     <tbody>
+                        <?php $shippingLineItems = []; ?>
                         @if($lineItems)
                             @foreach($lineItems as $idx=>$lineItem)
                                 @if($lineItem['line_item_type'] == 'fee')
                                     @include('backend.order.line_items.form.fee', ['key' => $idx])
-                                @else
+                                @elseif($lineItem['line_item_type'] == 'product')
                                     @include('backend.order.line_items.form.product', ['key' => $idx])
+                                @elseif($lineItem['line_item_type'] == 'shipping')
+                                    <?php $shippingLineItems[$idx] = $lineItem; ?>
                                 @endif
+                            @endforeach
+
+                            @foreach($shippingLineItems as $idx=>$shippingLineItem)
+                                @include('backend.order.line_items.form.shipping', ['key' => $idx])
                             @endforeach
                         @else
                             @include('backend.order.line_items.form.product', ['key' => 0])
@@ -93,14 +125,31 @@
                     </tbody>
                 </table>
                 <div class="clearfix">
-                    <a href="#" id="add-product-lineitem" class="btn btn-warning btn-sm">Add Product</a>
-                    <a href="#" id="add-fee-lineitem" class="btn btn-warning btn-sm">Add Fee</a>
+                    <a href="#" id ="add-product-lineitem" class="btn btn-default btn-sm"><i class="fa fa-tag"></i> Add Product</a>
+                    <a href="#" id="add-fee-lineitem" class="btn btn-default btn-sm"><i class="fa fa-ellipsis-h"></i> Add Fee</a>
+                </div>
+
+                <div style="margin-top: 10px;" class="row">
+                    <div class="col-md-5">
+                        <div id="shipping-options-wrapper" style="display: none;">
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-btn">
+                                    <a class="btn btn-success shipping-select" href="#"><i class="fa fa-check"></i></a>
+                                    <a class="btn btn-default shipping-cancel" href="#"><i class="fa fa-remove"></i></a>
+                                </span>
+                            </div>
+                        </div>
+                        <a href="#" id="add-shipping-lineitem" class="btn btn-default btn-sm" data-shipping_options="{{ route('backend.sales.order.shipping_options') }}"><i class="fa fa-truck"></i> Add Shipping</a>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="col-md-6"></div>
+    <div class="col-md-6">
+
+    </div>
+
     <div class="col-md-6">
         <div class="well" id="order-summary">
             <div class="row static-info align-reverse subtotal">
@@ -139,6 +188,10 @@
 
     <script id="lineitem-fee-template" type="text/x-handlebars-template">
         @include('backend.order.line_items.form.fee', ['key' => '@{{key}}'])
+    </script>
+
+    <script id="lineitem-shipping-template" type="text/x-handlebars-template">
+        @include('backend.order.line_items.form.shipping', ['key' => '@{{key}}'])
     </script>
 
     <script src="{{ asset('backend/assets/scripts/pages/order_form.js') }}" type="text/javascript"></script>

@@ -37,6 +37,14 @@ class LineItem extends Model
             $this->net_price = $data['lineitem_total_amount'];
             $this->total = $data['lineitem_total_amount'];
             $this->quantity = 1;
+        }elseif($data['line_item_type'] == 'shipping'){
+            $this->name = $data['name'];
+            $this->line_item_id = $data['shipping_method_id'];
+            $this->line_item_type = 'shipping';
+            $this->base_price = $data['base_price'];
+            $this->net_price = $data['lineitem_total_amount'];
+            $this->total = $data['lineitem_total_amount'];
+            $this->quantity = 1;
         }
 
         $this->sort_order = $sort_order;
@@ -67,6 +75,11 @@ class LineItem extends Model
     public function getIsFeeAttribute()
     {
         return $this->line_item_type == 'fee';
+    }
+
+    public function getIsShippingAttribute()
+    {
+        return $this->line_item_type == 'shipping';
     }
 
     public function getQuantityAttribute()

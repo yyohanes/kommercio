@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Request as RequestFacade;
 use Kommercio\Models\Product;
 use Kommercio\Models\Profile\Profile;
 use Kommercio\Facades\PriceFormatter;
+use Kommercio\Models\ShippingMethod\ShippingMethod;
 
 class OrderController extends Controller{
     public function index(Request $request)
@@ -113,9 +114,12 @@ class OrderController extends Controller{
 
         $lineItems = old('line_items', []);
 
+        $shippingMethods = ShippingMethod::getShippingMethods();
+
         return view('backend.order.create', [
             'order' => $order,
-            'lineItems' => $lineItems
+            'lineItems' => $lineItems,
+            'shippingMethods' => $shippingMethods
         ]);
     }
 
@@ -128,6 +132,7 @@ class OrderController extends Controller{
             $order->customer()->associate($customer);
         }
 
+        $order->delivery_date = $request->input('delivery_date', null);
         $order->store_id = $request->input('store_id');
         $order->currency = $request->input('currency');
         $order->conversion_rate = 1;
@@ -200,6 +205,7 @@ class OrderController extends Controller{
             $order->customer()->associate($customer);
         }
 
+        $order->delivery_date = $request->input('delivery_date', null);
         $order->store_id = $request->input('store_id');
         $order->currency = $request->input('currency');
         $order->conversion_rate = 1;
@@ -289,5 +295,22 @@ class OrderController extends Controller{
         ])->render();
 
         return response()->json(['data' => $render, '_token' => csrf_token()]);
+    }
+
+    public function shippingOptions(Request $request)
+    {
+        $return = [];
+
+        $shippingOptions = ShippingMethod::getShippingMethods();
+
+        foreach($shippingOptions as $idx=>$shippingOption){
+            $return[$idx] = [
+                'shipping_method_id' => $shippingOption['shipping_method_id'],
+                'name' => $shippingOption['name'],
+                'price' => $shippingOption['price']
+            ];
+        }
+
+        return response()->json($return);
     }
 }
