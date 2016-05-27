@@ -81,7 +81,7 @@
                     <tbody>
                         @if($lineItems)
                             @foreach($lineItems as $idx=>$lineItem)
-                                @if($lineItem['type'] == 'fee')
+                                @if($lineItem['line_item_type'] == 'fee')
                                     @include('backend.order.line_items.form.fee', ['key' => $idx])
                                 @else
                                     @include('backend.order.line_items.form.product', ['key' => $idx])
@@ -124,6 +124,7 @@
 </div>
 
 {!! Form::hidden('store_id', ProjectHelper::getActiveStore()->id) !!}
+{!! Form::hidden('currency', CurrencyHelper::getCurrentCurrency()['code']) !!}
 
 @section('bottom_page_scripts')
     @parent

@@ -17,7 +17,7 @@ var OrderForm = function () {
         $('.line-item', '#line-items-table').each(function(idx, obj){
             if($(obj).data('line_item') == 'product'){
                 $orderProductTotal += Number($(obj).find('.lineitem-total-amount').inputmask('unmaskedvalue'));
-                $orderOriginalProductTotal += Number($(obj).find('.retail-price-field').inputmask('unmaskedvalue') * $(obj).find('.quantity-field').val());
+                $orderOriginalProductTotal += Number($(obj).find('.base-price-field').inputmask('unmaskedvalue') * $(obj).find('.quantity-field').val());
             }else if($(obj).data('line_item') == 'fee'){
                 $orderFeeTotal += Number($(obj).find('.lineitem-total-amount').inputmask('unmaskedvalue'));
             }
@@ -140,6 +140,8 @@ var OrderForm = function () {
             $('.line-item', '#line-items-table').each(function(idx, obj){
                 OrderForm.lineItemInit($(obj));
             });
+
+            $('.line-item:last-child .lineitem-total-amount', '#line-items-table').trigger('change');
         },
         lineItemInit: function(lineItem)
         {

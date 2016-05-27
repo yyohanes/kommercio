@@ -58,8 +58,8 @@ class CreateOrdersTable extends Migration
             $table->decimal('subtotal', 14,2);
             $table->decimal('discount_total', 14,2)->nullable();
             $table->decimal('shipping_total', 14,2)->nullable();
-            $table->decimal('tax_total', 14,2);
-            $table->decimal('additional_total', 14,2);
+            $table->decimal('tax_total', 14,2)->nullable();
+            $table->decimal('additional_total', 14,2)->nullable();
             $table->decimal('total', 14,2);
             $table->string('currency', 10);
             $table->decimal('conversion_rate', 14, 6);

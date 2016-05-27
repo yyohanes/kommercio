@@ -4,6 +4,7 @@ namespace Kommercio\Models\Order;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
 use Kommercio\Models\Interfaces\AuthorSignatureInterface;
 use Kommercio\Models\Profile\Profile;
 use Kommercio\Traits\Model\AuthorSignature;
@@ -25,7 +26,7 @@ class Order extends Model implements AuthorSignatureInterface
     //Relations
     public function lineItems()
     {
-        return $this->hasMany('Kommercio\Models\Order\LineItem');
+        return $this->hasMany('Kommercio\Models\Order\LineItem')->orderBy('sort_order', 'ASC');
     }
 
     public function customer()
@@ -82,6 +83,90 @@ class Order extends Model implements AuthorSignatureInterface
         $profile->saveDetails($data);
     }
 
+    public function calculateShippingTotal()
+    {
+        $this->shipping_total = 0;
+
+        return $this->shipping_total;
+    }
+
+    public function calculateDiscountTotal()
+    {
+        $this->discount_total = $this->calculateProductTotal() - $this->calculateProductSubtotal();
+
+        return $this->discount_total;
+    }
+
+    public function calculateTaxTotal()
+    {
+        $this->tax_total = 0;
+
+        return $this->tax_total;
+    }
+
+    public function calculateAdditionalTotal()
+    {
+        $this->additional_total = 0;
+
+        foreach($this->lineItems as $lineItem){
+            if($lineItem->isFee){
+                $this->additional_total += $lineItem->calculateTotal();
+            }
+        }
+
+        return $this->additional_total;
+    }
+
+    public function calculateTotal()
+    {
+        $productSubtotal = $this->calculateProductSubtotal();
+        $shippingTotal = $this->calculateShippingTotal();
+        $discountTotal = $this->calculateDiscountTotal();
+        $additionalTotal = $this->calculateAdditionalTotal();
+        $taxTotal = $this->calculateTaxTotal();
+
+        $this->total = $productSubtotal + $shippingTotal + $discountTotal + $additionalTotal + $taxTotal;
+    }
+
+    public function calculateProductSubtotal()
+    {
+        $this->subtotal = 0;
+
+        foreach($this->lineItems as $lineItem){
+            if($lineItem->isProduct){
+                $this->subtotal += $lineItem->calculateSubtotal();
+            }
+        }
+
+        return $this->subtotal;
+    }
+
+    public function calculateProductTotal()
+    {
+        $productTotal = 0;
+
+        foreach($this->lineItems as $lineItem){
+            if($lineItem->isProduct){
+                $productTotal += $lineItem->calculateTotal();
+            }
+        }
+
+        return $productTotal;
+    }
+
+    public function calculateQuantityTotal()
+    {
+        $quantityTotal = 0;
+
+        foreach($this->lineItems as $lineItem){
+            if($lineItem->isProduct){
+                $quantityTotal += $lineItem->quantity;
+            }
+        }
+
+        return $quantityTotal;
+    }
+
     //Scopes
     public function scopeJoinBillingProfile($query)
     {
@@ -97,7 +182,7 @@ class Order extends Model implements AuthorSignatureInterface
                 ->where('BLNAME.identifier', '=', 'last_name');
         });
 
-        $query->selectRaw($this->getTable().'.*, CONCAT(BFNAME.value, " ", BLNAME.value) AS billing_full_name');
+        $query->addSelect(DB::raw($this->getTable().'.*, CONCAT_WS(" ", BFNAME.value, BLNAME.value) AS billing_full_name'));
     }
 
     public function scopeJoinShippingProfile($query)
@@ -114,21 +199,24 @@ class Order extends Model implements AuthorSignatureInterface
                 ->where('SLNAME.identifier', '=', 'last_name');
         });
 
-        $query->selectRaw($this->getTable().'.*, CONCAT(SFNAME.value, " ", SLNAME.value) AS shipping_full_name');
+        $query->addSelect(DB::raw($this->getTable().'.*, CONCAT_WS(" ", SFNAME.value, SLNAME.value) AS shipping_full_name'));
     }
 
     //Static
     public static function getStatusOptions($option=null, $all=false)
     {
         $array = [
+            self::STATUS_CART => 'Cart',
+            self::STATUS_ADMIN_CART => 'Admin Cart',
             self::STATUS_CANCELLED => 'Cancelled',
             self::STATUS_PENDING => 'Pending',
             self::STATUS_PROCESSING => 'Processing',
             self::STATUS_COMPLETED => 'Completed',
         ];
 
-        if($all){
-            $array = [self::STATUS_ADMIN_CART => 'Admin Cart', self::STATUS_CART => 'Cart'] + $array;
+        if(!$all){
+            unset($array[self::STATUS_CART]);
+            unset($array[self::STATUS_ADMIN_CART]);
         }
 
         if(empty($option)){
@@ -136,5 +224,22 @@ class Order extends Model implements AuthorSignatureInterface
         }
 
         return (isset($array[$option]))?$array[$option]:$array;
+    }
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::deleted(function($model){
+            if($model->forceDeleting){
+                if($model->billingProfile){
+                    $model->billingProfile->delete();
+                }
+
+                if($model->shippingProfile){
+                    $model->shippingProfile->delete();
+                }
+            }
+        });
     }
 }

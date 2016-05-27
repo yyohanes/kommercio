@@ -14,6 +14,7 @@ use Collective\Html\FormFacade;
 use Illuminate\Support\Facades\Request as RequestFacade;
 use Kommercio\Models\Product;
 use Kommercio\Models\Profile\Profile;
+use Kommercio\Facades\PriceFormatter;
 
 class OrderController extends Controller{
     public function index(Request $request)
@@ -85,9 +86,9 @@ class OrderController extends Controller{
         $meat= [];
 
         foreach($orders as $idx=>$order){
-            $orderAction = FormFacade::open(['route' => ['backend.order.delete', 'id' => $order->id]]);
+            $orderAction = FormFacade::open(['route' => ['backend.sales.order.delete', 'id' => $order->id]]);
             $orderAction .= '<div class="btn-group btn-group-sm">';
-            $orderAction .= '<a class="btn btn-default" href="'.route('backend.order.edit', ['id' => $order->id, 'backUrl' => RequestFacade::fullUrl()]).'"><i class="fa fa-pencil"></i> Edit</a>';
+            $orderAction .= '<a class="btn btn-default" href="'.route('backend.sales.order.edit', ['id' => $order->id, 'backUrl' => RequestFacade::fullUrl()]).'"><i class="fa fa-pencil"></i> Edit</a>';
             $orderAction .= '<button class="btn btn-default" data-toggle="confirmation" data-original-title="Are you sure?" title=""><i class="fa fa-trash-o"></i> Delete</button></div>';
             $orderAction .= FormFacade::close();
 
@@ -124,28 +125,133 @@ class OrderController extends Controller{
 
         if($request->has('existing_customer')){
             $customer = Customer::whereField('email', $request->get('existing_customer'))->first();
+            $order->customer()->associate($customer);
         }
 
+        $order->store_id = $request->input('store_id');
+        $order->currency = $request->input('currency');
+        $order->conversion_rate = 1;
+        $order->status = Order::STATUS_ADMIN_CART;
         $order->save();
 
         $order->saveProfile('billing', $request->input('profile'));
         $order->saveProfile('shipping', $request->input('shipping_profile'));
-        dd($order);
+
+        $count = 0;
+        foreach($request->input('line_items') as $lineItemDatum){
+            if($lineItemDatum['line_item_type'] == 'product' && empty($lineItemDatum['quantity'])){
+                continue;
+            }
+
+            $lineItem = new LineItem();
+            $lineItem->order()->associate($order);
+            $lineItem->processData($lineItemDatum, $count);
+            $lineItem->save();
+
+            $count += 1;
+        }
+
+        $order->load('lineItems');
+        $order->calculateTotal();
+        $order->save();
+
+        return redirect()->route('backend.sales.order.index')->with('success', ['This '.Order::getStatusOptions($order->status, true).' order has successfully been created.']);
     }
 
     public function edit($id)
     {
+        $order = Order::findOrFail($id);
 
+        $lineItems = old('line_items', $order->lineItems);
+
+        $oldValues = old();
+
+        if(!$oldValues){
+            $oldValues['existing_customer'] = $order->customer?$order->customer->getProfile()->email:null;
+            $oldValues['profile'] = $order->billingProfile?$order->billingProfile->getDetails():[];
+            $oldValues['shipping_profile'] = $order->shippingProfile?$order->shippingProfile->getDetails():[];
+
+            foreach($lineItems as $lineItem){
+                $lineItemData = $lineItem->toArray();
+                if($lineItem->isProduct){
+                    $lineItemData['sku'] = $lineItem->product->sku;
+                }
+
+                $lineItemData['lineitem_total_amount'] = $lineItem->calculateTotal();
+
+                $oldValues['line_items'][] = $lineItemData;
+            }
+
+            Session::flashInput($oldValues);
+        }
+
+        return view('backend.order.edit', [
+            'order' => $order,
+            'lineItems' => $lineItems
+        ]);
     }
 
     public function update(OrderFormRequest $request, $id)
     {
+        $order = Order::findOrFail($id);
 
+        if($request->has('existing_customer')){
+            $customer = Customer::whereField('email', $request->get('existing_customer'))->first();
+            $order->customer()->associate($customer);
+        }
+
+        $order->store_id = $request->input('store_id');
+        $order->currency = $request->input('currency');
+        $order->conversion_rate = 1;
+        $order->status = Order::STATUS_ADMIN_CART;
+
+        $order->saveProfile('billing', $request->input('profile'));
+        $order->saveProfile('shipping', $request->input('shipping_profile'));
+
+        $existingLineItems = $order->lineItems->all();
+        $count = 0;
+
+        foreach($request->input('line_items') as $lineItemDatum){
+            if($lineItemDatum['line_item_type'] == 'product' && empty($lineItemDatum['quantity'])){
+                continue;
+            }
+
+            if(!isset($existingLineItems[$count])){
+                $lineItem = new LineItem();
+                $lineItem->order()->associate($order);
+            }else{
+                //Clone and reset existing line item and will eventually be updated with new data
+                $lineItem = $existingLineItems[$count];
+                unset($existingLineItems[$count]);
+
+                $lineItem->clearData();
+            }
+
+            $lineItem->processData($lineItemDatum, $count);
+            $lineItem->save();
+
+            $count += 1;
+        }
+
+        //Delete unused line items
+        foreach($existingLineItems as $existingLineItem){
+            $existingLineItem->delete();
+        }
+
+        $order->load('lineItems');
+        $order->calculateTotal();
+        $order->save();
+
+        return redirect()->route('backend.sales.order.index')->with('success', ['This '.Order::getStatusOptions($order->status, true).' order has successfully been updated.']);
     }
 
     public function delete($id)
     {
+        $order = Order::findOrFail($id);
 
+        $order->forceDelete();
+
+        return redirect()->route('backend.sales.order.index')->with('success', ['This '.Order::getStatusOptions($order->status, true).' order has successfully been deleted.']);
     }
 
     public function copyCustomerInformation(Request $request, $type, $profile_id = null)

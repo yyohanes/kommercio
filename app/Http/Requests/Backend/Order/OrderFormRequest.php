@@ -37,11 +37,11 @@ class OrderFormRequest extends Request
         ];
 
         foreach($this->input('line_items', []) as $idx => $lineItem){
-            if($lineItem['type'] == 'product'){
+            if($lineItem['line_item_type'] == 'product'){
                 $rules['line_items.'.$idx.'.sku'] = 'product_sku|required_with:line_items.'.$idx.'.net_price,line_items.'.$idx.'.quantity';
                 $rules['line_items.'.$idx.'.net_price'] = 'numeric|required_with:line_items.'.$idx.'.sku,line_items.'.$idx.'.quantity';
-                $rules['line_items.'.$idx.'.quantity'] = 'numeric|required_with:line_items.'.$idx.'.sku,line_items.'.$idx.'.net_price';
-            }elseif($lineItem['type'] == 'fee'){
+                $rules['line_items.'.$idx.'.quantity'] = 'numeric|min:0,required_with:line_items.'.$idx.'.sku,line_items.'.$idx.'.net_price';
+            }elseif($lineItem['line_item_type'] == 'fee'){
                 $rules['line_items.'.$idx.'.name'] = 'required_with:line_items.'.$idx.'.lineitem_total_amount';
                 $rules['line_items.'.$idx.'.lineitem_total_amount'] = 'numeric|required_with:line_items.'.$idx.'.name';
             }

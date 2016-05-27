@@ -1,6 +1,6 @@
 <tr class="line-item" data-line_item="product" data-line_item_key="{{ $key }}">
     <td>
-        {!! Form::hidden('line_items['.$key.'][type]', 'product') !!}
+        {!! Form::hidden('line_items['.$key.'][line_item_type]', 'product') !!}
         @include('backend.master.form.fields.text', [
             'name' => 'line_items['.$key.'][sku]',
             'label' => FALSE,
@@ -19,12 +19,12 @@
     </td>
     <td>
         @include('backend.master.form.fields.number', [
-            'name' => 'line_items['.$key.'][retail_price]',
+            'name' => 'line_items['.$key.'][base_price]',
             'label' => FALSE,
-            'key' => 'line_items.'.$key.'.retail_price',
+            'key' => 'line_items.'.$key.'.base_price',
             'attr' => [
-                'class' => 'form-control input-sm retail-price-field',
-                'id' => 'line_items['.$key.'][retail_price]',
+                'class' => 'form-control input-sm base-price-field',
+                'id' => 'line_items['.$key.'][base_price]',
                 'readonly' => TRUE
             ],
             'required' => TRUE,
