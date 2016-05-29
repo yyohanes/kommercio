@@ -46,6 +46,55 @@ class Customer extends Model
     }
 
     //Statics
+    public static function saveCustomer($profileData=null, $accountData=null, $touchAccount = TRUE)
+    {
+        if(!isset($profileData['email']) || !filter_var($profileData['email'], FILTER_VALIDATE_EMAIL)){
+            throw new \Exception('Email is required when saving customer.');
+        }
+
+        $customer = self::whereField('email', $profileData['email'])->first();
+        if(!$customer){
+            $customer = new self();
+        }
+
+        if(!empty($accountData)){
+            if(!isset($accountData['email']) || !filter_var($accountData['email'], FILTER_VALIDATE_EMAIL)){
+                throw new \Exception('Email is required when creating new account.');
+            }
+
+            $user = $customer->user;
+
+            if(!$user){
+                $user = new User();
+            }
+
+            $user->fill([
+                'email' => $accountData['email'],
+                'status' => isset($accountData['status'])?$accountData['status']:User::STATUS_ACTIVE
+            ]);
+
+            if(isset($accountData['password'])){
+                $user->password = bcrypt($accountData['password']);
+            }
+
+            $user->save();
+
+            $customer->user()->associate($user);
+        }else{
+            if($touchAccount){
+                if($customer->user){
+                    $customer->user->delete();
+                }
+            }
+        }
+
+        $customer->save();
+
+        $customer->saveProfile($profileData);
+
+        return $customer;
+    }
+
     public static function getSaluteOptions($option=null)
     {
         $array = [

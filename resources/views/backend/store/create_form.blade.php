@@ -9,6 +9,17 @@
     'required' => TRUE
 ])
 
+@include('backend.master.form.fields.text', [
+    'name' => 'code',
+    'label' => 'Code',
+    'key' => 'code',
+    'attr' => [
+        'class' => 'form-control',
+        'id' => 'name'
+    ],
+    'required' => TRUE,
+])
+
 @include('backend.master.form.fields.select', [
     'name' => 'type',
     'label' => 'Type',

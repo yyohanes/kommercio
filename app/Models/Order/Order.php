@@ -60,6 +60,50 @@ class Order extends Model implements AuthorSignatureInterface
     }
 
     //Methods
+    public function generateReference()
+    {
+        $format = config('kommercio.order_number_format');
+        $formatElements = explode(':', $format);
+
+        $counterLength = config('kommercio.order_number_counter_length');
+
+        $lastOrder = self::checkout()
+            ->whereRaw("DATE_FORMAT(checkout_at, '%m-%Y') = ?", [$this->checkout_at->format('m-Y')])
+            ->orderBy(DB::raw('CAST(order_number as UNSIGNED)'), 'DESC')
+            ->first();
+        $totalCheckedOutOrder = $lastOrder?intval($lastOrder->order_number):0;
+        $this->order_number = str_pad($totalCheckedOutOrder + 1, $counterLength, 0, STR_PAD_LEFT);
+
+        $orderReference = '';
+        foreach($formatElements as $formatElement){
+            switch($formatElement){
+                case 'store_code':
+                    $store = $this->store;
+                    if($store){
+                        $orderReference .= $store->code;
+                    }
+                    break;
+                case 'order_year':
+                    $orderReference .= $this->checkout_at->format('Y');
+                    break;
+                case 'order_month':
+                    $orderReference .= $this->checkout_at->format('m');
+                    break;
+                case 'order_day':
+                    $orderReference .= $this->checkout_at->format('d');
+                    break;
+                case 'counter':
+                    $orderReference .= $this->order_number;
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        $this->reference = $orderReference;
+        return $orderReference;
+    }
+
     public function saveProfile($type, $data)
     {
         if($type == 'billing'){
@@ -206,6 +250,22 @@ class Order extends Model implements AuthorSignatureInterface
         });
 
         $query->addSelect(DB::raw($this->getTable().'.*, CONCAT_WS(" ", SFNAME.value, SLNAME.value) AS shipping_full_name'));
+    }
+
+    public function scopeCheckout($query)
+    {
+        $query->whereNotIn('status', [self::STATUS_CART, self::STATUS_ADMIN_CART]);
+    }
+
+    //Accessors
+    public function getIsEditableAttribute()
+    {
+        return in_array($this->status, [self::STATUS_ADMIN_CART, self::STATUS_CART, self::STATUS_PENDING]);
+    }
+
+    public function getIsDeleteableAttribute()
+    {
+        return in_array($this->status, [self::STATUS_ADMIN_CART, self::STATUS_CART]);
     }
 
     //Static

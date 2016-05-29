@@ -2,6 +2,7 @@
 
 namespace Kommercio\Http\Controllers\Backend\Sales;
 
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 use Kommercio\Facades\OrderHelper;
@@ -27,7 +28,7 @@ class OrderController extends Controller{
             $totalRecords = $qb->count();
 
             foreach($request->input('filter', []) as $searchKey=>$search){
-                if(trim($search) != ''){
+                if(is_array($search) || trim($search) != ''){
                     if($searchKey == 'billing_full_name') {
                         $qb->whereRaw('CONCAT(BNAME.value, " ", BNAME.value) LIKE ?', ['%'.$search.'%']);
                     }elseif($searchKey == 'shipping_full_name') {
@@ -87,11 +88,26 @@ class OrderController extends Controller{
         $meat= [];
 
         foreach($orders as $idx=>$order){
-            $orderAction = FormFacade::open(['route' => ['backend.sales.order.delete', 'id' => $order->id]]);
-            $orderAction .= '<div class="btn-group btn-group-sm">';
-            $orderAction .= '<a class="btn btn-default" href="'.route('backend.sales.order.edit', ['id' => $order->id, 'backUrl' => RequestFacade::fullUrl()]).'"><i class="fa fa-pencil"></i> Edit</a>';
-            $orderAction .= '<button class="btn btn-default" data-toggle="confirmation" data-original-title="Are you sure?" title=""><i class="fa fa-trash-o"></i> Delete</button></div>';
-            $orderAction .= FormFacade::close();
+            $orderAction = '<div class="btn-group btn-group-sm"><button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" data-hover="dropdown" data-delay="500" data-close-others="true" aria-expanded="true"> Actions <i class="fa fa-angle-down"></i></button><ul class="dropdown-menu" role="menu">';
+            if(in_array($order->status, [Order::STATUS_PENDING])) {
+                $orderAction .= '<li><a class="modal-ajax" href="' . route('backend.sales.order.process', ['action' => 'processing', 'id' => $order->id, 'backUrl' => RequestFacade::fullUrl()]) . '"><i class="fa fa-toggle-right"></i> Process</a></li>';
+            }
+
+            if(in_array($order->status, [Order::STATUS_PENDING, Order::STATUS_PROCESSING])){
+                $orderAction .= '<li><a class="modal-ajax" href="'.route('backend.sales.order.process', ['action' => 'completed', 'id' => $order->id, 'backUrl' => RequestFacade::fullUrl()]).'"><i class="fa fa-check-circle"></i> Complete</a></li>';
+                $orderAction .= '<li><a class="modal-ajax" href="'.route('backend.sales.order.process', ['action' => 'cancelled', 'id' => $order->id, 'backUrl' => RequestFacade::fullUrl()]).'"><i class="fa fa-remove"></i> Cancel</a></li>';
+            }
+
+            if($order->isEditable){
+                $orderAction .= '<li><a href="'.route('backend.sales.order.edit', ['id' => $order->id, 'backUrl' => RequestFacade::fullUrl()]).'"><i class="fa fa-pencil"></i> Edit</a></li>';
+
+                if($order->isDeleteable) {
+                    $orderAction .= '<li>'.FormFacade::open(['route' => ['backend.sales.order.delete', 'id' => $order->id]]);
+                    $orderAction .= '<button data-toggle="confirmation" data-original-title="Are you sure?" title=""><i class="fa fa-trash-o"></i> Delete</button></div>';
+                    $orderAction .= FormFacade::close().'</li>';
+                }
+            }
+            $orderAction .= '</ul></div>';
 
             $meat[] = [
                 $idx + 1 + $orderingStart,
@@ -100,7 +116,7 @@ class OrderController extends Controller{
                 $order->billing_full_name,
                 $order->shipping_full_name,
                 PriceFormatter::formatNumber($order->total),
-                '<label class="label bg-'.OrderHelper::getOrderStatusLabelClass($order->status).'"><span class="bg-font-'.OrderHelper::getOrderStatusLabelClass($order->status).'">'.Order::getStatusOptions($order->status, TRUE).'</span></label>',
+                '<label class="label label-sm bg-'.OrderHelper::getOrderStatusLabelClass($order->status).' bg-font-'.OrderHelper::getOrderStatusLabelClass($order->status).'">'.Order::getStatusOptions($order->status, TRUE).'</label>',
                 $orderAction
             ];
         }
@@ -127,20 +143,37 @@ class OrderController extends Controller{
     {
         $order = new Order();
 
+        $customer = null;
         if($request->has('existing_customer')){
             $customer = Customer::whereField('email', $request->get('existing_customer'))->first();
-            $order->customer()->associate($customer);
         }
 
         $order->delivery_date = $request->input('delivery_date', null);
         $order->store_id = $request->input('store_id');
         $order->currency = $request->input('currency');
         $order->conversion_rate = 1;
-        $order->status = Order::STATUS_ADMIN_CART;
         $order->save();
 
         $order->saveProfile('billing', $request->input('profile'));
         $order->saveProfile('shipping', $request->input('shipping_profile'));
+
+        if($request->input('action') == 'place_order'){
+            $order->status = Order::STATUS_PENDING;
+            $order->checkout_at = Carbon::now();
+            $order->generateReference();
+
+            if(!$customer){
+                $profileData = $request->input('profile');
+
+                $customer = Customer::saveCustomer($profileData);
+            }
+        }else{
+            $order->status = Order::STATUS_ADMIN_CART;
+        }
+
+        if($customer){
+            $order->customer()->associate($customer);
+        }
 
         $count = 0;
         foreach($request->input('line_items') as $lineItemDatum){
@@ -200,19 +233,36 @@ class OrderController extends Controller{
     {
         $order = Order::findOrFail($id);
 
+        $customer = null;
         if($request->has('existing_customer')){
             $customer = Customer::whereField('email', $request->get('existing_customer'))->first();
-            $order->customer()->associate($customer);
         }
 
         $order->delivery_date = $request->input('delivery_date', null);
         $order->store_id = $request->input('store_id');
         $order->currency = $request->input('currency');
         $order->conversion_rate = 1;
-        $order->status = Order::STATUS_ADMIN_CART;
 
         $order->saveProfile('billing', $request->input('profile'));
         $order->saveProfile('shipping', $request->input('shipping_profile'));
+
+        if($request->input('action') == 'place_order'){
+            $order->status = Order::STATUS_PENDING;
+            $order->checkout_at = Carbon::now();
+            $order->generateReference();
+
+            if(!$customer){
+                $profileData = $request->input('profile');
+
+                $customer = Customer::saveCustomer($profileData);
+            }
+        }else{
+            $order->status = Order::STATUS_ADMIN_CART;
+        }
+
+        if($customer){
+            $order->customer()->associate($customer);
+        }
 
         $existingLineItems = $order->lineItems->all();
         $count = 0;
@@ -258,6 +308,55 @@ class OrderController extends Controller{
         $order->forceDelete();
 
         return redirect()->route('backend.sales.order.index')->with('success', ['This '.Order::getStatusOptions($order->status, true).' order has successfully been deleted.']);
+    }
+
+    public function process(Request $request, $process, $id)
+    {
+        $order = Order::findOrFail($id);
+
+        if($request->isMethod('GET')){
+            switch($process){
+                case 'processing':
+                    $processForm = 'processing_form';
+                    break;
+                case 'completed':
+                    $processForm = 'completed_form';
+                    break;
+                case 'cancelled':
+                    $processForm = 'cancelled_form';
+                    break;
+                default:
+                    return response('No process is selected.');
+                    break;
+            }
+
+            return view('backend.order.process.'.$processForm, [
+                'order' => $order,
+                'backUrl' => $request->get('backUrl', route('backend.sales.order.index'))
+            ]);
+        }else{
+            switch($process){
+                case 'processing':
+                    $order->status = Order::STATUS_PROCESSING;
+                    $message = 'Order has been set to <span class="label bg-'.OrderHelper::getOrderStatusLabelClass($order->status).' bg-font-'.OrderHelper::getOrderStatusLabelClass($order->status).'">Processing.</span>';
+                    break;
+                case 'completed':
+                    $order->status = Order::STATUS_COMPLETED;
+                    $message = 'Order has been <span class="label bg-'.OrderHelper::getOrderStatusLabelClass($order->status).' bg-font-'.OrderHelper::getOrderStatusLabelClass($order->status).'">Completed.</span>';
+                    break;
+                case 'cancelled':
+                    $order->status = Order::STATUS_CANCELLED;
+                    $message = 'Order has been <span class="label bg-'.OrderHelper::getOrderStatusLabelClass($order->status).' bg-font-'.OrderHelper::getOrderStatusLabelClass($order->status).'">Cancelled.</span>';
+                    break;
+                default:
+                    $message = 'No process has been done.';
+                    break;
+            }
+
+            $order->save();
+
+            return redirect($request->input('backUrl', route('backend.sales.order.index')))->with('success', [$message]);
+        }
     }
 
     public function copyCustomerInformation(Request $request, $type, $profile_id = null)

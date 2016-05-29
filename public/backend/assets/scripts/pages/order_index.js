@@ -19,6 +19,7 @@ var OrderIndex = function () {
             onDataLoad: function(grid) {
                 // execute some code on ajax data load
                 App.initComponents();
+                formBehaviors.init($('#orders-dataset tbody'));
             },
             loadingMessage: 'Loading...',
             dataTable: { // here you can define a typical datatable settings from http://datatables.net/usage/options

@@ -382,7 +382,7 @@ var formBehaviors = function(){
     {
         $('[data-typeahead_remote]', context).each(function(idx, obj){
             var results = new Bloodhound({
-                datumTokenizer: Bloodhound.tokenizers.obj.whitespace('value'),
+                datumTokenizer: Bloodhound.tokenizers.whitespace($(obj).data('typeahead_label')),
                 queryTokenizer: Bloodhound.tokenizers.whitespace,
                 remote: {
                     url: $(obj).data('typeahead_remote') + '?query=%QUERY',
@@ -393,12 +393,18 @@ var formBehaviors = function(){
                 }
             });
 
-            $(obj).typeahead(null, {
+            $(obj).typeahead(
+                {
+                    minLength: 2,
+                    hint: false
+                },
+                {
                 name: 'typeahead-' + idx,
                 display: $(obj).data('typeahead_display'),
-                source: results,
-                minLength: 2,
+                source: results.ttAdapter(),
                 templates: {
+                    pending: '<div>Loading suggestion...</div>',
+                    notFound: '<div>No suggestion found...</div>',
                     suggestion: Handlebars.compile('<div>{{'+$(obj).data('typeahead_label')+'}}</div>')
                 }
             });
@@ -505,6 +511,25 @@ var formBehaviors = function(){
         });
     }
 
+    var handleAjaxModal = function(context)
+    {
+        $('.modal-ajax', context).on('click', function(e){
+            e.preventDefault();
+
+            $.ajax($(this).attr('href'), {
+                success: function(data){
+                    var $loadedData = $(data);
+                    $('#ajax_modal').find('.modal-content').html($loadedData);
+
+                    formBehaviors.init($loadedData);
+                    App.initAjax();
+
+                    $('#ajax_modal').modal('show');
+                }
+            });
+        });
+    }
+
     return {
         init: function(context){
             if(typeof context === 'undefined'){
@@ -526,6 +551,7 @@ var formBehaviors = function(){
             handleTabChange(context);
             handleAddressOptions(context);
             handleTypeahead(context);
+            handleAjaxModal(context);
         },
         initComponents: function(context){
             handleInputMask(context);

@@ -30,6 +30,7 @@ class StoreFormRequest extends Request
 
         $rules = [
             'name' => 'required',
+            'code' => 'required|unique:stores,code'.($this->route('id')?','.$this->route('id'):null),
             'type' => 'required|in:'.implode(',', $typeAllowedOptions),
             'warehouses' => 'required',
             'warehouses.*' => 'in:'.implode(',', $warehouseAllowedOptions),

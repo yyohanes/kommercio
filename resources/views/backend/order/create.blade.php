@@ -23,8 +23,11 @@
                     <span class="caption-subject sbold uppercase"> Create Order </span>
                 </div>
                 <div class="actions">
-                    <button class="btn btn-primary btn-sm"><i class="fa fa-save"></i> Save </button>
-                    <button class="btn btn-link btn-sm" href="{{ NavigationHelper::getBackUrl() }}"><i class="fa fa-remove"></i> Cancel </button>
+                    @if(!$order->status || in_array($order->status, [\Kommercio\Models\Order\Order::STATUS_ADMIN_CART]))
+                    <button data-toggle="confirmation" data-original-title="Do you confirm the placement of this order?" data-placement="bottom" type="submit" name="action" value="place_order" class="btn blue"><i class="fa fa-save"></i> Place Order </button>
+                    @endif
+                    <button type="submit" name="action" value="save" class="btn blue-madison"><i class="fa fa-save"></i> Save </button>
+                    <a class="btn btn-link" href="{{ NavigationHelper::getBackUrl() }}"><i class="fa fa-remove"></i> Cancel </a>
                 </div>
             </div>
 
@@ -34,8 +37,11 @@
                 </div>
 
                 <div class="form-actions text-center">
-                    <button class="btn btn-primary"><i class="fa fa-save"></i> Save </button>
-                    <button class="btn btn-link" href="{{ NavigationHelper::getBackUrl() }}"><i class="fa fa-remove"></i> Cancel </button>
+                    @if(!$order->status || in_array($order->status, [\Kommercio\Models\Order\Order::STATUS_ADMIN_CART]))
+                        <button data-toggle="confirmation" data-original-title="Do you confirm the placement of this order?" type="submit" name="action" value="place_order" class="btn blue"><i class="fa fa-save"></i> Place Order </button>
+                    @endif
+                    <button type="submit" name="action" value="save" class="btn blue-madison"><i class="fa fa-save"></i> Save </button>
+                    <a class="btn btn-link" href="{{ NavigationHelper::getBackUrl() }}"><i class="fa fa-remove"></i> Cancel </a>
                 </div>
             </div>
         </div>

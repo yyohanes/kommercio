@@ -24,6 +24,7 @@
                     <thead>
                     <tr>
                         <th>Name</th>
+                        <th>Code</th>
                         <th>Type</th>
                         <th>Product</th>
                         <th>Warehouse</th>
@@ -34,6 +35,7 @@
                     @foreach($stores as $store)
                         <tr>
                             <td>{{ $store->name }}</td>
+                            <td>{{ $store->code }}</td>
                             <td>{!! \Kommercio\Models\Store::getTypeOptions($store->type) !!}</td>
                             <td>{{ $store->productCount }}</td>
                             <td>

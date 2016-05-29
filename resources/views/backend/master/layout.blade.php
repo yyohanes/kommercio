@@ -177,6 +177,17 @@ License: You must have a valid license purchased only from themeforest(the above
                 @if(Request::ajax())<div id="ajax-meat">@endif
                 @yield('content')
                 @if(Request::ajax())</div>@endif
+
+                <div class="modal fade" id="ajax_modal" role="basic" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-body">
+                                <img src="{{ asset('backend/assets/template/global/img/loading-spinner-grey.gif') }}" alt="" class="loading">
+                                <span> &nbsp;&nbsp;Loading... </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
         <!-- END CONTENT BODY -->

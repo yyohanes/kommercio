@@ -114,22 +114,20 @@ class CustomerController extends Controller{
 
     public function store(CustomerFormRequest $request)
     {
-        $customer = new Customer();
-
+        $accountData = null;
         if($request->input('user.create_account')){
-            $user = User::create([
+            $accountData = [
                 'email' => $request->input('profile.email'),
+                'status' => $request->input('user.status'),
                 'password' => bcrypt($request->input('user.password')),
-                'status' => $request->input('user.status')
-            ]);
+            ];
 
-            $customer->user()->associate($user);
+            if($request->has('user.password')){
+                $accountData['password'] = $request->input('user.password');
+            }
         }
 
-        $customer->fill($request->all());
-        $customer->save();
-
-        $customer->saveProfile($request->input('profile'));
+        $customer = Customer::saveCustomer($request->input('profile'), $accountData);
 
         return redirect($request->get('backUrl', route('backend.customer.index')))->with('success', ['New Customer is successfully created.']);
     }
@@ -149,38 +147,18 @@ class CustomerController extends Controller{
 
     public function update(CustomerFormRequest $request, $id)
     {
-        $customer = Customer::findOrFail($id);
-
-        //Process User
+        $accountData = null;
         if($request->input('user.create_account')){
-            $user = $customer->user;
-
-            if(!$user){
-                $user = new User();
-            }
-
-            $user->fill([
+            $accountData = [
                 'email' => $request->input('profile.email'),
                 'status' => $request->input('user.status')
-            ]);
+            ];
 
             if($request->has('user.password')){
-                $user->password = bcrypt($request->input('user.password'));
-            }
-
-            $user->save();
-
-            $customer->user()->associate($user);
-        }else{
-            if($customer->user){
-                $customer->user->delete();
+                $accountData['password'] = $request->input('user.password');
             }
         }
-
-        $customer->fill($request->all());
-        $customer->save();
-
-        $customer->saveProfile($request->input('profile'));
+        $customer = Customer::saveCustomer($request->input('profile'), $accountData);
 
         return redirect($request->get('backUrl', route('backend.customer.index')))->with('success', ['Customer is successfully updated.']);
     }
@@ -236,6 +214,11 @@ class CustomerController extends Controller{
                     'profile_id' => $result->profile?$result->profile->id:null,
                     'name' => $result->fullName.' ('.$result->getProfile()->email.')',
                     'email' => $result->getProfile()->email,
+                    'tokens' => [
+                        $result->getProfile()->first_name,
+                        $result->getProfile()->last_name,
+                        $result->getProfile()->email
+                    ]
                 ];
             }
         }

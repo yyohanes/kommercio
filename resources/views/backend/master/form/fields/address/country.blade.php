@@ -7,7 +7,8 @@
     $defaultOptions = isset($defaultOptions)?$defaultOptions:null;
     $active_only = isset($active_only)?$active_only:false;
 
-    $options = ['' => $attr['data-first_option']] + AddressHelper::getCountryOptions($active_only);
+    $options = AddressHelper::getCountryOptions($active_only);
+    $options = !empty($options)?(['' => $attr['data-first_option']] + $options):[];
     ?>
 
     {!! Form::select($name, $options, $defaultOptions, $attr) !!}

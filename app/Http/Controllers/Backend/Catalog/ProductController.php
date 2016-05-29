@@ -607,6 +607,10 @@ class ProductController extends Controller{
                     'id' => $result->id,
                     'name' => $result->name.' ('.$result->sku.')',
                     'sku' => $result->sku,
+                    'tokens' => [
+                        $result->name,
+                        $result->sku
+                    ]
                 ];
             }
         }

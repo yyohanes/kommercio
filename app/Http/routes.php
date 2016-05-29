@@ -420,19 +420,27 @@ Route::group(['middleware' => ['web']], function () {
                         'uses' => 'OrderController@store'
                     ]);
 
-                    Route::get('edit/{id}', [
-                        'as' => 'backend.sales.order.edit',
-                        'uses' => 'OrderController@edit'
-                    ]);
+                    Route::group(['middleware' => ['backend.order_editable']], function(){
+                        Route::get('edit/{id}', [
+                            'as' => 'backend.sales.order.edit',
+                            'uses' => 'OrderController@edit'
+                        ]);
 
-                    Route::post('update/{id}', [
-                        'as' => 'backend.sales.order.update',
-                        'uses' => 'OrderController@update'
-                    ]);
+                        Route::post('update/{id}', [
+                            'as' => 'backend.sales.order.update',
+                            'uses' => 'OrderController@update'
+                        ]);
 
-                    Route::post('delete/{id}', [
-                        'as' => 'backend.sales.order.delete',
-                        'uses' => 'OrderController@delete'
+                        Route::post('delete/{id}', [
+                            'as' => 'backend.sales.order.delete',
+                            'uses' => 'OrderController@delete',
+                            'middleware' => ['backend.order_deleteable']
+                        ]);
+                    });
+
+                    Route::any('process/{action}/{id}', [
+                        'as' => 'backend.sales.order.process',
+                        'uses' => 'OrderController@process'
                     ]);
 
                     Route::post('copy/customer_information/{type}/{profile_id?}', [

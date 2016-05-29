@@ -50,5 +50,7 @@ class Kernel extends HttpKernel
         'guest' => \Kommercio\Http\Middleware\RedirectIfAuthenticated::class,
         'backend.guest' => \Kommercio\Http\Middleware\RedirectIfAuthenticated::class,
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
+        'backend.order_editable' => \Kommercio\Http\Middleware\Backend\OrderEditable::class,
+        'backend.order_deleteable' => \Kommercio\Http\Middleware\Backend\OrderDeleteable::class,
     ];
 }
