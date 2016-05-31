@@ -16,11 +16,6 @@ var ProductFormPrice = function () {
             handlePriceRules();
 
             $(document).ajaxComplete(function( event,request, settings ) {
-                if(typeof request.responseJSON !== 'undefined' && typeof request.responseJSON._token !== 'undefined'){
-                    $('#price-rule-form-wrapper').removeData('form_token');
-                    $('#price-rule-form-wrapper').attr('data-form_token', request.responseJSON._token);
-                }
-
                 App.unblockUI('#tab_price');
             });
 
@@ -43,7 +38,7 @@ var ProductFormPrice = function () {
 
                 $.ajax($(this).data('price_rule_save'), {
                     'method': 'POST',
-                    'data': $('#price-rule-form-wrapper :input').serialize() + '&_token=' + $('#price-rule-form-wrapper').data('form_token'),
+                    'data': $('#price-rule-form-wrapper :input').serialize(),
                     'success': function(data){
                         if(data.result == 'success'){
                             $.bootstrapGrowl(data.message, {
@@ -114,7 +109,7 @@ var ProductFormPrice = function () {
 
             $.ajax(formUrl, {
                 'method': 'POST',
-                'data': formData + '&_token=' + $('#price-rule-form-wrapper').data('form_token'),
+                'data': formData,
                 'success': function(data){
                     var $priceRuleForm = $(data.html);
 
@@ -160,7 +155,6 @@ var ProductFormPrice = function () {
 
             $.ajax($(this).data('price_rule_delete'), {
                 method: 'POST',
-                data: '_token=' + $('#price-rule-form-wrapper').data('form_token'),
                 success: function(data){
                     $.bootstrapGrowl(data.message, {
                         ele: 'body', // which element to append to

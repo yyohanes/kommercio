@@ -180,28 +180,43 @@ class AddressHelper
         }
 
         if(!empty($data['area_id'])){
-            $area = Area::findOrFail($data['area_id']);
-            $addressElements[] = $area->name;
+            $area = Area::find($data['area_id']);
+
+            if($area){
+                $addressElements[] = $area->name;
+            }
         }
 
         if(!empty($data['district_id'])){
-            $district = District::findOrFail($data['district_id']);
-            $addressElements[] = $district->name;
+            $district = District::find($data['district_id']);
+
+            if($district){
+                $addressElements[] = $district->name;
+            }
         }
 
         if(!empty($data['city_id'])){
-            $city = City::findOrFail($data['city_id']);
-            $addressElements[] = $city->name;
+            $city = City::find($data['city_id']);
+
+            if($city){
+                $addressElements[] = $city->name;
+            }
         }
 
         if(!empty($data['state_id'])){
-            $state = State::findOrFail($data['state_id']);
-            $addressElements[] = $state->name;
+            $state = State::find($data['state_id']);
+
+            if($state){
+                $addressElements[] = $state->name;
+            }
         }
 
         if(!empty($data['country_id'])){
-            $country = Country::findOrFail($data['country_id']);
-            $addressElements[] = $country->name;
+            $country = Country::find($data['country_id']);
+
+            if($country){
+                $addressElements[] = $country->name;
+            }
         }
 
         if($addressElements){

@@ -5,6 +5,7 @@ namespace Kommercio\Models\Order;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
+use Kommercio\Facades\CurrencyHelper;
 use Kommercio\Models\Interfaces\AuthorSignatureInterface;
 use Kommercio\Models\Profile\Profile;
 use Kommercio\Traits\Model\AuthorSignature;
@@ -59,6 +60,11 @@ class Order extends Model implements AuthorSignatureInterface
         return $this->belongsTo('Kommercio\Models\ShippingMethod\ShippingMethod');
     }
 
+    public function payments()
+    {
+        return $this->hasMany('Kommercio\Models\Order\Payment');
+    }
+
     //Methods
     public function generateReference()
     {
@@ -102,6 +108,24 @@ class Order extends Model implements AuthorSignatureInterface
 
         $this->reference = $orderReference;
         return $orderReference;
+    }
+
+    public function processStocks()
+    {
+        foreach($this->lineItems as $lineItem){
+            if($lineItem->isProduct){
+                $lineItem->product->reduceStock($lineItem->quantity);
+            }
+        }
+    }
+
+    public function returnStocks()
+    {
+        foreach($this->lineItems as $lineItem){
+            if($lineItem->isProduct){
+                $lineItem->product->increaseStock($lineItem->quantity);
+            }
+        }
     }
 
     public function saveProfile($type, $data)
@@ -215,6 +239,26 @@ class Order extends Model implements AuthorSignatureInterface
         }
 
         return $quantityTotal;
+    }
+
+    public function getPaidAmount()
+    {
+        $paidAmount = 0;
+
+        foreach($this->payments as $payment){
+            if($payment->isSuccess){
+                $paidAmount += CurrencyHelper::convert($payment->amount, $payment->currency, $this->currency, $this->conversion_rate);
+            }
+        }
+
+        return $paidAmount;
+    }
+
+    public function getOutstandingAmount()
+    {
+        $paidAmount = $this->getPaidAmount();
+
+        return abs($this->total - $paidAmount);
     }
 
     //Scopes

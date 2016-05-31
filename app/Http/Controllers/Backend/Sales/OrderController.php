@@ -169,9 +169,7 @@ class OrderController extends Controller{
         $order->saveProfile('shipping', $request->input('shipping_profile'));
 
         if($request->input('action') == 'place_order'){
-            $order->status = Order::STATUS_PENDING;
-            $order->checkout_at = Carbon::now();
-            $order->generateReference();
+            $this->placeOrder($order);
 
             if(!$customer){
                 $profileData = $request->input('profile');
@@ -201,6 +199,7 @@ class OrderController extends Controller{
         }
 
         $order->load('lineItems');
+        $order->processStocks();
         $order->calculateTotal();
         $order->save();
 
@@ -274,9 +273,7 @@ class OrderController extends Controller{
         $order->saveProfile('shipping', $request->input('shipping_profile'));
 
         if($request->input('action') == 'place_order'){
-            $order->status = Order::STATUS_PENDING;
-            $order->checkout_at = Carbon::now();
-            $order->generateReference();
+            $this->placeOrder($order);
 
             if(!$customer){
                 $profileData = $request->input('profile');
@@ -293,6 +290,11 @@ class OrderController extends Controller{
 
         $existingLineItems = $order->lineItems->all();
         $count = 0;
+
+        //If PENDING order is updated, return all stocks first
+        if($order->status == Order::STATUS_PENDING){
+            $order->returnStocks();
+        }
 
         foreach($request->input('line_items') as $lineItemDatum){
             if($lineItemDatum['line_item_type'] == 'product' && empty($lineItemDatum['quantity'])){
@@ -322,6 +324,7 @@ class OrderController extends Controller{
         }
 
         $order->load('lineItems');
+        $order->processStocks();
         $order->calculateTotal();
         $order->save();
 
@@ -332,7 +335,7 @@ class OrderController extends Controller{
     {
         $order = Order::findOrFail($id);
 
-        $order->forceDelete();
+        $order->delete();
 
         return redirect()->route('backend.sales.order.index')->with('success', ['This '.Order::getStatusOptions($order->status, true).' order has successfully been deleted.']);
     }
@@ -372,6 +375,7 @@ class OrderController extends Controller{
                     $message = 'Order has been <span class="label bg-'.OrderHelper::getOrderStatusLabelClass($order->status).' bg-font-'.OrderHelper::getOrderStatusLabelClass($order->status).'">Completed.</span>';
                     break;
                 case 'cancelled':
+                    $order->returnStocks();
                     $order->status = Order::STATUS_CANCELLED;
                     $message = 'Order has been <span class="label bg-'.OrderHelper::getOrderStatusLabelClass($order->status).' bg-font-'.OrderHelper::getOrderStatusLabelClass($order->status).'">Cancelled.</span>';
                     break;
@@ -438,5 +442,14 @@ class OrderController extends Controller{
         }
 
         return response()->json($return);
+    }
+
+    protected function placeOrder(Order $order)
+    {
+        $order->status = Order::STATUS_PENDING;
+        $order->checkout_at = Carbon::now();
+        $order->generateReference();
+
+        return $order;
     }
 }

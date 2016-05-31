@@ -39,4 +39,13 @@ class CurrencyHelper
 
         return $options;
     }
+
+    public function convert($amount, $from_currency, $to_currency, $currencyRate=1)
+    {
+        if($from_currency != $to_currency){
+
+        }
+
+        return $amount * $currencyRate;
+    }
 }

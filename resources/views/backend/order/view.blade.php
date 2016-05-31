@@ -46,6 +46,9 @@
                             <li class="active" role="presentation">
                                 <a href="#tab_details" data-toggle="tab"> Details </a>
                             </li>
+                            <li role="presentation">
+                                <a href="#tab_payments" data-toggle="tab"> Payments </a>
+                            </li>
                         </ul>
 
                         <div class="tab-content">
@@ -226,10 +229,49 @@
                                     </div>
                                 </div>
                             </div>
+
+                            <div class="tab-pane" id="tab_payments">
+                                <div class="form-body">
+                                    <div class="margin-bottom-10">
+                                        <a class="btn btn-default" id="payment-add-btn" href="#">
+                                            <i class="icon-plus"></i> Add Payment
+                                        </a>
+                                    </div>
+
+                                    <div id="payment-form-wrapper"
+                                         data-payment_form="{{ route('backend.sales.order.payment.form', ['order_id' => $order->id]) }}"
+                                         data-payment_index="{{ route('backend.sales.order.payment.index', ['order_id' => $order->id]) }}"></div>
+
+                                    <div class="table-scrollable">
+                                        <table class="table table-hover">
+                                            <thead>
+                                            <tr>
+                                                <th> Payment Date </th>
+                                                <th> Amount </th>
+                                                <th> Status </th>
+                                                <th> Notes </th>
+                                                <th> Entered By </th>
+                                                <th> </th>
+                                            </tr>
+                                            </thead>
+                                            <tbody id="payment-index-wrapper">
+                                            <?php $payments = $order->payments; ?>
+                                            @include('backend.order.payments.index')
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+@stop
+
+@section('bottom_page_scripts')
+    @parent
+
+    <script src="{{ asset('backend/assets/scripts/pages/order_view.js') }}" type="text/javascript"></script>
 @stop

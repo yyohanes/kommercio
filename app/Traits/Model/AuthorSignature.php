@@ -27,4 +27,14 @@ trait AuthorSignature
             $this->updated_by = $user_id;
         }
     }
+
+    public function createdBy()
+    {
+        return $this->belongsTo('Kommercio\Models\User', 'created_by');
+    }
+
+    public function updatedBy()
+    {
+        return $this->belongsTo('Kommercio\Models\User', 'updated_by');
+    }
 }

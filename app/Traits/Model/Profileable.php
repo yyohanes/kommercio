@@ -109,7 +109,7 @@ trait Profileable
 
     public function loadProfileFields()
     {
-        $this->getProfile()->fillDetails();
+        return $this->getProfile()->fillDetails();
     }
 
     public function profile()

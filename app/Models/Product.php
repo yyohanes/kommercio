@@ -28,7 +28,6 @@ class Product extends Model
     protected $with = ['productDetail'];
     private $_warehouse;
     private $_store;
-    private $_assessedCatalogPriceRules = [];
 
     public $translatedAttributes = ['name', 'description_short', 'description', 'slug', 'meta_title', 'meta_description', 'locale', 'thumbnail', 'thumbnails', 'images'];
 
@@ -216,12 +215,71 @@ class Product extends Model
         return $warehouse?$warehouse->pivot->stock+0:0;
     }
 
+    public function checkStock($amount, $warehouse_id=null)
+    {
+        if(!$productDetail->manage_stock){
+            return TRUE;
+        }
+
+        if(!$warehouse_id){
+            $defaultWarehouse = $this->store->getDefaultWarehouse();
+            $warehouse_id = $defaultWarehouse?$defaultWarehouse->id:null;
+        }
+
+        $productDetail = $this->productDetail;
+
+        if($productDetail->manage_stock && $warehouse_id){
+            $existingStock = $this->getStock($warehouse_id);
+
+            return $existingStock - $amount + 0;
+        }
+    }
+
+    public function increaseStock($amount, $warehouse_id=null)
+    {
+        if(!$warehouse_id){
+            $defaultWarehouse = $this->store->getDefaultWarehouse();
+            $warehouse_id = $defaultWarehouse?$defaultWarehouse->id:null;
+        }
+
+        $productDetail = $this->productDetail;
+
+        if($productDetail->manage_stock && $warehouse_id){
+            $existingStock = $this->getStock($warehouse_id);
+
+            $this->saveStock(($existingStock + $amount + 0), $warehouse_id);
+        }
+    }
+
+    public function reduceStock($amount, $warehouse_id=null)
+    {
+        if(!$warehouse_id){
+            $defaultWarehouse = $this->store->getDefaultWarehouse();
+            $warehouse_id = $defaultWarehouse?$defaultWarehouse->id:null;
+        }
+
+        $productDetail = $this->productDetail;
+
+        if($productDetail->manage_stock && $warehouse_id){
+            $existingStock = $this->getStock($warehouse_id);
+
+            $this->saveStock(($existingStock - $amount + 0), $warehouse_id);
+        }
+    }
+
     public function saveStock($stock, $warehouse_id=null)
     {
         if(!is_null($stock)){
-            $this->warehouses()->sync([
-                $warehouse_id => ['stock' => $stock]
-            ]);
+            if(!$warehouse_id){
+                $defaultWarehouse = $this->store->getDefaultWarehouse();
+                $warehouse_id = $defaultWarehouse?$defaultWarehouse->id:null;
+            }
+
+            if($warehouse_id){
+                $this->warehouses()->sync([
+                    $warehouse_id => ['stock' => $stock]
+                ]);
+            }
         }
     }
 

@@ -462,6 +462,28 @@ Route::group(['middleware' => ['web']], function () {
                         'as' => 'backend.sales.order.shipping_options',
                         'uses' => 'OrderController@shippingOptions'
                     ]);
+
+                    Route::group(['prefix' => 'payment'], function(){
+                        Route::get('{order_id}/index', [
+                            'as' => 'backend.sales.order.payment.index',
+                            'uses' => 'PaymentController@orderPaymentIndex'
+                        ]);
+
+                        Route::get('{order_id}/form', [
+                            'as' => 'backend.sales.order.payment.form',
+                            'uses' => 'PaymentController@orderPaymentForm'
+                        ]);
+
+                        Route::post('{order_id}/save', [
+                            'as' => 'backend.sales.order.payment.save',
+                            'uses' => 'PaymentController@orderPaymentSave'
+                        ]);
+
+                        Route::any('process/{action}/{id}', [
+                            'as' => 'backend.sales.order.payment.process',
+                            'uses' => 'PaymentController@process'
+                        ]);
+                    });
                 });
             });
 
