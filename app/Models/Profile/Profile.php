@@ -69,6 +69,8 @@ class Profile extends Model
 
             $this->_profileFilled = TRUE;
         }
+
+        return $this;
     }
 
     public function saveDetails($details)

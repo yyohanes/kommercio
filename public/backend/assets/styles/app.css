@@ -26,13 +26,18 @@
   margin-right: 0;
 }
 
-/* line 41, sass/app.scss */
+/* line 40, sass/app.scss */
+.form-in-btn-group {
+  display: inline-block;
+}
+
+/* line 45, sass/app.scss */
 .sortable-placeholder {
   border: 2px dashed #ccc;
   height: 150px;
 }
 
-/* line 48, sass/app.scss */
+/* line 52, sass/app.scss */
 #products-dataset .product-image {
   width: 40px;
 }

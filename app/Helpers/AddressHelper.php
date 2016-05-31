@@ -165,4 +165,53 @@ class AddressHelper
 
         return $options->pluck('name', 'id')->all();
     }
+
+    public function printAddress($data)
+    {
+        $addressLineElements = [];
+        $addressElements = [];
+
+        if(!empty($data['address_1'])){
+            $addressLineElements[] = $data['address_1'];
+        }
+
+        if(!empty($data['address_2'])){
+            $addressLineElements[] = $data['address_2'];
+        }
+
+        if(!empty($data['area_id'])){
+            $area = Area::findOrFail($data['area_id']);
+            $addressElements[] = $area->name;
+        }
+
+        if(!empty($data['district_id'])){
+            $district = District::findOrFail($data['district_id']);
+            $addressElements[] = $district->name;
+        }
+
+        if(!empty($data['city_id'])){
+            $city = City::findOrFail($data['city_id']);
+            $addressElements[] = $city->name;
+        }
+
+        if(!empty($data['state_id'])){
+            $state = State::findOrFail($data['state_id']);
+            $addressElements[] = $state->name;
+        }
+
+        if(!empty($data['country_id'])){
+            $country = Country::findOrFail($data['country_id']);
+            $addressElements[] = $country->name;
+        }
+
+        if($addressElements){
+            $addressLineElements[] = implode(', ', $addressElements);
+        }
+
+        if(!empty($data['postal_code'])){
+            $addressLineElements[] = $data['postal_code'];
+        }
+
+        return implode('<br/>', $addressLineElements);
+    }
 }

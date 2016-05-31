@@ -632,7 +632,7 @@ var selectHelper = {
         $return = '';
 
         if(typeof $first_option !== 'undefined'){
-            $return += '<option>' + $first_option + '</option>';
+            $return += '<option value="">' + $first_option + '</option>';
         }
 
         for(val in data){

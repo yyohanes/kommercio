@@ -420,6 +420,11 @@ Route::group(['middleware' => ['web']], function () {
                         'uses' => 'OrderController@store'
                     ]);
 
+                    Route::get('view/{id}', [
+                        'as' => 'backend.sales.order.view',
+                        'uses' => 'OrderController@view'
+                    ]);
+
                     Route::group(['middleware' => ['backend.order_editable']], function(){
                         Route::get('edit/{id}', [
                             'as' => 'backend.sales.order.edit',

@@ -97,4 +97,9 @@ class LineItem extends Model
     {
         return $this->belongsTo('Kommercio\Models\Product', 'line_item_id');
     }
+
+    public function shippingMethod()
+    {
+        return $this->belongsTo('Kommercio\Models\ShippingMethod', 'line_item_id');
+    }
 }

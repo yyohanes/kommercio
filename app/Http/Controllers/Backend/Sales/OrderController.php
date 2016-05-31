@@ -88,26 +88,37 @@ class OrderController extends Controller{
         $meat= [];
 
         foreach($orders as $idx=>$order){
-            $orderAction = '<div class="btn-group btn-group-sm"><button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" data-hover="dropdown" data-delay="500" data-close-others="true" aria-expanded="true"> Actions <i class="fa fa-angle-down"></i></button><ul class="dropdown-menu" role="menu">';
-            if(in_array($order->status, [Order::STATUS_PENDING])) {
-                $orderAction .= '<li><a class="modal-ajax" href="' . route('backend.sales.order.process', ['action' => 'processing', 'id' => $order->id, 'backUrl' => RequestFacade::fullUrl()]) . '"><i class="fa fa-toggle-right"></i> Process</a></li>';
+            $orderAction = '';
+
+            $orderAction .= '<div class="btn-group btn-group-sm dropup">';
+            $orderAction .= '<a class="btn btn-default" href="'.route('backend.sales.order.view', ['id' => $order->id, 'backUrl' => RequestFacade::fullUrl()]).'"><i class="fa fa-search"></i></a>';
+
+            if(in_array($order->status, [Order::STATUS_PENDING, Order::STATUS_PROCESSING])) {
+                $orderAction .= '<button type="button" class="btn btn-default hold-on-click dropdown-toggle" data-toggle="dropdown" data-hover="dropdown" data-close-others="true" aria-expanded="true"><i class="fa fa-flag-o"></i></button><ul class="dropdown-menu" role="menu">';
+                if (in_array($order->status, [Order::STATUS_PENDING])) {
+                    $orderAction .= '<li><a class="modal-ajax" href="' . route('backend.sales.order.process', ['action' => 'processing', 'id' => $order->id, 'backUrl' => RequestFacade::fullUrl()]) . '"><i class="fa fa-toggle-right"></i> Process</a></li>';
+                }
+
+                if (in_array($order->status, [Order::STATUS_PENDING, Order::STATUS_PROCESSING])) {
+                    $orderAction .= '<li><a class="modal-ajax" href="' . route('backend.sales.order.process', ['action' => 'completed', 'id' => $order->id, 'backUrl' => RequestFacade::fullUrl()]) . '"><i class="fa fa-check-circle"></i> Complete</a></li>';
+                    $orderAction .= '<li><a class="modal-ajax" href="' . route('backend.sales.order.process', ['action' => 'cancelled', 'id' => $order->id, 'backUrl' => RequestFacade::fullUrl()]) . '"><i class="fa fa-remove"></i> Cancel</a></li>';
+                }
+                $orderAction .= '</ul>';
             }
 
-            if(in_array($order->status, [Order::STATUS_PENDING, Order::STATUS_PROCESSING])){
-                $orderAction .= '<li><a class="modal-ajax" href="'.route('backend.sales.order.process', ['action' => 'completed', 'id' => $order->id, 'backUrl' => RequestFacade::fullUrl()]).'"><i class="fa fa-check-circle"></i> Complete</a></li>';
-                $orderAction .= '<li><a class="modal-ajax" href="'.route('backend.sales.order.process', ['action' => 'cancelled', 'id' => $order->id, 'backUrl' => RequestFacade::fullUrl()]).'"><i class="fa fa-remove"></i> Cancel</a></li>';
-            }
+            $orderAction .= '</div>';
 
             if($order->isEditable){
-                $orderAction .= '<li><a href="'.route('backend.sales.order.edit', ['id' => $order->id, 'backUrl' => RequestFacade::fullUrl()]).'"><i class="fa fa-pencil"></i> Edit</a></li>';
+                $orderAction .= FormFacade::open(['route' => ['backend.sales.order.delete', 'id' => $order->id], 'class' => 'form-in-btn-group']);
+                $orderAction .= '<div class="btn-group btn-group-sm">';
+                $orderAction .= '<a class="btn btn-default" href="'.route('backend.sales.order.edit', ['id' => $order->id, 'backUrl' => RequestFacade::fullUrl()]).'"><i class="fa fa-pencil"></i></a>';
 
                 if($order->isDeleteable) {
-                    $orderAction .= '<li>'.FormFacade::open(['route' => ['backend.sales.order.delete', 'id' => $order->id]]);
-                    $orderAction .= '<button data-toggle="confirmation" data-original-title="Are you sure?" title=""><i class="fa fa-trash-o"></i> Delete</button></div>';
-                    $orderAction .= FormFacade::close().'</li>';
+                    $orderAction .= '<button class="btn btn-default" data-toggle="confirmation" data-original-title="Are you sure?" title="" class="btn-link"><i class="fa fa-trash-o"></i></button></div>';
                 }
+
+                $orderAction .= FormFacade::close().'</div>';
             }
-            $orderAction .= '</ul></div>';
 
             $meat[] = [
                 $idx + 1 + $orderingStart,
@@ -194,6 +205,22 @@ class OrderController extends Controller{
         $order->save();
 
         return redirect()->route('backend.sales.order.index')->with('success', ['This '.Order::getStatusOptions($order->status, true).' order has successfully been created.']);
+    }
+
+    public function view($id)
+    {
+        $order = Order::findOrFail($id);
+
+        $lineItems = $order->lineItems;
+        $billingProfile = $order->billingProfile?$order->billingProfile->fillDetails():new Profile();
+        $shippingProfile = $order->shippingProfile?$order->shippingProfile->fillDetails():new Profile();
+
+        return view('backend.order.view', [
+            'order' => $order,
+            'lineItems' => $lineItems,
+            'billingProfile' => $billingProfile,
+            'shippingProfile' => $shippingProfile
+        ]);
     }
 
     public function edit($id)
