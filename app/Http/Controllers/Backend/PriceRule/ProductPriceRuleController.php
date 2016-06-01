@@ -187,7 +187,7 @@ class ProductPriceRuleController extends Controller
 
         $this->processPriceRuleOptionGroups($priceRule, $request);
 
-        return redirect()->route('backend.price_rule.product.index')->with('success', [$priceRule->name.' has successfully been created.']);
+        return redirect()->route('backend.price_rule.product.index')->with('success', [$priceRule->name.' has successfully been updated.']);
     }
 
     public function delete(Request $request, $id)

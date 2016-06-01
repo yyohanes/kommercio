@@ -2,6 +2,7 @@
 
 namespace Kommercio\Models\Order;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Kommercio\Models\Interfaces\AuthorSignatureInterface;
 use Kommercio\Traits\Model\AuthorSignature;
@@ -55,6 +56,35 @@ class Payment extends Model implements AuthorSignatureInterface
         }
 
         return $data;
+    }
+
+    public function recordStatusChange($status, $by, $note=null)
+    {
+        $history = $this->getData('actions');
+
+        if(!$history){
+            $history = [];
+        }
+
+        $history[] = [
+            'status' => self::getStatusOptions($status),
+            'by' => $by,
+            'at' => Carbon::now()->toDateTimeString(),
+            'notes' => $note
+        ];
+
+        $this->saveData(['history' => $history]);
+    }
+
+    public function getHistory()
+    {
+        $histories = $this->getData('history');
+
+        if(!is_array($histories)){
+            $histories = $histories?[$histories]:[];
+        }
+
+        return $histories;
     }
 
     //Accessors

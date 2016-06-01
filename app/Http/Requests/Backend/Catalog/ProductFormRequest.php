@@ -46,6 +46,7 @@ class ProductFormRequest extends Request
             'productDetail.active_date_to' => 'date_format:Y-m-d H:i',
             'productDetail.retail_price' => 'required|numeric',
             'productDetail.manage_stock' => 'boolean',
+            'productDetail.taxable' => 'boolean',
             'stock' => 'numeric',
             'variation.*.stock' => 'numeric',
             'variation.*.productDetail.manage_stock' => 'boolean',
@@ -66,6 +67,12 @@ class ProductFormRequest extends Request
         }
         if(!$this->has('manufacturer_id')){
             $attributes['manufacturer_id'] = NULL;
+        }
+        if(!$this->has('productDetail.taxable')){
+            $attributes['productDetail']['taxable'] = 0;
+        }
+        if(!$this->has('productDetail.manage_stock')){
+            $attributes['productDetail']['manage_stock'] = 0;
         }
 
 

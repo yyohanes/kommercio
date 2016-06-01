@@ -36,7 +36,13 @@ class User extends Authenticatable
     //Accessors
     public function getFullNameAttribute()
     {
-        return $this->getProfile()->full_name;
+        $fullName = $this->getProfile()->full_name;
+
+        if(empty(trim($fullName))){
+            $fullName = $this->emaill;
+        }
+
+        return $fullName;
     }
 
     //Statics

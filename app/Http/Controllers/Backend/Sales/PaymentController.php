@@ -107,24 +107,17 @@ class PaymentController extends Controller{
             ]);
         } else {
             $rules = [];
+            $status = Payment::STATUS_SUCCESS;
 
             switch ($process) {
                 case 'void':
+                    $status = Payment::STATUS_VOID;
                     $rules['reason'] = 'required';
-                    $payment->status = Payment::STATUS_VOID;
-                    $payment->saveData([
-                        'void_reason' => $request->input('reason'),
-                        'void_by' => Auth::user()->id
-                    ]);
                     $message = 'Payment has been set to <span class="label bg-' . OrderHelper::getPaymentStatusLabelClass($payment->status) . ' bg-font-' . OrderHelper::getPaymentStatusLabelClass($payment->status) . '">Void.</span>';
                     break;
                 case 'accept':
+                    $status = Payment::STATUS_SUCCESS;
                     $rules['reason'] = 'required';
-                    $payment->status = Payment::STATUS_SUCCESS;
-                    $payment->saveData([
-                        'accept_reason' => $request->input('reason'),
-                        'accept_by' => Auth::user()->id
-                    ]);
                     $message = 'Payment has been set to <span class="label bg-' . OrderHelper::getPaymentStatusLabelClass($payment->status) . ' bg-font-' . OrderHelper::getPaymentStatusLabelClass($payment->status) . '">Success.</span>';
                     break;
                 default:
@@ -137,6 +130,8 @@ class PaymentController extends Controller{
                 return redirect(route('backend.sales.order.view', ['id' => $payment->order->id]).'#tab_payments')->withErrors($validator);
             }
 
+            $payment->status = $status;
+            $payment->recordStatusChange($status, Auth::user()->fullName, $request->input('reason'));
             $payment->save();
 
             return redirect($request->input('backUrl', route('backend.sales.order.view', ['id' => $payment->order->id])))->with('success', [$message]);

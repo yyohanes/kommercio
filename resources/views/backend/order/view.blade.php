@@ -249,8 +249,7 @@
                                                 <th> Payment Date </th>
                                                 <th> Amount </th>
                                                 <th> Status </th>
-                                                <th> Notes </th>
-                                                <th> Entered By </th>
+                                                <th> History </th>
                                                 <th> </th>
                                             </tr>
                                             </thead>

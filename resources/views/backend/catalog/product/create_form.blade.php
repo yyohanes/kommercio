@@ -121,6 +121,19 @@
                     'valueColumnClass' => 'col-md-4'
                 ])
 
+                @include('backend.master.form.fields.checkbox', [
+                    'name' => 'productDetail[taxable]',
+                    'label' => 'Taxable',
+                    'key' => 'productDetail.taxable',
+                    'value' => 1,
+                    'checked' => $product->productDetail?$product->productDetail->taxable:true,
+                    'attr' => [
+                        'class' => 'make-switch',
+                        'id' => 'productDetail[taxable]',
+                        'data-on-color' => 'warning'
+                    ],
+                ])
+
                 <hr/>
 
                 @include('backend.master.form.fields.select', [

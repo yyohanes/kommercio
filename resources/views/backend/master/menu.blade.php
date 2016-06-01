@@ -78,6 +78,10 @@
             <span class="arrow"></span>
         </a>
         <ul class="sub-menu">
+            <li class="nav-item {{ NavigationHelper::activeClass('configuration/tax')?'active open':'' }}">
+                <a href="{{ route('backend.tax.index') }}" class="nav-link">Tax</a>
+            </li>
+
             <li class="nav-item {{ NavigationHelper::activeClass('configuration/payment-method')?'active':'' }}">
                 <a href="{{ route('backend.payment_method.index') }}" class="nav-link"> Payment Method </a>
             </li>

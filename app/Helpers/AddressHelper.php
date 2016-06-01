@@ -15,10 +15,11 @@ class AddressHelper
     private $_cities;
     private $_districts;
     private $_areas;
+    private $_alwaysRefresh = FALSE;
 
     public function getCountries($active_only=TRUE)
     {
-        if(!isset($this->_countries)){
+        if(!isset($this->_countries) || $this->_alwaysRefresh){
             $qb = Country::orderBy('sort_order', 'ASC');
 
             if($active_only){
@@ -40,7 +41,7 @@ class AddressHelper
 
     public function getStates($country_id=null, $active_only=TRUE)
     {
-        if(!isset($this->_states)){
+        if(!isset($this->_states) || $this->_alwaysRefresh){
             $qb = State::orderBy('sort_order', 'ASC');
 
             if($country_id){
@@ -72,7 +73,7 @@ class AddressHelper
 
     public function getCities($state_id=null, $active_only=TRUE)
     {
-        if(!isset($this->_cities)){
+        if(!isset($this->_cities) || $this->_alwaysRefresh){
             $qb = City::orderBy('sort_order', 'ASC');
 
             if($state_id){
@@ -104,7 +105,7 @@ class AddressHelper
 
     public function getDistricts($city_id=null, $active_only=TRUE)
     {
-        if(!isset($this->_districts)){
+        if(!isset($this->_districts) || $this->_alwaysRefresh){
             $qb = District::orderBy('sort_order', 'ASC');
 
             if($city_id){
@@ -136,7 +137,7 @@ class AddressHelper
 
     public function getAreas($district_id=null, $active_only=TRUE)
     {
-        if(!isset($this->_areas)){
+        if(!isset($this->_areas) || $this->_alwaysRefresh){
             $qb = Area::orderBy('sort_order', 'ASC');
 
             if($district_id){
@@ -228,5 +229,10 @@ class AddressHelper
         }
 
         return implode('<br/>', $addressLineElements);
+    }
+
+    public function setAlwaysRefresh($active)
+    {
+        $this->_alwaysRefresh = $active;
     }
 }

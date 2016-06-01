@@ -6,27 +6,39 @@ use Illuminate\Database\Eloquent\Model;
 
 class Tax extends Model
 {
-    const TYPE_COMBINE = 'combine';
-    const TYPE_ORDERLY = 'orderly';
-    const TYPE_SINGLE = 'single';
-
-    protected $guarded = [];
+    protected $guarded = ['country', 'states', 'cities', 'districts', 'areas'];
     protected $casts = [
-        'shipping' => 'boolean'
+        'active' => 'boolean'
     ];
 
-    public static function getTypeOptions($option=null)
+    //Relations
+    public function store()
     {
-        $array = [
-            self::TYPE_COMBINE => 'Combine',
-            self::TYPE_ORDERLY => 'One After Another',
-            self::TYPE_SINGLE => 'Only This Tax',
-        ];
+        return $this->belongsTo('Kommercio\Models\Store');
+    }
 
-        if(empty($option)){
-            return $array;
-        }
+    public function countries()
+    {
+        return $this->morphedByMany('Kommercio\Models\Address\Country', 'tax_optionable', 'tax_rules');
+    }
 
-        return (isset($array[$option]))?$array[$option]:$array;
+    public function states()
+    {
+        return $this->morphedByMany('Kommercio\Models\Address\State', 'tax_optionable', 'tax_rules');
+    }
+
+    public function cities()
+    {
+        return $this->morphedByMany('Kommercio\Models\Address\City', 'tax_optionable', 'tax_rules');
+    }
+
+    public function districts()
+    {
+        return $this->morphedByMany('Kommercio\Models\Address\District', 'tax_optionable', 'tax_rules');
+    }
+
+    public function areas()
+    {
+        return $this->morphedByMany('Kommercio\Models\Address\Area', 'tax_optionable', 'tax_rules');
     }
 }

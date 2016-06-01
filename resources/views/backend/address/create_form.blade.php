@@ -19,6 +19,7 @@
         'class' => 'form-control select2',
         'id' => 'parent_id'
     ],
+    'defaultOptions' => Request::get('parent_id', null),
     'required' => TRUE
 ])
 @else

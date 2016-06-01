@@ -635,6 +635,49 @@ Route::group(['middleware' => ['web']], function () {
                         'uses' => 'AddressController@reorder'
                     ]);
                 });
+
+                //Taxes
+                Route::group(['prefix' => 'tax', 'namespace' => 'Tax'], function(){
+                    Route::get('index', [
+                        'as' => 'backend.tax.index',
+                        'uses' => 'TaxController@index'
+                    ]);
+
+                    Route::get('create', [
+                        'as' => 'backend.tax.create',
+                        'uses' => 'TaxController@create'
+                    ]);
+
+                    Route::post('store', [
+                        'as' => 'backend.tax.store',
+                        'uses' => 'TaxController@store'
+                    ]);
+
+                    Route::get('edit/{id}', [
+                        'as' => 'backend.tax.edit',
+                        'uses' => 'TaxController@edit'
+                    ]);
+
+                    Route::post('update/{id}', [
+                        'as' => 'backend.tax.update',
+                        'uses' => 'TaxController@update'
+                    ]);
+
+                    Route::post('delete/{id}', [
+                        'as' => 'backend.tax.delete',
+                        'uses' => 'TaxController@delete'
+                    ]);
+
+                    Route::post('reorder', [
+                        'as' => 'backend.tax.reorder',
+                        'uses' => 'TaxController@reorder'
+                    ]);
+
+                    Route::get('country_children/{country_id?}', [
+                        'as' => 'backend.tax.country_children',
+                        'uses' => 'TaxController@countryChildren'
+                    ]);
+                });
             });
 
             //Warehouse
