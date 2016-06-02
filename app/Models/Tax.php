@@ -11,6 +11,12 @@ class Tax extends Model
         'active' => 'boolean'
     ];
 
+    //Scopes
+    public function scopeActive($query)
+    {
+        $query->where('active', 1);
+    }
+
     //Relations
     public function store()
     {

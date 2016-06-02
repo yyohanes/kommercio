@@ -213,13 +213,19 @@
                                                 <div class="col-md-8 name"> Sub Total: </div>
                                                 <div class="col-md-3 value"> {{ PriceFormatter::formatNumber($order->subtotal + $order->additional_total, $order->currency) }} </div>
                                             </div>
+                                            <div class="row static-info align-reverse discount">
+                                                <div class="col-md-8 name"> Discount: </div>
+                                                <div class="col-md-3 value"> {{ PriceFormatter::formatNumber($order->discount_total, $order->currency) }} </div>
+                                            </div>
                                             <div class="row static-info align-reverse shipping">
                                                 <div class="col-md-8 name"> Shipping: </div>
                                                 <div class="col-md-3 value"> {{ PriceFormatter::formatNumber($order->shipping_total, $order->currency) }} </div>
                                             </div>
-                                            <div class="row static-info align-reverse discount">
-                                                <div class="col-md-8 name"> Discount: </div>
-                                                <div class="col-md-3 value"> {{ PriceFormatter::formatNumber($order->discount_total, $order->currency) }} </div>
+                                            <div id="tax-summary-wrapper">
+                                                <div class="row static-info align-reverse discount">
+                                                    <div class="col-md-8 name"> Tax: </div>
+                                                    <div class="col-md-3 value"> {{ PriceFormatter::formatNumber($order->tax_total, $order->currency) }} </div>
+                                                </div>
                                             </div>
                                             <div class="row static-info align-reverse total">
                                                 <div class="col-md-8 name"> Grand Total: </div>

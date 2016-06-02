@@ -156,13 +156,19 @@
                 <div class="col-md-8 name"> Sub Total: </div>
                 <div class="col-md-3 value"> <span class="currency-symbol">{{ CurrencyHelper::getCurrentCurrency()['symbol'] }}</span> <span class="amount">0</span> </div>
             </div>
+            <div class="row static-info align-reverse discount">
+                <div class="col-md-8 name"> Discount: </div>
+                <div class="col-md-3 value"> <span class="currency-symbol">{{ CurrencyHelper::getCurrentCurrency()['symbol'] }}</span> <span class="amount">0</span> </div>
+            </div>
             <div class="row static-info align-reverse shipping">
                 <div class="col-md-8 name"> Shipping: </div>
                 <div class="col-md-3 value"> <span class="currency-symbol">{{ CurrencyHelper::getCurrentCurrency()['symbol'] }}</span> <span class="amount">0</span> </div>
             </div>
-            <div class="row static-info align-reverse discount">
-                <div class="col-md-8 name"> Discount: </div>
-                <div class="col-md-3 value"> <span class="currency-symbol">{{ CurrencyHelper::getCurrentCurrency()['symbol'] }}</span> <span class="amount">0</span> </div>
+            <div id="tax-summary-wrapper">
+                <div class="row static-info align-reverse discount">
+                    <div class="col-md-8 name"> Tax: </div>
+                    <div class="col-md-3 value"> <span class="currency-symbol">{{ CurrencyHelper::getCurrentCurrency()['symbol'] }}</span> <span class="amount">0</span> </div>
+                </div>
             </div>
             <div class="row static-info align-reverse total">
                 <div class="col-md-8 name"> Grand Total: </div>

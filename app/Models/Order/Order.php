@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Kommercio\Facades\CurrencyHelper;
 use Kommercio\Models\Interfaces\AuthorSignatureInterface;
 use Kommercio\Models\Profile\Profile;
+use Kommercio\Models\Tax;
 use Kommercio\Traits\Model\AuthorSignature;
 
 class Order extends Model implements AuthorSignatureInterface
@@ -126,6 +127,15 @@ class Order extends Model implements AuthorSignatureInterface
                 $lineItem->product->increaseStock($lineItem->quantity);
             }
         }
+    }
+
+    public function getTaxes()
+    {
+        $qb = Tax::orderBy('sort_order', 'ASC')->active();
+
+        $qb->where(function($qb){
+
+        });
     }
 
     public function saveProfile($type, $data)

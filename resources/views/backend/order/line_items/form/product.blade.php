@@ -1,4 +1,4 @@
-<tr class="line-item" data-line_item="product" data-line_item_key="{{ $key }}">
+<tr class="line-item" data-taxable="{{ isset($product)?$product->taxable:null }}" data-line_item="product" data-line_item_key="{{ $key }}">
     <td>
         {!! Form::hidden('line_items['.$key.'][line_item_type]', 'product') !!}
         @include('backend.master.form.fields.text', [

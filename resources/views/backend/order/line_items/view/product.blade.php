@@ -1,4 +1,4 @@
-<tr class="line-item" data-line_item="product" data-line_item_key="{{ $key }}">
+<tr class="line-item" data-taxable="{{ $lineItem->taxable }}" data-line_item="product" data-line_item_key="{{ $key }}">
     <td>
         {{ $lineItem->name }}
     </td>

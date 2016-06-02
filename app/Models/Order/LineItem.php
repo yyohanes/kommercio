@@ -8,6 +8,9 @@ use Kommercio\Models\Product;
 class LineItem extends Model
 {
     protected $fillable = ['line_item_id', 'line_item_type', 'name', 'base_price', 'quantity', 'net_price', 'total', 'sort_order'];
+    protected $casts = [
+        'taxable' => 'boolean'
+    ];
 
     //Methods
     public function calculateTotal()

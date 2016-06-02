@@ -51,6 +51,10 @@ class UpdateTaxTable extends Migration
 
             $table->foreign('tax_id')->references('id')->on('taxes')->onDelete('CASCADE');
         });
+
+        Schema::table('line_items', function(Blueprint $table){
+            $table->boolean('taxable')->default(FALSE)->after('total');
+        });
     }
 
     /**
@@ -73,5 +77,9 @@ class UpdateTaxTable extends Migration
         });
 
         Schema::drop('tax_rules');
+
+        Schema::table('line_items', function(Blueprint $table){
+            $table->dropColumn('taxable');
+        });
     }
 }
