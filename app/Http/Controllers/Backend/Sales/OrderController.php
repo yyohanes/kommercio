@@ -143,10 +143,13 @@ class OrderController extends Controller{
 
         $shippingMethods = ShippingMethod::getShippingMethods();
 
+        $taxes = [];
+
         return view('backend.order.create', [
             'order' => $order,
             'lineItems' => $lineItems,
-            'shippingMethods' => $shippingMethods
+            'shippingMethods' => $shippingMethods,
+            'taxes' => $taxes
         ]);
     }
 
@@ -210,6 +213,8 @@ class OrderController extends Controller{
     {
         $order = Order::findOrFail($id);
 
+        dd($order->getTaxes());
+
         $lineItems = $order->lineItems;
         $billingProfile = $order->billingProfile?$order->billingProfile->fillDetails():new Profile();
         $shippingProfile = $order->shippingProfile?$order->shippingProfile->fillDetails():new Profile();
@@ -225,6 +230,8 @@ class OrderController extends Controller{
     public function edit($id)
     {
         $order = Order::findOrFail($id);
+
+        $taxes = $order->getTaxes();
 
         $lineItems = old('line_items', $order->lineItems);
 
@@ -251,7 +258,8 @@ class OrderController extends Controller{
 
         return view('backend.order.edit', [
             'order' => $order,
-            'lineItems' => $lineItems
+            'lineItems' => $lineItems,
+            'taxes' => $taxes
         ]);
     }
 

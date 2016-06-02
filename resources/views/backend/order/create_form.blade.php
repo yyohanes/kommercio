@@ -164,11 +164,14 @@
                 <div class="col-md-8 name"> Shipping: </div>
                 <div class="col-md-3 value"> <span class="currency-symbol">{{ CurrencyHelper::getCurrentCurrency()['symbol'] }}</span> <span class="amount">0</span> </div>
             </div>
-            <div id="tax-summary-wrapper">
-                <div class="row static-info align-reverse discount">
-                    <div class="col-md-8 name"> Tax: </div>
-                    <div class="col-md-3 value"> <span class="currency-symbol">{{ CurrencyHelper::getCurrentCurrency()['symbol'] }}</span> <span class="amount">0</span> </div>
-                </div>
+            <div id="tax-summary-wrapper" data-tax_get="{{ route('backend.tax.get') }}">
+                @foreach($taxes as $tax)
+                    {!! Form::hidden('taxes['.$tax->id.']', $tax->rate) !!}
+                    <div class="row static-info align-reverse discount">
+                        <div class="col-md-8 name"> {{ $tax->name }} ({{ $tax->rate+0 }}%): </div>
+                        <div class="col-md-3 value"> <span class="currency-symbol">{{ CurrencyHelper::getCurrentCurrency()['symbol'] }}</span> <span class="amount">0</span> </div>
+                    </div>
+                @endforeach
             </div>
             <div class="row static-info align-reverse total">
                 <div class="col-md-8 name"> Grand Total: </div>

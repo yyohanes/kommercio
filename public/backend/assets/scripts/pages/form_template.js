@@ -415,6 +415,8 @@ var formBehaviors = function(){
     {
         $('.address-options-group', context).each(function(idx, obj){
             $(obj).find('.country-select').on('change', function(e){
+                $(this).trigger('address.change');
+
                 $.ajax(global_vars.base_path + '/address/state/options', {
                     'data' : 'parent=' + $(e.target).val() + '&active_only=0',
                     'dataType' : 'json',
@@ -437,6 +439,8 @@ var formBehaviors = function(){
             });
 
             $(obj).find('.state-select').on('change', function(e){
+                $(this).trigger('address.change');
+
                 $.ajax(global_vars.base_path + '/address/city/options', {
                     'data' : 'parent=' + $(e.target).val() + '&active_only=0',
                     'dataType' : 'json',
@@ -459,6 +463,8 @@ var formBehaviors = function(){
             });
 
             $(obj).find('.city-select').on('change', function(e){
+                $(this).trigger('address.change');
+
                 $.ajax(global_vars.base_path + '/address/district/options', {
                     'data' : 'parent=' + $(e.target).val() + '&active_only=0',
                     'dataType' : 'json',
@@ -482,6 +488,8 @@ var formBehaviors = function(){
             });
 
             $(obj).find('.district-select').on('change', function(e){
+                $(this).trigger('address.change');
+
                 $.ajax(global_vars.base_path + '/address/area/options', {
                     'data' : 'parent=' + $(e.target).val() + '&active_only=0',
                     'dataType' : 'json',
@@ -501,6 +509,10 @@ var formBehaviors = function(){
                         }
                     }
                 });
+            });
+
+            $(obj).find('.area-select').on('change', function(e) {
+                $(this).trigger('address.change');
             });
 
             $(obj).find('select').each(function(idy, objy){

@@ -196,4 +196,30 @@ class TaxController extends Controller
             'areaOptions' => $areaOptions
         ];
     }
+
+    public function get(Request $request)
+    {
+        $data = [
+            'country_id' => $request->input('country_id', null),
+            'state_id' => $request->input('state_id', null),
+            'city_id' => $request->input('city_id', null),
+            'district_id' => $request->input('district_id', null),
+            'area_id' => $request->input('area_id', null),
+        ];
+
+        $return = [];
+        $taxes = Tax::getTaxes($data);
+        foreach($taxes as $tax){
+            $return[] = [
+                'id' => $tax->id,
+                'name' => $tax->name,
+                'rate' => $tax->rate
+            ];
+        }
+
+        return response()->json([
+            'data' => $return,
+            '_token' => csrf_token()
+        ]);
+    }
 }

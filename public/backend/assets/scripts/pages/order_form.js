@@ -209,6 +209,15 @@ var OrderForm = function () {
             handleBillingEmail();
             handleButtons();
 
+            $('#billing-information-wrapper').on('address.change', function(e){
+                $.ajax($('#tax-summary-wrapper').data('tax_get'), {
+                    data: 'country_id='+$('#profile\\[country_id\\]').val()+'state_id='+$('#profile\\[state_id\\]').val()+'city_id='+$('#profile\\[city_id\\]').val()+'district_id='+$('#profile\\[district_id\\]').val()+'area_id='+$('#profile\\[area_id\\]').val(),
+                    success: function(data) {
+                        console.log(data);
+                    }
+                });
+            });
+
             $('.line-item', '#line-items-table').each(function(idx, obj){
                 OrderForm.lineItemInit($(obj));
             });

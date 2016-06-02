@@ -673,6 +673,11 @@ Route::group(['middleware' => ['web']], function () {
                         'uses' => 'TaxController@reorder'
                     ]);
 
+                    Route::get('get', [
+                        'as' => 'backend.tax.get',
+                        'uses' => 'TaxController@get'
+                    ]);
+
                     Route::get('country_children/{country_id?}', [
                         'as' => 'backend.tax.country_children',
                         'uses' => 'TaxController@countryChildren'

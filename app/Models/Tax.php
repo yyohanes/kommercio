@@ -47,4 +47,58 @@ class Tax extends Model
     {
         return $this->morphedByMany('Kommercio\Models\Address\Area', 'tax_optionable', 'tax_rules');
     }
+
+    //Statics
+    public static function getTaxes($options)
+    {
+        $qb = self::orderBy('sort_order', 'ASC')->active();
+
+        $country = isset($options['country_id'])?:null;
+        $state = isset($options['state_id'])?:null;
+        $city = isset($options['city_id'])?:null;
+        $district = isset($options['district_id'])?:null;
+        $area = isset($options['area_id'])?:null;
+
+        if($country) {
+            $qb->where(function($qb) use ($country){
+                $qb->whereDoesntHave('countries')->orWhereHas('countries', function ($query) use ($country) {
+                    $query->whereIn('id', [$country]);
+                });
+            });
+        }
+
+        if($state) {
+            $qb->where(function($qb) use ($state){
+                $qb->whereDoesntHave('states')->orWhereHas('states', function ($query) use ($state) {
+                    $query->whereIn('id', [$state]);
+                });
+            });
+        }
+
+        if($city) {
+            $qb->where(function($qb) use ($city){
+                $qb->whereDoesntHave('cities')->orWhereHas('cities', function ($query) use ($city) {
+                    $query->whereIn('id', [$city]);
+                });
+            });
+        }
+
+        if($district) {
+            $qb->where(function($qb) use ($district){
+                $qb->whereDoesntHave('districts')->orWhereHas('districts', function ($query) use ($district) {
+                    $query->whereIn('id', [$district]);
+                });
+            });
+        }
+
+        if($area) {
+            $qb->where(function($qb) use ($area){
+                $qb->whereDoesntHave('areas')->orWhereHas('areas', function ($query) use ($area) {
+                    $query->whereIn('id', [$area]);
+                });
+            });
+        }
+
+        return $qb->get();
+    }
 }

@@ -133,9 +133,17 @@ class Order extends Model implements AuthorSignatureInterface
     {
         $qb = Tax::orderBy('sort_order', 'ASC')->active();
 
-        $qb->where(function($qb){
+        $profile = $this->billingProfile->fillDetails();
 
-        });
+        $taxes = Tax::getTaxes([
+            'country_id' => $profile->country_id,
+            'state_id' => $profile->state_id,
+            'city_id' => $profile->city_id,
+            'district_id' => $profile->district_id,
+            'area_id' => $profile->area_id,
+        ]);
+
+        return $taxes;
     }
 
     public function saveProfile($type, $data)
