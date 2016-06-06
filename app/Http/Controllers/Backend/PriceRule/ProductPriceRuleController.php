@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Session;
 use Kommercio\Facades\CurrencyHelper;
 use Kommercio\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Kommercio\Http\Requests\Backend\Catalog\PriceRuleFormRequest;
+use Kommercio\Http\Requests\Backend\PriceRule\PriceRuleFormRequest;
 use Kommercio\Models\PriceRule;
 use Kommercio\Models\PriceRuleOptionGroup;
 use Kommercio\Models\Product;

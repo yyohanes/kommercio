@@ -23,7 +23,7 @@
         <i class="fa fa-circle"></i>
     </li>
     <li>
-        <span>Product Price Rules</span>
+        <span>Cart Price Rules</span>
     </li>
 @stop
 
@@ -32,20 +32,21 @@
         <div class="portlet light portlet-fit portlet-datatable bordered">
             <div class="portlet-title">
                 <div class="caption">
-                    <span class="caption-subject sbold uppercase">Product Price Rules</span>
+                    <span class="caption-subject sbold uppercase">Cart Price Rules</span>
                 </div>
                 <div class="actions">
-                    <a href="{{ route('backend.price_rule.product.create', ['backUrl' => Request::fullUrl()]) }}" class="btn btn-sm btn-info">
+                    <a href="{{ route('backend.price_rule.cart.create', ['backUrl' => Request::fullUrl()]) }}" class="btn btn-sm btn-info">
                         <i class="fa fa-plus"></i> Add </a>
                 </div>
             </div>
 
             <div class="portlet-body">
-                <table class="table table-striped table-bordered table-advance dataset-reorder" id="price-rules-dataset" data-form_token="{{ csrf_token() }}" data-row_class="price-rule-name" data-row_value="price_rule_id" data-reorder_action="{{ route('backend.price_rule.product.reorder') }}">
+                <table class="table table-striped table-bordered table-advance dataset-reorder" id="price-rules-dataset" data-form_token="{{ csrf_token() }}" data-row_class="price-rule-name" data-row_value="price_rule_id" data-reorder_action="{{ route('backend.price_rule.cart.reorder') }}">
                     <thead>
                     <tr>
                         <th style="width: 10px;"></th>
-                        <th> Rule </th>
+                        <th> Name </th>
+                        <th> Type </th>
                         <th> Price </th>
                         <th> Modification </th>
                         <th> Currency </th>
@@ -59,6 +60,7 @@
                         <tr>
                             <td><i class="fa fa-reorder"></i></td>
                             <td class="price-rule-name" data-price_rule_id="{{ $priceRule->id }}">{{ $priceRule->name?$priceRule->name:'-' }}</td>
+                            <td> {{ \Kommercio\Models\PriceRule\CartPriceRule::getOfferTypeOptions($priceRule->offer_type) }} </td>
                             <td> {{ $priceRule->price?$priceRule->getPrice():'-' }} </td>
                             <td> {{ $priceRule->modification?$priceRule->getModificationOutput():'-' }} </td>
                             <td> {{ $priceRule->currency?CurrencyHelper::getCurrency($priceRule->currency)['iso']:'All' }} </td>
@@ -66,9 +68,9 @@
                             <td> <i class="fa {{ $priceRule->active?'fa-check text-success':'fa-remove text-danger' }}"></i> </td>
                             <td>
                                 <div class="btn-group btn-group-sm">
-                                    {!! Form::open(['route' => ['backend.price_rule.product.delete', 'id' => $priceRule->id]]) !!}
+                                    {!! Form::open(['route' => ['backend.price_rule.cart.delete', 'id' => $priceRule->id]]) !!}
                                     <div class="btn-group btn-group-sm">
-                                        <a class="btn btn-default" href="{{ route('backend.price_rule.product.edit', ['id' => $priceRule->id, 'backUrl' => Request::fullUrl()]) }}"><i class="fa fa-pencil"></i> Edit</a>
+                                        <a class="btn btn-default" href="{{ route('backend.price_rule.cart.edit', ['id' => $priceRule->id, 'backUrl' => Request::fullUrl()]) }}"><i class="fa fa-pencil"></i> Edit</a>
                                         <button class="btn btn-default" data-toggle="confirmation" data-original-title="Are you sure?" title=""><i class="fa fa-trash-o"></i> Delete</button>
                                     </div>
                                     {!! Form::close() !!}

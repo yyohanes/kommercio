@@ -138,7 +138,7 @@
 <div class="portlet margin-top-30">
     <div class="portlet-title">
         <div class="caption">
-            <span class="caption-subject sbold uppercase"> Price Rule Options </span>
+            <span class="caption-subject sbold uppercase"> Rules </span>
         </div>
         <div class="actions">
             <a id="price-rule-options-add" href="#" class="btn btn-primary btn-sm"><i class="fa fa-plus"></i> Add </a>

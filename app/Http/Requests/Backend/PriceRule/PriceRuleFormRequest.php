@@ -1,6 +1,6 @@
 <?php
 
-namespace Kommercio\Http\Requests\Backend\Catalog;
+namespace Kommercio\Http\Requests\Backend\PriceRule;
 
 use Kommercio\Facades\CurrencyHelper;
 use Kommercio\Http\Requests\Request;

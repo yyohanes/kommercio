@@ -29,7 +29,7 @@ class PaymentMethod extends Model
             $this->_processor = null;
 
             $classNames = [
-                'Project\PaymentMethods\\'.$this->class
+                'Project\PaymentMethods\\'.$this->class,
                 'Kommercio\PaymentMethods\\'.$this->class,
             ];
 

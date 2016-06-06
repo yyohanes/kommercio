@@ -355,54 +355,91 @@ Route::group(['middleware' => ['web']], function () {
             //Price Rule
             Route::group(['prefix' => 'price-rule', 'namespace' => 'PriceRule'], function(){
                 Route::group(['prefix' => 'product'], function(){
-                    Route::get('product/{product_id}/mini-index', [
+                    Route::get('{product_id}/mini-index', [
                         'as' => 'backend.price_rule.product.mini_index',
                         'uses' => 'ProductPriceRuleController@mini_index'
                     ]);
 
-                    Route::post('product/{product_id}/mini-form/{id?}', [
+                    Route::post('{product_id}/mini-form/{id?}', [
                         'as' => 'backend.price_rule.product.mini_form',
                         'uses' => 'ProductPriceRuleController@mini_form'
                     ]);
 
-                    Route::post('product/{product_id}/mini-save/{id?}', [
+                    Route::post('{product_id}/mini-save/{id?}', [
                         'as' => 'backend.price_rule.product.mini_save',
                         'uses' => 'ProductPriceRuleController@mini_save'
                     ]);
 
-                    Route::get('product/index', [
+                    Route::get('index', [
                         'as' => 'backend.price_rule.product.index',
                         'uses' => 'ProductPriceRuleController@index'
                     ]);
 
-                    Route::get('product/create', [
+                    Route::get('create', [
                         'as' => 'backend.price_rule.product.create',
                         'uses' => 'ProductPriceRuleController@create'
                     ]);
 
-                    Route::post('product/store', [
+                    Route::post('store', [
                         'as' => 'backend.price_rule.product.store',
                         'uses' => 'ProductPriceRuleController@store'
                     ]);
 
-                    Route::get('product/{id}/edit', [
+                    Route::get('{id}/edit', [
                         'as' => 'backend.price_rule.product.edit',
                         'uses' => 'ProductPriceRuleController@edit'
                     ]);
 
-                    Route::post('product/{id}/update', [
+                    Route::post('{id}/update', [
                         'as' => 'backend.price_rule.product.update',
                         'uses' => 'ProductPriceRuleController@update'
                     ]);
 
-                    Route::post('product/delete/{id}', [
+                    Route::post('delete/{id}', [
                         'as' => 'backend.price_rule.product.delete',
                         'uses' => 'ProductPriceRuleController@delete'
                     ]);
 
-                    Route::post('product/reorder', [
+                    Route::post('reorder', [
                         'as' => 'backend.price_rule.product.reorder',
                         'uses' => 'ProductPriceRuleController@reorder'
+                    ]);
+                });
+
+                Route::group(['prefix' => 'cart'], function(){
+                    Route::get('index', [
+                        'as' => 'backend.price_rule.cart.index',
+                        'uses' => 'CartPriceRuleController@index'
+                    ]);
+
+                    Route::get('create', [
+                        'as' => 'backend.price_rule.cart.create',
+                        'uses' => 'CartPriceRuleController@create'
+                    ]);
+
+                    Route::post('store', [
+                        'as' => 'backend.price_rule.cart.store',
+                        'uses' => 'CartPriceRuleController@store'
+                    ]);
+
+                    Route::get('{id}/edit', [
+                        'as' => 'backend.price_rule.cart.edit',
+                        'uses' => 'CartPriceRuleController@edit'
+                    ]);
+
+                    Route::post('{id}/update', [
+                        'as' => 'backend.price_rule.cart.update',
+                        'uses' => 'CartPriceRuleController@update'
+                    ]);
+
+                    Route::post('delete/{id}', [
+                        'as' => 'backend.price_rule.cart.delete',
+                        'uses' => 'CartPriceRuleController@delete'
+                    ]);
+
+                    Route::post('reorder', [
+                        'as' => 'backend.price_rule.cart.reorder',
+                        'uses' => 'CartPriceRuleController@reorder'
                     ]);
                 });
             });

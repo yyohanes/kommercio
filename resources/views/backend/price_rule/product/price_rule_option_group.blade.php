@@ -12,6 +12,7 @@ $index = isset($index)?$index:0;
         </div>
     </div>
     <div class="portlet-body">
+        <div class="col-md-6">
         @include('backend.master.form.fields.select', [
             'name' => 'options['.$index.'][categories][]',
             'label' => 'Categories',
@@ -21,9 +22,12 @@ $index = isset($index)?$index:0;
                 'multiple' => TRUE,
                 'id' => 'options['.$index.'][categories][]',
             ],
+            'two_lines' => TRUE,
             'options' => \Kommercio\Models\ProductCategory::getPossibleParentOptions(),
         ])
+        </div>
 
+        <div class="col-md-6">
         @include('backend.master.form.fields.select', [
             'name' => 'options['.$index.'][manufacturers][]',
             'label' => 'Manufacturers',
@@ -33,9 +37,12 @@ $index = isset($index)?$index:0;
                 'multiple' => TRUE,
                 'id' => 'options['.$index.'][manufacturers][]',
             ],
+            'two_lines' => TRUE,
             'options' => \Kommercio\Models\Manufacturer::getOptions(),
         ])
+        </div>
 
+        <div class="col-md-6">
         @include('backend.master.form.fields.select', [
             'name' => 'options['.$index.'][attributeValues][]',
             'label' => 'Product Attributes',
@@ -45,9 +52,12 @@ $index = isset($index)?$index:0;
                 'multiple' => TRUE,
                 'id' => 'options['.$index.'][attributeValues][]',
             ],
+            'two_lines' => TRUE,
             'options' => \Kommercio\Models\ProductAttribute\ProductAttribute::getProductAttributeWithValueOptions(),
         ])
+        </div>
 
+        <div class="col-md-6">
         @include('backend.master.form.fields.select', [
             'name' => 'options['.$index.'][featureValues][]',
             'label' => 'Product Features',
@@ -57,8 +67,12 @@ $index = isset($index)?$index:0;
                 'multiple' => TRUE,
                 'id' => 'options['.$index.'][featureValues][]',
             ],
+            'two_lines' => TRUE,
             'options' => \Kommercio\Models\ProductFeature\ProductFeature::getProductFeatureWithValueOptions(),
         ])
+        </div>
+
+        <div class="clearfix"></div>
 
         {!! Form::hidden('price_rule_option_groups['.$index.']') !!}
     </div>

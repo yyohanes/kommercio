@@ -25,7 +25,7 @@ class ShippingMethod extends Model
             $this->_processor = null;
 
             $classNames = [
-                'Project\ShippingMethods\\'.$this->class
+                'Project\ShippingMethods\\'.$this->class,
                 'Kommercio\ShippingMethods\\'.$this->class,
             ];
 
@@ -42,6 +42,13 @@ class ShippingMethod extends Model
     }
 
     //Statics
+    public static function getShippingMethodObjects()
+    {
+        $qb = self::orderBy('sort_order', 'ASC');
+
+        return $qb->get();
+    }
+
     public static function getShippingMethods($options = null)
     {
         $shippingMethods = self::orderBy('sort_order', 'ASC')->get();

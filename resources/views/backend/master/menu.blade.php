@@ -74,6 +74,9 @@
             <span class="arrow"></span>
         </a>
         <ul class="sub-menu">
+            <li class="nav-item {{ NavigationHelper::activeClass('price-rule/cart')?'active':'' }}">
+                <a href="{{ route('backend.price_rule.cart.index') }}" class="nav-link"> Cart Price Rules </a>
+            </li>
             <li class="nav-item {{ NavigationHelper::activeClass('price-rule/product')?'active':'' }}">
                 <a href="{{ route('backend.price_rule.product.index') }}" class="nav-link"> Product Price Rules </a>
             </li>

@@ -176,6 +176,22 @@ var formBehaviors = function(){
         })
     }
 
+    var handleSelectDependent = function(context){
+        $('[data-select_dependent]', context).each(function(idx, obj){
+            $($(obj).data('select_dependent')).on('change', function(){
+                if($(this).val() == $(obj).data('select_dependent_value')){
+                    $(obj).show();
+                }else if($(this).val() != $(obj).data('select_dependent_not_value')) {
+                    $(obj).show();
+                }else{
+                    $(obj).hide();
+                }
+            });
+
+            $($(obj).data('select_dependent')).change();
+        })
+    }
+
     var handleDateAndTime = function(context){
         //init datepickers
         $('.date-picker', context).datepicker({
@@ -604,6 +620,7 @@ var formBehaviors = function(){
             handleMaxLength(context);
             handleInputMask(context);
             handleCurrencyDependent(context);
+            handleSelectDependent(context);
             handleMultiselect(context);
             handleEnabledDependent(context);
             handleTabChange(context);
