@@ -68,13 +68,49 @@ var formBehaviors = function(){
             width: null
         });
 
+        $(".select2-ajax", context).each(function(idx, obj){
+            $(obj).select2({
+                width: "off",
+                ajax: {
+                    url: $(obj).data('remote_source'),
+                    dataType: 'json',
+                    delay: 250,
+                    data: function(params) {
+                        return {
+                            query: params.term, // search term
+                            page: params.page
+                        };
+                    },
+                    processResults: function(data, page) {
+                        // parse the results into the format expected by Select2.
+                        // since we are using custom formatting functions we do not need to
+                        // alter the remote JSON data
+                        return {
+                            results: data.data
+                        };
+                    },
+                    cache: true
+                },
+                escapeMarkup: function(markup) {
+                    return markup;
+                },
+                minimumInputLength: 2,
+                templateResult: function(repo){
+                    return repo[$(obj).data('remote_label_property')];
+                },
+                templateSelection: function(repo){
+                    return repo[$(obj).data('remote_value_property')] || repo.text;
+                }
+            });
+        });
+
         // copy Bootstrap validation states to Select2 dropdown
         //
         // add .has-warning, .has-error, .has-succes to the Select2 dropdown
         // (was #select2-drop in Select2 v3.x, in Select2 v4 can be selected via
         // body > .select2-container) if _any_ of the opened Select2's parents
         // has one of these forementioned classes (YUCK! ;-))
-        $(".select2, .select2-multiple", context).on("select2:open", function() {
+        $(".select2, .select2-multiple, .select2-ajax", context).on("select2:open", function() {
             if ($(this).parents("[class*='has-']").length) {
                 var classNames = $(this).parents("[class*='has-']")[0].className.split(/\s+/);
 
@@ -157,14 +193,16 @@ var formBehaviors = function(){
             }
         });
 
-        $(".form_datetime", context).datetimepicker({
-            isRTL: App.isRTL(),
-            autoclose: true,
-            todayBtn: true,
-            pickerPosition: (App.isRTL() ? "bottom-right" : "bottom-left"),
-            minuteStep: 15,
-            format: 'yyyy-mm-dd hh:ii',
-            showClear: true
+        $(".form_datetime", context).each(function(idx, obj){
+            $(obj).datetimepicker({
+                isRTL: App.isRTL(),
+                autoclose: true,
+                todayBtn: true,
+                pickerPosition: (App.isRTL() ? "bottom-right" : "bottom-left"),
+                minuteStep: 15,
+                format: 'yyyy-mm-dd hh:ii',
+                showClear: true
+            });
         });
     }
 
@@ -424,7 +462,7 @@ var formBehaviors = function(){
                         var $options = selectHelper.convertToOptions(data, $(obj).find('.state-select').data('first_option'));
 
                         $(obj).find('.state-select').html($options);
-                        $(obj).find('.state-select').trigger('change');
+                        $(obj).find('.state-select').trigger('change', true);
                         handleSelects($(obj));
 
                         delete $options;
@@ -438,8 +476,10 @@ var formBehaviors = function(){
                 });
             });
 
-            $(obj).find('.state-select').on('change', function(e){
-                $(this).trigger('address.change');
+            $(obj).find('.state-select').on('change', function(e, isChain){
+                if(!isChain){
+                    $(this).trigger('address.change');
+                }
 
                 $.ajax(global_vars.base_path + '/address/city/options', {
                     'data' : 'parent=' + $(e.target).val() + '&active_only=0',
@@ -448,7 +488,7 @@ var formBehaviors = function(){
                         var $options = selectHelper.convertToOptions(data, $(obj).find('.city-select').data('first_option'));
 
                         $(obj).find('.city-select').html($options);
-                        $(obj).find('.city-select').trigger('change');
+                        $(obj).find('.city-select').trigger('change', true);
                         handleSelects($(obj));
 
                         delete $options;
@@ -462,8 +502,10 @@ var formBehaviors = function(){
                 });
             });
 
-            $(obj).find('.city-select').on('change', function(e){
-                $(this).trigger('address.change');
+            $(obj).find('.city-select').on('change', function(e, isChain){
+                if(!isChain){
+                    $(this).trigger('address.change');
+                }
 
                 $.ajax(global_vars.base_path + '/address/district/options', {
                     'data' : 'parent=' + $(e.target).val() + '&active_only=0',
@@ -473,7 +515,7 @@ var formBehaviors = function(){
 
                         $(obj).find('.district-select').html($options);
 
-                        $(obj).find('.district-select').trigger('change');
+                        $(obj).find('.district-select').trigger('change', true);
                         handleSelects($(obj));
 
                         delete $options;
@@ -487,8 +529,10 @@ var formBehaviors = function(){
                 });
             });
 
-            $(obj).find('.district-select').on('change', function(e){
-                $(this).trigger('address.change');
+            $(obj).find('.district-select').on('change', function(e, isChain){
+                if(!isChain){
+                    $(this).trigger('address.change');
+                }
 
                 $.ajax(global_vars.base_path + '/address/area/options', {
                     'data' : 'parent=' + $(e.target).val() + '&active_only=0',
@@ -497,7 +541,7 @@ var formBehaviors = function(){
                         var $options = selectHelper.convertToOptions(data, $(obj).find('.area-select').data('first_option'));
 
                         $(obj).find('.area-select').html($options);
-                        $(obj).find('.area-select').trigger('change');
+                        $(obj).find('.area-select').trigger('change', true);
                         handleSelects($(obj));
 
                         delete $options;
@@ -511,8 +555,10 @@ var formBehaviors = function(){
                 });
             });
 
-            $(obj).find('.area-select').on('change', function(e) {
-                $(this).trigger('address.change');
+            $(obj).find('.area-select').on('change', function(e, isChain) {
+                if(!isChain){
+                    $(this).trigger('address.change');
+                }
             });
 
             $(obj).find('select').each(function(idy, objy){

@@ -28,10 +28,17 @@ class PaymentMethod extends Model
         if(!isset($this->_processor)){
             $this->_processor = null;
 
-            $className = 'Kommercio\PaymentMethods\\'.$this->class;
-            if(class_exists($className)){
-                $this->_processor = new $className();
-                $this->_processor->setPaymentMethod($this);
+            $classNames = [
+                'Project\PaymentMethods\\'.$this->class
+                'Kommercio\PaymentMethods\\'.$this->class,
+            ];
+
+            foreach($classNames as $className){
+                if(class_exists($className)){
+                    $this->_processor = new $className();
+                    $this->_processor->setPaymentMethod($this);
+                    break;
+                }
             }
         }
 

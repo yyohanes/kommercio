@@ -11,6 +11,17 @@ class Tax extends Model
         'active' => 'boolean'
     ];
 
+    //Methods
+    public function getSingleName()
+    {
+        return $this->name.' ('.$this->rate.'%)';
+    }
+
+    public function calculateTax($amount)
+    {
+        return $this->rate/100 * $amount;
+    }
+
     //Scopes
     public function scopeActive($query)
     {
@@ -58,6 +69,20 @@ class Tax extends Model
         $city = isset($options['city_id'])?:null;
         $district = isset($options['district_id'])?:null;
         $area = isset($options['area_id'])?:null;
+        $currency = isset($options['currency'])?:null;
+        $store = isset($options['store_id'])?:null;
+
+        if($currency){
+            $qb->where(function($qb) use ($currency){
+                $qb->whereNull('currency')->orWhere('currency', $currency);
+            });
+        }
+
+        if($store){
+            $qb->where(function($qb) use ($store){
+                $qb->whereNull('store_id')->orWhere('store_id', $store);
+            });
+        }
 
         if($country) {
             $qb->where(function($qb) use ($country){

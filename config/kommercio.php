@@ -14,7 +14,4 @@ return [
             'h' => 200
         ],
     ],
-    'enable_delivery_date' => TRUE,
-    'order_number_format' => 'store_code:order_year:order_month:counter',
-    'order_number_counter_length' => 4
 ];

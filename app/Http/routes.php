@@ -107,6 +107,11 @@ Route::group(['middleware' => ['web']], function () {
                         'as' => 'backend.catalog.category.reorder',
                         'uses' => 'CategoryController@reorder'
                     ]);
+
+                    Route::get('autocomplete', [
+                        'as' => 'backend.catalog.category.autocomplete',
+                        'uses' => 'CategoryController@autocomplete'
+                    ]);
                 });
 
                 Route::group(['prefix' => 'product'], function(){
@@ -484,6 +489,39 @@ Route::group(['middleware' => ['web']], function () {
                             'uses' => 'PaymentController@process'
                         ]);
                     });
+                });
+
+                //Order Limits
+                Route::group(['prefix' => 'order-limit'], function(){
+                    Route::get('{type}/index', [
+                        'as' => 'backend.order_limit.index',
+                        'uses' => 'OrderLimitController@index'
+                    ]);
+
+                    Route::get('{type}/create', [
+                        'as' => 'backend.order_limit.create',
+                        'uses' => 'OrderLimitController@create'
+                    ]);
+
+                    Route::post('{type}/store', [
+                        'as' => 'backend.order_limit.store',
+                        'uses' => 'OrderLimitController@store'
+                    ]);
+
+                    Route::get('edit/{id}', [
+                        'as' => 'backend.order_limit.edit',
+                        'uses' => 'OrderLimitController@edit'
+                    ]);
+
+                    Route::post('update/{id}', [
+                        'as' => 'backend.order_limit.update',
+                        'uses' => 'OrderLimitController@update'
+                    ]);
+
+                    Route::post('delete/{id}', [
+                        'as' => 'backend.order_limit.delete',
+                        'uses' => 'OrderLimitController@delete'
+                    ]);
                 });
             });
 

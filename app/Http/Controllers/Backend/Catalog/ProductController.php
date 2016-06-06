@@ -2,6 +2,7 @@
 
 namespace Kommercio\Http\Controllers\Backend\Catalog;
 
+use Carbon\Carbon;
 use Collective\Html\FormFacade;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Request as RequestFacade;
@@ -10,6 +11,7 @@ use Kommercio\Facades\CurrencyHelper;
 use Kommercio\Http\Controllers\Controller;
 use Kommercio\Http\Requests\Backend\Catalog\ProductFormRequest;
 use Kommercio\Http\Requests\Backend\Catalog\ProductVariationFormRequest;
+use Kommercio\Models\Order\OrderLimit;
 use Kommercio\Models\Product;
 use Kommercio\Models\ProductAttribute\ProductAttribute;
 use Kommercio\Models\ProductAttribute\ProductAttributeValue;
@@ -607,6 +609,7 @@ class ProductController extends Controller{
                     'id' => $result->id,
                     'name' => $result->name.' ('.$result->sku.')',
                     'sku' => $result->sku,
+                    'thumbnail' => $result->hasThumbnail()?asset($result->thumbnail->getImagePath('backend_thumbnail')):'',
                     'tokens' => [
                         $result->name,
                         $result->sku

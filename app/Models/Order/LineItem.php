@@ -4,10 +4,11 @@ namespace Kommercio\Models\Order;
 
 use Illuminate\Database\Eloquent\Model;
 use Kommercio\Models\Product;
+use Kommercio\Models\Tax;
 
 class LineItem extends Model
 {
-    protected $fillable = ['line_item_id', 'line_item_type', 'name', 'base_price', 'quantity', 'net_price', 'total', 'sort_order'];
+    protected $fillable = ['line_item_id', 'line_item_type', 'name', 'base_price', 'quantity', 'taxable', 'net_price', 'total', 'sort_order'];
     protected $casts = [
         'taxable' => 'boolean'
     ];
@@ -48,6 +49,12 @@ class LineItem extends Model
             $this->net_price = $data['lineitem_total_amount'];
             $this->total = $data['lineitem_total_amount'];
             $this->quantity = 1;
+        }elseif($data['line_item_type'] == 'tax'){
+            $this->linkTax($data['tax_id']);
+            $this->base_price = $data['lineitem_total_amount'];
+            $this->net_price = $data['lineitem_total_amount'];
+            $this->total = $data['lineitem_total_amount'];
+            $this->quantity = 1;
         }
 
         $this->sort_order = $sort_order;
@@ -64,9 +71,18 @@ class LineItem extends Model
     {
         $product = Product::where('sku', $sku)->firstOrFail();
         $this->name = $product->name;
+        $this->taxable = $product->productDetail->taxable;
         $this->line_item_id = $product->id;
         $this->line_item_type = 'product';
         $this->base_price = $product->getRetailPrice();
+    }
+
+    public function linkTax($tax_id)
+    {
+        $tax = Tax::findOrFail($tax_id);
+        $this->name = $tax->getSingleName();
+        $this->line_item_id = $tax->id;
+        $this->line_item_type = 'tax';
     }
 
     //Accessors
@@ -85,6 +101,11 @@ class LineItem extends Model
         return $this->line_item_type == 'shipping';
     }
 
+    public function getIsTaxAttribute()
+    {
+        return $this->line_item_type == 'tax';
+    }
+
     public function getQuantityAttribute()
     {
         return $this->attributes['quantity'] + 0.00;
@@ -99,6 +120,11 @@ class LineItem extends Model
     public function product()
     {
         return $this->belongsTo('Kommercio\Models\Product', 'line_item_id');
+    }
+
+    public function tax()
+    {
+        return $this->belongsTo('Kommercio\Models\Tax', 'line_item_id');
     }
 
     public function shippingMethod()

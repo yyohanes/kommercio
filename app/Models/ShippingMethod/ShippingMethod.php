@@ -24,10 +24,17 @@ class ShippingMethod extends Model
         if(!isset($this->_processor)){
             $this->_processor = null;
 
-            $className = 'Kommercio\ShippingMethods\\'.$this->class;
-            if(class_exists($className)){
-                $this->_processor = new $className();
-                $this->_processor->setShippingMethod($this);
+            $classNames = [
+                'Project\ShippingMethods\\'.$this->class
+                'Kommercio\ShippingMethods\\'.$this->class,
+            ];
+
+            foreach($classNames as $className){
+                if(class_exists($className)){
+                    $this->_processor = new $className();
+                    $this->_processor->setShippingMethod($this);
+                    break;
+                }
             }
         }
 

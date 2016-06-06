@@ -36,7 +36,7 @@ class OrderFormRequest extends Request
             'line_items' => 'required',
         ];
 
-        if(config('kommercio.enable_delivery_date', FALSE)){
+        if(config('project.enable_delivery_date', FALSE)){
             $rules['delivery_date'] = 'required|date_format:Y-m-d';
         }
 

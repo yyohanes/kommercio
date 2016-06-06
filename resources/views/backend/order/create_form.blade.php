@@ -35,7 +35,7 @@
             </div>
         </div>
 
-        @if(config('kommercio.enable_delivery_date', FALSE))
+        @if(config('project.enable_delivery_date', FALSE))
         <div class="portlet light bordered">
             <div class="portlet-title">
                 <div class="caption">
@@ -165,12 +165,8 @@
                 <div class="col-md-3 value"> <span class="currency-symbol">{{ CurrencyHelper::getCurrentCurrency()['symbol'] }}</span> <span class="amount">0</span> </div>
             </div>
             <div id="tax-summary-wrapper" data-tax_get="{{ route('backend.tax.get') }}">
-                @foreach($taxes as $tax)
-                    {!! Form::hidden('taxes['.$tax->id.']', $tax->rate) !!}
-                    <div class="row static-info align-reverse discount">
-                        <div class="col-md-8 name"> {{ $tax->name }} ({{ $tax->rate+0 }}%): </div>
-                        <div class="col-md-3 value"> <span class="currency-symbol">{{ CurrencyHelper::getCurrentCurrency()['symbol'] }}</span> <span class="amount">0</span> </div>
-                    </div>
+                @foreach($taxes as $idx=>$tax)
+                    @include('backend.tax.order_summary', ['label' => $tax->getSingleName(), 'value' => 0, 'rate' => $tax->rate, 'tax_id' => $tax->id, 'idx' => $idx])
                 @endforeach
             </div>
             <div class="row static-info align-reverse total">
@@ -201,6 +197,10 @@
 
     <script id="lineitem-shipping-template" type="text/x-handlebars-template">
         @include('backend.order.line_items.form.shipping', ['key' => '@{{key}}'])
+    </script>
+
+    <script id="order-summary-tax-template" type="text/x-handlebars-template">
+        @include('backend.tax.order_summary', ['label' => '@{{label}}', 'value' => '@{{value}}', 'rate' => '@{{rate}}', 'tax_id' => '@{{tax_id}}'])
     </script>
 
     <script src="{{ asset('backend/assets/scripts/pages/order_form.js') }}" type="text/javascript"></script>

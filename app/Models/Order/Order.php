@@ -69,10 +69,10 @@ class Order extends Model implements AuthorSignatureInterface
     //Methods
     public function generateReference()
     {
-        $format = config('kommercio.order_number_format');
+        $format = config('project.order_number_format');
         $formatElements = explode(':', $format);
 
-        $counterLength = config('kommercio.order_number_counter_length');
+        $counterLength = config('project.order_number_counter_length');
 
         $lastOrder = self::checkout()
             ->whereRaw("DATE_FORMAT(checkout_at, '%m-%Y') = ?", [$this->checkout_at->format('m-Y')])
@@ -141,6 +141,8 @@ class Order extends Model implements AuthorSignatureInterface
             'city_id' => $profile->city_id,
             'district_id' => $profile->district_id,
             'area_id' => $profile->area_id,
+            'currency' => $this->currency,
+            'store_id' => $this->store_id,
         ]);
 
         return $taxes;
@@ -205,6 +207,12 @@ class Order extends Model implements AuthorSignatureInterface
     public function calculateTaxTotal()
     {
         $this->tax_total = 0;
+
+        foreach($this->lineItems as $lineItem){
+            if($lineItem->isTax){
+                $this->tax_total += $lineItem->calculateTotal();
+            }
+        }
 
         return $this->tax_total;
     }
@@ -277,6 +285,19 @@ class Order extends Model implements AuthorSignatureInterface
         $paidAmount = $this->getPaidAmount();
 
         return abs($this->total - $paidAmount);
+    }
+
+    public function getTaxLineItems()
+    {
+        $taxLineItems = [];
+
+        foreach($this->lineItems as $lineItem){
+            if($lineItem->isTax){
+                $taxLineItems[] = $lineItem;
+            }
+        }
+
+        return $taxLineItems;
     }
 
     //Scopes

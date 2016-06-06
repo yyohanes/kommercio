@@ -68,4 +68,9 @@ class Store extends Model
     {
         return $this->hasMany('Kommercio\Models\ProductDetail')->productEntity();
     }
+
+    public function orderLimits()
+    {
+        return $this->hasMany('Kommercio\Models\Order\OrderLimit');
+    }
 }

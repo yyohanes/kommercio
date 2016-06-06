@@ -17,6 +17,12 @@ class ProductCategory extends Model
     ];
     public $translatedAttributes = ['name', 'slug', 'description', 'meta_title', 'meta_description', 'thumbnail', 'images'];
 
+    //Methods
+    public function getName()
+    {
+        return $this->name.($this->parent?' ('.$this->parent->name.')':'');
+    }
+
     //Relations
     public function parent()
     {
@@ -26,6 +32,11 @@ class ProductCategory extends Model
     public function children()
     {
         return $this->hasMany('Kommercio\Models\ProductCategory', 'parent_id')->orderBy('sort_order', 'ASC');
+    }
+
+    public function orderLimits()
+    {
+        return $this->morphedByMany('Kommercio\Models\Order\OrderLimit', 'order_limitable');
     }
 
     //Accessors

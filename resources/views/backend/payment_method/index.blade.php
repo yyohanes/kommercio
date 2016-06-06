@@ -19,7 +19,7 @@
         <i class="fa fa-circle"></i>
     </li>
     <li>
-        <a href="{{ route('backend.payment_method.index') }}"><span>Payment Method</span></a>
+        <span>Payment Method</span>
     </li>
 @stop
 

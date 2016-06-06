@@ -213,7 +213,7 @@ class TaxController extends Controller
             $return[] = [
                 'id' => $tax->id,
                 'name' => $tax->name,
-                'rate' => $tax->rate
+                'rate' => $tax->rate+0
             ];
         }
 

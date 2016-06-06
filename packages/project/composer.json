@@ -1,0 +1,12 @@
+{
+    "name": "project",
+    "description": "This is client's project working space",
+    "authors": [
+        {
+            "name": "Yohanes",
+            "email": "yohanes@webpresso.co.id"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {}
+}

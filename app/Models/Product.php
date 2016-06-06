@@ -2,6 +2,7 @@
 
 namespace Kommercio\Models;
 
+use Carbon\Carbon;
 use Dimsav\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -96,7 +97,17 @@ class Product extends Model
         return $this->belongsToMany('Kommercio\Models\Warehouse')->withPivot('stock');
     }
 
+    public function orderLimits()
+    {
+        return $this->morphToMany('Kommercio\Models\Order\OrderLimit', 'order_limitable');
+    }
+
     //Methods
+    public function getName()
+    {
+        return $this->name;
+    }
+
     public function hasThumbnail()
     {
         return $this->thumbnails->count() > 0;

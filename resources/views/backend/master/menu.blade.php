@@ -45,8 +45,24 @@
         </a>
 
         <ul class="sub-menu">
-            <li class="nav-item {{ NavigationHelper::activeClass('sales/order')?'active':'' }}">
+            <li class="nav-item {{ NavigationHelper::activeClass('sales/order/')?'active':'' }}">
                 <a href="{{ route('backend.sales.order.index') }}" class="nav-link"> Order </a>
+            </li>
+
+            <li class="nav-item {{ NavigationHelper::activeClass('sales/order-limit')?'active':'' }}">
+                <a href="javascript:;" class="nav-link">
+                    <span class="title">Order Limit</span>
+                </a>
+
+                <ul class="sub-menu">
+                    <li class="nav-item {{ NavigationHelper::activeClass('sales/order-limit/'.\Kommercio\Models\Order\OrderLimit::TYPE_PRODUCT)?'active':'' }}">
+                        <a href="{{ route('backend.order_limit.index', ['type' => \Kommercio\Models\Order\OrderLimit::TYPE_PRODUCT]) }}" class="nav-link">Product Order Limit</a>
+                    </li>
+
+                    <li class="nav-item {{ NavigationHelper::activeClass('sales/order-limit/'.\Kommercio\Models\Order\OrderLimit::TYPE_PRODUCT_CATEGORY)?'active':'' }}">
+                        <a href="{{ route('backend.order_limit.index', ['type' => \Kommercio\Models\Order\OrderLimit::TYPE_PRODUCT_CATEGORY]) }}" class="nav-link">Category Order Limit</a>
+                    </li>
+                </ul>
             </li>
         </ul>
     </li>

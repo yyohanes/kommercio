@@ -160,6 +160,7 @@ return [
         /*
          * Application Service Providers...
          */
+        Project\ProjectServiceProvider::class,
         Kommercio\Providers\AppServiceProvider::class,
         Kommercio\Providers\AuthServiceProvider::class,
         Kommercio\Providers\EventServiceProvider::class,

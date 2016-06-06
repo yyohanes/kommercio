@@ -148,4 +148,28 @@ class CategoryController extends Controller{
             return redirect()->route('backend.catalog.category.index');
         }
     }
+
+    public function autocomplete(Request $request)
+    {
+        $return = [];
+        $search = $request->get('query', '');
+
+        if(!empty($search)){
+            $qb = ProductCategory::with('parent')->whereTranslationLike('name', '%'.$search.'%');
+
+            $results = $qb->get();
+
+            foreach($results as $result){
+                $return[] = [
+                    'id' => $result->id,
+                    'name' => $result->getName(),
+                    'tokens' => [
+                        $result->name
+                    ]
+                ];
+            }
+        }
+
+        return response()->json(['data' => $return, '_token' => csrf_token()]);
+    }
 }

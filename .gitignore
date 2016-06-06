@@ -8,3 +8,5 @@
 .idea
 .sass-cache
 .DS_STORE
+
+/packages/project/src/Project

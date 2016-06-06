@@ -83,7 +83,7 @@
                                                     <div class="col-md-7 value"> {{ PriceFormatter::formatNumber($order->total, $order->currency) }} </div>
                                                 </div>
 
-                                                @if(config('kommercio.enable_delivery_date', FALSE))
+                                                @if(config('project.enable_delivery_date', FALSE))
                                                 <div class="row static-info">
                                                     <div class="col-md-5 name"> Delivery Date: </div>
                                                     <div class="col-md-7 value"> {!! $order->delivery_date?'<span class="label bg-grey bg-font-grey"><strong>'.$order->delivery_date->format('D, d M Y').'</strong></span>':null !!} </div>
@@ -222,10 +222,12 @@
                                                 <div class="col-md-3 value"> {{ PriceFormatter::formatNumber($order->shipping_total, $order->currency) }} </div>
                                             </div>
                                             <div id="tax-summary-wrapper">
-                                                <div class="row static-info align-reverse discount">
-                                                    <div class="col-md-8 name"> Tax: </div>
-                                                    <div class="col-md-3 value"> {{ PriceFormatter::formatNumber($order->tax_total, $order->currency) }} </div>
+                                                @foreach($order->getTaxLineItems() as $taxLineItem)
+                                                <div class="row static-info align-reverse tax">
+                                                    <div class="col-md-8 name"> {{ $taxLineItem->tax->getSingleName() }}: </div>
+                                                    <div class="col-md-3 value"> {{ PriceFormatter::formatNumber($taxLineItem->total, $order->currency) }} </div>
                                                 </div>
+                                                @endforeach
                                             </div>
                                             <div class="row static-info align-reverse total">
                                                 <div class="col-md-8 name"> Grand Total: </div>

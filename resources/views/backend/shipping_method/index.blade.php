@@ -19,7 +19,7 @@
         <i class="fa fa-circle"></i>
     </li>
     <li>
-        <a href="{{ route('backend.shipping_method.index') }}"><span>Shipping Method</span></a>
+        <span>Shipping Method</span>
     </li>
 @stop
 

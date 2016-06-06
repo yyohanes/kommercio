@@ -2,7 +2,9 @@ var OrderForm = function () {
     var $orderProductTotal;
     var $orderOriginalProductTotal;
     var $orderFeeTotal;
+    var $orderTaxTotal;
     var $orderShippingTotal;
+    var $taxes = {};
 
     var reserOrderSummary = function()
     {
@@ -10,6 +12,20 @@ var OrderForm = function () {
         $orderOriginalProductTotal = 0;
         $orderFeeTotal = 0;
         $orderShippingTotal = 0;
+        $orderTaxTotal = 0;
+
+        for(var i in $taxes){
+            $taxes[i].total = 0;
+        }
+        $('.tax .amount', '#tax-summary-wrapper').text(0);
+    }
+
+    var calculateTaxes = function($amount)
+    {
+        for(var i in $taxes){
+            $taxes[i].total += $amount * ($taxes[i].rate/100);
+            $orderTaxTotal += $amount * ($taxes[i].rate/100);
+        }
     }
 
     var calculateOrderSummary = function()
@@ -25,6 +41,10 @@ var OrderForm = function () {
             }else if($(obj).data('line_item') == 'shipping'){
                 $orderShippingTotal += Number($(obj).find('.lineitem-total-amount').inputmask('unmaskedvalue'));
             }
+
+            if($(obj).data('taxable') == '1'){
+                calculateTaxes(Number($(obj).find('.lineitem-total-amount').inputmask('unmaskedvalue')));
+            }
         });
     }
 
@@ -33,7 +53,12 @@ var OrderForm = function () {
         $('.subtotal .amount', '#order-summary').text(formHelper.convertNumber($orderOriginalProductTotal + $orderFeeTotal));
         $('.shipping .amount', '#order-summary').text(formHelper.convertNumber($orderShippingTotal));
         $('.discount .amount', '#order-summary').text(formHelper.convertNumber($orderProductTotal - $orderOriginalProductTotal));
-        $('.total .amount', '#order-summary').text(formHelper.convertNumber($orderProductTotal + $orderShippingTotal + $orderFeeTotal));
+
+        for(var i in $taxes){
+            $('.tax[data-tax_id="'+i+'"] .amount', '#order-summary').text(formHelper.convertNumber($taxes[i].total));
+        }
+
+        $('.total .amount', '#order-summary').text(formHelper.convertNumber($orderProductTotal + $orderShippingTotal + $orderFeeTotal + $orderTaxTotal));
     }
 
     var getNextIndex = function()
@@ -202,21 +227,45 @@ var OrderForm = function () {
         });
     }
 
+    var handleTax= function(){
+        var $orderSummaryTemplate = $('#order-summary-tax-template').html();
+        var $orderSummaryPrototype = Handlebars.compile($orderSummaryTemplate);
+
+        $('.tax', '#tax-summary-wrapper').each(function(idx, obj){
+            $taxes[$(obj).data('tax_id')] = {
+                rate: $(obj).data('tax_rate'),
+                total: 0
+            }
+        });
+
+        $('#billing-information-wrapper').on('address.change', function(e){
+            $.ajax($('#tax-summary-wrapper').data('tax_get'), {
+                data: 'country_id='+$('#profile\\[country_id\\]').val()+'state_id='+$('#profile\\[state_id\\]').val()+'city_id='+$('#profile\\[city_id\\]').val()+'district_id='+$('#profile\\[district_id\\]').val()+'area_id='+$('#profile\\[area_id\\]').val(),
+                success: function(data) {
+                    $taxes = {};
+                    $('#tax-summary-wrapper').empty();
+                    for(var i in data.data){
+                        $taxes[data.data[i].id] = {
+                            rate: data.data[i].rate,
+                            total: 0
+                        }
+                        $('#tax-summary-wrapper').append($orderSummaryPrototype({label:data.data[i].name+' ('+data.data[i].rate+'%)', value:0, rate:data.data[i].rate, 'tax_id': data.data[i].id}));
+                    }
+
+                    calculateOrderSummary();
+                    printOrderSummary();
+                }
+            });
+        });
+    }
+
     return {
 
         //main function to initiate the module
         init: function () {
             handleBillingEmail();
             handleButtons();
-
-            $('#billing-information-wrapper').on('address.change', function(e){
-                $.ajax($('#tax-summary-wrapper').data('tax_get'), {
-                    data: 'country_id='+$('#profile\\[country_id\\]').val()+'state_id='+$('#profile\\[state_id\\]').val()+'city_id='+$('#profile\\[city_id\\]').val()+'district_id='+$('#profile\\[district_id\\]').val()+'area_id='+$('#profile\\[area_id\\]').val(),
-                    success: function(data) {
-                        console.log(data);
-                    }
-                });
-            });
+            handleTax();
 
             $('.line-item', '#line-items-table').each(function(idx, obj){
                 OrderForm.lineItemInit($(obj));

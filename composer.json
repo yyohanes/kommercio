@@ -28,7 +28,8 @@
             "database"
         ],
         "psr-4": {
-            "Kommercio\\": "app/"
+            "Kommercio\\": "app/",
+            "Project\\": "packages/project/src"
         }
     },
     "autoload-dev": {

@@ -17,6 +17,7 @@ use Kommercio\Models\Product;
 use Kommercio\Models\Profile\Profile;
 use Kommercio\Facades\PriceFormatter;
 use Kommercio\Models\ShippingMethod\ShippingMethod;
+use Kommercio\Models\Tax;
 
 class OrderController extends Controller{
     public function index(Request $request)
@@ -143,13 +144,15 @@ class OrderController extends Controller{
 
         $shippingMethods = ShippingMethod::getShippingMethods();
 
-        $taxes = [];
+        foreach(old('taxes', []) as $oldTax){
+            $taxes[] = Tax::findOrFail($oldTax);
+        }
 
         return view('backend.order.create', [
             'order' => $order,
             'lineItems' => $lineItems,
             'shippingMethods' => $shippingMethods,
-            'taxes' => $taxes
+            'taxes' => isset($taxes)?$taxes:[],
         ]);
     }
 
@@ -187,6 +190,8 @@ class OrderController extends Controller{
             $order->customer()->associate($customer);
         }
 
+        $taxableTotal = 0;
+
         $count = 0;
         foreach($request->input('line_items') as $lineItemDatum){
             if($lineItemDatum['line_item_type'] == 'product' && empty($lineItemDatum['quantity'])){
@@ -196,6 +201,27 @@ class OrderController extends Controller{
             $lineItem = new LineItem();
             $lineItem->order()->associate($order);
             $lineItem->processData($lineItemDatum, $count);
+            $lineItem->save();
+
+            if($lineItem->taxable){
+                $taxableTotal += $lineItem->calculateTotal();
+            }
+
+            $count += 1;
+        }
+
+        foreach($request->input('taxes') as $tax_id){
+            $tax = Tax::findOrFail($tax_id);
+
+            $taxLineItemDatum = [
+                'tax_id' => $tax->id,
+                'line_item_type' => 'tax',
+                'lineitem_total_amount' => $tax->calculateTax($taxableTotal),
+            ];
+
+            $lineItem = new LineItem();
+            $lineItem->order()->associate($order);
+            $lineItem->processData($taxLineItemDatum, $count);
             $lineItem->save();
 
             $count += 1;
@@ -213,8 +239,6 @@ class OrderController extends Controller{
     {
         $order = Order::findOrFail($id);
 
-        dd($order->getTaxes());
-
         $lineItems = $order->lineItems;
         $billingProfile = $order->billingProfile?$order->billingProfile->fillDetails():new Profile();
         $shippingProfile = $order->shippingProfile?$order->shippingProfile->fillDetails():new Profile();
@@ -231,8 +255,6 @@ class OrderController extends Controller{
     {
         $order = Order::findOrFail($id);
 
-        $taxes = $order->getTaxes();
-
         $lineItems = old('line_items', $order->lineItems);
 
         $oldValues = old();
@@ -244,11 +266,17 @@ class OrderController extends Controller{
 
             foreach($lineItems as $lineItem){
                 $lineItemData = $lineItem->toArray();
+                $lineItemTotal = $lineItem->calculateTotal();
+
                 if($lineItem->isProduct){
                     $lineItemData['sku'] = $lineItem->product->sku;
                 }
 
-                $lineItemData['lineitem_total_amount'] = $lineItem->calculateTotal();
+                if($lineItem->isTax){
+                    $oldValues['taxes'][] = $lineItem->tax->id;
+                }
+
+                $lineItemData['lineitem_total_amount'] = $lineItemTotal;
 
                 $oldValues['line_items'][] = $lineItemData;
             }
@@ -256,10 +284,14 @@ class OrderController extends Controller{
             Session::flashInput($oldValues);
         }
 
+        foreach(old('taxes', []) as $oldTax){
+            $taxes[] = Tax::findOrFail($oldTax);
+        }
+
         return view('backend.order.edit', [
             'order' => $order,
             'lineItems' => $lineItems,
-            'taxes' => $taxes
+            'taxes' => isset($taxes)?$taxes:[],
         ]);
     }
 
@@ -304,23 +336,37 @@ class OrderController extends Controller{
             $order->returnStocks();
         }
 
+        $taxableTotal = 0;
+
         foreach($request->input('line_items') as $lineItemDatum){
             if($lineItemDatum['line_item_type'] == 'product' && empty($lineItemDatum['quantity'])){
                 continue;
             }
 
-            if(!isset($existingLineItems[$count])){
-                $lineItem = new LineItem();
-                $lineItem->order()->associate($order);
-            }else{
-                //Clone and reset existing line item and will eventually be updated with new data
-                $lineItem = $existingLineItems[$count];
-                unset($existingLineItems[$count]);
-
-                $lineItem->clearData();
-            }
+            $lineItem = $this->reuseOrCreateLineItem($order, $existingLineItems, $count);
 
             $lineItem->processData($lineItemDatum, $count);
+            $lineItem->save();
+
+            if($lineItem->taxable){
+                $taxableTotal += $lineItem->calculateTotal();
+            }
+
+            $count += 1;
+        }
+
+        foreach($request->input('taxes') as $tax_id){
+            $tax = Tax::findOrFail($tax_id);
+
+            $taxLineItemDatum = [
+                'tax_id' => $tax->id,
+                'line_item_type' => 'tax',
+                'lineitem_total_amount' => $tax->calculateTax($taxableTotal),
+            ];
+
+            $lineItem = $this->reuseOrCreateLineItem($order, $existingLineItems, $count);
+
+            $lineItem->processData($taxLineItemDatum, $count);
             $lineItem->save();
 
             $count += 1;
@@ -450,6 +496,22 @@ class OrderController extends Controller{
         }
 
         return response()->json($return);
+    }
+
+    protected function reuseOrCreateLineItem($order, &$existingLineItems, $count)
+    {
+        if(!isset($existingLineItems[$count])){
+            $lineItem = new LineItem();
+            $lineItem->order()->associate($order);
+        }else{
+            //Clone and reset existing line item and will eventually be updated with new data
+            $lineItem = $existingLineItems[$count];
+            unset($existingLineItems[$count]);
+
+            $lineItem->clearData();
+        }
+
+        return $lineItem;
     }
 
     protected function placeOrder(Order $order)
