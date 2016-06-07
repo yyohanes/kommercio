@@ -5,7 +5,7 @@
 <div class="content">
     <table bgcolor="" class="social" width="100%">
         <tr>
-            <td align="center">
+            <td>
                 <h1>WE ARE PROCESSING YOUR ORDER #{{ $order->reference }}</h1>
 
                 <p class="text">Dear {{ $order->billingProfile->full_name}},</p>
