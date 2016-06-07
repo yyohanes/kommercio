@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use Dimsav\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
 use Kommercio\Facades\ProjectHelper;
 use Kommercio\Models\ProductAttribute\ProductAttributeValue;
 
@@ -502,6 +503,11 @@ class Product extends Model
         $query->whereNotIn('combination_type', [self::COMBINATION_TYPE_VARIABLE]);
     }
 
+    public function scopeSelectSelf($query)
+    {
+        $query->selectRaw($this->getTable().'.*');
+    }
+
     public function scopeJoinTranslation($query, $locale=null)
     {
         $locale = $locale?$locale:$this->locale();
@@ -511,6 +517,8 @@ class Product extends Model
                 $join->on('T.product_id', '=', $this->getTable().'.id')
                     ->where('T.'.$this->getLocaleKey(), '=', $locale);
             });
+
+        $query->addSelect(DB::raw('T.*'));
     }
 
     public function scopeJoinDetail($query, $store=null)
@@ -523,6 +531,8 @@ class Product extends Model
             $join->on('D.'.$this->productDetail()->getPlainForeignKey(), '=', $this->getTable().'.id')
                 ->where('D.store_id', '=', $store);
         });
+
+        $query->addSelect(DB::raw('D.*'));
     }
 
     public function scopeWithDetail($query, $store=null)

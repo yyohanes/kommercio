@@ -30,7 +30,7 @@ class ProductController extends Controller{
             $totalRecords = $qb->count();
 
             //Join Translation and Detail
-            $qb->with('defaultCategory', 'manufacturer')->joinTranslation()->joinDetail();
+            $qb->with('defaultCategory', 'manufacturer')->joinTranslation()->joinDetail()->selectSelf();
 
             foreach($request->input('filter', []) as $searchKey=>$search){
                 if(trim($search) != ''){
@@ -66,6 +66,7 @@ class ProductController extends Controller{
             }
 
             $products = $qb->get();
+            //dd($products->pluck('id'));
 
             $meat = $this->prepareDatatables($products, $request->input('start'));
 

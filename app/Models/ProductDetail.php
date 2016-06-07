@@ -10,9 +10,7 @@ use Kommercio\Traits\Model\ToggleDate;
 class ProductDetail extends Model implements AuthorSignatureInterface
 {
     use AuthorSignature;
-    use ToggleDate{
-        ToggleDate::__construct as private __toggleDateConstruct;
-    }
+    use ToggleDate;
 
     const VISIBILITY_CATALOG = 'catalog';
     const VISIBILITY_SEARCH = 'search';
@@ -25,11 +23,6 @@ class ProductDetail extends Model implements AuthorSignatureInterface
         'taxable' => 'boolean'
     ];
     protected $toggleFields = ['available', 'active'];
-
-    public function __construct(array $attributes = [])
-    {
-        $this->__toggleDateConstruct();
-    }
 
     //Scopes
     public function scopeProductEntity($query)
