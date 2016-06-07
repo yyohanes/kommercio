@@ -6,10 +6,13 @@ use Illuminate\Database\Eloquent\Model;
 use Kommercio\Models\PriceRule\CartPriceRule;
 use Kommercio\Models\Product;
 use Kommercio\Models\Tax;
+use Kommercio\Traits\Model\HasDataColumn;
 
 class LineItem extends Model
 {
-    protected $fillable = ['line_item_id', 'line_item_type', 'name', 'base_price', 'quantity', 'taxable', 'net_price', 'total', 'sort_order'];
+    use HasDataColumn;
+
+    protected $fillable = ['line_item_id', 'line_item_type', 'name', 'base_price', 'quantity', 'taxable', 'net_price', 'total', 'sort_order', 'data'];
     protected $casts = [
         'taxable' => 'boolean'
     ];
@@ -50,6 +53,7 @@ class LineItem extends Model
             $this->net_price = $data['lineitem_total_amount'];
             $this->total = $data['lineitem_total_amount'];
             $this->quantity = 1;
+            $this->saveData(['shipping_method' => $data['shipping_method']]);
         }elseif($data['line_item_type'] == 'tax'){
             $this->linkTax($data['tax_id']);
             $this->base_price = $data['lineitem_total_amount'];
@@ -154,6 +158,6 @@ class LineItem extends Model
 
     public function shippingMethod()
     {
-        return $this->belongsTo('Kommercio\Models\ShippingMethod', 'line_item_id');
+        return $this->belongsTo('Kommercio\Models\ShippingMethod\ShippingMethod', 'line_item_id');
     }
 }

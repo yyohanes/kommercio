@@ -14,7 +14,8 @@
         "barryvdh/laravel-debugbar" : "^2.0",
         "dimsav/laravel-translatable": "^5.5",
         "doctrine/dbal": "^2.5",
-        "spatie/laravel-glide": "^2.2"
+        "spatie/laravel-glide": "^2.2",
+        "fedeisas/laravel-mail-css-inliner": "~1.5"
     },
     "require-dev": {
         "fzaninotto/faker": "~1.4",

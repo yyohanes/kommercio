@@ -3,6 +3,7 @@ var OrderForm = function () {
     var $orderOriginalProductTotal;
     var $orderFeeTotal;
     var $orderTaxTotal;
+    var $orderTaxableTotal;
     var $orderShippingTotal;
     var $taxes = {};
     var $totalShippingLineItems = 0;
@@ -16,6 +17,7 @@ var OrderForm = function () {
         $orderFeeTotal = 0;
         $orderShippingTotal = 0;
         $orderTaxTotal = 0;
+        $orderTaxableTotal = 0;
         $orderPriceRuleTotal = 0;
 
         for(var i in $taxes){
@@ -27,10 +29,10 @@ var OrderForm = function () {
         }
     }
 
-    var calculateTaxes = function($amount)
+    var calculateTaxes = function()
     {
         for(var i in $taxes){
-            var $taxAmount = $amount * ($taxes[i].rate/100);
+            var $taxAmount = $orderTaxableTotal * ($taxes[i].rate/100);
             $taxes[i].total += $taxAmount;
             $orderTaxTotal += $taxAmount;
         }
@@ -42,7 +44,7 @@ var OrderForm = function () {
             var calculated = 0;
 
             if($cartPriceRules[i].offer_type == 'order_discount'){
-                calculated = calculatePriceRuleValue($orderProductTotal + $orderFeeTotal + $orderShippingTotal, $cartPriceRules[i].price, $cartPriceRules[i].modification, $cartPriceRules[i].modification_type);
+                calculated = calculatePriceRuleValue($orderProductTotal + $orderFeeTotal, $cartPriceRules[i].price, $cartPriceRules[i].modification, $cartPriceRules[i].modification_type);
                 $cartPriceRules[i].total = calculated;
             }else if($cartPriceRules[i].offer_type == 'product_discount') {
 
@@ -51,6 +53,7 @@ var OrderForm = function () {
             }
 
             $orderPriceRuleTotal += calculated;
+            $orderTaxableTotal += calculated;
         }
     }
 
@@ -76,9 +79,10 @@ var OrderForm = function () {
             var lineitemTotalAmount = Number($(obj).find('.lineitem-total-amount').inputmask('unmaskedvalue'));
 
             if($(obj).data('line_item') == 'product'){
+                $orderOriginalProductTotal += Number(lineitemTotalAmount * $(obj).find('.quantity-field').val());
+
                 lineitemTotalAmount += calculateProductPrice(lineitemTotalAmount);
                 $orderProductTotal += lineitemTotalAmount;
-                $orderOriginalProductTotal += Number($(obj).find('.base-price-field').inputmask('unmaskedvalue') * $(obj).find('.quantity-field').val());
             }else if($(obj).data('line_item') == 'fee'){
                 $orderFeeTotal += lineitemTotalAmount;
             }else if($(obj).data('line_item') == 'shipping'){
@@ -87,11 +91,12 @@ var OrderForm = function () {
             }
 
             if($(obj).data('taxable') == '1'){
-                calculateTaxes(lineitemTotalAmount);
+                $orderTaxableTotal += lineitemTotalAmount;
             }
         });
 
         calculateOrderPriceRules();
+        calculateTaxes();
     }
 
     var printOrderSummary = function()
@@ -134,9 +139,9 @@ var OrderForm = function () {
         }
 
         if(modification_type == 'percent' && modification != null){
-            calculatedAmount += (calculatedAmount * modification/100);
+            calculatedAmount += (calculatedAmount * Number(modification)/100);
         }else if(modification_type == 'amount' && modification != null){
-            calculatedAmount += modification;
+            calculatedAmount += Number(modification);
         }
 
         return calculatedAmount - amount;
@@ -186,11 +191,11 @@ var OrderForm = function () {
                             total: 0
                         }
 
-                        $('#cart-price-rules-wrapper').append($cartPriceRulePrototype({label:data.data[i].name, value:0, 'cart_price_rule_id': data.data[i].id}));
+                        $('#cart-price-rules-wrapper').append($cartPriceRulePrototype({key: i, label:data.data[i].name, value:0, 'cart_price_rule_id': data.data[i].id}));
                     }
 
                     $.ajax(global_vars.get_tax_path, {
-                        data: 'country_id='+$('#profile\\[country_id\\]').val()+'state_id='+$('#profile\\[state_id\\]').val()+'city_id='+$('#profile\\[city_id\\]').val()+'district_id='+$('#profile\\[district_id\\]').val()+'area_id='+$('#profile\\[area_id\\]').val(),
+                        data: 'country_id='+$('#profile\\[country_id\\]').val()+'&state_id='+$('#profile\\[state_id\\]').val()+'&city_id='+$('#profile\\[city_id\\]').val()+'&district_id='+$('#profile\\[district_id\\]').val()+'&area_id='+$('#profile\\[area_id\\]').val(),
                         success: function(data) {
                             $taxes = {};
                             $('#tax-summary-wrapper').empty();
@@ -199,7 +204,7 @@ var OrderForm = function () {
                                     rate: data.data[i].rate,
                                     total: 0
                                 }
-                                $('#tax-summary-wrapper').append($taxPrototype({label:data.data[i].name+' ('+data.data[i].rate+'%)', value:0, rate:data.data[i].rate, 'tax_id': data.data[i].id}));
+                                $('#tax-summary-wrapper').append($taxPrototype({key: i, label:data.data[i].name+' ('+data.data[i].rate+'%)', value:0, rate:data.data[i].rate, 'tax_id': data.data[i].id}));
                             }
 
                             calculateOrderSummary();
@@ -233,6 +238,8 @@ var OrderForm = function () {
                         formBehaviors.init($information);
 
                         App.unblockUI('#billing-information-wrapper');
+
+                        $('#order-form').trigger('order.major_change');
                     }
                 });
             }
@@ -293,6 +300,8 @@ var OrderForm = function () {
 
             formBehaviors.init($newFeeLineItem);
             OrderForm.lineItemInit($newFeeLineItem);
+
+            $('#order-form').trigger('order.major_change');
         });
 
         $('#add-shipping-lineitem').click(function(e){
@@ -334,7 +343,7 @@ var OrderForm = function () {
             e.preventDefault();
 
             var $selectedShippingOption = $('#shipping-options-wrapper select').find(':selected');
-            var $newShippingLineItem = $($shippingLineItemPrototype({key: $nextIndex, shipping_method_id:$selectedShippingOption.data('shipping_method')}));
+            var $newShippingLineItem = $($shippingLineItemPrototype({key: $nextIndex, shipping_method: $selectedShippingOption.val(), shipping_method_id:$selectedShippingOption.data('shipping_method')}));
 
             $('#line-items-table tbody').append($newShippingLineItem);
 
@@ -351,6 +360,8 @@ var OrderForm = function () {
 
             $totalShippingLineItems += 1;
             toggleAddShippingButton();
+
+            $('#order-form').trigger('order.major_change');
         });
 
         $('.shipping-cancel', '#shipping-options-wrapper').on('click', function(e){
@@ -368,6 +379,8 @@ var OrderForm = function () {
 
             $totalShippingLineItems = 0;
             toggleAddShippingButton();
+
+            $('#order-form').trigger('order.major_change');
         });
     }
 
@@ -393,6 +406,10 @@ var OrderForm = function () {
 
             $('.line-item', '#line-items-table').each(function(idx, obj){
                 OrderForm.lineItemInit($(obj));
+            });
+
+            $('#billing-information-wrapper').on('address.change', function(){
+                $('#order-form').trigger('order.major_change');
             });
         },
         lineItemInit: function(lineItem)
@@ -420,6 +437,8 @@ var OrderForm = function () {
                         OrderForm.lineItemInit($row);
 
                         $row.find('.net-price-field').trigger('change');
+
+                        $('#order-form').trigger('order.major_change');
                     }
                 });
             });

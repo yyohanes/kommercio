@@ -24,7 +24,7 @@
                 </div>
                 <div class="actions">
                     @if(!$order->status || in_array($order->status, [\Kommercio\Models\Order\Order::STATUS_ADMIN_CART]))
-                    <button data-toggle="confirmation" data-original-title="Do you confirm the placement of this order?" data-placement="bottom" type="submit" name="action" value="place_order" class="btn blue"><i class="fa fa-save"></i> Place Order </button>
+                        <a data-modal_id="#place_order_modal" href="{{ route('backend.sales.order.process', ['action' => 'pending', 'id' => $order->id]) }}" class="btn blue modal-ajax"><i class="fa fa-save"></i> Place Order </a>
                     @endif
                     <button type="submit" name="action" value="save" class="btn blue-madison"><i class="fa fa-save"></i> Save </button>
                     <a class="btn btn-link" href="{{ NavigationHelper::getBackUrl() }}"><i class="fa fa-remove"></i> Cancel </a>
@@ -38,7 +38,7 @@
 
                 <div class="form-actions text-center">
                     @if(!$order->status || in_array($order->status, [\Kommercio\Models\Order\Order::STATUS_ADMIN_CART]))
-                        <button data-toggle="confirmation" data-original-title="Do you confirm the placement of this order?" type="submit" name="action" value="place_order" class="btn blue"><i class="fa fa-save"></i> Place Order </button>
+                        <a data-modal_id="#place_order_modal" href="{{ route('backend.sales.order.process', ['action' => 'pending', 'id' => $order->id]) }}" class="btn blue modal-ajax"><i class="fa fa-save"></i> Place Order </a>
                     @endif
                     <button type="submit" name="action" value="save" class="btn blue-madison"><i class="fa fa-save"></i> Save </button>
                     <a class="btn btn-link" href="{{ NavigationHelper::getBackUrl() }}"><i class="fa fa-remove"></i> Cancel </a>

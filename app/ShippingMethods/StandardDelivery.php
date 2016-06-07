@@ -2,6 +2,7 @@
 
 namespace Kommercio\ShippingMethods;
 
+use Kommercio\Models\Order\Order;
 use Kommercio\Models\ShippingMethod\ShippingMethod;
 
 class StandardDelivery implements ShippingMethodInterface
@@ -44,5 +45,10 @@ class StandardDelivery implements ShippingMethodInterface
         ];
 
         return $methods;
+    }
+
+    public function beforePlaceOrder(Order $order)
+    {
+
     }
 }

@@ -64,65 +64,79 @@ class Tax extends Model
     {
         $qb = self::orderBy('sort_order', 'ASC')->active();
 
-        $country = isset($options['country_id'])?:null;
-        $state = isset($options['state_id'])?:null;
-        $city = isset($options['city_id'])?:null;
-        $district = isset($options['district_id'])?:null;
-        $area = isset($options['area_id'])?:null;
-        $currency = isset($options['currency'])?:null;
-        $store = isset($options['store_id'])?:null;
+        $country = !empty($options['country_id'])?$options['country_id']:null;
+        $state = !empty($options['state_id'])?$options['state_id']:null;
+        $city = !empty($options['city_id'])?$options['city_id']:null;
+        $district = !empty($options['district_id'])?$options['district_id']:null;
+        $area = !empty($options['area_id'])?$options['area_id']:null;
+        $currency = !empty($options['currency'])?$options['currency']:null;
+        $store = !empty($options['store_id'])?$options['store_id']:null;
 
-        if($currency){
-            $qb->where(function($qb) use ($currency){
-                $qb->whereNull('currency')->orWhere('currency', $currency);
-            });
-        }
+        $qb->where(function($qb) use ($currency){
+            $qb->whereNull('currency');
 
-        if($store){
-            $qb->where(function($qb) use ($store){
-                $qb->whereNull('store_id')->orWhere('store_id', $store);
-            });
-        }
+            if($currency){
+                $qb->orWhere('currency', $currency);
+            }
+        });
 
-        if($country) {
-            $qb->where(function($qb) use ($country){
-                $qb->whereDoesntHave('countries')->orWhereHas('countries', function ($query) use ($country) {
+        $qb->where(function($qb) use ($store){
+            $qb->whereNull('store_id');
+
+            if($store){
+                $qb->orWhere('store_id', $store);
+            }
+        });
+
+        $qb->where(function($qb) use ($country){
+            $qb->whereDoesntHave('countries');
+
+            if($country) {
+                $qb->orWhereHas('countries', function ($query) use ($country) {
                     $query->whereIn('id', [$country]);
                 });
-            });
-        }
+            }
+        });
 
-        if($state) {
-            $qb->where(function($qb) use ($state){
-                $qb->whereDoesntHave('states')->orWhereHas('states', function ($query) use ($state) {
+        $qb->where(function($qb) use ($state){
+            $qb->whereDoesntHave('states');
+
+            if($state) {
+                $qb->orWhereHas('states', function ($query) use ($state) {
                     $query->whereIn('id', [$state]);
                 });
-            });
-        }
+            }
+        });
 
-        if($city) {
-            $qb->where(function($qb) use ($city){
-                $qb->whereDoesntHave('cities')->orWhereHas('cities', function ($query) use ($city) {
+        $qb->where(function($qb) use ($city){
+            $qb->whereDoesntHave('cities');
+
+            if($city) {
+                $qb->orWhereHas('cities', function ($query) use ($city) {
                     $query->whereIn('id', [$city]);
                 });
-            });
-        }
+            }
+        });
 
-        if($district) {
-            $qb->where(function($qb) use ($district){
-                $qb->whereDoesntHave('districts')->orWhereHas('districts', function ($query) use ($district) {
+        $qb->where(function($qb) use ($district){
+            $qb->whereDoesntHave('districts');
+
+            if($district) {
+                $qb->orWhereHas('districts', function ($query) use ($district) {
                     $query->whereIn('id', [$district]);
                 });
-            });
-        }
+            }
+        });
 
-        if($area) {
-            $qb->where(function($qb) use ($area){
-                $qb->whereDoesntHave('areas')->orWhereHas('areas', function ($query) use ($area) {
+        $qb->where(function($qb) use ($area){
+            $qb->whereDoesntHave('areas');
+
+            if($area) {
+                $qb->orWhereHas('areas', function ($query) use ($area) {
                     $query->whereIn('id', [$area]);
                 });
-            });
-        }
+            }
+        });
 
         return $qb->get();
     }

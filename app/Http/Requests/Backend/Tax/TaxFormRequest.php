@@ -46,6 +46,9 @@ class TaxFormRequest extends Request
     {
         $attributes = parent::all();
 
+        if(!$this->has('currency')){
+            $attributes['currency'] = null;
+        }
         if(!$this->has('store_id')){
             $attributes['store_id'] = null;
         }

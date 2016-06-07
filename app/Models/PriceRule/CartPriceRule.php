@@ -26,6 +26,8 @@ class CartPriceRule extends Model
         'active' => 'boolean',
     ];
 
+    public $total = 0;
+
     //Relations
     public function store()
     {
@@ -56,19 +58,19 @@ class CartPriceRule extends Model
     //Methods
     public function getValue($price = null)
     {
-        if(!is_null($this->price)){
-            return $this->price;
-        }else{
-            if(is_null($price)){
-                $price = $this->price;
-            }
+        $calculatedAmount = $price;
 
-            if($this->modification_type == 'amount'){
-                return $price + $this->modification;
-            }else{
-                return $price + ($price * $this->modification / 100);
-            }
+        if(!is_null($this->price)){
+            $calculatedAmount = $this->price;
         }
+
+        if($this->modification_type == self::MODIFICATION_TYPE_AMOUNT && !is_null($this->modification)){
+            $calculatedAmount += $this->modification;
+        }elseif($this->modification_type == self::MODIFICATION_TYPE_PERCENT && !is_null($this->modification)){
+            $calculatedAmount += ($calculatedAmount * $this->modification/100);
+        }
+
+        return $calculatedAmount - $price;
     }
 
     public function getModificationOutput()
@@ -158,37 +160,47 @@ class CartPriceRule extends Model
 
         $shippings = isset($options['shippings'])?$options['shippings']:null;
 
-        if($currency){
-            $qb->where(function($qb) use ($currency){
-                $qb->whereNull('currency')->orWhere('currency', $currency);
-            });
-        }
+        $qb->where(function($qb) use ($currency){
+            $qb->whereNull('currency');
 
-        if($store){
-            $qb->where(function($qb) use ($store){
-                $qb->whereNull('store_id')->orWhere('store_id', $store);
-            });
-        }
+            if($currency){
+                $qb->orWhere('currency', $currency);
+            }
+        });
 
-        if($customer){
-            $qb->where(function($qb) use ($customer){
-                $qb->whereNull('customer_id')->orWhere('customer_id', $customer->id);
-            });
-        }
+        $qb->where(function($qb) use ($store){
+            $qb->whereNull('store_id');
 
-        if(!is_null($subtotal)){
-            $qb->where(function($qb) use ($subtotal){
-                $qb->whereNull('minimum_subtotal')->orWhere('minimum_subtotal', '<=', $subtotal);
-            });
-        }
+            if($store){
+                $qb->orWhere('store_id', $store);
+            }
+        });
 
-        if($shippings){
-            $qb->where(function($qb) use ($shippings){
-                $qb->whereDoesntHave('shippingOptionGroup.shippingMethods')->orWhereHas('shippingOptionGroup.shippingMethods', function ($query) use ($shippings) {
+        $qb->where(function($qb) use ($customer){
+            $qb->whereNull('customer_id');
+
+            if($customer){
+                $qb->orWhere('customer_id', $customer->id);
+            }
+        });
+
+        $qb->where(function($qb) use ($subtotal){
+            $qb->whereNull('minimum_subtotal');
+
+            if(!is_null($subtotal)){
+                $qb->orWhere('minimum_subtotal', '<=', $subtotal);
+            }
+        });
+
+        $qb->where(function($qb) use ($shippings){
+            $qb->whereDoesntHave('shippingOptionGroup.shippingMethods');
+
+            if($shippings){
+                $qb->orWhereHas('shippingOptionGroup.shippingMethods', function ($query) use ($shippings) {
                     $query->whereIn('id', $shippings);
                 });
-            });
-        }
+            }
+        });
 
         $priceRules = $qb->get();
 

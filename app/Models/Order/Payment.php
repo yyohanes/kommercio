@@ -6,10 +6,11 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Kommercio\Models\Interfaces\AuthorSignatureInterface;
 use Kommercio\Traits\Model\AuthorSignature;
+use Kommercio\Traits\Model\HasDataColumn;
 
 class Payment extends Model implements AuthorSignatureInterface
 {
-    use AuthorSignature;
+    use AuthorSignature, HasDataColumn;
 
     const STATUS_VOID = 'void';
     const STATUS_SUCCESS = 'success';
@@ -37,27 +38,6 @@ class Payment extends Model implements AuthorSignatureInterface
     }
 
     //Methods
-    public function saveData($data)
-    {
-        $oldData = unserialize($this->data);
-        $oldData = $oldData?$oldData:[];
-
-        $data = array_merge($oldData, $data);
-
-        $this->data = serialize($data);
-    }
-
-    public function getData($attribute=null)
-    {
-        $data = unserialize($this->data);
-
-        if($attribute){
-            return isset($data[$attribute])?$data[$attribute]:null;
-        }
-
-        return $data;
-    }
-
     public function recordStatusChange($status, $by, $note=null)
     {
         $history = $this->getData('actions');

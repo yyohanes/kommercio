@@ -117,7 +117,7 @@
                             @endforeach
 
                             @foreach($shippingLineItems as $idx=>$shippingLineItem)
-                                @include('backend.order.line_items.form.shipping', ['key' => $idx, 'shipping_method_id' => $shippingLineItem['line_item_id']])
+                                @include('backend.order.line_items.form.shipping', ['key' => $idx, 'shipping_method' => $shippingLineItem->getData('shipping_method'), 'shipping_method_id' => $shippingLineItem['line_item_id']])
                             @endforeach
                         @else
                             @include('backend.order.line_items.form.product', ['key' => 0])
@@ -168,12 +168,12 @@
             </div>
             <div id="cart-price-rules-wrapper">
                 @foreach($cartPriceRules as $idx=>$cartPriceRule)
-                    @include('backend.order.line_items.form.cart_price_rule', ['label' => $cartPriceRule->name, 'value' => 0, 'cart_price_rule_id' => $cartPriceRule->id, 'idx' => $idx])
+                    @include('backend.order.line_items.form.cart_price_rule', ['key' => $idx, 'label' => $cartPriceRule->name, 'value' => 0, 'cart_price_rule_id' => $cartPriceRule->id, 'idx' => $idx])
                 @endforeach
             </div>
             <div id="tax-summary-wrapper">
                 @foreach($taxes as $idx=>$tax)
-                    @include('backend.order.line_items.form.tax', ['label' => $tax->getSingleName(), 'value' => 0, 'rate' => $tax->rate, 'tax_id' => $tax->id, 'idx' => $idx])
+                    @include('backend.order.line_items.form.tax', ['key' => $idx, 'label' => $tax->getSingleName(), 'value' => 0, 'rate' => $tax->rate, 'tax_id' => $tax->id, 'idx' => $idx])
                 @endforeach
             </div>
             <div class="row static-info align-reverse total">
@@ -186,6 +186,17 @@
 
 {!! Form::hidden('store_id', ProjectHelper::getActiveStore()->id) !!}
 {!! Form::hidden('currency', CurrencyHelper::getCurrentCurrency()['code']) !!}
+
+<div class="modal fade" id="place_order_modal" role="basic" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-body">
+                <img src="{{ asset('backend/assets/template/global/img/loading-spinner-grey.gif') }}" alt="" class="loading">
+                <span> &nbsp;&nbsp;Loading... </span>
+            </div>
+        </div>
+    </div>
+</div>
 
 @section('bottom_page_scripts')
     @parent
@@ -205,15 +216,15 @@
     </script>
 
     <script id="lineitem-shipping-template" type="text/x-handlebars-template">
-        @include('backend.order.line_items.form.shipping', ['key' => '@{{key}}', 'shipping_method_id' => '@{{shipping_method_id}}'])
+        @include('backend.order.line_items.form.shipping', ['key' => '@{{key}}', 'shipping_method' => '@{{shipping_method}}', 'shipping_method_id' => '@{{shipping_method_id}}'])
     </script>
 
     <script id="lineitem-tax-template" type="text/x-handlebars-template">
-        @include('backend.order.line_items.form.tax', ['label' => '@{{label}}', 'value' => '@{{value}}', 'rate' => '@{{rate}}', 'tax_id' => '@{{tax_id}}'])
+        @include('backend.order.line_items.form.tax', ['key' => '@{{key}}', 'label' => '@{{label}}', 'value' => '@{{value}}', 'rate' => '@{{rate}}', 'tax_id' => '@{{tax_id}}'])
     </script>
 
     <script id="lineitem-cart-price-rule-template" type="text/x-handlebars-template">
-        @include('backend.order.line_items.form.cart_price_rule', ['label' => '@{{label}}', 'value' => '@{{value}}', 'cart_price_rule_id' => '@{{cart_price_rule_id}}'])
+        @include('backend.order.line_items.form.cart_price_rule', ['key' => '@{{key}}','label' => '@{{label}}', 'value' => '@{{value}}', 'cart_price_rule_id' => '@{{cart_price_rule_id}}'])
     </script>
 
     <script src="{{ asset('backend/assets/scripts/pages/order_form.js') }}" type="text/javascript"></script>

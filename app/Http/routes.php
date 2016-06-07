@@ -485,7 +485,7 @@ Route::group(['middleware' => ['web']], function () {
                         ]);
                     });
 
-                    Route::any('process/{action}/{id}', [
+                    Route::any('process/{action}/{id?}', [
                         'as' => 'backend.sales.order.process',
                         'uses' => 'OrderController@process'
                     ]);

@@ -283,6 +283,7 @@ class ProductController extends Controller{
         if($product->variations->count() > 0){
             foreach($product->variations as $variation){
                 $variation->productDetail->manage_stock = $request->input('variation.'.$variation->id.'.productDetail.manage_stock', false);
+                $variation->productDetail->taxable = $productDetail->taxable;
                 $variation->productDetail->save();
 
                 //Update children product categories
@@ -531,6 +532,7 @@ class ProductController extends Controller{
 
         $productDetail->fill($request->input('variation.productDetail'));
         $productDetail->store_id = $request->input('variation.store_id');
+        $productDetail->taxable = $parentProduct->productDetail->taxable;
         $productDetail->save();
 
         if($new){

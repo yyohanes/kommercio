@@ -219,10 +219,6 @@
                                                 <div class="col-md-4 value"> {{ PriceFormatter::formatNumber($order->discount_total, $order->currency) }} </div>
                                             </div>
                                             -->
-                                            <div class="row static-info align-reverse shipping">
-                                                <div class="col-md-8 name"> Shipping: </div>
-                                                <div class="col-md-4 value"> {{ PriceFormatter::formatNumber($order->shipping_total, $order->currency) }} </div>
-                                            </div>
                                             <div id="cart-price-rules-wrapper">
                                                 @foreach($order->getCartPriceRuleLineItems() as $cartPriceRuleLineItem)
                                                     <div class="row static-info align-reverse tax">
@@ -238,6 +234,10 @@
                                                     <div class="col-md-4 value"> {{ PriceFormatter::formatNumber($taxLineItem->total, $order->currency) }} </div>
                                                 </div>
                                                 @endforeach
+                                            </div>
+                                            <div class="row static-info align-reverse shipping">
+                                                <div class="col-md-8 name"> Shipping: </div>
+                                                <div class="col-md-4 value"> {{ PriceFormatter::formatNumber($order->shipping_total, $order->currency) }} </div>
                                             </div>
                                             <div class="row static-info align-reverse total">
                                                 <div class="col-md-8 name"> Grand Total: </div>

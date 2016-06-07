@@ -590,15 +590,17 @@ var formBehaviors = function(){
         $('.modal-ajax', context).on('click', function(e){
             e.preventDefault();
 
+            var $modal = $(this).data('modal_id') == null?'#ajax_modal':$(this).data('modal_id');
+
             $.ajax($(this).attr('href'), {
                 success: function(data){
                     var $loadedData = $(data);
-                    $('#ajax_modal').find('.modal-content').html($loadedData);
+                    $($modal).find('.modal-content').html($loadedData);
 
                     formBehaviors.init($loadedData);
                     App.initAjax();
 
-                    $('#ajax_modal').modal('show');
+                    $($modal).modal('show');
                 }
             });
         });

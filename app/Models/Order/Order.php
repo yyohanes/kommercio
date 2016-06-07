@@ -76,6 +76,7 @@ class Order extends Model implements AuthorSignatureInterface
 
         $lastOrder = self::checkout()
             ->whereRaw("DATE_FORMAT(checkout_at, '%m-%Y') = ?", [$this->checkout_at->format('m-Y')])
+            ->where('store_id', $this->store_id)
             ->orderBy(DB::raw('CAST(order_number as UNSIGNED)'), 'DESC')
             ->first();
         $totalCheckedOutOrder = $lastOrder?intval($lastOrder->order_number):0;
@@ -193,7 +194,11 @@ class Order extends Model implements AuthorSignatureInterface
 
     public function calculateDiscountTotal()
     {
-        $this->discount_total = $this->calculateProductTotal() - $this->calculateSubtotal();
+        $this->discount_total = 0;
+
+        foreach($this->getCartPriceRuleLineItems() as $cartPriceRuleLineItem){
+            $this->discount_total += $cartPriceRuleLineItem->calculateTotal();
+        }
 
         return $this->discount_total;
     }
@@ -292,6 +297,13 @@ class Order extends Model implements AuthorSignatureInterface
         }
 
         return $lineItems;
+    }
+
+    public function getShippingLineItem($idx=0)
+    {
+        $shippingLineItems = $this->getShippingLineItems();
+
+        return isset($shippingLineItems[$idx])?$shippingLineItems[$idx]:null;
     }
 
     public function getCartPriceRuleLineItems()

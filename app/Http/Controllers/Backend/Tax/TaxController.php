@@ -208,6 +208,7 @@ class TaxController extends Controller
         ];
 
         $return = [];
+
         $taxes = Tax::getTaxes($data);
         foreach($taxes as $tax){
             $return[] = [

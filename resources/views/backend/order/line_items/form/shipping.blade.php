@@ -1,7 +1,8 @@
 <tr class="line-item" data-line_item="shipping" data-line_item_key="{{ $key }}">
     <td>
         {!! Form::hidden('line_items['.$key.'][line_item_type]', 'shipping') !!}
-        {!! Form::hidden('line_items['.$key.'][line_item_id]', $shipping_method_id, ['class' => 'shipping-method-hidden']) !!}
+        {!! Form::hidden('line_items['.$key.'][line_item_id]', $shipping_method_id) !!}
+        {!! Form::hidden('line_items['.$key.'][shipping_method]', $shipping_method) !!}
         @include('backend.master.form.fields.text', [
             'name' => 'line_items['.$key.'][name]',
             'label' => FALSE,

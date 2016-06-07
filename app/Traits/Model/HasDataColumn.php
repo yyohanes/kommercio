@@ -1,0 +1,27 @@
+<?php
+
+namespace Kommercio\Traits\Model;
+
+trait HasDataColumn
+{
+    public function saveData($data)
+    {
+        $oldData = unserialize($this->data);
+        $oldData = $oldData?$oldData:[];
+
+        $data = array_merge($oldData, $data);
+
+        $this->data = serialize($data);
+    }
+
+    public function getData($attribute=null)
+    {
+        $data = unserialize($this->data);
+
+        if($attribute){
+            return isset($data[$attribute])?$data[$attribute]:null;
+        }
+
+        return $data;
+    }
+}

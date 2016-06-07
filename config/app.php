@@ -156,6 +156,7 @@ return [
         \Dimsav\Translatable\TranslatableServiceProvider::class,
         \Collective\Html\HtmlServiceProvider::class,
         \Spatie\Glide\GlideServiceProvider::class,
+        \Fedeisas\LaravelMailCssInliner\LaravelMailCssInlinerServiceProvider::class,
 
         /*
          * Application Service Providers...

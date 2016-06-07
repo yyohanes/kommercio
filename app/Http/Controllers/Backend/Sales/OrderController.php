@@ -180,6 +180,12 @@ class OrderController extends Controller{
         $order->saveProfile('billing', $request->input('profile'));
         $order->saveProfile('shipping', $request->input('shipping_profile'));
 
+        $this->processLineItems($request, $order);
+
+        $order->load('lineItems');
+        $order->processStocks();
+        $order->calculateTotal();
+
         if($request->input('action') == 'place_order'){
             $this->placeOrder($order);
 
@@ -196,46 +202,6 @@ class OrderController extends Controller{
             $order->customer()->associate($customer);
         }
 
-        $taxableTotal = 0;
-
-        $count = 0;
-        foreach($request->input('line_items') as $lineItemDatum){
-            if($lineItemDatum['line_item_type'] == 'product' && empty($lineItemDatum['quantity'])){
-                continue;
-            }
-
-            $lineItem = new LineItem();
-            $lineItem->order()->associate($order);
-            $lineItem->processData($lineItemDatum, $count);
-            $lineItem->save();
-
-            if($lineItem->taxable){
-                $taxableTotal += $lineItem->calculateTotal();
-            }
-
-            $count += 1;
-        }
-
-        foreach($request->input('taxes') as $tax_id){
-            $tax = Tax::findOrFail($tax_id);
-
-            $taxLineItemDatum = [
-                'tax_id' => $tax->id,
-                'line_item_type' => 'tax',
-                'lineitem_total_amount' => $tax->calculateTax($taxableTotal),
-            ];
-
-            $lineItem = new LineItem();
-            $lineItem->order()->associate($order);
-            $lineItem->processData($taxLineItemDatum, $count);
-            $lineItem->save();
-
-            $count += 1;
-        }
-
-        $order->load('lineItems');
-        $order->processStocks();
-        $order->calculateTotal();
         $order->save();
 
         return redirect()->route('backend.sales.order.index')->with('success', ['This '.Order::getStatusOptions($order->status, true).' order has successfully been created.']);
@@ -327,6 +293,17 @@ class OrderController extends Controller{
         $order->saveProfile('billing', $request->input('profile'));
         $order->saveProfile('shipping', $request->input('shipping_profile'));
 
+        //If PENDING order is updated, return all stocks first
+        if($order->status == Order::STATUS_PENDING){
+            $order->returnStocks();
+        }
+
+        $this->processLineItems($request, $order);
+
+        $order->load('lineItems');
+        $order->processStocks();
+        $order->calculateTotal();
+
         if($request->input('action') == 'place_order'){
             $this->placeOrder($order);
 
@@ -343,58 +320,6 @@ class OrderController extends Controller{
             $order->customer()->associate($customer);
         }
 
-        $existingLineItems = $order->lineItems->all();
-        $count = 0;
-
-        //If PENDING order is updated, return all stocks first
-        if($order->status == Order::STATUS_PENDING){
-            $order->returnStocks();
-        }
-
-        $taxableTotal = 0;
-
-        foreach($request->input('line_items') as $lineItemDatum){
-            if($lineItemDatum['line_item_type'] == 'product' && empty($lineItemDatum['quantity'])){
-                continue;
-            }
-
-            $lineItem = $this->reuseOrCreateLineItem($order, $existingLineItems, $count);
-
-            $lineItem->processData($lineItemDatum, $count);
-            $lineItem->save();
-
-            if($lineItem->taxable){
-                $taxableTotal += $lineItem->calculateTotal();
-            }
-
-            $count += 1;
-        }
-
-        foreach($request->input('taxes', []) as $tax_id){
-            $tax = Tax::findOrFail($tax_id);
-
-            $taxLineItemDatum = [
-                'tax_id' => $tax->id,
-                'line_item_type' => 'tax',
-                'lineitem_total_amount' => $tax->calculateTax($taxableTotal),
-            ];
-
-            $lineItem = $this->reuseOrCreateLineItem($order, $existingLineItems, $count);
-
-            $lineItem->processData($taxLineItemDatum, $count);
-            $lineItem->save();
-
-            $count += 1;
-        }
-
-        //Delete unused line items
-        foreach($existingLineItems as $existingLineItem){
-            $existingLineItem->delete();
-        }
-
-        $order->load('lineItems');
-        $order->processStocks();
-        $order->calculateTotal();
         $order->save();
 
         return redirect()->route('backend.sales.order.index')->with('success', ['This '.Order::getStatusOptions($order->status, true).' order has successfully been updated.']);
@@ -409,12 +334,15 @@ class OrderController extends Controller{
         return redirect()->route('backend.sales.order.index')->with('success', ['This '.Order::getStatusOptions($order->status, true).' order has successfully been deleted.']);
     }
 
-    public function process(Request $request, $process, $id)
+    public function process(Request $request, $process, $id=null)
     {
-        $order = Order::findOrFail($id);
+        $order = Order::find($id);
 
         if($request->isMethod('GET')){
             switch($process){
+                case 'pending':
+                    $processForm = 'pending_form';
+                    break;
                 case 'processing':
                     $processForm = 'processing_form';
                     break;
@@ -528,8 +456,8 @@ class OrderController extends Controller{
         $currency = $request->input('currency');
 
         $count = 0;
-        foreach($request->input('line_items') as $lineItemDatum){
-            if($lineItemDatum['line_item_type'] == 'product' && empty($lineItemDatum['quantity'])){
+        foreach($request->input('line_items', []) as $lineItemDatum){
+            if($lineItemDatum['line_item_type'] == 'product' && (empty($lineItemDatum['quantity']) || empty($lineItemDatum['sku']))){
                 continue;
             }
 
@@ -565,6 +493,117 @@ class OrderController extends Controller{
         }
     }
 
+    protected function processLineItems(Request $request, $order)
+    {
+        $dummyOrder = new Order();
+
+        $productCartPriceRules = [];
+        $orderCartPriceRules = [];
+
+        foreach($request->input('cart_price_rules', []) as $cart_price_rule_id){
+            $cartPriceRule = CartPriceRule::findOrFail($cart_price_rule_id);
+
+            if($cartPriceRule->offer_type == CartPriceRule::OFFER_TYPE_ORDER_DISCOUNT){
+                $orderCartPriceRules[] = $cartPriceRule;
+            }elseif($cartPriceRule->offer_type == CartPriceRule::OFFER_TYPE_PRODUCT_DISCOUNT){
+                $productCartPriceRules[] = $cartPriceRule;
+            }
+        }
+
+        $existingLineItems = $order->lineItems->all();
+        $count = 0;
+
+        $taxableTotal = 0;
+
+        foreach($request->input('line_items') as $lineItemDatum){
+            if($lineItemDatum['line_item_type'] == 'product' && empty($lineItemDatum['quantity'])){
+                continue;
+            }
+
+            $lineItem = $this->reuseOrCreateLineItem($order, $existingLineItems, $count);
+
+            $lineItem->processData($lineItemDatum, $count);
+            $lineItem->save();
+
+            $lineItemTotal = $lineItem->calculateTotal();
+
+            if($lineItem->isProduct){
+                foreach($productCartPriceRules as $productCartPriceRule){
+                    $value = $productCartPriceRule->getValue($lineItemTotal);
+
+                    $lineItemTotal += $value;
+                    $productCartPriceRule->total += $value;
+                }
+            }
+
+            if($lineItem->taxable){
+                $taxableTotal += $lineItemTotal;
+            }
+
+            $count += 1;
+
+            $dummyOrder->lineItems[] = $lineItem;
+        }
+
+        foreach($productCartPriceRules as $productCartPriceRule){
+            $priceRuleLineItemDatum = [
+                'cart_price_rule_id' => $productCartPriceRule->id,
+                'line_item_type' => 'cart_price_rule',
+                'lineitem_total_amount' => $productCartPriceRule->total,
+            ];
+
+            $lineItem = $this->reuseOrCreateLineItem($order, $existingLineItems, $count);
+
+            $lineItem->processData($priceRuleLineItemDatum, $count);
+            $lineItem->save();
+
+            $count += 1;
+        }
+
+        $dummyOrderSubtotal = $dummyOrder->calculateSubtotal() + $dummyOrder->calculateAdditionalTotal();
+
+        foreach($orderCartPriceRules as $orderCartPriceRule){
+            $value = $orderCartPriceRule->getValue($dummyOrderSubtotal);
+            $orderCartPriceRule->total += $value;
+            $taxableTotal += $value;
+
+            $priceRuleLineItemDatum = [
+                'cart_price_rule_id' => $orderCartPriceRule->id,
+                'line_item_type' => 'cart_price_rule',
+                'lineitem_total_amount' => $orderCartPriceRule->total,
+            ];
+
+            $lineItem = $this->reuseOrCreateLineItem($order, $existingLineItems, $count);
+
+            $lineItem->processData($priceRuleLineItemDatum, $count);
+            $lineItem->save();
+
+            $count += 1;
+        }
+
+        foreach($request->input('taxes', []) as $tax_id){
+            $tax = Tax::findOrFail($tax_id);
+
+            $taxLineItemDatum = [
+                'tax_id' => $tax->id,
+                'line_item_type' => 'tax',
+                'lineitem_total_amount' => $tax->calculateTax($taxableTotal),
+            ];
+
+            $lineItem = $this->reuseOrCreateLineItem($order, $existingLineItems, $count);
+
+            $lineItem->processData($taxLineItemDatum, $count);
+            $lineItem->save();
+
+            $count += 1;
+        }
+
+        //Delete unused line items
+        foreach($existingLineItems as $existingLineItem){
+            $existingLineItem->delete();
+        }
+    }
+
     protected function reuseOrCreateLineItem($order, &$existingLineItems, $count)
     {
         if(!isset($existingLineItems[$count])){
@@ -586,6 +625,11 @@ class OrderController extends Controller{
         $order->status = Order::STATUS_PENDING;
         $order->checkout_at = Carbon::now();
         $order->generateReference();
+
+        //Call all shipping processing methods
+        foreach($order->getShippingLineItems() as $shippingLineItem){
+            $shippingLineItem->shippingMethod->getProcessor()->beforePlaceOrder($order);
+        }
 
         return $order;
     }
