@@ -24,7 +24,7 @@ class OrderUpdateListener
     {
         if($event->notify_customer){
             $subject = 'Thank you for your order #'.$event->order->reference;
-            EmailHelper::sendMail($event->order->billingProfile->email, $subject, 'order.confirmation', ['order' => $event->order]);
+            EmailHelper::sendMail($event->order->billingProfile->email, $subject, 'order.confirmation', ['order' => $event->order], 'order');
         }
     }
 
@@ -32,7 +32,7 @@ class OrderUpdateListener
     {
         if($event->notify_customer){
             $subject = 'We are processing your order #'.$event->order->reference;
-            EmailHelper::sendMail($event->order->billingProfile->email, $subject, 'order.processing', ['order' => $event->order]);
+            EmailHelper::sendMail($event->order->billingProfile->email, $subject, 'order.processing', ['order' => $event->order], 'order');
         }
     }
 
@@ -40,7 +40,7 @@ class OrderUpdateListener
     {
         if($event->notify_customer){
             $subject = 'Your order #'.$event->order->reference.' is completed';
-            EmailHelper::sendMail($event->order->billingProfile->email, $subject, 'order.completed', ['order' => $event->order]);
+            EmailHelper::sendMail($event->order->billingProfile->email, $subject, 'order.completed', ['order' => $event->order], 'order');
         }
     }
 
@@ -48,7 +48,7 @@ class OrderUpdateListener
     {
         if($event->notify_customer){
             $subject = 'Your order #'.$event->order->reference.' is cancelled';
-            EmailHelper::sendMail($event->order->billingProfile->email, $subject, 'order.cancelled', ['order' => $event->order]);
+            EmailHelper::sendMail($event->order->billingProfile->email, $subject, 'order.cancelled', ['order' => $event->order], 'order');
         }
     }
 
