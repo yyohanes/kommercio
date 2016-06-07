@@ -79,7 +79,7 @@ var OrderForm = function () {
             var lineitemTotalAmount = Number($(obj).find('.lineitem-total-amount').inputmask('unmaskedvalue'));
 
             if($(obj).data('line_item') == 'product'){
-                $orderOriginalProductTotal += Number(lineitemTotalAmount * $(obj).find('.quantity-field').val());
+                $orderOriginalProductTotal += Number(lineitemTotalAmount);
 
                 lineitemTotalAmount += calculateProductPrice(lineitemTotalAmount);
                 $orderProductTotal += lineitemTotalAmount;
