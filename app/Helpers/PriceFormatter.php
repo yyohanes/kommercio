@@ -16,6 +16,6 @@ class PriceFormatter
             $currency = isset($currencies[$currency])?$currencies[$currency]:$activeCurrency;
         }
 
-        return $currency['symbol'].' '.number_format($number, 0, $currency['decimal_separator'], $currency['thousand_separator']);
+        return $currency['symbol'].' '.str_replace($currency['decimal_separator'].'00', '',number_format($number, 2, $currency['decimal_separator'], $currency['thousand_separator']));
     }
 }
