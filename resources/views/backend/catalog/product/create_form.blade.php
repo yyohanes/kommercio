@@ -275,7 +275,7 @@
                     ],
                     'options' => $currencyOptions,
                     'valueColumnClass' => 'col-md-4',
-                    'defaultOptions' => old('productDetail.currency', $product->productDetail->currency?$product->productDetail->currency:CurrencyHelper::getCurrentCurrency()['iso'])
+                    'defaultOptions' => old('productDetail.currency', $product->productDetail?$product->productDetail->currency:CurrencyHelper::getCurrentCurrency()['iso'])
                 ])
 
                 <div class="margin-top-30 portlet light bordered">

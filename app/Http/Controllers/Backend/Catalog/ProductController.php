@@ -115,8 +115,11 @@ class ProductController extends Controller{
     {
         $product = new Product();
 
+        $currencyOptions = CurrencyHelper::getCurrencyOptions();
+
         return view('backend.catalog.product.create', [
-            'product' => $product
+            'product' => $product,
+            'currencyOptions' => $currencyOptions
         ]);
     }
 
