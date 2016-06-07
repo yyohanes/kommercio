@@ -23,7 +23,15 @@ class CurrencyHelper
 
     public function getActiveCurrencies()
     {
-        $currencies = config('project.currencies');
+        $currencies = [];
+
+        foreach(config('project.active_currencies', []) as $activeCurrency){
+            $currencies[$activeCurrency] = $this->getCurrency($activeCurrency);
+        }
+
+        if(empty($currencies)){
+            $currencies = config('project.currencies');
+        }
 
         return $currencies;
     }

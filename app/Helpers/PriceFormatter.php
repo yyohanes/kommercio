@@ -13,9 +13,7 @@ class PriceFormatter
         }else{
             $currencies = \CurrencyHelper::getActiveCurrencies();
 
-            $currency = isset($currencies[$currency])?$currency:$activeCurrency;
-
-            $currency = \CurrencyHelper::getCurrency($currency);
+            $currency = isset($currencies[$currency])?$currencies[$currency]:$activeCurrency;
         }
 
         return $currency['symbol'].' '.number_format($number, 0, $currency['decimal_separator'], $currency['thousand_separator']);

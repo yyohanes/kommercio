@@ -66,7 +66,6 @@ class ProductController extends Controller{
             }
 
             $products = $qb->get();
-            //dd($products->pluck('id'));
 
             $meat = $this->prepareDatatables($products, $request->input('start'));
 
@@ -599,7 +598,7 @@ class ProductController extends Controller{
         $search = $request->get('query', '');
 
         if(!empty($search)){
-            $qb = Product::productSelection()->joinTranslation()->joinDetail();
+            $qb = Product::productSelection()->joinTranslation()->joinDetail()->selectSelf();
 
             $qb->where(function($query) use ($search){
                 $query->where('name', 'LIKE', '%'.$search.'%')
