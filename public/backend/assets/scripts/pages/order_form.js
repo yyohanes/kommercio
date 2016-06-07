@@ -127,7 +127,7 @@ var OrderForm = function () {
             $('.cart-price-rule[data-cart_price_rule_id="'+i+'"] .amount', '#order-summary').text(formHelper.convertNumber(formHelper.roundNumber($cartPriceRules[i].total)));
         }
 
-        $('.total .amount', '#order-summary').text(formHelper.convertNumber(formHelper.roundNumber($orderProductTotal + $orderShippingTotal + $orderFeeTotal + $orderTaxTotal + $orderPriceRuleTotal)));
+        $('.total .amount', '#order-summary').text(formHelper.convertNumber(formHelper.roundNumber($orderProductTotal) + formHelper.roundNumber($orderShippingTotal) + formHelper.roundNumber($orderFeeTotal) + formHelper.roundNumber($orderTaxTotal) + formHelper.roundNumber($orderPriceRuleTotal)));
     }
 
     var calculatePriceRuleValue = function(amount, price, modification, modification_type)
