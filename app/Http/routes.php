@@ -46,7 +46,7 @@ Route::group(['middleware' => ['web']], function () {
         ]);
 
         Route::group(['middleware' => ['backend.auth']], function(){
-            Route::get('dashboard', [
+            Route::get('/', [
                 'as' => 'backend.dashboard',
                 'uses' => 'ChamberController@dashboard'
             ]);
