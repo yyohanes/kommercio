@@ -160,4 +160,16 @@ class LineItem extends Model
     {
         return $this->belongsTo('Kommercio\Models\ShippingMethod\ShippingMethod', 'line_item_id');
     }
+
+    //Shipping Specifics
+    public function getSelectedMethod()
+    {
+        $selectedMethod = $this->getData('shipping_method');
+
+        if($selectedMethod){
+            $selectedMethod = $this->shippingMethod->getSelectedMethod($selectedMethod);
+        }
+
+        return $selectedMethod;
+    }
 }

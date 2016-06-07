@@ -83,11 +83,26 @@
                                                     <div class="col-md-7 value"> {{ PriceFormatter::formatNumber($order->total, $order->currency) }} </div>
                                                 </div>
 
+                                                @if($order->paymentMethod)
+                                                <div class="row static-info">
+                                                    <div class="col-md-5 name"> Payment Method: </div>
+                                                    <div class="col-md-7 value"> {{ $order->paymentMethod->name }} </div>
+                                                </div>
+                                                @endif
+
                                                 @if(config('project.enable_delivery_date', FALSE))
                                                 <div class="row static-info">
                                                     <div class="col-md-5 name"> Delivery Date: </div>
                                                     <div class="col-md-7 value"> {!! $order->delivery_date?'<span class="label bg-grey bg-font-grey"><strong>'.$order->delivery_date->format('D, d M Y').'</strong></span>':null !!} </div>
                                                 </div>
+                                                @endif
+
+                                                <?php $shippingLineItem = $order->getShippingLineItem(); ?>
+                                                @if($shippingLineItem)
+                                                    <div class="row static-info">
+                                                        <div class="col-md-5 name"> Shipping: </div>
+                                                        <div class="col-md-7 value"> {{ $shippingLineItem->getSelectedMethod()['name'] }} </div>
+                                                    </div>
                                                 @endif
                                             </div>
                                         </div>
@@ -181,20 +196,13 @@
                                                     </tr>
                                                     </thead>
                                                     <tbody>
-                                                    <?php $shippingLineItems = []; ?>
                                                     @if($lineItems)
                                                         @foreach($lineItems as $idx=>$lineItem)
                                                             @if($lineItem['line_item_type'] == 'fee')
                                                                 @include('backend.order.line_items.view.fee', ['key' => $idx, 'lineItem' => $lineItem])
                                                             @elseif($lineItem['line_item_type'] == 'product')
                                                                 @include('backend.order.line_items.view.product', ['key' => $idx, 'lineItem' => $lineItem])
-                                                            @elseif($lineItem['line_item_type'] == 'shipping')
-                                                                <?php $shippingLineItems[$idx] = $lineItem; ?>
                                                             @endif
-                                                        @endforeach
-
-                                                        @foreach($shippingLineItems as $idx=>$shippingLineItem)
-                                                            @include('backend.order.line_items.view.shipping', ['key' => $idx, 'lineItem' => $shippingLineItem])
                                                         @endforeach
                                                     @endif
                                                     </tbody>
@@ -204,7 +212,11 @@
                                     </div>
 
                                     <div class="col-md-6">
-
+                                        @if(!empty($order->notes))
+                                        <div class="well"><strong>Notes</strong><br/>
+                                            {!! nl2br($order->notes) !!}
+                                        </div>
+                                        @endif
                                     </div>
 
                                     <div class="col-md-6">

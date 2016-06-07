@@ -4,7 +4,9 @@ namespace Kommercio\Http\Controllers\Backend\Sales;
 
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Session;
+use Kommercio\Events\OrderUpdate;
 use Kommercio\Facades\OrderHelper;
 use Kommercio\Http\Controllers\Controller;
 use Kommercio\Models\Customer;
@@ -13,6 +15,7 @@ use Kommercio\Models\Order\LineItem;
 use Kommercio\Http\Requests\Backend\Order\OrderFormRequest;
 use Collective\Html\FormFacade;
 use Illuminate\Support\Facades\Request as RequestFacade;
+use Kommercio\Models\PaymentMethod\PaymentMethod;
 use Kommercio\Models\PriceRule\CartPriceRule;
 use Kommercio\Models\Product;
 use Kommercio\Models\Profile\Profile;
@@ -128,7 +131,7 @@ class OrderController extends Controller{
                 $order->checkout_at?$order->checkout_at->format('d M Y, H:i'):'',
                 $order->billing_full_name,
                 $order->shipping_full_name,
-                PriceFormatter::formatNumber($order->total),
+                PriceFormatter::formatNumber($order->total, $order->currency),
                 '<label class="label label-sm bg-'.OrderHelper::getOrderStatusLabelClass($order->status).' bg-font-'.OrderHelper::getOrderStatusLabelClass($order->status).'">'.Order::getStatusOptions($order->status, TRUE).'</label>',
                 $orderAction
             ];
@@ -140,6 +143,13 @@ class OrderController extends Controller{
     public function create()
     {
         $order = new Order();
+
+        $paymentMethods = PaymentMethod::getPaymentMethods();
+
+        $paymentMethodOptions = [];
+        foreach($paymentMethods as $paymentMethod){
+            $paymentMethodOptions[$paymentMethod->id] = $paymentMethod->name;
+        }
 
         $lineItems = old('line_items', []);
 
@@ -159,20 +169,24 @@ class OrderController extends Controller{
             'shippingMethods' => $shippingMethods,
             'taxes' => isset($taxes)?$taxes:[],
             'cartPriceRules' => isset($cartPriceRules)?$cartPriceRules:[],
+            'paymentMethodOptions' => $paymentMethodOptions
         ]);
     }
 
     public function store(OrderFormRequest $request)
     {
         $order = new Order();
+        $originalStatus = null;
 
         $customer = null;
         if($request->has('existing_customer')){
             $customer = Customer::getByEmail($request->get('existing_customer'));
         }
 
+        $order->notes = $request->input('notes');
         $order->delivery_date = $request->input('delivery_date', null);
         $order->store_id = $request->input('store_id');
+        $order->payment_method_id = $request->input('payment_method', null);
         $order->currency = $request->input('currency');
         $order->conversion_rate = 1;
         $order->save();
@@ -204,13 +218,14 @@ class OrderController extends Controller{
 
         $order->save();
 
+        Event::fire(new OrderUpdate($order, $originalStatus, $request->input('send_notification')));
+
         return redirect()->route('backend.sales.order.index')->with('success', ['This '.Order::getStatusOptions($order->status, true).' order has successfully been created.']);
     }
 
     public function view($id)
     {
         $order = Order::findOrFail($id);
-
         $lineItems = $order->lineItems;
         $billingProfile = $order->billingProfile?$order->billingProfile->fillDetails():new Profile();
         $shippingProfile = $order->shippingProfile?$order->shippingProfile->fillDetails():new Profile();
@@ -229,12 +244,20 @@ class OrderController extends Controller{
 
         $lineItems = old('line_items', $order->lineItems);
 
+        $paymentMethods = PaymentMethod::getPaymentMethods();
+
+        $paymentMethodOptions = [];
+        foreach($paymentMethods as $paymentMethod){
+            $paymentMethodOptions[$paymentMethod->id] = $paymentMethod->name;
+        }
+
         $oldValues = old();
 
         if(!$oldValues){
             $oldValues['existing_customer'] = $order->customer?$order->customer->getProfile()->email:null;
             $oldValues['profile'] = $order->billingProfile?$order->billingProfile->getDetails():[];
             $oldValues['shipping_profile'] = $order->shippingProfile?$order->shippingProfile->getDetails():[];
+            $oldValues['payment_method'] = $order->payment_method_id;
 
             foreach($lineItems as $lineItem){
                 $lineItemData = $lineItem->toArray();
@@ -242,6 +265,10 @@ class OrderController extends Controller{
 
                 if($lineItem->isProduct){
                     $lineItemData['sku'] = $lineItem->product->sku;
+                }
+
+                if($lineItem->isShipping){
+                    $lineItemData['shipping_method'] = $lineItem->getData('shipping_method');
                 }
 
                 if($lineItem->isCartPriceRule){
@@ -272,13 +299,15 @@ class OrderController extends Controller{
             'order' => $order,
             'lineItems' => $lineItems,
             'taxes' => isset($taxes)?$taxes:[],
-            'cartPriceRules' => isset($cartPriceRules)?$cartPriceRules:[]
+            'cartPriceRules' => isset($cartPriceRules)?$cartPriceRules:[],
+            'paymentMethodOptions' => $paymentMethodOptions
         ]);
     }
 
     public function update(OrderFormRequest $request, $id)
     {
         $order = Order::findOrFail($id);
+        $originalStatus = $order->status;
 
         $customer = null;
         if($request->has('existing_customer')){
@@ -286,7 +315,9 @@ class OrderController extends Controller{
         }
 
         $order->delivery_date = $request->input('delivery_date', null);
+        $order->notes = $request->input('notes');
         $order->store_id = $request->input('store_id');
+        $order->payment_method_id = $request->input('payment_method', null);
         $order->currency = $request->input('currency');
         $order->conversion_rate = 1;
 
@@ -321,6 +352,8 @@ class OrderController extends Controller{
         }
 
         $order->save();
+
+        Event::fire(new OrderUpdate($order, $originalStatus, $request->input('send_notification')));
 
         return redirect()->route('backend.sales.order.index')->with('success', ['This '.Order::getStatusOptions($order->status, true).' order has successfully been updated.']);
     }
@@ -362,6 +395,8 @@ class OrderController extends Controller{
                 'backUrl' => $request->get('backUrl', route('backend.sales.order.index'))
             ]);
         }else{
+            $originalStatus = $order->status;
+
             switch($process){
                 case 'processing':
                     $order->status = Order::STATUS_PROCESSING;
@@ -382,6 +417,8 @@ class OrderController extends Controller{
             }
 
             $order->save();
+
+            Event::fire(new OrderUpdate($order, $originalStatus, $request->input('send_notification')));
 
             return redirect($request->input('backUrl', route('backend.sales.order.index')))->with('success', [$message]);
         }
@@ -428,7 +465,11 @@ class OrderController extends Controller{
     {
         $return = [];
 
-        $shippingOptions = ShippingMethod::getShippingMethods();
+        $order = OrderHelper::createDummyOrderFromRequest($request);
+
+        $shippingOptions = ShippingMethod::getShippingMethods([
+            'subtotal' => $order->calculateSubtotal()
+        ]);
 
         foreach($shippingOptions as $idx=>$shippingOption){
             $return[$idx] = [
@@ -443,30 +484,7 @@ class OrderController extends Controller{
 
     public function getCartRules(Request $request)
     {
-        //Create dummy order for subTotal calculation
-        $order = new Order();
-
-        $customer_email = null;
-        if($request->has('profile.email')){
-            $customer_email = $request->input('profile.email');
-        }
-
-        $deliveryDate = $request->input('delivery_date', null);
-        $store_id = $request->input('store_id');
-        $currency = $request->input('currency');
-
-        $count = 0;
-        foreach($request->input('line_items', []) as $lineItemDatum){
-            if($lineItemDatum['line_item_type'] == 'product' && (empty($lineItemDatum['quantity']) || empty($lineItemDatum['sku']))){
-                continue;
-            }
-
-            $lineItem = new LineItem();
-            $lineItem->processData($lineItemDatum, $count);
-            $order->lineItems[] = $lineItem;
-
-            $count += 1;
-        }
+        $order = OrderHelper::createDummyOrderFromRequest($request);
 
         $subtotal = $order->calculateProductTotal() + $order->calculateAdditionalTotal();
 
@@ -477,9 +495,9 @@ class OrderController extends Controller{
 
         $priceRules = CartPriceRule::getCartPriceRules([
             'subtotal' => $subtotal,
-            'currency' => $currency,
-            'store_id' => $store_id,
-            'customer_email' => $customer_email,
+            'currency' => $order->currency,
+            'store_id' => $order->store_id,
+            'customer_email' => $order->customer?$order->customer->getProfile()->email:null,
             'shippings' => $shippings
         ]);
 

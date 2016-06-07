@@ -222,6 +222,7 @@ return [
         'PriceFormatter' => \Kommercio\Facades\PriceFormatter::class,
         'AddressHelper' => \Kommercio\Facades\AddressHelper::class,
         'OrderHelper' => \Kommercio\Facades\OrderHelper::class,
+        'EmailHelper' => \Kommercio\Facades\EmailHelper::class,
     ],
 
 ];

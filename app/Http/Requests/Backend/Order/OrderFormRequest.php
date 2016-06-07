@@ -34,6 +34,8 @@ class OrderFormRequest extends Request
             'shipping_profile.phone_number' => 'required',
             'shipping_profile.address_1' => 'required',
             'line_items' => 'required',
+            'shipping' => 'required',
+            'payment_method' => 'required'
         ];
 
         if(config('project.enable_delivery_date', FALSE)){
@@ -52,5 +54,20 @@ class OrderFormRequest extends Request
         }
 
         return $rules;
+    }
+
+    public function all()
+    {
+        $attributes = parent::all();
+
+        foreach($this->input('line_items', []) as $idx => $lineItem){
+            if($lineItem['line_item_type'] == 'shipping'){
+                $attributes['shipping'][] = $lineItem['line_item_id'];
+            }
+        }
+
+        $this->replace($attributes);
+
+        return parent::all();
     }
 }

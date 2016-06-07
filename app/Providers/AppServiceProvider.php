@@ -18,6 +18,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton('price_formatter', 'Kommercio\Helpers\PriceFormatter');
         $this->app->singleton('order_helper', 'Kommercio\Helpers\OrderHelper');
         $this->app->singleton('address_helper', 'Kommercio\Helpers\AddressHelper');
+        $this->app->singleton('email_helper', 'Kommercio\Helpers\EmailHelper');
     }
 
     /**

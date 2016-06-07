@@ -76,6 +76,26 @@
                 @include('backend.order.customer_information', ['type' => 'shipping_profile'])
             </div>
         </div>
+
+        <div class="portlet light bordered">
+            <div class="portlet-title">
+                <div class="caption">
+                    <i class="fa fa-money"></i>
+                    <span class="caption-subject">Payment Method</span>
+                </div>
+            </div>
+            <div class="portlet-body" id="payment-method-wrapper">
+                <div class="form-group">
+                    <div class="col-md-12">
+                        <div class="radio-list">
+                            @foreach($paymentMethodOptions as $value=>$paymentMethodOption)
+                                <label>{!! Form::radio('payment_method', $value) !!} {{ $paymentMethodOption }}</label>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -117,7 +137,7 @@
                             @endforeach
 
                             @foreach($shippingLineItems as $idx=>$shippingLineItem)
-                                @include('backend.order.line_items.form.shipping', ['key' => $idx, 'shipping_method' => $shippingLineItem->getData('shipping_method'), 'shipping_method_id' => $shippingLineItem['line_item_id']])
+                                @include('backend.order.line_items.form.shipping', ['key' => $idx, 'shipping_method' => $shippingLineItem['shipping_method'], 'shipping_method_id' => $shippingLineItem['line_item_id']])
                             @endforeach
                         @else
                             @include('backend.order.line_items.form.product', ['key' => 0])
@@ -147,7 +167,17 @@
     </div>
 
     <div class="col-md-6">
-
+        @include('backend.master.form.fields.textarea', [
+            'name' => 'notes',
+            'label' => null,
+            'key' => 'notes',
+            'attr' => [
+                'class' => 'form-control',
+                'id' => 'notes',
+                'rows' => 4,
+                'placeholder' => 'Notes'
+            ],
+        ])
     </div>
 
     <div class="col-md-6">
@@ -184,7 +214,7 @@
     </div>
 </div>
 
-{!! Form::hidden('store_id', ProjectHelper::getActiveStore()->id) !!}
+{!! Form::hidden('store_id', $order->store_id?$order->store_id:ProjectHelper::getActiveStore()->id) !!}
 {!! Form::hidden('currency', CurrencyHelper::getCurrentCurrency()['code']) !!}
 
 <div class="modal fade" id="place_order_modal" role="basic" aria-hidden="true">

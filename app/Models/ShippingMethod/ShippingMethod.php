@@ -41,6 +41,13 @@ class ShippingMethod extends Model
         return $this->_processor;
     }
 
+    public function getSelectedMethod($key)
+    {
+        $methods = $this->getProcessor()->getMethods();
+
+        return isset($methods[$key])?$methods[$key]:null;
+    }
+
     //Statics
     public static function getShippingMethodObjects()
     {

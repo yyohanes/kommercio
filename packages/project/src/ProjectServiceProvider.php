@@ -28,6 +28,10 @@ class ProjectServiceProvider extends ServiceProvider
             __DIR__.'/Project/config/project.php', 'project'
         );
 
+        $this->mergeConfigFrom(
+            __DIR__.'/Project/config/currency.php', 'project'
+        );
+
         include_once __DIR__.'/Project/routes.php';
     }
 }

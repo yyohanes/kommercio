@@ -6,12 +6,12 @@ class CurrencyHelper
 {
     public function getDefaultCurrency()
     {
-        return config('currency.default_currency');
+        return config('project.default_currency');
     }
 
     public function getCurrency($currency)
     {
-        return config('currency.currencies.'.$currency);
+        return config('project.currencies.'.$currency);
     }
 
     public function getCurrentCurrency()
@@ -23,7 +23,7 @@ class CurrencyHelper
 
     public function getActiveCurrencies()
     {
-        $currencies = config('currency.currencies');
+        $currencies = config('project.currencies');
 
         return $currencies;
     }

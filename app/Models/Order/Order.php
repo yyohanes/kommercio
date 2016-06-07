@@ -166,10 +166,11 @@ class Order extends Model implements AuthorSignatureInterface
 
             $this->$profileRelation()->associate($profile);
             $this->save();
-            $this->load($profileRelation);
         }
 
         $profile->saveDetails($data);
+
+        $this->load($profileRelation);
     }
 
     public function calculateSubtotal()
