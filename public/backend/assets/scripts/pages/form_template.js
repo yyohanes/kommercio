@@ -651,6 +651,15 @@ var formHelper = {
         var parts=n.toString().split(decimal_separator);
         return parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, thousand_separator) + (parts[1] ? decimal_separator + parts[1] : "");
     },
+    roundNumber: function(value, places){
+        if(typeof places === 'undefined'){
+            places = 2;
+        }
+
+        var multiplier = Math.pow(10, places);
+
+        return (Math.round(value * multiplier) / multiplier);
+    },
     convertDotToSquareBracket: function(name){
         var parts = String(name).split('.');
         var returnText = '';

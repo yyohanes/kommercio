@@ -13,6 +13,7 @@ use Kommercio\Models\Order\LineItem;
 use Kommercio\Http\Requests\Backend\Order\OrderFormRequest;
 use Collective\Html\FormFacade;
 use Illuminate\Support\Facades\Request as RequestFacade;
+use Kommercio\Models\PriceRule\CartPriceRule;
 use Kommercio\Models\Product;
 use Kommercio\Models\Profile\Profile;
 use Kommercio\Facades\PriceFormatter;
@@ -144,6 +145,10 @@ class OrderController extends Controller{
 
         $shippingMethods = ShippingMethod::getShippingMethods();
 
+        foreach(old('cartPriceRules', []) as $oldCartPriceRule){
+            $cartPriceRules[] = CartPriceRule::findOrFail($oldCartPriceRule);
+        }
+
         foreach(old('taxes', []) as $oldTax){
             $taxes[] = Tax::findOrFail($oldTax);
         }
@@ -153,6 +158,7 @@ class OrderController extends Controller{
             'lineItems' => $lineItems,
             'shippingMethods' => $shippingMethods,
             'taxes' => isset($taxes)?$taxes:[],
+            'cartPriceRules' => isset($cartPriceRules)?$cartPriceRules:[],
         ]);
     }
 
@@ -162,7 +168,7 @@ class OrderController extends Controller{
 
         $customer = null;
         if($request->has('existing_customer')){
-            $customer = Customer::whereField('email', $request->get('existing_customer'))->first();
+            $customer = Customer::getByEmail($request->get('existing_customer'));
         }
 
         $order->delivery_date = $request->input('delivery_date', null);
@@ -272,8 +278,12 @@ class OrderController extends Controller{
                     $lineItemData['sku'] = $lineItem->product->sku;
                 }
 
+                if($lineItem->isCartPriceRule){
+                    $oldValues['cart_price_rules'][] = $lineItem->line_item_id;
+                }
+
                 if($lineItem->isTax){
-                    $oldValues['taxes'][] = $lineItem->tax->id;
+                    $oldValues['taxes'][] = $lineItem->line_item_id;
                 }
 
                 $lineItemData['lineitem_total_amount'] = $lineItemTotal;
@@ -284,6 +294,10 @@ class OrderController extends Controller{
             Session::flashInput($oldValues);
         }
 
+        foreach(old('cart_price_rules', []) as $oldCartPriceRule){
+            $cartPriceRules[] = CartPriceRule::findOrFail($oldCartPriceRule);
+        }
+
         foreach(old('taxes', []) as $oldTax){
             $taxes[] = Tax::findOrFail($oldTax);
         }
@@ -292,6 +306,7 @@ class OrderController extends Controller{
             'order' => $order,
             'lineItems' => $lineItems,
             'taxes' => isset($taxes)?$taxes:[],
+            'cartPriceRules' => isset($cartPriceRules)?$cartPriceRules:[]
         ]);
     }
 
@@ -301,7 +316,7 @@ class OrderController extends Controller{
 
         $customer = null;
         if($request->has('existing_customer')){
-            $customer = Customer::whereField('email', $request->get('existing_customer'))->first();
+            $customer = Customer::getByEmail($request->get('existing_customer'));
         }
 
         $order->delivery_date = $request->input('delivery_date', null);
@@ -321,7 +336,7 @@ class OrderController extends Controller{
                 $customer = Customer::saveCustomer($profileData);
             }
         }else{
-            $order->status = Order::STATUS_ADMIN_CART;
+
         }
 
         if($customer){
@@ -355,7 +370,7 @@ class OrderController extends Controller{
             $count += 1;
         }
 
-        foreach($request->input('taxes') as $tax_id){
+        foreach($request->input('taxes', []) as $tax_id){
             $tax = Tax::findOrFail($tax_id);
 
             $taxLineItemDatum = [
@@ -496,6 +511,58 @@ class OrderController extends Controller{
         }
 
         return response()->json($return);
+    }
+
+    public function getCartRules(Request $request)
+    {
+        //Create dummy order for subTotal calculation
+        $order = new Order();
+
+        $customer_email = null;
+        if($request->has('profile.email')){
+            $customer_email = $request->input('profile.email');
+        }
+
+        $deliveryDate = $request->input('delivery_date', null);
+        $store_id = $request->input('store_id');
+        $currency = $request->input('currency');
+
+        $count = 0;
+        foreach($request->input('line_items') as $lineItemDatum){
+            if($lineItemDatum['line_item_type'] == 'product' && empty($lineItemDatum['quantity'])){
+                continue;
+            }
+
+            $lineItem = new LineItem();
+            $lineItem->processData($lineItemDatum, $count);
+            $order->lineItems[] = $lineItem;
+
+            $count += 1;
+        }
+
+        $subtotal = $order->calculateProductTotal() + $order->calculateAdditionalTotal();
+
+        $shippings = [];
+        foreach($order->getShippingLineItems() as $shippingLineItem){
+            $shippings[] = $shippingLineItem->line_item_id;
+        }
+
+        $priceRules = CartPriceRule::getCartPriceRules([
+            'subtotal' => $subtotal,
+            'currency' => $currency,
+            'store_id' => $store_id,
+            'customer_email' => $customer_email,
+            'shippings' => $shippings
+        ]);
+
+        if($request->ajax()){
+            return response()->json([
+                'data' => $priceRules,
+                '_token' => csrf_token()
+            ]);
+        }else{
+            return $priceRules;
+        }
     }
 
     protected function reuseOrCreateLineItem($order, &$existingLineItems, $count)

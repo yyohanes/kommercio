@@ -5,6 +5,9 @@ var OrderForm = function () {
     var $orderTaxTotal;
     var $orderShippingTotal;
     var $taxes = {};
+    var $totalShippingLineItems = 0;
+    var $orderPriceRuleTotal;
+    var $cartPriceRules = {};
 
     var reserOrderSummary = function()
     {
@@ -13,19 +16,56 @@ var OrderForm = function () {
         $orderFeeTotal = 0;
         $orderShippingTotal = 0;
         $orderTaxTotal = 0;
+        $orderPriceRuleTotal = 0;
 
         for(var i in $taxes){
             $taxes[i].total = 0;
         }
-        $('.tax .amount', '#tax-summary-wrapper').text(0);
+
+        for(var i in $cartPriceRules){
+            $cartPriceRules[i].total = 0;
+        }
     }
 
     var calculateTaxes = function($amount)
     {
         for(var i in $taxes){
-            $taxes[i].total += $amount * ($taxes[i].rate/100);
-            $orderTaxTotal += $amount * ($taxes[i].rate/100);
+            var $taxAmount = $amount * ($taxes[i].rate/100);
+            $taxes[i].total += $taxAmount;
+            $orderTaxTotal += $taxAmount;
         }
+    }
+
+    var calculateOrderPriceRules = function()
+    {
+        for(var i in $cartPriceRules){
+            var calculated = 0;
+
+            if($cartPriceRules[i].offer_type == 'order_discount'){
+                calculated = calculatePriceRuleValue($orderProductTotal + $orderFeeTotal + $orderShippingTotal, $cartPriceRules[i].price, $cartPriceRules[i].modification, $cartPriceRules[i].modification_type);
+                $cartPriceRules[i].total = calculated;
+            }else if($cartPriceRules[i].offer_type == 'product_discount') {
+
+            }else{
+                $cartPriceRules[i].total = 0;
+            }
+
+            $orderPriceRuleTotal += calculated;
+        }
+    }
+
+    var calculateProductPrice = function($price)
+    {
+        var calculated = 0;
+
+        for(var i in $cartPriceRules){
+            if($cartPriceRules[i].offer_type == 'product_discount'){
+                calculated = calculatePriceRuleValue($price, $cartPriceRules[i].price, $cartPriceRules[i].modification, $cartPriceRules[i].modification_type);
+                $cartPriceRules[i].total += calculated;
+            }
+        }
+
+        return calculated;
     }
 
     var calculateOrderSummary = function()
@@ -33,32 +73,73 @@ var OrderForm = function () {
         reserOrderSummary();
 
         $('.line-item', '#line-items-table').each(function(idx, obj){
+            var lineitemTotalAmount = Number($(obj).find('.lineitem-total-amount').inputmask('unmaskedvalue'));
+
             if($(obj).data('line_item') == 'product'){
-                $orderProductTotal += Number($(obj).find('.lineitem-total-amount').inputmask('unmaskedvalue'));
+                lineitemTotalAmount += calculateProductPrice(lineitemTotalAmount);
+                $orderProductTotal += lineitemTotalAmount;
                 $orderOriginalProductTotal += Number($(obj).find('.base-price-field').inputmask('unmaskedvalue') * $(obj).find('.quantity-field').val());
             }else if($(obj).data('line_item') == 'fee'){
-                $orderFeeTotal += Number($(obj).find('.lineitem-total-amount').inputmask('unmaskedvalue'));
+                $orderFeeTotal += lineitemTotalAmount;
             }else if($(obj).data('line_item') == 'shipping'){
-                $orderShippingTotal += Number($(obj).find('.lineitem-total-amount').inputmask('unmaskedvalue'));
+                $lineitemTotalAmount = Number($(obj).find('.lineitem-total-amount').inputmask('unmaskedvalue'));
+                $orderShippingTotal += lineitemTotalAmount;
             }
 
             if($(obj).data('taxable') == '1'){
-                calculateTaxes(Number($(obj).find('.lineitem-total-amount').inputmask('unmaskedvalue')));
+                calculateTaxes(lineitemTotalAmount);
             }
         });
+
+        calculateOrderPriceRules();
     }
 
     var printOrderSummary = function()
     {
-        $('.subtotal .amount', '#order-summary').text(formHelper.convertNumber($orderOriginalProductTotal + $orderFeeTotal));
-        $('.shipping .amount', '#order-summary').text(formHelper.convertNumber($orderShippingTotal));
-        $('.discount .amount', '#order-summary').text(formHelper.convertNumber($orderProductTotal - $orderOriginalProductTotal));
+        $('.subtotal .amount', '#order-summary').text(formHelper.convertNumber(formHelper.roundNumber($orderOriginalProductTotal + $orderFeeTotal)));
 
-        for(var i in $taxes){
-            $('.tax[data-tax_id="'+i+'"] .amount', '#order-summary').text(formHelper.convertNumber($taxes[i].total));
+        $('.shipping .amount', '#order-summary').text(formHelper.convertNumber(formHelper.roundNumber($orderShippingTotal)));
+        if($orderShippingTotal > 0){
+            $('.shipping', '#order-summary').show();
+        }else{
+            $('.shipping', '#order-summary').hide();
         }
 
-        $('.total .amount', '#order-summary').text(formHelper.convertNumber($orderProductTotal + $orderShippingTotal + $orderFeeTotal + $orderTaxTotal));
+        /*
+        $('.discount .amount', '#order-summary').text(formHelper.convertNumber($orderProductTotal - $orderOriginalProductTotal));
+        if(($orderProductTotal - $orderOriginalProductTotal) != 0){
+            $('.discount', '#order-summary').show();
+        }else{
+            $('.discount', '#order-summary').hide();
+        }
+        */
+
+        for(var i in $taxes){
+            $('.tax[data-tax_id="'+i+'"] .amount', '#order-summary').text(formHelper.convertNumber(formHelper.roundNumber($taxes[i].total)));
+        }
+
+        for(var i in $cartPriceRules){
+            $('.cart-price-rule[data-cart_price_rule_id="'+i+'"] .amount', '#order-summary').text(formHelper.convertNumber(formHelper.roundNumber($cartPriceRules[i].total)));
+        }
+
+        $('.total .amount', '#order-summary').text(formHelper.convertNumber(formHelper.roundNumber($orderProductTotal + $orderShippingTotal + $orderFeeTotal + $orderTaxTotal + $orderPriceRuleTotal)));
+    }
+
+    var calculatePriceRuleValue = function(amount, price, modification, modification_type)
+    {
+        var calculatedAmount = amount;
+
+        if(price != null){
+            calculatedAmount = price;
+        }
+
+        if(modification_type == 'percent' && modification != null){
+            calculatedAmount += (calculatedAmount * modification/100);
+        }else if(modification_type == 'amount' && modification != null){
+            calculatedAmount += modification;
+        }
+
+        return calculatedAmount - amount;
     }
 
     var getNextIndex = function()
@@ -72,6 +153,64 @@ var OrderForm = function () {
         }
 
         return $nextIndex;
+    }
+
+    var handleTaxAndPriceRules = function()
+    {
+        var $taxTemplate = $('#lineitem-tax-template').html();
+        var $taxPrototype = Handlebars.compile($taxTemplate);
+
+        $('.tax', '#tax-summary-wrapper').each(function(idx, obj){
+            $taxes[$(obj).data('tax_id')] = {
+                rate: $(obj).data('tax_rate'),
+                total: 0
+            }
+        });
+
+        var $cartPriceRuleTemplate = $('#lineitem-cart-price-rule-template').html();
+        var $cartPriceRulePrototype = Handlebars.compile($cartPriceRuleTemplate);
+
+        $('#order-form').on('order.major_change', function(e){
+            $.ajax(global_vars.get_order_cart_rules_path, {
+                method: 'POST',
+                data: $('#order-form').serialize(),
+                success: function(data){
+                    $cartPriceRules = {};
+                    $('#cart-price-rules-wrapper').empty();
+                    for(var i in data.data){
+                        $cartPriceRules[data.data[i].id] = {
+                            offer_type: data.data[i].offer_type,
+                            price: data.data[i].price,
+                            modification: data.data[i].modification,
+                            modification_type: data.data[i].modification_type,
+                            total: 0
+                        }
+
+                        $('#cart-price-rules-wrapper').append($cartPriceRulePrototype({label:data.data[i].name, value:0, 'cart_price_rule_id': data.data[i].id}));
+                    }
+
+                    $.ajax(global_vars.get_tax_path, {
+                        data: 'country_id='+$('#profile\\[country_id\\]').val()+'state_id='+$('#profile\\[state_id\\]').val()+'city_id='+$('#profile\\[city_id\\]').val()+'district_id='+$('#profile\\[district_id\\]').val()+'area_id='+$('#profile\\[area_id\\]').val(),
+                        success: function(data) {
+                            $taxes = {};
+                            $('#tax-summary-wrapper').empty();
+                            for(var i in data.data){
+                                $taxes[data.data[i].id] = {
+                                    rate: data.data[i].rate,
+                                    total: 0
+                                }
+                                $('#tax-summary-wrapper').append($taxPrototype({label:data.data[i].name+' ('+data.data[i].rate+'%)', value:0, rate:data.data[i].rate, 'tax_id': data.data[i].id}));
+                            }
+
+                            calculateOrderSummary();
+                            printOrderSummary();
+                        }
+                    });
+                }
+            });
+        });
+
+        $('#order-form').trigger('order.major_change');
     }
 
     var handleBillingEmail = function()
@@ -167,7 +306,7 @@ var OrderForm = function () {
             });
 
             $.ajax($(this).data('shipping_options'), {
-                data: $('#order-form :input').serialize(),
+                data: $('#order-form').serialize(),
                 method: 'POST',
                 dataType: 'json',
                 success: function(data){
@@ -175,7 +314,7 @@ var OrderForm = function () {
                         var $shippingSelect = $('<select class="form-control"></select>');
 
                         for(var i in data){
-                            $shippingSelect.append('<option data-name="'+data[i].name+'" data-price="'+data[i].price.amount+'" value="'+i+'">'+data[i].name+': '+global_vars.currencies[global_vars.default_currency].iso +' '+ formHelper.convertNumber(data[i].price.amount)+'</option>');
+                            $shippingSelect.append('<option data-name="'+data[i].name+'" data-price="'+data[i].price.amount+'" data-shipping_method="'+data[i].shipping_method_id+'" value="'+i+'">'+data[i].name+': '+global_vars.currencies[global_vars.default_currency].iso +' '+ formHelper.convertNumber(data[i].price.amount)+'</option>');
                         }
 
                         $('#add-shipping-lineitem').hide();
@@ -195,11 +334,10 @@ var OrderForm = function () {
             e.preventDefault();
 
             var $selectedShippingOption = $('#shipping-options-wrapper select').find(':selected');
-            var $newShippingLineItem = $($shippingLineItemPrototype({key: $nextIndex}));
+            var $newShippingLineItem = $($shippingLineItemPrototype({key: $nextIndex, shipping_method_id:$selectedShippingOption.data('shipping_method')}));
 
             $('#line-items-table tbody').append($newShippingLineItem);
 
-            $newShippingLineItem.find('.shipping-method-hidden').val($selectedShippingOption.val());
             $newShippingLineItem.find('.name-field').val($selectedShippingOption.data('name'));
             $newShippingLineItem.find('.base-price-field').val($selectedShippingOption.data('price'));
             $newShippingLineItem.find('.lineitem-total-amount').val($selectedShippingOption.data('price'));
@@ -210,53 +348,36 @@ var OrderForm = function () {
             $newShippingLineItem.find('.lineitem-total-amount').trigger('change');
 
             $('#shipping-options-wrapper').hide()
-            $('#add-shipping-lineitem').show();
+
+            $totalShippingLineItems += 1;
+            toggleAddShippingButton();
         });
 
         $('.shipping-cancel', '#shipping-options-wrapper').on('click', function(e){
             e.preventDefault();
 
             $('#shipping-options-wrapper').hide()
-            $('#add-shipping-lineitem').show();
+
+            toggleAddShippingButton();
         });
 
         $('#order-clear').click(function(e){
             e.preventDefault();
 
             $('#line-items-table tbody').empty();
+
+            $totalShippingLineItems = 0;
+            toggleAddShippingButton();
         });
     }
 
-    var handleTax= function(){
-        var $orderSummaryTemplate = $('#order-summary-tax-template').html();
-        var $orderSummaryPrototype = Handlebars.compile($orderSummaryTemplate);
-
-        $('.tax', '#tax-summary-wrapper').each(function(idx, obj){
-            $taxes[$(obj).data('tax_id')] = {
-                rate: $(obj).data('tax_rate'),
-                total: 0
-            }
-        });
-
-        $('#billing-information-wrapper').on('address.change', function(e){
-            $.ajax($('#tax-summary-wrapper').data('tax_get'), {
-                data: 'country_id='+$('#profile\\[country_id\\]').val()+'state_id='+$('#profile\\[state_id\\]').val()+'city_id='+$('#profile\\[city_id\\]').val()+'district_id='+$('#profile\\[district_id\\]').val()+'area_id='+$('#profile\\[area_id\\]').val(),
-                success: function(data) {
-                    $taxes = {};
-                    $('#tax-summary-wrapper').empty();
-                    for(var i in data.data){
-                        $taxes[data.data[i].id] = {
-                            rate: data.data[i].rate,
-                            total: 0
-                        }
-                        $('#tax-summary-wrapper').append($orderSummaryPrototype({label:data.data[i].name+' ('+data.data[i].rate+'%)', value:0, rate:data.data[i].rate, 'tax_id': data.data[i].id}));
-                    }
-
-                    calculateOrderSummary();
-                    printOrderSummary();
-                }
-            });
-        });
+    var toggleAddShippingButton = function()
+    {
+        if($totalShippingLineItems > 0){
+            $('#add-shipping-lineitem').hide();
+        }else{
+            $('#add-shipping-lineitem').show();
+        }
     }
 
     return {
@@ -265,13 +386,14 @@ var OrderForm = function () {
         init: function () {
             handleBillingEmail();
             handleButtons();
-            handleTax();
+            handleTaxAndPriceRules();
+
+            $totalShippingLineItems = $('.line-item[data-line_item="shipping"]', '#line-items-table').length;
+            toggleAddShippingButton();
 
             $('.line-item', '#line-items-table').each(function(idx, obj){
                 OrderForm.lineItemInit($(obj));
             });
-
-            $('.line-item:last-child .lineitem-total-amount', '#line-items-table').trigger('change');
         },
         lineItemInit: function(lineItem)
         {
@@ -302,10 +424,15 @@ var OrderForm = function () {
                 });
             });
 
-            $('.line-item-remove', lineItem).on('click', function(e){
+            $('.line-item-remove', $lineItem).on('click', function(e){
                 e.preventDefault();
 
                 $lineItem.remove();
+
+                if($lineItemType == 'shipping'){
+                    $totalShippingLineItems -= 1;
+                    toggleAddShippingButton();
+                }
 
                 calculateOrderSummary();
                 printOrderSummary();

@@ -3,6 +3,7 @@
 namespace Kommercio\Models\Order;
 
 use Illuminate\Database\Eloquent\Model;
+use Kommercio\Models\PriceRule\CartPriceRule;
 use Kommercio\Models\Product;
 use Kommercio\Models\Tax;
 
@@ -43,7 +44,7 @@ class LineItem extends Model
             $this->quantity = 1;
         }elseif($data['line_item_type'] == 'shipping'){
             $this->name = $data['name'];
-            $this->line_item_id = $data['shipping_method_id'];
+            $this->line_item_id = $data['line_item_id'];
             $this->line_item_type = 'shipping';
             $this->base_price = $data['base_price'];
             $this->net_price = $data['lineitem_total_amount'];
@@ -51,6 +52,12 @@ class LineItem extends Model
             $this->quantity = 1;
         }elseif($data['line_item_type'] == 'tax'){
             $this->linkTax($data['tax_id']);
+            $this->base_price = $data['lineitem_total_amount'];
+            $this->net_price = $data['lineitem_total_amount'];
+            $this->total = $data['lineitem_total_amount'];
+            $this->quantity = 1;
+        }elseif($data['line_item_type'] == 'cart_price_rule'){
+            $this->linkCartPriceRule($data['cart_price_rule_id']);
             $this->base_price = $data['lineitem_total_amount'];
             $this->net_price = $data['lineitem_total_amount'];
             $this->total = $data['lineitem_total_amount'];
@@ -85,6 +92,14 @@ class LineItem extends Model
         $this->line_item_type = 'tax';
     }
 
+    public function linkCartPriceRule($price_rule_id)
+    {
+        $priceRule = CartPriceRule::findOrFail($price_rule_id);
+        $this->name = $priceRule->name;
+        $this->line_item_id = $priceRule->id;
+        $this->line_item_type = 'cart_price_rule';
+    }
+
     //Accessors
     public function getIsProductAttribute()
     {
@@ -106,6 +121,11 @@ class LineItem extends Model
         return $this->line_item_type == 'tax';
     }
 
+    public function getIsCartPriceRuleAttribute()
+    {
+        return $this->line_item_type == 'cart_price_rule';
+    }
+
     public function getQuantityAttribute()
     {
         return $this->attributes['quantity'] + 0.00;
@@ -125,6 +145,11 @@ class LineItem extends Model
     public function tax()
     {
         return $this->belongsTo('Kommercio\Models\Tax', 'line_item_id');
+    }
+
+    public function cartPriceRule()
+    {
+        return $this->belongsTo('Kommercio\Models\PriceRule\CartPriceRule', 'line_item_id');
     }
 
     public function shippingMethod()

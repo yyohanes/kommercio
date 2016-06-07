@@ -173,13 +173,7 @@ class Order extends Model implements AuthorSignatureInterface
 
     public function calculateSubtotal()
     {
-        $this->subtotal = 0;
-
-        foreach($this->lineItems as $lineItem){
-            if($lineItem->isProduct){
-                $this->subtotal += $lineItem->calculateSubtotal();
-            }
-        }
+        $this->subtotal = $this->calculateProductTotal();
 
         return $this->subtotal;
     }
@@ -287,6 +281,32 @@ class Order extends Model implements AuthorSignatureInterface
         return abs($this->total - $paidAmount);
     }
 
+    public function getShippingLineItems()
+    {
+        $lineItems = [];
+
+        foreach($this->lineItems as $lineItem){
+            if($lineItem->isShipping){
+                $lineItems[] = $lineItem;
+            }
+        }
+
+        return $lineItems;
+    }
+
+    public function getCartPriceRuleLineItems()
+    {
+        $lineItems = [];
+
+        foreach($this->lineItems as $lineItem){
+            if($lineItem->isCartPriceRule){
+                $lineItems[] = $lineItem;
+            }
+        }
+
+        return $lineItems;
+    }
+
     public function getTaxLineItems()
     {
         $taxLineItems = [];
@@ -338,6 +358,18 @@ class Order extends Model implements AuthorSignatureInterface
     public function scopeCheckout($query)
     {
         $query->whereNotIn('status', [self::STATUS_CART, self::STATUS_ADMIN_CART]);
+    }
+
+    public function scopeUsageCounted($query)
+    {
+        $query->whereIn('status', [self::STATUS_PENDING, self::STATUS_PROCESSING, self::STATUS_COMPLETED]);
+    }
+
+    public function scopeWhereHasLineItem($query, $line_item_id, $line_item_type)
+    {
+        $query->whereHas('lineItems', function($qb) use ($line_item_id, $line_item_type){
+            $qb->where('line_item_id', $line_item_id)->where('line_item_type', $line_item_type);
+        });
     }
 
     //Accessors

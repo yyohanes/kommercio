@@ -25,7 +25,7 @@ class ShippingMethod extends Model
             $this->_processor = null;
 
             $classNames = [
-                'Project\ShippingMethods\\'.$this->class,
+                'Project\Project\ShippingMethods\\'.$this->class,
                 'Kommercio\ShippingMethods\\'.$this->class,
             ];
 

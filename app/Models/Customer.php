@@ -109,4 +109,11 @@ class Customer extends Model
 
         return (isset($array[$option]))?$array[$option]:$array;
     }
+
+    public static function getByEmail($email)
+    {
+        $qb = self::whereField('email', $email);
+
+        return $qb->first();
+    }
 }

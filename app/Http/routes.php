@@ -505,6 +505,11 @@ Route::group(['middleware' => ['web']], function () {
                         'uses' => 'OrderController@shippingOptions'
                     ]);
 
+                    Route::post('order-cart-rules/get', [
+                        'as' => 'backend.sales.order.get_cart_rules',
+                        'uses' => 'OrderController@getCartRules'
+                    ]);
+
                     Route::group(['prefix' => 'payment'], function(){
                         Route::get('{order_id}/index', [
                             'as' => 'backend.sales.order.payment.index',

@@ -211,27 +211,37 @@
                                         <div class="well" id="order-summary">
                                             <div class="row static-info align-reverse subtotal">
                                                 <div class="col-md-8 name"> Sub Total: </div>
-                                                <div class="col-md-3 value"> {{ PriceFormatter::formatNumber($order->subtotal + $order->additional_total, $order->currency) }} </div>
+                                                <div class="col-md-4 value"> {{ PriceFormatter::formatNumber($order->subtotal + $order->additional_total, $order->currency) }} </div>
                                             </div>
+                                            <!--
                                             <div class="row static-info align-reverse discount">
                                                 <div class="col-md-8 name"> Discount: </div>
-                                                <div class="col-md-3 value"> {{ PriceFormatter::formatNumber($order->discount_total, $order->currency) }} </div>
+                                                <div class="col-md-4 value"> {{ PriceFormatter::formatNumber($order->discount_total, $order->currency) }} </div>
                                             </div>
+                                            -->
                                             <div class="row static-info align-reverse shipping">
                                                 <div class="col-md-8 name"> Shipping: </div>
-                                                <div class="col-md-3 value"> {{ PriceFormatter::formatNumber($order->shipping_total, $order->currency) }} </div>
+                                                <div class="col-md-4 value"> {{ PriceFormatter::formatNumber($order->shipping_total, $order->currency) }} </div>
+                                            </div>
+                                            <div id="cart-price-rules-wrapper">
+                                                @foreach($order->getCartPriceRuleLineItems() as $cartPriceRuleLineItem)
+                                                    <div class="row static-info align-reverse tax">
+                                                        <div class="col-md-8 name"> {{ $cartPriceRuleLineItem->cartPriceRule->name }}: </div>
+                                                        <div class="col-md-4 value"> {{ PriceFormatter::formatNumber($cartPriceRuleLineItem->total, $order->currency) }} </div>
+                                                    </div>
+                                                @endforeach
                                             </div>
                                             <div id="tax-summary-wrapper">
                                                 @foreach($order->getTaxLineItems() as $taxLineItem)
                                                 <div class="row static-info align-reverse tax">
                                                     <div class="col-md-8 name"> {{ $taxLineItem->tax->getSingleName() }}: </div>
-                                                    <div class="col-md-3 value"> {{ PriceFormatter::formatNumber($taxLineItem->total, $order->currency) }} </div>
+                                                    <div class="col-md-4 value"> {{ PriceFormatter::formatNumber($taxLineItem->total, $order->currency) }} </div>
                                                 </div>
                                                 @endforeach
                                             </div>
                                             <div class="row static-info align-reverse total">
                                                 <div class="col-md-8 name"> Grand Total: </div>
-                                                <div class="col-md-3 value"> {{ PriceFormatter::formatNumber($order->total, $order->currency) }} </div>
+                                                <div class="col-md-4 value"> {{ PriceFormatter::formatNumber($order->total, $order->currency) }} </div>
                                             </div>
                                         </div>
                                     </div>

@@ -117,7 +117,7 @@
                             @endforeach
 
                             @foreach($shippingLineItems as $idx=>$shippingLineItem)
-                                @include('backend.order.line_items.form.shipping', ['key' => $idx])
+                                @include('backend.order.line_items.form.shipping', ['key' => $idx, 'shipping_method_id' => $shippingLineItem['line_item_id']])
                             @endforeach
                         @else
                             @include('backend.order.line_items.form.product', ['key' => 0])
@@ -154,24 +154,31 @@
         <div class="well" id="order-summary">
             <div class="row static-info align-reverse subtotal">
                 <div class="col-md-8 name"> Sub Total: </div>
-                <div class="col-md-3 value"> <span class="currency-symbol">{{ CurrencyHelper::getCurrentCurrency()['symbol'] }}</span> <span class="amount">0</span> </div>
+                <div class="col-md-4 value"> <span class="currency-symbol">{{ CurrencyHelper::getCurrentCurrency()['symbol'] }}</span> <span class="amount">0</span> </div>
             </div>
+            <!--
             <div class="row static-info align-reverse discount">
                 <div class="col-md-8 name"> Discount: </div>
-                <div class="col-md-3 value"> <span class="currency-symbol">{{ CurrencyHelper::getCurrentCurrency()['symbol'] }}</span> <span class="amount">0</span> </div>
+                <div class="col-md-4 value"> <span class="currency-symbol">{{ CurrencyHelper::getCurrentCurrency()['symbol'] }}</span> <span class="amount">0</span> </div>
             </div>
+            -->
             <div class="row static-info align-reverse shipping">
                 <div class="col-md-8 name"> Shipping: </div>
-                <div class="col-md-3 value"> <span class="currency-symbol">{{ CurrencyHelper::getCurrentCurrency()['symbol'] }}</span> <span class="amount">0</span> </div>
+                <div class="col-md-4 value"> <span class="currency-symbol">{{ CurrencyHelper::getCurrentCurrency()['symbol'] }}</span> <span class="amount">0</span> </div>
             </div>
-            <div id="tax-summary-wrapper" data-tax_get="{{ route('backend.tax.get') }}">
+            <div id="cart-price-rules-wrapper">
+                @foreach($cartPriceRules as $idx=>$cartPriceRule)
+                    @include('backend.order.line_items.form.cart_price_rule', ['label' => $cartPriceRule->name, 'value' => 0, 'cart_price_rule_id' => $cartPriceRule->id, 'idx' => $idx])
+                @endforeach
+            </div>
+            <div id="tax-summary-wrapper">
                 @foreach($taxes as $idx=>$tax)
-                    @include('backend.tax.order_summary', ['label' => $tax->getSingleName(), 'value' => 0, 'rate' => $tax->rate, 'tax_id' => $tax->id, 'idx' => $idx])
+                    @include('backend.order.line_items.form.tax', ['label' => $tax->getSingleName(), 'value' => 0, 'rate' => $tax->rate, 'tax_id' => $tax->id, 'idx' => $idx])
                 @endforeach
             </div>
             <div class="row static-info align-reverse total">
                 <div class="col-md-8 name"> Grand Total: </div>
-                <div class="col-md-3 value"> <span class="currency-symbol">{{ CurrencyHelper::getCurrentCurrency()['symbol'] }}</span> <span class="amount">0</span> </div>
+                <div class="col-md-4 value"> <span class="currency-symbol">{{ CurrencyHelper::getCurrentCurrency()['symbol'] }}</span> <span class="amount">0</span> </div>
             </div>
         </div>
     </div>
@@ -185,6 +192,8 @@
 
     <script>
         global_vars.product_line_item = '{{ route('backend.sales.order.line_item.row', ['type' => 'product']) }}';
+        global_vars.get_order_cart_rules_path = '{{ route('backend.sales.order.get_cart_rules') }}';
+        global_vars.get_tax_path = '{{ route('backend.tax.get') }}';
     </script>
 
     <script id="lineitem-product-template" type="text/x-handlebars-template">
@@ -196,11 +205,15 @@
     </script>
 
     <script id="lineitem-shipping-template" type="text/x-handlebars-template">
-        @include('backend.order.line_items.form.shipping', ['key' => '@{{key}}'])
+        @include('backend.order.line_items.form.shipping', ['key' => '@{{key}}', 'shipping_method_id' => '@{{shipping_method_id}}'])
     </script>
 
-    <script id="order-summary-tax-template" type="text/x-handlebars-template">
-        @include('backend.tax.order_summary', ['label' => '@{{label}}', 'value' => '@{{value}}', 'rate' => '@{{rate}}', 'tax_id' => '@{{tax_id}}'])
+    <script id="lineitem-tax-template" type="text/x-handlebars-template">
+        @include('backend.order.line_items.form.tax', ['label' => '@{{label}}', 'value' => '@{{value}}', 'rate' => '@{{rate}}', 'tax_id' => '@{{tax_id}}'])
+    </script>
+
+    <script id="lineitem-cart-price-rule-template" type="text/x-handlebars-template">
+        @include('backend.order.line_items.form.cart_price_rule', ['label' => '@{{label}}', 'value' => '@{{value}}', 'cart_price_rule_id' => '@{{cart_price_rule_id}}'])
     </script>
 
     <script src="{{ asset('backend/assets/scripts/pages/order_form.js') }}" type="text/javascript"></script>

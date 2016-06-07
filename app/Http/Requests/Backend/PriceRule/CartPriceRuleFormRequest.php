@@ -72,6 +72,9 @@ class CartPriceRuleFormRequest extends Request
         if(!$this->has('store_id')){
             $attributes['store_id'] = null;
         }
+        if(!$this->has('currency')){
+            $attributes['currency'] = null;
+        }
         if(!$this->has('active')){
             $attributes['active'] = false;
         }
