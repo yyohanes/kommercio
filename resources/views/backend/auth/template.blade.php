@@ -37,7 +37,7 @@
         <div class="col-md-6 login-container bs-reset">
             <img class="login-logo login-6" src="{{ asset('backend/assets/images/logo.png') }}" />
             <div class="login-content">
-                <h1>{{ env('PROJECT_NAME') }} Secret Chamber</h1>
+                <h1>{{ env('PROJECT_NAME') }} Back Office</h1>
 
                 @yield('content')
             </div>

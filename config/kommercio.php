@@ -3,7 +3,7 @@
 return [
     'default_name' => 'Kommercio',
     'default_subtitle' => 'Artisan E-commerce',
-    'backend_prefix' => 'secret-chamber',
+    'backend_prefix' => 'backoffice',
     'images_path' => 'images',
     'image_styles' => [
         'backend_thumbnail' => [
