@@ -436,6 +436,8 @@ var OrderForm = function () {
                         formBehaviors.init($row);
                         OrderForm.lineItemInit($row);
 
+                        $row.find('.quantity-field').focus();
+
                         $row.find('.net-price-field').trigger('change');
 
                         $('#order-form').trigger('order.major_change');
