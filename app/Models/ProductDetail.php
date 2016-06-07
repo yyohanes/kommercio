@@ -9,8 +9,7 @@ use Kommercio\Traits\Model\ToggleDate;
 
 class ProductDetail extends Model implements AuthorSignatureInterface
 {
-    use AuthorSignature;
-    use ToggleDate;
+    use AuthorSignature, ToggleDate;
 
     const VISIBILITY_CATALOG = 'catalog';
     const VISIBILITY_SEARCH = 'search';

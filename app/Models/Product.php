@@ -119,7 +119,7 @@ class Product extends Model
         if($this->combination_type == self::COMBINATION_TYPE_VARIATION){
             $price = $this->productDetail->retail_price?$this->productDetail->retail_price:$this->parent->productDetail->retail_price;
         }else{
-            $price = $this->productDetail->retail_price;
+            $price = isset($this->productDetail)?$this->productDetail->retail_price:null;
         }
 
         $priceRules = $this->getSpecificPriceRules(FALSE);

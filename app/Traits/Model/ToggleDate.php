@@ -9,20 +9,20 @@ trait ToggleDate
     protected $toggleDates = [];
     protected $toggleDateFormat = 'Y-m-d H:i';
 
-    public function getDates()
+    protected function bootIfNotBooted()
     {
         foreach($this->toggleFields as $toggleField){
             $this->toggleDates[] = $toggleField.'_date_from';
             $this->toggleDates[] = $toggleField.'_date_to';
         }
 
+        $this->dates = array_merge($this->dates, $this->toggleDates);
+
         if(!empty($this->fillable)){
             $this->fillable = array_merge($this->fillable, $this->toggleDates);
         }
 
-        $this->dates = array_merge($this->dates, $this->toggleDates);
-
-        return parent::getDates();
+        parent::bootIfNotBooted();
     }
 
     public function setAttribute($key, $value)

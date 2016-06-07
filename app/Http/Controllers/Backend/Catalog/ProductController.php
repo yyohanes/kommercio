@@ -103,7 +103,7 @@ class ProductController extends Controller{
                 $product->manufacturer?$product->manufacturer->name:'',
                 PriceFormatter::formatNumber($product->getRetailPrice()),
                 PriceFormatter::formatNumber($product->getNetPrice()),
-                '<i class="fa fa-'.($product->productDetail->active?'check text-success':'remove text-danger').'"></i>',
+                '<i class="fa fa-'.(isset($product->productDetail) && $product->productDetail->active?'check text-success':'remove text-danger').'"></i>',
                 $product->created_at->format('d M Y H:i'),
                 $productAction
             ];
@@ -137,27 +137,25 @@ class ProductController extends Controller{
 
         $product->categories()->sync($request->input('categories', []));
 
-        if($request->has('images')){
-            foreach($request->input('images', []) as $idx=>$image){
-                $images[$image] = [
-                    'type' => 'image',
-                    'caption' => $request->input('images_caption.'.$idx, null),
-                    'locale' => $product->getTranslation()->locale
-                ];
-            }
-            $product->getTranslation()->attachMedia($images, 'image');
+        $images = [];
+        foreach($request->input('images', []) as $idx=>$image){
+            $images[$image] = [
+                'type' => 'image',
+                'caption' => $request->input('images_caption.'.$idx, null),
+                'locale' => $product->getTranslation()->locale
+            ];
         }
+        $product->getTranslation()->syncMedia($images, 'image');
 
-        if($request->has('thumbnails')){
-            foreach($request->input('thumbnails', []) as $idx=>$image){
-                $thumbnails[$image] = [
-                    'type' => 'thumbnail',
-                    'caption' => $request->input('thumbnails_caption.'.$idx, null),
-                    'locale' => $product->getTranslation()->locale
-                ];
-            }
-            $product->getTranslation()->attachMedia($thumbnails, 'thumbnail');
+        $thumbnails = [];
+        foreach($request->input('thumbnails', []) as $idx=>$image){
+            $thumbnails[$image] = [
+                'type' => 'thumbnail',
+                'caption' => $request->input('thumbnails_caption.'.$idx, null),
+                'locale' => $product->getTranslation()->locale
+            ];
         }
+        $product->getTranslation()->syncMedia($thumbnails, 'thumbnail');
 
         $productDetail = new ProductDetail();
         $productDetail->fill($request->input('productDetail'));
