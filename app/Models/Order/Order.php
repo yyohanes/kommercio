@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
 use Kommercio\Facades\CurrencyHelper;
+use Kommercio\Facades\PriceFormatter;
 use Kommercio\Models\Interfaces\AuthorSignatureInterface;
 use Kommercio\Models\Profile\Profile;
 use Kommercio\Models\Tax;
@@ -22,8 +23,17 @@ class Order extends Model implements AuthorSignatureInterface
     const STATUS_PROCESSING = 'processing';
     const STATUS_COMPLETED = 'completed';
 
+    public $referenceFormat;
+
     protected $guarded = [];
     protected $dates = ['deleted_at', 'delivery_date', 'checkout_at'];
+
+    public function __construct($attributes = [])
+    {
+        $this->referenceFormat = config('project.order_number_format');
+
+        parent::__construct($attributes);
+    }
 
     //Relations
     public function lineItems()
@@ -69,7 +79,7 @@ class Order extends Model implements AuthorSignatureInterface
     //Methods
     public function generateReference()
     {
-        $format = config('project.order_number_format');
+        $format = $this->referenceFormat;
         $formatElements = explode(':', $format);
 
         $counterLength = config('project.order_number_counter_length');
@@ -176,6 +186,7 @@ class Order extends Model implements AuthorSignatureInterface
     public function calculateSubtotal()
     {
         $this->subtotal = $this->calculateProductTotal();
+        $this->subtotal = round($this->subtotal, config('project.line_item_total_precision'));
 
         return $this->subtotal;
     }
@@ -190,6 +201,8 @@ class Order extends Model implements AuthorSignatureInterface
             }
         }
 
+        $this->shipping_total = round($this->shipping_total, config('project.line_item_total_precision'));
+
         return $this->shipping_total;
     }
 
@@ -200,6 +213,8 @@ class Order extends Model implements AuthorSignatureInterface
         foreach($this->getCartPriceRuleLineItems() as $cartPriceRuleLineItem){
             $this->discount_total += $cartPriceRuleLineItem->calculateTotal();
         }
+
+        $this->discount_total = round($this->discount_total, config('project.line_item_total_precision'));
 
         return $this->discount_total;
     }
@@ -214,6 +229,8 @@ class Order extends Model implements AuthorSignatureInterface
             }
         }
 
+        $this->tax_total = round($this->tax_total, config('project.line_item_total_precision'));
+
         return $this->tax_total;
     }
 
@@ -227,6 +244,8 @@ class Order extends Model implements AuthorSignatureInterface
             }
         }
 
+        $this->additional_total = round($this->additional_total, config('project.line_item_total_precision'));
+
         return $this->additional_total;
     }
 
@@ -239,6 +258,14 @@ class Order extends Model implements AuthorSignatureInterface
         $taxTotal = $this->calculateTaxTotal();
 
         $this->total = $subtotal + $shippingTotal + $discountTotal + $additionalTotal + $taxTotal;
+        $beforeRoundingTotal = round($this->total, config('project.line_item_total_precision'));
+
+        $roundMode = PriceFormatter::getRoundingMode();
+        $this->total = round($this->total, config('project.total_precision'), $roundMode);
+
+        $this->rounding_total = round($this->total - $beforeRoundingTotal, config('project.line_item_total_precision'));
+
+        return $this->total;
     }
 
     public function calculateProductTotal()
@@ -250,6 +277,8 @@ class Order extends Model implements AuthorSignatureInterface
                 $productTotal += $lineItem->calculateTotal();
             }
         }
+
+        $productTotal = round($productTotal, config('project.line_item_total_precision'));
 
         return $productTotal;
     }

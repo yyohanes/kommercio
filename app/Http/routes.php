@@ -467,6 +467,11 @@ Route::group(['middleware' => ['web']], function () {
                         'uses' => 'OrderController@view'
                     ]);
 
+                    Route::get('delete/all', [
+                        'as' => 'backend.sales.order.delete_all',
+                        'uses' => 'OrderController@deleteAll'
+                    ]);
+
                     Route::group(['middleware' => ['backend.order_editable']], function(){
                         Route::get('edit/{id}', [
                             'as' => 'backend.sales.order.edit',

@@ -367,6 +367,17 @@ class OrderController extends Controller{
         return redirect()->route('backend.sales.order.index')->with('success', ['This '.Order::getStatusOptions($order->status, true).' order has successfully been deleted.']);
     }
 
+    public function deleteAll()
+    {
+        $orders = Order::all();
+
+        foreach($orders as $order){
+            $order->forceDelete();
+        }
+
+        return redirect()->route('backend.sales.order.index')->with('success', ['All orders have been deleted.']);
+    }
+
     public function process(Request $request, $process, $id=null)
     {
         $order = Order::find($id);

@@ -653,14 +653,24 @@ var formHelper = {
         var parts=n.toString().split(decimal_separator);
         return parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, thousand_separator) + (parts[1] ? decimal_separator + parts[1] : "");
     },
-    roundNumber: function(value, places){
+    roundNumber: function(value, places, rounding){
         if(typeof places === 'undefined'){
             places = 2;
         }
 
+        if(typeof rounding === 'undefined'){
+            rounding = global_vars.total_rounding;
+        }
+
         var multiplier = Math.pow(10, places);
 
-        return (Math.round(value * multiplier) / multiplier);
+        if(rounding == 'floor'){
+            return (Math.floor(value * multiplier) / multiplier);
+        }else if(rounding == 'ceil') {
+            return (Math.ceil(value * multiplier) / multiplier);
+        }else{
+            return (Math.round(value * multiplier) / multiplier);
+        }
     },
     convertDotToSquareBracket: function(name){
         var parts = String(name).split('.');

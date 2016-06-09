@@ -251,6 +251,13 @@
                                                 <div class="col-md-8 name"> Shipping: </div>
                                                 <div class="col-md-4 value"> {{ PriceFormatter::formatNumber($order->shipping_total, $order->currency) }} </div>
                                             </div>
+
+                                            @if($order->rounding_total > 0 || $order->rounding_total < 0)
+                                            <div class="row static-info align-reverse rounding">
+                                                <div class="col-md-8 name"> Rounding: </div>
+                                                <div class="col-md-4 value"> {{ PriceFormatter::formatNumber($order->rounding_total, $order->currency) }} </div>
+                                            </div>
+                                            @endif
                                             <div class="row static-info align-reverse total">
                                                 <div class="col-md-8 name"> Grand Total: </div>
                                                 <div class="col-md-4 value"> {{ PriceFormatter::formatNumber($order->total, $order->currency) }} </div>

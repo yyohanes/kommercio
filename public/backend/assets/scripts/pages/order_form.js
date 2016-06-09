@@ -5,6 +5,9 @@ var OrderForm = function () {
     var $orderTaxTotal;
     var $orderTaxableTotal;
     var $orderShippingTotal;
+    var $orderSubtotal;
+    var $orderTotalRounding;
+    var $orderTotal;
     var $taxes = {};
     var $totalShippingLineItems = 0;
     var $orderPriceRuleTotal;
@@ -19,6 +22,9 @@ var OrderForm = function () {
         $orderTaxTotal = 0;
         $orderTaxableTotal = 0;
         $orderPriceRuleTotal = 0;
+        $orderSubtotal = 0;
+        $orderTotalRounding = 0;
+        $orderTotal = 0;
 
         for(var i in $taxes){
             $taxes[i].total = 0;
@@ -27,6 +33,35 @@ var OrderForm = function () {
         for(var i in $cartPriceRules){
             $cartPriceRules[i].total = 0;
         }
+    }
+
+    var totalOrderSummary = function()
+    {
+        $orderProductTotal = formHelper.roundNumber($orderProductTotal, global_vars.line_item_total_precision, 'default');
+        $orderOriginalProductTotal = formHelper.roundNumber($orderOriginalProductTotal, global_vars.line_item_total_precision, 'default');
+        $orderFeeTotal = formHelper.roundNumber($orderFeeTotal, global_vars.line_item_total_precision, 'default');
+        $orderShippingTotal = formHelper.roundNumber($orderShippingTotal, global_vars.line_item_total_precision, 'default');
+        $orderPriceRuleTotal = formHelper.roundNumber($orderPriceRuleTotal, global_vars.line_item_total_precision, 'default');
+        $orderTaxTotal = formHelper.roundNumber($orderTaxTotal, global_vars.line_item_total_precision, 'default');
+
+        $orderSubtotal = $orderOriginalProductTotal + $orderFeeTotal;
+
+        calculateOrderPriceRules();
+        calculateTaxes();
+
+        //Round tax & price rules
+        for(var i in $cartPriceRules){
+            $cartPriceRules[i].total = formHelper.roundNumber($cartPriceRules[i].total, global_vars.line_item_total_precision, 'default');
+        }
+
+        for(var i in $taxes){
+            $taxes[i].total = formHelper.roundNumber($taxes[i].total, global_vars.line_item_total_precision, 'default');
+        }
+
+        $orderTotalBeforeRounding = $orderProductTotal + $orderShippingTotal + $orderFeeTotal + $orderTaxTotal + $orderPriceRuleTotal;
+        $orderTotal = formHelper.roundNumber($orderTotalBeforeRounding, global_vars.total_precision);
+
+        $orderTotalRounding = formHelper.roundNumber($orderTotal - $orderTotalBeforeRounding, global_vars.line_item_total_precision, 'default');
     }
 
     var calculateTaxes = function()
@@ -95,20 +130,19 @@ var OrderForm = function () {
             }
         });
 
-        calculateOrderPriceRules();
-        calculateTaxes();
+        totalOrderSummary();
     }
 
     var printOrderSummary = function()
     {
-        $('.subtotal .amount', '#order-summary').text(formHelper.convertNumber(formHelper.roundNumber($orderOriginalProductTotal + $orderFeeTotal)));
+        $('.subtotal .amount', '#order-summary').text(formHelper.convertNumber($orderSubtotal));
 
-        $('.shipping .amount', '#order-summary').text(formHelper.convertNumber(formHelper.roundNumber($orderShippingTotal)));
         if($orderShippingTotal > 0){
             $('.shipping', '#order-summary').show();
         }else{
             $('.shipping', '#order-summary').hide();
         }
+        $('.shipping .amount', '#order-summary').text(formHelper.convertNumber($orderShippingTotal));
 
         /*
         $('.discount .amount', '#order-summary').text(formHelper.convertNumber($orderProductTotal - $orderOriginalProductTotal));
@@ -120,14 +154,21 @@ var OrderForm = function () {
         */
 
         for(var i in $taxes){
-            $('.tax[data-tax_id="'+i+'"] .amount', '#order-summary').text(formHelper.convertNumber(formHelper.roundNumber($taxes[i].total)));
+            $('.tax[data-tax_id="'+i+'"] .amount', '#order-summary').text(formHelper.convertNumber($taxes[i].total));
         }
 
         for(var i in $cartPriceRules){
-            $('.cart-price-rule[data-cart_price_rule_id="'+i+'"] .amount', '#order-summary').text(formHelper.convertNumber(formHelper.roundNumber($cartPriceRules[i].total)));
+            $('.cart-price-rule[data-cart_price_rule_id="'+i+'"] .amount', '#order-summary').text(formHelper.convertNumber($cartPriceRules[i].total));
         }
 
-        $('.total .amount', '#order-summary').text(formHelper.convertNumber(formHelper.roundNumber($orderProductTotal) + formHelper.roundNumber($orderShippingTotal) + formHelper.roundNumber($orderFeeTotal) + formHelper.roundNumber($orderTaxTotal) + formHelper.roundNumber($orderPriceRuleTotal)));
+        if($orderTotalRounding > 0 || $orderTotalRounding < 0){
+            $('.rounding', '#order-summary').show();
+        }else{
+            $('.rounding', '#order-summary').hide();
+        }
+        $('.rounding .amount', '#order-summary').text(formHelper.convertNumber($orderTotalRounding));
+
+        $('.total .amount', '#order-summary').text(formHelper.convertNumber($orderTotal));
     }
 
     var calculatePriceRuleValue = function(amount, price, modification, modification_type)

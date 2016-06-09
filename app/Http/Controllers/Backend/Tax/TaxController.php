@@ -7,6 +7,7 @@ use Kommercio\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Kommercio\Http\Requests\Backend\Tax\TaxFormRequest;
 use Kommercio\Models\Address\Country;
+use Kommercio\Models\Order\Order;
 use Kommercio\Models\Tax;
 use Kommercio\Models\Store;
 use Kommercio\Facades\CurrencyHelper;
@@ -111,6 +112,10 @@ class TaxController extends Controller
     public function delete(Request $request, $id)
     {
         $tax = Tax::findOrFail($id);
+
+        if(!$this->deleteable($tax->id)){
+            return redirect()->back()->withErrors(['Can\'t delete this product. It is used in settled Orders.']);
+        }
 
         $tax->delete();
 
@@ -222,5 +227,12 @@ class TaxController extends Controller
             'data' => $return,
             '_token' => csrf_token()
         ]);
+    }
+
+    protected function deleteable($id)
+    {
+        $orderCount = Order::checkout()->whereHasLineItem($id, 'tax')->count();
+
+        return $orderCount < 1;
     }
 }

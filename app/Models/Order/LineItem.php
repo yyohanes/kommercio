@@ -20,14 +20,14 @@ class LineItem extends Model
     //Methods
     public function calculateTotal()
     {
-        $this->total = $this->net_price * $this->quantity;
+        $this->total = round($this->net_price * $this->quantity, config('project.line_item_total_precision'));
 
         return $this->total;
     }
 
     public function calculateSubtotal()
     {
-        return $this->base_price * $this->quantity;
+        return round($this->base_price * $this->quantity, config('project.line_item_total_precision'));
     }
 
     public function processData($data, $sort_order = 0)
@@ -62,6 +62,13 @@ class LineItem extends Model
             $this->quantity = 1;
         }elseif($data['line_item_type'] == 'cart_price_rule'){
             $this->linkCartPriceRule($data['cart_price_rule_id']);
+            $this->base_price = $data['lineitem_total_amount'];
+            $this->net_price = $data['lineitem_total_amount'];
+            $this->total = $data['lineitem_total_amount'];
+            $this->quantity = 1;
+        }elseif($data['line_item_type'] == 'rounding'){
+            $this->name = 'Rounding';
+            $this->line_item_type = 'rounding';
             $this->base_price = $data['lineitem_total_amount'];
             $this->net_price = $data['lineitem_total_amount'];
             $this->total = $data['lineitem_total_amount'];
@@ -123,6 +130,11 @@ class LineItem extends Model
     public function getIsTaxAttribute()
     {
         return $this->line_item_type == 'tax';
+    }
+
+    public function getIsRoundingAttribute()
+    {
+        return $this->line_item_type == 'rounding';
     }
 
     public function getIsCartPriceRuleAttribute()

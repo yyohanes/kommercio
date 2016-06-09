@@ -8,6 +8,7 @@ use Kommercio\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Kommercio\Http\Requests\Backend\PriceRule\CartPriceRuleFormRequest;
 use Kommercio\Models\Customer;
+use Kommercio\Models\Order\Order;
 use Kommercio\Models\PriceRule\CartPriceRule;
 use Kommercio\Models\PriceRule\CartPriceRuleOptionGroup;
 use Kommercio\Models\ShippingMethod\ShippingMethod;
@@ -122,6 +123,10 @@ class CartPriceRuleController extends Controller
     {
         $priceRule = CartPriceRule::findOrFail($id);
 
+        if(!$this->deleteable($priceRule->id)){
+            return redirect()->back()->withErrors(['Can\'t delete this product. It is used in settled Orders.']);
+        }
+
         $priceRule->delete();
 
         $name = $priceRule->name?'Price rule '.$priceRule->name:'Price rule';
@@ -166,5 +171,12 @@ class CartPriceRuleController extends Controller
         }
 
         $shippingOptionGroup->shippingMethods()->sync($request->input('shipping', []));
+    }
+
+    protected function deleteable($id)
+    {
+        $orderCount = Order::checkout()->whereHasLineItem($id, 'cart_price_rule')->count();
+
+        return $orderCount < 1;
     }
 }

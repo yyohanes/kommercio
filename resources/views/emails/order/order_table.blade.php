@@ -45,6 +45,13 @@
             <td colspan="2" align="right"><strong>Shipping</strong></td>
             <td>{{ PriceFormatter::formatNumber($order->shipping_total, $order->currency) }}</td>
         </tr>
+        @if($order->rounding_total > 0 || $order->rounding_total < 0)
+            <tr>
+                <td colspan="2"></td>
+                <td colspan="2" align="right"><strong>Rounding</strong></td>
+                <td>{{ PriceFormatter::formatNumber($order->rounding_total, $order->currency) }}</td>
+            </tr>
+        @endif
         <tr>
             <td colspan="2"></td>
             <td colspan="2" align="right"><strong>Grand Total</strong></td>

@@ -11,6 +11,7 @@ use Kommercio\Facades\CurrencyHelper;
 use Kommercio\Http\Controllers\Controller;
 use Kommercio\Http\Requests\Backend\Catalog\ProductFormRequest;
 use Kommercio\Http\Requests\Backend\Catalog\ProductVariationFormRequest;
+use Kommercio\Models\Order\Order;
 use Kommercio\Models\Order\OrderLimit;
 use Kommercio\Models\Product;
 use Kommercio\Models\ProductAttribute\ProductAttribute;
@@ -321,6 +322,10 @@ class ProductController extends Controller{
     {
         $product = Product::findOrFail($id);
 
+        if(!$this->deleteable($product->id)){
+            return redirect()->back()->withErrors(['Can\'t delete this product. It is used in settled Orders.']);
+        }
+
         $name = $product->name;
 
         //Remove all media first. We do it manually because Translation model is cascaded, so we can't do this on Translation delete
@@ -622,5 +627,13 @@ class ProductController extends Controller{
         }
 
         return response()->json(['data' => $return, '_token' => csrf_token()]);
+    }
+
+    protected function deleteable($id)
+    {
+        $orderCount = Order::checkout()->whereHasLineItem($id, 'product')->count();
+        dd($orderCount);
+
+        return $orderCount < 1;
     }
 }
