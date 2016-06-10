@@ -176,7 +176,6 @@ class ProductController extends Controller{
     public function edit($id)
     {
         $product = Product::findOrFail($id);
-        dd($product->getOrderCount());
 
         $oldFeatures = array_keys(old('features', []));
 
