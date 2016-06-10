@@ -1,7 +1,7 @@
-<table class="order-table">
+<table class="content-table">
     <thead>
     <tr>
-        <th> </th>
+        <th style="width: 50px;"> </th>
         <th> Item </th>
         <th> Price </th>
         <th> Quantity </th>
@@ -22,40 +22,40 @@
     </tbody>
     <tfoot>
         <tr>
-            <td colspan="2"></td>
-            <td colspan="2" align="right"><strong>Subtotal</strong></td>
-            <td>{{ PriceFormatter::formatNumber($order->subtotal + $order->additional_total, $order->currency) }}</td>
+            <td class="no-border" colspan="2"></td>
+            <td class="no-border" colspan="2" align="right"><strong>Subtotal</strong></td>
+            <td class="no-border">{{ PriceFormatter::formatNumber($order->subtotal + $order->additional_total, $order->currency) }}</td>
         </tr>
         @foreach($order->getCartPriceRuleLineItems() as $cartPriceRuleLineItem)
         <tr>
-            <td colspan="2"></td>
-            <td colspan="2" align="right"><strong>{{ $cartPriceRuleLineItem->cartPriceRule->name }}</strong></td>
-            <td>{{ PriceFormatter::formatNumber($cartPriceRuleLineItem->total, $order->currency) }}</td>
+            <td class="no-border" colspan="2"></td>
+            <td class="no-border" colspan="2" align="right"><strong>{{ $cartPriceRuleLineItem->cartPriceRule->name }}</strong></td>
+            <td class="no-border">{{ PriceFormatter::formatNumber($cartPriceRuleLineItem->total, $order->currency) }}</td>
         </tr>
         @endforeach
         @foreach($order->getTaxLineItems() as $taxLineItem)
         <tr>
-            <td colspan="2"></td>
-            <td colspan="2" align="right"><strong>{{ $taxLineItem->tax->getSingleName() }}</strong></td>
-            <td>{{ PriceFormatter::formatNumber($taxLineItem->total, $order->currency) }}</td>
+            <td class="no-border" colspan="2"></td>
+            <td class="no-border" colspan="2" align="right"><strong>{{ $taxLineItem->tax->getSingleName() }}</strong></td>
+            <td class="no-border">{{ PriceFormatter::formatNumber($taxLineItem->total, $order->currency) }}</td>
         </tr>
         @endforeach
         <tr>
-            <td colspan="2"></td>
-            <td colspan="2" align="right"><strong>Shipping</strong></td>
-            <td>{{ PriceFormatter::formatNumber($order->shipping_total, $order->currency) }}</td>
+            <td class="no-border" colspan="2"></td>
+            <td class="no-border" colspan="2" align="right"><strong>Shipping</strong></td>
+            <td class="no-border">{{ PriceFormatter::formatNumber($order->shipping_total, $order->currency) }}</td>
         </tr>
         @if($order->rounding_total > 0 || $order->rounding_total < 0)
             <tr>
-                <td colspan="2"></td>
-                <td colspan="2" align="right"><strong>Rounding</strong></td>
-                <td>{{ PriceFormatter::formatNumber($order->rounding_total, $order->currency) }}</td>
+                <td class="no-border" colspan="2"></td>
+                <td class="no-border" colspan="2" align="right"><strong>Rounding</strong></td>
+                <td class="no-border">{{ PriceFormatter::formatNumber($order->rounding_total, $order->currency) }}</td>
             </tr>
         @endif
         <tr>
-            <td colspan="2"></td>
-            <td colspan="2" align="right"><strong>Grand Total</strong></td>
-            <td>{{ PriceFormatter::formatNumber($order->total, $order->currency) }}</td>
+            <td class="no-border" colspan="2"></td>
+            <td class="no-border" colspan="2" align="right"><strong>Grand Total</strong></td>
+            <td class="no-border">{{ PriceFormatter::formatNumber($order->total, $order->currency) }}</td>
         </tr>
     </tfoot>
 </table>

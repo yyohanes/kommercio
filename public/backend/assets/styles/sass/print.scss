@@ -167,6 +167,8 @@ table.no-border tr, table.no-border tr td{ border: none; }
 table{ width: 100%; }
 table td{ vertical-align: top; }
 
+table tr td.no-border{ border: none; }
+
 table.content-table{ border-collapse: collapse; margin: 0 0 1.5em; }
 table.content-table td, table.content-table th{ padding: 3px; border: 1px solid #999; }
 

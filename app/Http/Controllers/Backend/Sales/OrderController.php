@@ -250,13 +250,11 @@ class OrderController extends Controller{
     public function printOrder($id)
     {
         $order = Order::findOrFail($id);
-        $lineItems = $order->lineItems;
         $billingProfile = $order->billingProfile?$order->billingProfile->fillDetails():new Profile();
         $shippingProfile = $order->shippingProfile?$order->shippingProfile->fillDetails():new Profile();
 
-        return view('backend.order.print', [
+        return view('print.order.invoice', [
             'order' => $order,
-            'lineItems' => $lineItems,
             'billingProfile' => $billingProfile,
             'shippingProfile' => $shippingProfile
         ]);

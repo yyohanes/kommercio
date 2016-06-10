@@ -467,6 +467,11 @@ Route::group(['middleware' => ['web']], function () {
                         'uses' => 'OrderController@view'
                     ]);
 
+                    Route::get('print/{id}', [
+                        'as' => 'backend.sales.order.print',
+                        'uses' => 'OrderController@printOrder'
+                    ]);
+
                     Route::get('delete/all', [
                         'as' => 'backend.sales.order.delete_all',
                         'uses' => 'OrderController@deleteAll'

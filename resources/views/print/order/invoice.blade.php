@@ -15,5 +15,29 @@
         </tr>
     </table>
 
+    <table class="no-border">
+        <tr>
+            <td style="width: 25%;">
+                <p>
+                    <strong>Billing Information</strong><br/>
+                    {{ $order->billingProfile->full_name }}<br/>
+                    {{ $order->billingProfile->phone_number }}<br/>
+                    {!! AddressHelper::printAddress($order->billingProfile->getDetails()) !!}
+                </p>
+            </td>
+
+            <td style="width: 50px;"></td>
+
+            <td style="width: 25%;">
+                <p>
+                    <strong>Shipping Information</strong><br/>
+                    {{ $order->shippingProfile->full_name }}<br/>
+                    {{ $order->shippingProfile->phone_number }}<br/>
+                    {!! AddressHelper::printAddress($order->shippingProfile->getDetails()) !!}
+                </p>
+            </td>
+        </tr>
+    </table>
+
     @include('print.order.order_table', ['order' => $order])
 @stop
