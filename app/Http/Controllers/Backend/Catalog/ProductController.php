@@ -11,6 +11,7 @@ use Kommercio\Facades\CurrencyHelper;
 use Kommercio\Http\Controllers\Controller;
 use Kommercio\Http\Requests\Backend\Catalog\ProductFormRequest;
 use Kommercio\Http\Requests\Backend\Catalog\ProductVariationFormRequest;
+use Kommercio\Models\Order\LineItem;
 use Kommercio\Models\Order\Order;
 use Kommercio\Models\Order\OrderLimit;
 use Kommercio\Models\Product;
@@ -175,6 +176,7 @@ class ProductController extends Controller{
     public function edit($id)
     {
         $product = Product::findOrFail($id);
+        dd($product->getOrderCount());
 
         $oldFeatures = array_keys(old('features', []));
 
@@ -333,6 +335,8 @@ class ProductController extends Controller{
             $translation->deleteMedia('image');
             $translation->deleteMedia('thumbnail');
         }
+
+        LineItem::isProduct($product->id)->delete();
 
         $product->forceDelete();
 
@@ -632,7 +636,6 @@ class ProductController extends Controller{
     protected function deleteable($id)
     {
         $orderCount = Order::checkout()->whereHasLineItem($id, 'product')->count();
-        dd($orderCount);
 
         return $orderCount < 1;
     }

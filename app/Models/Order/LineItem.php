@@ -147,6 +147,12 @@ class LineItem extends Model
         return $this->attributes['quantity'] + 0.00;
     }
 
+    //Scopes
+    public function scopeIsProduct($query, $product_id)
+    {
+        $query->where('line_item_id', $product_id)->where('line_item_type', 'product');
+    }
+
     //Relations
     public function order()
     {

@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
 use Kommercio\Facades\ProjectHelper;
+use Kommercio\Models\Order\LineItem;
+use Kommercio\Models\Order\Order;
 use Kommercio\Models\ProductAttribute\ProductAttributeValue;
 
 class Product extends Model
@@ -450,6 +452,26 @@ class Product extends Model
 
         return $includedPriceRules;
         */
+    }
+
+        public function getOrderCount($options = [])
+    {
+        $qb = LineItem::isProduct($this->id)
+            ->whereHas('order', function($query) use ($options){
+                $query->usageCounted();
+
+                if(isset($options['delivery_date'])){
+                    $query->where('delivery_date', $options['delivery_date']);
+                }
+
+                if(isset($options['checkout_at'])){
+                    $query->where('checkout_at', $options['checkout_at']);
+                }
+            });
+
+        $orderCount = floatval($qb->sum('quantity'));
+
+        return $orderCount;
     }
 
     //Accessors
