@@ -106,6 +106,10 @@ class OrderController extends Controller{
             $orderAction .= '<div class="btn-group btn-group-sm dropup">';
             $orderAction .= '<a class="btn btn-default" href="'.route('backend.sales.order.view', ['id' => $order->id, 'backUrl' => RequestFacade::fullUrl()]).'"><i class="fa fa-search"></i></a>';
 
+            if($order->isCheckout) {
+                $orderAction .= '<a class="btn btn-default" href="' . route('backend.sales.order.print', ['id' => $order->id]) . '" target="_blank"><i class="fa fa-print"></i></a>';
+            }
+
             if(in_array($order->status, [Order::STATUS_PENDING, Order::STATUS_PROCESSING])) {
                 $orderAction .= '<button type="button" class="btn btn-default hold-on-click dropdown-toggle" data-toggle="dropdown" data-hover="dropdown" data-close-others="true" aria-expanded="true"><i class="fa fa-flag-o"></i></button><ul class="dropdown-menu" role="menu">';
                 if (in_array($order->status, [Order::STATUS_PENDING])) {

@@ -35,6 +35,7 @@
                     @if(in_array($order->status, [\Kommercio\Models\Order\Order::STATUS_PENDING, \Kommercio\Models\Order\Order::STATUS_PROCESSING]))
                         <a class="btn {{ OrderHelper::getOrderStatusLabelClass(\Kommercio\Models\Order\Order::STATUS_COMPLETED) }} modal-ajax" href="{{ route('backend.sales.order.process', ['action' => 'completed', 'id' => $order->id, 'backUrl' => Request::fullUrl()]) }}"><i class="fa fa-check-circle"></i> Complete Order</a>
                         <a class="btn {{ OrderHelper::getOrderStatusLabelClass(\Kommercio\Models\Order\Order::STATUS_CANCELLED) }} modal-ajax" href="{{ route('backend.sales.order.process', ['action' => 'cancelled', 'id' => $order->id, 'backUrl' => Request::fullUrl()]) }}"><i class="fa fa-remove"></i> Cancel Order</a>
+                        <a class="btn btn-info" href="{{ route('backend.sales.order.print', ['id' => $order->id]) }}" target="_blank"><i class="fa fa-print"></i> Print Order</a>
                     @endif
                 </div>
             </div>

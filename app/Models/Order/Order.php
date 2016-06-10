@@ -425,6 +425,11 @@ class Order extends Model implements AuthorSignatureInterface
         return in_array($this->status, [self::STATUS_ADMIN_CART, self::STATUS_CART]);
     }
 
+    public function getIsCheckoutAttribute()
+    {
+        return !in_array($this->status, [self::STATUS_ADMIN_CART, self::STATUS_CART]);
+    }
+
     //Static
     public static function getStatusOptions($option=null, $all=false)
     {
