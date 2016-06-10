@@ -840,6 +840,9 @@ Route::group(['middleware' => ['web']], function () {
                     'uses' => 'CustomerController@delete'
                 ]);
             });
+
+            //Report
+
         });
     });
 

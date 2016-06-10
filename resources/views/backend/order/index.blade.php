@@ -48,6 +48,9 @@
                         <th style="width: 10px;"></th>
                         <th>Order #</th>
                         <th>Purchased On</th>
+                        @if(config('project.enable_delivery_date', FALSE))
+                        <th>Delivery Date</th>
+                        @endif
                         <th>Billing Name</th>
                         <th>Shipping Name</th>
                         <th>Total</th>
@@ -61,6 +64,12 @@
                             {!! Form::text('filter[checkout_at][from]', null, ['class' => 'form-control form-filter input-sm date-picker', 'placeholder' => 'From (YYYY-MM-DD)', 'data-date-format' => 'yyyy-mm-dd']) !!}
                             {!! Form::text('filter[checkout_at][to]', null, ['class' => 'form-control form-filter input-sm date-picker', 'placeholder' => 'To (YYYY-MM-DD)', 'data-date-format' => 'yyyy-mm-dd']) !!}
                         </td>
+                        @if(config('project.enable_delivery_date', FALSE))
+                        <td>
+                            {!! Form::text('filter[delivery_date][from]', null, ['class' => 'form-control form-filter input-sm date-picker', 'placeholder' => 'From (YYYY-MM-DD)', 'data-date-format' => 'yyyy-mm-dd']) !!}
+                            {!! Form::text('filter[delivery_date][to]', null, ['class' => 'form-control form-filter input-sm date-picker', 'placeholder' => 'To (YYYY-MM-DD)', 'data-date-format' => 'yyyy-mm-dd']) !!}
+                        </td>
+                        @endif
                         <td>{!! Form::text('filter[billing_name]', null, ['class' => 'form-control form-filter input-sm']) !!}</td>
                         <td>{!! Form::text('filter[shipping_name]', null, ['class' => 'form-control form-filter input-sm']) !!}</td>
                         <td></td>

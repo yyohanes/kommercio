@@ -49,11 +49,12 @@ var OrderIndex = function () {
                     {"name": "no", "targets": 0, "orderable": false},
                     {"name": "reference", "targets": 1},
                     {"name": "checkout_at", "targets": 2},
-                    {"name": "billing_name", "targets": 3},
-                    {"name": "shipping_name", "targets": 4},
-                    {"name": "total", "targets": 5},
-                    {"name": "status", "targets": 6, "orderable": false},
-                    {"name": "action", "orderable" : false, "targets": 7}
+                    {"name": "delivery_date", "targets": 3},
+                    {"name": "billing_name", "targets": 4},
+                    {"name": "shipping_name", "targets": 5},
+                    {"name": "total", "targets": 6},
+                    {"name": "status", "targets": 7, "orderable": false},
+                    {"name": "action", "orderable" : false, "targets": 8}
                 ]
             }
         });

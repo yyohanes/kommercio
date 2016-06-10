@@ -42,11 +42,19 @@ class OrderController extends Controller{
                         $qb->where($searchKey, 'LIKE', '%'.$search.'%');
                     }elseif($searchKey == 'checkout_at'){
                         if(!empty($search['from'])){
-                            $qb->whereRaw('DATE_FORMAT(checkout_at, \'%Y-%m-%d\') <= ?', [$search['from']]);
+                            $qb->whereRaw('DATE_FORMAT(checkout_at, \'%Y-%m-%d\') >= ?', [$search['from']]);
                         }
 
                         if(!empty($search['to'])){
-                            $qb->whereRaw('DATE_FORMAT(checkout_at, \'%Y-%m-%d\') >= ?', [$search['to']]);
+                            $qb->whereRaw('DATE_FORMAT(checkout_at, \'%Y-%m-%d\') <= ?', [$search['to']]);
+                        }
+                    }elseif($searchKey == 'delivery_date'){
+                        if(!empty($search['from'])){
+                            $qb->whereRaw('DATE_FORMAT(delivery_date, \'%Y-%m-%d\') >= ?', [$search['from']]);
+                        }
+
+                        if(!empty($search['to'])){
+                            $qb->whereRaw('DATE_FORMAT(delivery_date, \'%Y-%m-%d\') <= ?', [$search['to']]);
                         }
                     }else{
                         $qb->where($searchKey, $search);
@@ -129,6 +137,7 @@ class OrderController extends Controller{
                 $idx + 1 + $orderingStart,
                 $order->reference,
                 $order->checkout_at?$order->checkout_at->format('d M Y, H:i'):'',
+                $order->delivery_date?$order->delivery_date->format('d M Y'):'',
                 $order->billing_full_name,
                 $order->shipping_full_name,
                 PriceFormatter::formatNumber($order->total, $order->currency),
@@ -231,6 +240,21 @@ class OrderController extends Controller{
         $shippingProfile = $order->shippingProfile?$order->shippingProfile->fillDetails():new Profile();
 
         return view('backend.order.view', [
+            'order' => $order,
+            'lineItems' => $lineItems,
+            'billingProfile' => $billingProfile,
+            'shippingProfile' => $shippingProfile
+        ]);
+    }
+
+    public function printOrder($id)
+    {
+        $order = Order::findOrFail($id);
+        $lineItems = $order->lineItems;
+        $billingProfile = $order->billingProfile?$order->billingProfile->fillDetails():new Profile();
+        $shippingProfile = $order->shippingProfile?$order->shippingProfile->fillDetails():new Profile();
+
+        return view('backend.order.print', [
             'order' => $order,
             'lineItems' => $lineItems,
             'billingProfile' => $billingProfile,

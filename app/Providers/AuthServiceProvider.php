@@ -4,6 +4,7 @@ namespace Kommercio\Providers;
 
 use Illuminate\Contracts\Auth\Access\Gate as GateContract;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
+use Kommercio\Models\Order\Order;
 
 class AuthServiceProvider extends ServiceProvider
 {
@@ -13,7 +14,7 @@ class AuthServiceProvider extends ServiceProvider
      * @var array
      */
     protected $policies = [
-        'Kommercio\Model' => 'Kommercio\Policies\ModelPolicy',
+        Order::class => 'Kommercio\Policies\OrderPolicy',
     ];
 
     /**

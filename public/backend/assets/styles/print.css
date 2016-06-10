@@ -1,0 +1,444 @@
+/*! HTML5 Boilerplate v5.0 | MIT License | http://h5bp.com/ */
+/* line 3, sass/print.scss */
+html {
+  color: #222;
+  font-size: 1em;
+  line-height: 1.4;
+}
+
+/* line 9, sass/print.scss */
+::-moz-selection {
+  background: #b3d4fc;
+  text-shadow: none;
+}
+
+/* line 14, sass/print.scss */
+::selection {
+  background: #b3d4fc;
+  text-shadow: none;
+}
+
+/* line 19, sass/print.scss */
+hr {
+  display: block;
+  height: 1px;
+  border: 0;
+  border-top: 1px solid #ccc;
+  margin: 1em 0;
+  padding: 0;
+}
+
+/* line 28, sass/print.scss */
+audio,
+canvas,
+iframe,
+img,
+svg,
+video {
+  vertical-align: middle;
+}
+
+/* line 37, sass/print.scss */
+fieldset {
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+
+/* line 43, sass/print.scss */
+textarea {
+  resize: vertical;
+}
+
+/* line 47, sass/print.scss */
+.browserupgrade {
+  margin: 0.2em 0;
+  background: #ccc;
+  color: #000;
+  padding: 0.2em 0;
+}
+
+/* ===== Initializr Styles ==================================================
+   Author: Jonathan Verrecchia - verekia.com/initializr/responsive-template
+   ========================================================================== */
+/* line 59, sass/print.scss */
+body {
+  font: 14px/24px Helvetica, Helvetica Neue, Arial;
+}
+
+/* line 63, sass/print.scss */
+.wrapper {
+  width: 90%;
+  margin: 0 5%;
+}
+
+/* ==============
+    MOBILE: Menu
+   ============== */
+/* line 72, sass/print.scss */
+nav ul {
+  margin: 0;
+  padding: 0;
+  list-style-type: none;
+}
+
+/* line 78, sass/print.scss */
+nav a {
+  display: block;
+  margin-bottom: 10px;
+  padding: 15px 0;
+  text-align: center;
+  text-decoration: none;
+  font-weight: bold;
+  color: white;
+  background: #e44d26;
+}
+
+/* line 91, sass/print.scss */
+nav a:hover,
+nav a:visited {
+  color: white;
+}
+
+/* line 96, sass/print.scss */
+nav a:hover {
+  text-decoration: underline;
+}
+
+/* ==============
+    MOBILE: Main
+   ============== */
+/* line 104, sass/print.scss */
+.main {
+  padding: 30px 0;
+}
+
+/* line 108, sass/print.scss */
+.main article h1 {
+  font-size: 2em;
+}
+
+/* line 112, sass/print.scss */
+.main aside {
+  color: white;
+  padding: 0px 5% 10px;
+}
+
+/* line 117, sass/print.scss */
+.footer-container footer {
+  color: white;
+  padding: 20px 0;
+}
+
+/* ===============
+    ALL: IE Fixes
+   =============== */
+/* line 126, sass/print.scss */
+.ie7 .title {
+  padding-top: 20px;
+}
+
+/* ==========================================================================
+   Author's custom styles
+   ========================================================================== */
+/* line 133, sass/print.scss */
+body {
+  font-size: 12px;
+  line-height: 1.25em;
+}
+
+/* line 138, sass/print.scss */
+.text-left {
+  text-align: left;
+}
+
+/* line 142, sass/print.scss */
+.text-right {
+  text-align: right;
+}
+
+/* line 146, sass/print.scss */
+.text-center {
+  text-align: center;
+}
+
+/* line 150, sass/print.scss */
+.vertical-top {
+  vertical-align: top;
+}
+
+/* line 154, sass/print.scss */
+.vertical-middle {
+  vertical-align: middle;
+}
+
+/* line 158, sass/print.scss */
+.vertical-bottom {
+  vertical-align: bottom;
+}
+
+/* line 162, sass/print.scss */
+ul, ol {
+  padding: 0 0 0 1.4em;
+}
+
+/* line 163, sass/print.scss */
+ul li, ol li {
+  margin: 0.25em 0;
+}
+
+/* line 165, sass/print.scss */
+table.no-border tr, table.no-border tr td {
+  border: none;
+}
+
+/* line 167, sass/print.scss */
+table {
+  width: 100%;
+}
+
+/* line 168, sass/print.scss */
+table td {
+  vertical-align: top;
+}
+
+/* line 170, sass/print.scss */
+table.content-table {
+  border-collapse: collapse;
+  margin: 0 0 1.5em;
+}
+
+/* line 171, sass/print.scss */
+table.content-table td, table.content-table th {
+  padding: 3px;
+  border: 1px solid #999;
+}
+
+/* line 173, sass/print.scss */
+.bordered-box {
+  padding: 1em;
+  border: 1px solid #999;
+}
+
+/* line 176, sass/print.scss */
+hr {
+  margin: 0;
+}
+
+/* ==========================================================================
+   Media Queries
+   ========================================================================== */
+@media only screen and (min-width: 480px) {
+  /* ====================
+      INTERMEDIATE: Menu
+     ==================== */
+  /* line 190, sass/print.scss */
+  nav a {
+    float: left;
+    width: 27%;
+    margin: 0 1.7%;
+    padding: 25px 2%;
+    margin-bottom: 0;
+  }
+
+  /* line 198, sass/print.scss */
+  nav li:first-child a {
+    margin-left: 0;
+  }
+
+  /* line 202, sass/print.scss */
+  nav li:last-child a {
+    margin-right: 0;
+  }
+
+  /* ========================
+      INTERMEDIATE: IE Fixes
+     ======================== */
+  /* line 210, sass/print.scss */
+  nav ul li {
+    display: inline;
+  }
+
+  /* line 214, sass/print.scss */
+  .oldie nav a {
+    margin: 0 0.7%;
+  }
+}
+@media only screen and (min-width: 768px) {
+  /* ============
+      WIDE: Menu
+     ============ */
+  /* line 225, sass/print.scss */
+  .title {
+    float: left;
+  }
+
+  /* line 229, sass/print.scss */
+  nav {
+    float: right;
+    width: 38%;
+  }
+
+  /* ============
+      WIDE: Main
+     ============ */
+  /* line 238, sass/print.scss */
+  .main article {
+    float: left;
+    width: 57%;
+  }
+
+  /* line 243, sass/print.scss */
+  .main aside {
+    float: right;
+    width: 28%;
+  }
+}
+@media only screen and (min-width: 1140px) {
+  /* ===============
+      Maximal Width
+     =============== */
+  /* line 255, sass/print.scss */
+  .wrapper {
+    width: 1026px;
+    /* 1140px - 10% for margins */
+    margin: 0 auto;
+  }
+}
+/* ==========================================================================
+   Helper classes
+   ========================================================================== */
+/* line 265, sass/print.scss */
+.hidden {
+  display: none !important;
+  visibility: hidden;
+}
+
+/* line 270, sass/print.scss */
+.visuallyhidden {
+  border: 0;
+  clip: rect(0 0 0 0);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  width: 1px;
+}
+
+/* line 281, sass/print.scss */
+.visuallyhidden.focusable:active,
+.visuallyhidden.focusable:focus {
+  clip: auto;
+  height: auto;
+  margin: 0;
+  overflow: visible;
+  position: static;
+  width: auto;
+}
+
+/* line 291, sass/print.scss */
+.invisible {
+  visibility: hidden;
+}
+
+/* line 295, sass/print.scss */
+.clearfix:before,
+.clearfix:after {
+  content: " ";
+  display: table;
+}
+
+/* line 301, sass/print.scss */
+.clearfix:after {
+  clear: both;
+}
+
+/* line 305, sass/print.scss */
+.clearfix {
+  *zoom: 1;
+}
+
+/* line 309, sass/print.scss */
+.print-hidden {
+  display: none;
+}
+
+/* ==========================================================================
+   Print styles
+   ========================================================================== */
+@media print {
+  /* line 318, sass/print.scss */
+  *,
+  *:before,
+  *:after {
+    background: transparent !important;
+    color: #000 !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  /* line 327, sass/print.scss */
+  a,
+  a:visited {
+    text-decoration: underline;
+  }
+
+  /* line 332, sass/print.scss */
+  a[href]:after {
+    content: " (" attr(href) ")";
+  }
+
+  /* line 336, sass/print.scss */
+  abbr[title]:after {
+    content: " (" attr(title) ")";
+  }
+
+  /* line 340, sass/print.scss */
+  a[href^="#"]:after,
+  a[href^="javascript:"]:after {
+    content: "";
+  }
+
+  /* line 345, sass/print.scss */
+  pre,
+  blockquote {
+    border: 1px solid #999;
+    page-break-inside: avoid;
+  }
+
+  /* line 351, sass/print.scss */
+  thead {
+    display: table-header-group;
+  }
+
+  /* line 355, sass/print.scss */
+  tr,
+  img {
+    page-break-inside: avoid;
+  }
+
+  /* line 360, sass/print.scss */
+  img {
+    max-width: 100% !important;
+  }
+
+  /* line 364, sass/print.scss */
+  p,
+  h2,
+  h3 {
+    orphans: 3;
+    widows: 3;
+  }
+
+  /* line 371, sass/print.scss */
+  h2,
+  h3 {
+    page-break-after: avoid;
+  }
+
+  /* line 376, sass/print.scss */
+  footer {
+    page-break-after: always;
+  }
+}
