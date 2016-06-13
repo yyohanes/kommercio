@@ -137,7 +137,7 @@
                             @endforeach
 
                             @foreach($shippingLineItems as $idx=>$shippingLineItem)
-                                @include('backend.order.line_items.form.shipping', ['key' => $idx, 'shipping_method' => $shippingLineItem['shipping_method'], 'shipping_method_id' => $shippingLineItem['line_item_id']])
+                                @include('backend.order.line_items.form.shipping', ['key' => $idx, 'taxable'=> $shippingLineItem['taxable'], 'shipping_method' => $shippingLineItem['shipping_method'], 'shipping_method_id' => $shippingLineItem['line_item_id']])
                             @endforeach
                         @else
                             @include('backend.order.line_items.form.product', ['key' => 0])
@@ -250,7 +250,7 @@
     </script>
 
     <script id="lineitem-shipping-template" type="text/x-handlebars-template">
-        @include('backend.order.line_items.form.shipping', ['key' => '@{{key}}', 'shipping_method' => '@{{shipping_method}}', 'shipping_method_id' => '@{{shipping_method_id}}'])
+        @include('backend.order.line_items.form.shipping', ['key' => '@{{key}}', 'taxable' => '@{{taxable}}', 'shipping_method' => '@{{shipping_method}}', 'shipping_method_id' => '@{{shipping_method_id}}'])
     </script>
 
     <script id="lineitem-tax-template" type="text/x-handlebars-template">

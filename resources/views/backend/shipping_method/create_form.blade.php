@@ -21,6 +21,19 @@
     'required' => TRUE
 ])
 
+@include('backend.master.form.fields.checkbox', [
+    'name' => 'taxable',
+    'label' => 'Taxable',
+    'key' => 'taxable',
+    'value' => 1,
+    'checked' => $shippingMethod->taxable,
+    'attr' => [
+        'class' => 'make-switch',
+        'id' => 'taxable',
+        'data-on-color' => 'warning'
+    ],
+])
+
 @include('backend.master.form.fields.textarea', [
     'name' => 'message',
     'label' => 'Display Message',

@@ -14,7 +14,7 @@ class ShippingMethod extends Model
 
     public $translatedAttributes = ['name','message'];
 
-    protected $fillable = ['name', 'class', 'message', 'sort_order'];
+    protected $fillable = ['name', 'class', 'taxable', 'message', 'sort_order'];
 
     private $_processor;
 

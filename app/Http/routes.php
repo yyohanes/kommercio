@@ -847,7 +847,17 @@ Route::group(['middleware' => ['web']], function () {
             });
 
             //Report
+            Route::group(['prefix' => 'report', 'namespace' => 'Report'], function(){
+                Route::get('sales/year', [
+                    'as' => 'backend.report.sales_year',
+                    'uses' => 'ReportController@salesYear'
+                ]);
 
+                Route::get('sales', [
+                    'as' => 'backend.report.sales',
+                    'uses' => 'ReportController@sales'
+                ]);
+            });
         });
     });
 

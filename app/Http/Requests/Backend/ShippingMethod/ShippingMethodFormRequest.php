@@ -26,8 +26,22 @@ class ShippingMethodFormRequest extends Request
         $rules = [
             'name' => 'required',
             'class' => 'required',
+            'taxable' => 'boolean'
         ];
 
         return $rules;
+    }
+
+    public function all()
+    {
+        $attributes = parent::all();
+
+        if(!$this->has('taxable')){
+            $attributes['taxable'] = 0;
+        }
+
+        $this->replace($attributes);
+
+        return parent::all();
     }
 }

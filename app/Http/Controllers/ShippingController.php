@@ -19,10 +19,12 @@ class ShippingController extends Controller
             'subtotal' => $order->calculateSubtotal()
         ]);
 
-        foreach($shippingOptions as $shippingOption){
-            $return[$shippingOption['shipping_method_id']] = [
+        foreach($shippingOptions as $idx=>$shippingOption){
+            $return[$idx] = [
+                'shipping_method_id' => $shippingOption['shipping_method_id'],
                 'name' => $shippingOption['name'],
-                'price' => $shippingOption['price']['amount']
+                'price' => $shippingOption['price'],
+                'taxable' => $shippingOption['taxable']
             ];
         }
 

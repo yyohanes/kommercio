@@ -364,7 +364,7 @@ var OrderForm = function () {
                         var $shippingSelect = $('<select class="form-control"></select>');
 
                         for(var i in data){
-                            $shippingSelect.append('<option data-name="'+data[i].name+'" data-price="'+data[i].price.amount+'" data-shipping_method="'+data[i].shipping_method_id+'" value="'+i+'">'+data[i].name+': '+global_vars.currencies[global_vars.default_currency].iso +' '+ formHelper.convertNumber(data[i].price.amount)+'</option>');
+                            $shippingSelect.append('<option data-name="'+data[i].name+'" data-taxable="'+data[i].taxable+'" data-price="'+data[i].price.amount+'" data-shipping_method="'+data[i].shipping_method_id+'" value="'+i+'">'+data[i].name+': '+global_vars.currencies[global_vars.default_currency].iso +' '+ formHelper.convertNumber(data[i].price.amount)+'</option>');
                         }
 
                         $('#add-shipping-lineitem').hide();
@@ -384,7 +384,7 @@ var OrderForm = function () {
             e.preventDefault();
 
             var $selectedShippingOption = $('#shipping-options-wrapper select').find(':selected');
-            var $newShippingLineItem = $($shippingLineItemPrototype({key: $nextIndex, shipping_method: $selectedShippingOption.val(), shipping_method_id:$selectedShippingOption.data('shipping_method')}));
+            var $newShippingLineItem = $($shippingLineItemPrototype({key: $nextIndex, taxable: $selectedShippingOption.data('taxable'), shipping_method: $selectedShippingOption.val(), shipping_method_id:$selectedShippingOption.data('shipping_method')}));
 
             $('#line-items-table tbody').append($newShippingLineItem);
 
@@ -490,14 +490,12 @@ var OrderForm = function () {
                 e.preventDefault();
 
                 $lineItem.remove();
+                $('#order-form').trigger('order.major_change');
 
                 if($lineItemType == 'shipping'){
                     $totalShippingLineItems -= 1;
                     toggleAddShippingButton();
                 }
-
-                calculateOrderSummary();
-                printOrderSummary();
             });
 
             $('.quantity-field, .net-price-field', lineItem).each(function(idx, obj){

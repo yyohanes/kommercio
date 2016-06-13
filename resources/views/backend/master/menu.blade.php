@@ -90,6 +90,19 @@
         </a>
     </li>
 
+    <li class="nav-item {{ NavigationHelper::activeClass('report')?'active open':'' }}">
+        <a href="javascript:;" class="nav-link nav-toggle">
+            <i class="fa fa-bar-chart"></i>
+            <span class="title">Report</span>
+            <span class="arrow"></span>
+        </a>
+        <ul class="sub-menu">
+            <li class="nav-item {{ NavigationHelper::activeClass('report/sales')?'active':'' }}">
+                <a href="{{ route('backend.report.sales_year') }}" class="nav-link"> Sales </a>
+            </li>
+        </ul>
+    </li>
+
     <li class="nav-item {{ NavigationHelper::activeClass('configuration')?'active open':'' }}">
         <a href="javascript:;" class="nav-link nav-toggle">
             <i class="fa fa-wrench"></i>

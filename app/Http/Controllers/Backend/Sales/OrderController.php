@@ -512,7 +512,8 @@ class OrderController extends Controller{
             $return[$idx] = [
                 'shipping_method_id' => $shippingOption['shipping_method_id'],
                 'name' => $shippingOption['name'],
-                'price' => $shippingOption['price']
+                'price' => $shippingOption['price'],
+                'taxable' => $shippingOption['taxable']
             ];
         }
 

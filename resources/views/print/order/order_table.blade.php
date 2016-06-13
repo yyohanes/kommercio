@@ -33,6 +33,13 @@
             <td class="no-border">{{ PriceFormatter::formatNumber($cartPriceRuleLineItem->total, $order->currency) }}</td>
         </tr>
         @endforeach
+
+        <tr>
+            <td class="no-border" colspan="2"></td>
+            <td class="no-border" colspan="2" align="right"><strong>Shipping</strong></td>
+            <td class="no-border">{{ PriceFormatter::formatNumber($order->shipping_total, $order->currency) }}</td>
+        </tr>
+
         @foreach($order->getTaxLineItems() as $taxLineItem)
         <tr>
             <td class="no-border" colspan="2"></td>
@@ -40,11 +47,6 @@
             <td class="no-border">{{ PriceFormatter::formatNumber($taxLineItem->total, $order->currency) }}</td>
         </tr>
         @endforeach
-        <tr>
-            <td class="no-border" colspan="2"></td>
-            <td class="no-border" colspan="2" align="right"><strong>Shipping</strong></td>
-            <td class="no-border">{{ PriceFormatter::formatNumber($order->shipping_total, $order->currency) }}</td>
-        </tr>
         @if($order->rounding_total > 0 || $order->rounding_total < 0)
             <tr>
                 <td class="no-border" colspan="2"></td>
