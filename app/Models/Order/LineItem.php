@@ -3,8 +3,10 @@
 namespace Kommercio\Models\Order;
 
 use Illuminate\Database\Eloquent\Model;
+use Kommercio\Facades\ProjectHelper;
 use Kommercio\Models\PriceRule\CartPriceRule;
 use Kommercio\Models\Product;
+use Kommercio\Models\ProductDetail;
 use Kommercio\Models\Tax;
 use Kommercio\Traits\Model\HasDataColumn;
 
@@ -154,6 +156,23 @@ class LineItem extends Model
         $query->where('line_item_id', $product_id)->where('line_item_type', 'product');
     }
 
+    public function scopeLineItemType($query, $type)
+    {
+        $query->where('line_item_type', $type);
+    }
+
+    public function scopeJoinProduct($query)
+    {
+        $productTable = with(new Product())->getTable();
+        $productDetailTable = with(new ProductDetail())->getTable();
+
+        $query->leftJoin($productTable.' AS P', 'P.id', '=', 'line_item_id');
+        $query->leftJoin($productDetailTable.' AS PD', function($join){
+            $join->on('PD.product_id', '=', 'line_item_id')
+                ->where('PD.store_id', '=', ProjectHelper::getActiveStore()->id);
+        });
+    }
+
     //Relations
     public function order()
     {
@@ -181,12 +200,16 @@ class LineItem extends Model
     }
 
     //Shipping Specifics
-    public function getSelectedMethod()
+    public function getSelectedMethod($key=null)
     {
         $selectedMethod = $this->getData('shipping_method');
 
         if($selectedMethod){
             $selectedMethod = $this->shippingMethod->getSelectedMethod($selectedMethod);
+        }
+
+        if($key){
+            return $selectedMethod[$key];
         }
 
         return $selectedMethod;

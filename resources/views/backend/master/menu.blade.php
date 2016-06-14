@@ -100,6 +100,12 @@
             <li class="nav-item {{ NavigationHelper::activeClass('report/sales')?'active':'' }}">
                 <a href="{{ route('backend.report.sales_year') }}" class="nav-link"> Sales </a>
             </li>
+
+            @if(config('project.enable_delivery_date', false))
+            <li class="nav-item {{ NavigationHelper::activeClass('report/delivery')?'active':'' }}">
+                <a href="{{ route('backend.report.delivery') }}" class="nav-link"> Delivery </a>
+            </li>
+            @endif
         </ul>
     </li>
 

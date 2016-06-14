@@ -192,9 +192,6 @@ class OrderController extends Controller{
         $originalStatus = null;
 
         $customer = null;
-        if($request->has('existing_customer')){
-            $customer = Customer::getByEmail($request->get('existing_customer'));
-        }
 
         $order->notes = $request->input('notes');
         $order->delivery_date = $request->input('delivery_date', null);
@@ -216,11 +213,9 @@ class OrderController extends Controller{
         if($request->input('action') == 'place_order'){
             $this->placeOrder($order);
 
-            if(!$customer){
-                $profileData = $request->input('profile');
+            $profileData = $request->input('profile');
 
-                $customer = Customer::saveCustomer($profileData);
-            }
+            $customer = Customer::saveCustomer($profileData);
         }else{
             $order->status = Order::STATUS_ADMIN_CART;
         }
@@ -336,9 +331,6 @@ class OrderController extends Controller{
         $originalStatus = $order->status;
 
         $customer = null;
-        if($request->has('existing_customer')){
-            $customer = Customer::getByEmail($request->get('existing_customer'));
-        }
 
         $order->delivery_date = $request->input('delivery_date', null);
         $order->notes = $request->input('notes');
@@ -364,11 +356,9 @@ class OrderController extends Controller{
         if($request->input('action') == 'place_order'){
             $this->placeOrder($order);
 
-            if(!$customer){
-                $profileData = $request->input('profile');
+            $profileData = $request->input('profile');
 
-                $customer = Customer::saveCustomer($profileData);
-            }
+            $customer = Customer::saveCustomer($profileData);
         }else{
 
         }

@@ -8,27 +8,6 @@
                 </div>
             </div>
             <div class="portlet-body">
-                <div class="col-md-12">
-                    <div class="form-group">
-                        <div class="input-group">
-                            <span class="input-group-addon">
-                                <i class="fa fa-search"></i>
-                            </span>
-                            <input id="existing_customer"
-                                   name="existing_customer"
-                                   type="text"
-                                   value="{{ old('existing_customer') }}"
-                                   class="form-control"
-                                   data-typeahead_remote="{{ route('backend.customer.autocomplete') }}"
-                                   data-typeahead_display="email"
-                                   data-typeahead_label="name"
-                                   placeholder="Search Customer">
-                        </div>
-
-                        <hr/>
-                    </div>
-                </div>
-
                 <div id="billing-information-wrapper" data-profile_source="{{ route('backend.sales.order.copy_customer_information', ['type' => 'profile']) }}">
                     @include('backend.order.customer_information', ['type' => 'profile'])
                 </div>

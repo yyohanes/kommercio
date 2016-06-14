@@ -28,7 +28,7 @@ var ProductIndex = function () {
                 // So when dropdowns used the scrollable div should be removed.
                 //"dom": "<'row'<'col-md-8 col-sm-12'pli><'col-md-4 col-sm-12'<'table-group-actions pull-right'>>r>t<'row'<'col-md-8 col-sm-12'pli><'col-md-4 col-sm-12'>>",
 
-                "bStateSave": false,
+                "bStateSave": true,
 
                 "lengthMenu": [
                     [50, 100, 150, 200, -1],
@@ -42,10 +42,10 @@ var ProductIndex = function () {
                 "processing": true,
                 "serverSide": true,
                 "order": [
-                    [9, "desc"]
+                    [0, "asc"]
                 ],
                 "columnDefs": [
-                    {"name": "no", "targets": 0, "orderable": false},
+                    {"name": "sort_order", "targets": 0, "orderable": true},
                     {"name": "image", "targets": 1, "orderable": false},
                     {"name": "name", "targets": 2},
                     {"name": "sku", "targets": 3},

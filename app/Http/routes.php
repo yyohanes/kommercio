@@ -857,6 +857,11 @@ Route::group(['middleware' => ['web']], function () {
                     'as' => 'backend.report.sales',
                     'uses' => 'ReportController@sales'
                 ]);
+
+                Route::get('delivery', [
+                    'as' => 'backend.report.delivery',
+                    'uses' => 'ReportController@delivery'
+                ]);
             });
         });
     });

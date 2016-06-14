@@ -210,6 +210,18 @@
                     'appends' => '<a class="btn btn-default" href="#active-schedule-modal" data-toggle="modal"><i class="fa fa-calendar"></i></a>'
                 ])
 
+                @include('backend.master.form.fields.number', [
+                    'name' => 'productDetail[sort_order]',
+                    'label' => 'Sort Order',
+                    'key' => 'productDetail.sort_order',
+                    'attr' => [
+                        'class' => 'form-control',
+                        'id' => 'productDetail[sort_order]',
+                    ],
+                    'valueColumnClass' => 'col-md-2',
+                    'unitPosition' => 'front',
+                ])
+
                 <div id="active-schedule-modal" class="modal fade" role="dialog" aria-hidden="true">
                     <div class="modal-dialog">
                         <div class="modal-content">

@@ -261,7 +261,7 @@ var OrderForm = function () {
 
     var handleBillingEmail = function()
     {
-        $('#existing_customer').bind('typeahead:select', function(e, suggestion){
+        $('#profile\\[email\\]').bind('typeahead:select', function(e, suggestion){
             if(suggestion.profile_id){
                 App.blockUI({
                     target: '#billing-information-wrapper',

@@ -1,12 +1,24 @@
 <div class="customer-information-wrapper">
+    <?php
+        $emailAttr = [
+            'class' => 'form-control',
+            'id' => $type.'[email]',
+        ];
+
+        if($type == 'profile'){
+            $emailAttr += [
+                'data-typeahead_remote' => route('backend.customer.autocomplete'),
+                'data-typeahead_display' => 'email',
+                'data-typeahead_label' => 'name',
+                'placeholder' => 'Search Customer'
+            ];
+        }
+    ?>
     @include('backend.master.form.fields.email', [
     'name' => $type.'[email]',
     'label' => 'Email',
     'key' => $type.'.email',
-    'attr' => [
-        'class' => 'form-control',
-        'id' => $type.'[email]'
-    ],
+    'attr' => $emailAttr,
     'required' => TRUE,
 ])
 

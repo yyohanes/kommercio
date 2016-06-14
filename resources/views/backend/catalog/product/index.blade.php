@@ -40,7 +40,7 @@
                 <table class="table table-striped table-bordered table-advance" id="products-dataset" data-src="{{ route('backend.catalog.product.index') }}" data-form_token="{{ csrf_token() }}">
                     <thead>
                     <tr role="row" class="heading">
-                        <th style="width: 10px;"></th>
+                        <th style="width: 10px;">#</th>
                         <th class="product-image">Image</th>
                         <th>Name</th>
                         <th>SKU</th>

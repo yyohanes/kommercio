@@ -51,8 +51,8 @@
                         @if(config('project.enable_delivery_date', FALSE))
                         <th>Delivery Date</th>
                         @endif
-                        <th>Billing Name</th>
-                        <th>Shipping Name</th>
+                        <th>Customer</th>
+                        <th>Recipient</th>
                         <th>Total</th>
                         <th>Status</th>
                         <th></th>

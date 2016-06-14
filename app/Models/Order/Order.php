@@ -85,7 +85,7 @@ class Order extends Model implements AuthorSignatureInterface
         $counterLength = config('project.order_number_counter_length');
 
         $lastOrder = self::checkout()
-            ->whereRaw("DATE_FORMAT(checkout_at, '%m-%Y') = ?", [$this->checkout_at->format('m-Y')])
+            ->whereRaw("DATE_FORMAT(checkout_at, '%d-%m-%Y') = ?", [$this->checkout_at->format('d-m-Y')])
             ->where('store_id', $this->store_id)
             ->orderBy(DB::raw('CAST(order_number as UNSIGNED)'), 'DESC')
             ->first();
@@ -102,7 +102,7 @@ class Order extends Model implements AuthorSignatureInterface
                     }
                     break;
                 case 'order_year':
-                    $orderReference .= $this->checkout_at->format('Y');
+                    $orderReference .= $this->checkout_at->format('y');
                     break;
                 case 'order_month':
                     $orderReference .= $this->checkout_at->format('m');
@@ -316,6 +316,32 @@ class Order extends Model implements AuthorSignatureInterface
         return abs($this->total - $paidAmount);
     }
 
+    public function getProductLineItems()
+    {
+        $lineItems = [];
+
+        foreach($this->lineItems as $lineItem){
+            if($lineItem->isProduct){
+                $lineItems[] = $lineItem;
+            }
+        }
+
+        return $lineItems;
+    }
+
+    public function getProductQuantity($product_id)
+    {
+        $count = 0;
+
+        foreach($this->getProductLineItems() as $lineItem){
+            if($lineItem->line_item_id == $product_id){
+                $count += $lineItem->quantity;
+            }
+        }
+
+        return $count;
+    }
+
     public function getShippingLineItems()
     {
         $lineItems = [];
@@ -428,6 +454,27 @@ class Order extends Model implements AuthorSignatureInterface
     public function getIsCheckoutAttribute()
     {
         return !in_array($this->status, [self::STATUS_ADMIN_CART, self::STATUS_CART]);
+    }
+
+    public function getStatusLabelAttribute()
+    {
+        $label = self::getStatusOptions($this->status, TRUE);
+
+        return $label;
+    }
+
+    public function getShippingInformationAttribute()
+    {
+        $this->shippingProfile->fillDetails();
+
+        return $this->shippingProfile;
+    }
+
+    public function getBillingInformationAttribute()
+    {
+        $this->billingProfile->fillDetails();
+
+        return $this->billingProfile;
     }
 
     //Static

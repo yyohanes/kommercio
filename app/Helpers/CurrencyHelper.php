@@ -48,8 +48,12 @@ class CurrencyHelper
         return $options;
     }
 
-    public function convert($amount, $from_currency, $to_currency, $currencyRate=1)
+    public function convert($amount, $from_currency, $to_currency=null, $currencyRate=1)
     {
+        if(!$to_currency){
+            $to_currency = $this->getCurrentCurrency()['code'];
+        }
+
         if($from_currency != $to_currency){
 
         }

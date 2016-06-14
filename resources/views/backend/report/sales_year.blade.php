@@ -29,11 +29,11 @@
                         $orderStatusOptions, old('search.status', $filter['status']), [
                         'class' => 'form-control select2', 'multiple' => TRUE]) !!}
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <label class="control-label">Store</label>
-                        {!! Form::select('search[store][]',
+                        {!! Form::select('search[store]',
                         $storeOptions, old('search.store', $filter['store']), [
-                        'class' => 'form-control select2', 'multiple' => TRUE]) !!}
+                        'class' => 'form-control select2']) !!}
                     </div>
                     <div class="col-md-2">
                         <div>&nbsp;</div>

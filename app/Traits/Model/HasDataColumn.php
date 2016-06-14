@@ -24,4 +24,10 @@ trait HasDataColumn
 
         return $data;
     }
+
+    //Scopes
+    public function scopeSearchData($query, $key, $value)
+    {
+        $query->whereRaw('data REGEXP \'.*"'.$key.'";s:[0-9]+:"'.$value.'".*\'');
+    }
 }
