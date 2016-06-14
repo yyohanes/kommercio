@@ -447,6 +447,7 @@ var OrderForm = function () {
 
             $('.line-item', '#line-items-table').each(function(idx, obj){
                 OrderForm.lineItemInit($(obj));
+                $(obj).find('.net-price-field').trigger('change');
             });
 
             $('#billing-information-wrapper').on('address.change', function(){

@@ -40,6 +40,9 @@
         <li role="presentation">
             <a href="#tab_meta" data-toggle="tab"> Meta </a>
         </li>
+        <li role="presentation">
+            <a href="#tab_misc" data-toggle="tab"> Misc </a>
+        </li>
     </ul>
     <div class="tab-content">
         <div class="tab-pane active" id="tab_general">
@@ -604,6 +607,24 @@
                         'class' => 'form-control',
                         'id' => 'meta_description'
                     ]
+                ])
+            </div>
+        </div>
+
+        <div class="tab-pane" role="tabpanel" id="tab_misc">
+            <div class="form-body">
+                @include('backend.master.form.fields.checkbox', [
+                    'name' => 'productDetail[sticky_line_item]',
+                    'label' => 'Sticky Line Item',
+                    'key' => 'productDetail.sticky_line_item',
+                    'value' => 1,
+                    'checked' => $product->productDetail?$product->productDetail->sticky_line_item:false,
+                    'attr' => [
+                        'class' => 'make-switch',
+                        'id' => 'productDetail[sticky_line_item]',
+                        'data-on-color' => 'warning'
+                    ],
+                    'help_text' => 'Add this product by default when creating new Order.'
                 ])
             </div>
         </div>

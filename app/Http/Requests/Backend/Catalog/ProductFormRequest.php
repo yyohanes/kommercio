@@ -72,6 +72,9 @@ class ProductFormRequest extends Request
         if(!$this->has('productDetail.taxable')){
             $attributes['productDetail']['taxable'] = 0;
         }
+        if(!$this->has('productDetail.sticky_line_item')){
+            $attributes['productDetail']['sticky_line_item'] = 0;
+        }
         if(!$this->has('productDetail.manage_stock')){
             $attributes['productDetail']['manage_stock'] = 0;
         }

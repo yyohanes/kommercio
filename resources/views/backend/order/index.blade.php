@@ -14,6 +14,10 @@
     <script src="{{ asset('backend/assets/template/global/plugins/datatables/datatables.min.js') }}" type="text/javascript"></script>
     <script src="{{ asset('backend/assets/template/global/plugins/datatables/plugins/bootstrap/datatables.bootstrap.js') }}" type="text/javascript"></script>
 
+    <script type="text/javascript">
+        var additional_columns = {{ $stickyProducts->count() }};
+    </script>
+
     <script src="{{ asset('backend/assets/scripts/pages/order_index.js') }}" type="text/javascript"></script>
 @stop
 
@@ -53,6 +57,9 @@
                         @endif
                         <th>Customer</th>
                         <th>Recipient</th>
+                        @foreach($stickyProducts as $stickyProduct)
+                            <th>{{ $stickyProduct->name }}</th>
+                        @endforeach
                         <th>Total</th>
                         <th>Status</th>
                         <th></th>
@@ -70,8 +77,11 @@
                             {!! Form::text('filter[delivery_date][to]', null, ['class' => 'form-control form-filter input-sm date-picker', 'placeholder' => 'To (YYYY-MM-DD)', 'data-date-format' => 'yyyy-mm-dd']) !!}
                         </td>
                         @endif
-                        <td>{!! Form::text('filter[billing_name]', null, ['class' => 'form-control form-filter input-sm']) !!}</td>
-                        <td>{!! Form::text('filter[shipping_name]', null, ['class' => 'form-control form-filter input-sm']) !!}</td>
+                        <td>{!! Form::text('filter[billing]', null, ['class' => 'form-control form-filter input-sm']) !!}</td>
+                        <td>{!! Form::text('filter[shipping]', null, ['class' => 'form-control form-filter input-sm']) !!}</td>
+                        @foreach($stickyProducts as $stickyProduct)
+                            <td></td>
+                        @endforeach
                         <td></td>
                         <td>{!! Form::select('filter[status]', ['' => 'All'] + \Kommercio\Models\Order\Order::getStatusOptions(), null, ['class' => 'form-control form-filter input-sm']) !!}</td>
                         <td>

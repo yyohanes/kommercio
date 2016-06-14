@@ -606,6 +606,29 @@ var formBehaviors = function(){
         });
     }
 
+    var handleExpandedDetail = function(context)
+    {
+        $('.expanded-detail', context).each(function(idx, obj){
+            var expandToggle = $('<a href="#" style="font-size: 12px;">Show Detail</a>');
+            $(obj).after(expandToggle);
+            expandToggle.wrap('<div />');
+
+            $(obj).addClass('note note-info');
+            $(obj).hide();
+
+            $(expandToggle).click(function(e){
+                e.preventDefault();
+                $(obj).toggle(0, function(){
+                    if($(this).is(':visible')){
+                        expandToggle.text('Hide Detail');
+                    }else{
+                        expandToggle.text('Show Detail');
+                    }
+                });
+            });
+        });
+    }
+
     return {
         init: function(context){
             if(typeof context === 'undefined'){
@@ -629,6 +652,7 @@ var formBehaviors = function(){
             handleAddressOptions(context);
             handleTypeahead(context);
             handleAjaxModal(context);
+            handleExpandedDetail(context);
         },
         initComponents: function(context){
             handleInputMask(context);

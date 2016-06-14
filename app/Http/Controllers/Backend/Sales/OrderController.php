@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Session;
 use Kommercio\Events\OrderUpdate;
+use Kommercio\Facades\AddressHelper;
 use Kommercio\Facades\OrderHelper;
 use Kommercio\Http\Controllers\Controller;
 use Kommercio\Models\Customer;
@@ -34,10 +35,126 @@ class OrderController extends Controller{
 
             foreach($request->input('filter', []) as $searchKey=>$search){
                 if(is_array($search) || trim($search) != ''){
-                    if($searchKey == 'billing_full_name') {
-                        $qb->whereRaw('CONCAT(BNAME.value, " ", BNAME.value) LIKE ?', ['%'.$search.'%']);
-                    }elseif($searchKey == 'shipping_full_name') {
-                        $qb->whereRaw('CONCAT(SNAME.value, " ", SNAME.value) LIKE ?', ['%'.$search.'%']);
+                    if($searchKey == 'billing') {
+                        $qb->whereHas('billingProfile', function($qb) use ($search){
+                            $qb->whereFields([
+                                [
+                                    'operator' => 'LIKE',
+                                    'key' => 'first_name',
+                                    'value' => '%'.$search.'%'
+                                ],
+                                [
+                                    'operator' => 'LIKE',
+                                    'key' => 'last_name',
+                                    'value' => '%'.$search.'%'
+                                ],
+                                [
+                                    'operator' => 'LIKE',
+                                    'key' => 'phone_number',
+                                    'value' => '%'.$search.'%'
+                                ],
+                                [
+                                    'operator' => 'LIKE',
+                                    'key' => 'email',
+                                    'value' => '%'.$search.'%'
+                                ],
+                                [
+                                    'operator' => 'LIKE',
+                                    'key' => 'address_1',
+                                    'value' => '%'.$search.'%'
+                                ],
+                                [
+                                    'operator' => 'LIKE',
+                                    'key' => 'address_2',
+                                    'value' => '%'.$search.'%'
+                                ],
+                                [
+                                    'operator' => 'LIKE',
+                                    'key' => 'postal_code',
+                                    'value' => '%'.$search.'%'
+                                ],
+                                [
+                                    'operator' => 'LIKE',
+                                    'key' => 'country',
+                                    'value' => '%'.$search.'%'
+                                ],
+                                [
+                                    'operator' => 'LIKE',
+                                    'key' => 'state',
+                                    'value' => '%'.$search.'%'
+                                ],
+                                [
+                                    'operator' => 'LIKE',
+                                    'key' => 'district',
+                                    'value' => '%'.$search.'%'
+                                ],
+                                [
+                                    'operator' => 'LIKE',
+                                    'key' => 'area',
+                                    'value' => '%'.$search.'%'
+                                ]
+                            ], TRUE);
+                        });
+                    }elseif($searchKey == 'shipping') {
+                        $qb->whereHas('shippingProfile', function($qb) use ($search){
+                            $qb->whereFields([
+                                [
+                                    'operator' => 'LIKE',
+                                    'key' => 'first_name',
+                                    'value' => '%'.$search.'%'
+                                ],
+                                [
+                                    'operator' => 'LIKE',
+                                    'key' => 'last_name',
+                                    'value' => '%'.$search.'%'
+                                ],
+                                [
+                                    'operator' => 'LIKE',
+                                    'key' => 'phone_number',
+                                    'value' => '%'.$search.'%'
+                                ],
+                                [
+                                    'operator' => 'LIKE',
+                                    'key' => 'email',
+                                    'value' => '%'.$search.'%'
+                                ],
+                                [
+                                    'operator' => 'LIKE',
+                                    'key' => 'address_1',
+                                    'value' => '%'.$search.'%'
+                                ],
+                                [
+                                    'operator' => 'LIKE',
+                                    'key' => 'address_2',
+                                    'value' => '%'.$search.'%'
+                                ],
+                                [
+                                    'operator' => 'LIKE',
+                                    'key' => 'postal_code',
+                                    'value' => '%'.$search.'%'
+                                ],
+                                [
+                                    'operator' => 'LIKE',
+                                    'key' => 'country',
+                                    'value' => '%'.$search.'%'
+                                ],
+                                [
+                                    'operator' => 'LIKE',
+                                    'key' => 'state',
+                                    'value' => '%'.$search.'%'
+                                ],
+                                [
+                                    'operator' => 'LIKE',
+                                    'key' => 'district',
+                                    'value' => '%'.$search.'%'
+                                ],
+                                [
+                                    'operator' => 'LIKE',
+                                    'key' => 'area',
+                                    'value' => '%'.$search.'%'
+                                ]
+                            ], TRUE);
+                        });
                     }elseif($searchKey == 'reference'){
                         $qb->where($searchKey, 'LIKE', '%'.$search.'%');
                     }elseif($searchKey == 'checkout_at'){
@@ -93,17 +210,23 @@ class OrderController extends Controller{
             return response()->json($data);
         }
 
-        return view('backend.order.index');
+        $stickyProducts = Product::selectSelf()->joinDetail()->where('sticky_line_item', 1)->orderBy('sort_order', 'ASC')->get();
+
+        return view('backend.order.index', [
+            'stickyProducts' => $stickyProducts
+        ]);
     }
 
     protected function prepareDatatables($orders, $orderingStart=0)
     {
         $meat= [];
 
+        $stickyProducts = Product::selectSelf()->joinDetail()->where('sticky_line_item', 1)->orderBy('sort_order', 'ASC')->get();
+
         foreach($orders as $idx=>$order){
             $orderAction = '';
 
-            $orderAction .= '<div class="btn-group btn-group-sm dropup">';
+            $orderAction .= '<div class="btn-group btn-group-xs dropup">';
             $orderAction .= '<a class="btn btn-default" href="'.route('backend.sales.order.view', ['id' => $order->id, 'backUrl' => RequestFacade::fullUrl()]).'"><i class="fa fa-search"></i></a>';
 
             if($order->isCheckout) {
@@ -127,7 +250,7 @@ class OrderController extends Controller{
 
             if($order->isEditable){
                 $orderAction .= FormFacade::open(['route' => ['backend.sales.order.delete', 'id' => $order->id], 'class' => 'form-in-btn-group']);
-                $orderAction .= '<div class="btn-group btn-group-sm">';
+                $orderAction .= '<div class="btn-group btn-group-xs">';
                 $orderAction .= '<a class="btn btn-default" href="'.route('backend.sales.order.edit', ['id' => $order->id, 'backUrl' => RequestFacade::fullUrl()]).'"><i class="fa fa-pencil"></i></a>';
 
                 if($order->isDeleteable) {
@@ -137,17 +260,26 @@ class OrderController extends Controller{
                 $orderAction .= FormFacade::close().'</div>';
             }
 
-            $meat[] = [
+            $rowMeat = [
                 $idx + 1 + $orderingStart,
                 $order->reference,
                 $order->checkout_at?$order->checkout_at->format('d M Y, H:i'):'',
                 $order->delivery_date?$order->delivery_date->format('d M Y'):'',
-                $order->billing_full_name,
-                $order->shipping_full_name,
+                $order->billing_full_name.'<div class="expanded-detail">'.$order->billingInformation->email.'<br/>'.$order->billingInformation->phone_number.'<br/>'.AddressHelper::printAddress($order->billingInformation->getDetails()).'</div>',
+                $order->shipping_full_name.'<div class="expanded-detail">'.$order->shippingInformation->email.'<br/>'.$order->shippingInformation->phone_number.'<br/>'.AddressHelper::printAddress($order->billingInformation->getDetails()).'</div>'
+            ];
+
+            foreach($stickyProducts as $stickyProduct){
+                $rowMeat[] = $order->getProductQuantity($stickyProduct->id);
+            }
+
+            $rowMeat = array_merge($rowMeat, [
                 PriceFormatter::formatNumber($order->total, $order->currency),
                 '<label class="label label-sm bg-'.OrderHelper::getOrderStatusLabelClass($order->status).' bg-font-'.OrderHelper::getOrderStatusLabelClass($order->status).'">'.Order::getStatusOptions($order->status, TRUE).'</label>',
                 $orderAction
-            ];
+            ]);
+
+            $meat[] = $rowMeat;
         }
 
         return $meat;
@@ -165,6 +297,25 @@ class OrderController extends Controller{
         }
 
         $lineItems = old('line_items', []);
+        $productLineItems = array_pluck($lineItems, 'sku');
+
+        if(!$lineItems){
+            $stickyLineItems = Product::selectSelf()->joinDetail()->where('sticky_line_item', 1)->orderBy('sort_order', 'ASC')->get();
+            foreach($stickyLineItems as $stickyLineItem){
+                if(!in_array($stickyLineItem->sku, $productLineItems)){
+                    $lineItems[] = [
+                        'line_item_type' => 'product',
+                        'taxable' => $stickyLineItem->taxable,
+                        'sku' => $stickyLineItem->sku,
+                        'base_price' => $stickyLineItem->getRetailPrice(),
+                        'net_price' => $stickyLineItem->getNetPrice(),
+                        'quantity' => 0,
+                    ];
+                }
+            }
+
+            Session::flashInput(['line_items' => $lineItems]);
+        }
 
         $shippingMethods = ShippingMethod::getShippingMethods();
 

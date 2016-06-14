@@ -525,6 +525,11 @@ class Product extends Model
         $query->whereNotIn('combination_type', [self::COMBINATION_TYPE_VARIABLE]);
     }
 
+    public function scopeStickyLineItem($query)
+    {
+        $query->where('sticky_line_item', 1);
+    }
+
     public function scopeSelectSelf($query)
     {
         $query->selectRaw($this->getTable().'.*');

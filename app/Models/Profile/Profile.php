@@ -120,4 +120,90 @@ class Profile extends Model
             }
         }
     }
+
+    //Scopes
+    public function scopeJoinAddress($query)
+    {
+        $profileDetailQuery = $this->details();
+
+        $countryTable = with(new Country())->getTable();
+        $stateTable = with(new State())->getTable();
+        $cityTable = with(new City())->getTable();
+        $districtTable = with(new District())->getTable();
+        $areaTable = with(new Area())->getTable();
+
+        $query->leftJoin($profileDetailQuery->getRelated()->getTable().' AS VADDRESS1', function($join) use ($profileDetailQuery){
+            $join->on('VADDRESS1.'.$profileDetailQuery->getPlainForeignKey(), '=', $this->getQualifiedKeyName())
+                ->where('VADDRESS1.identifier', '=', 'address_1');
+        });
+
+        $query->leftJoin($profileDetailQuery->getRelated()->getTable().' AS VADDRESS2', function($join) use ($profileDetailQuery){
+            $join->on('VADDRESS2.'.$profileDetailQuery->getPlainForeignKey(), '=', $this->getQualifiedKeyName())
+                ->where('VADDRESS2.identifier', '=', 'address_2');
+        });
+
+        $query->leftJoin($profileDetailQuery->getRelated()->getTable().' AS VSTATE', function($join) use ($profileDetailQuery){
+            $join->on('VSTATE.'.$profileDetailQuery->getPlainForeignKey(), '=', $this->getQualifiedKeyName())
+                ->where('VSTATE.identifier', '=', 'state_id');
+        })->leftJoin($stateTable.' AS STATE', 'STATE.id', '=', 'VSTATE.value');
+
+        $query->leftJoin($profileDetailQuery->getRelated()->getTable().' AS VCITY', function($join) use ($profileDetailQuery){
+            $join->on('VCITY.'.$profileDetailQuery->getPlainForeignKey(), '=', $this->getQualifiedKeyName())
+                ->where('VCITY.identifier', '=', 'city_id');
+        })->leftJoin($cityTable.' AS CITY', 'CITY.id', '=', 'VCITY.value');
+
+        $query->leftJoin($profileDetailQuery->getRelated()->getTable().' AS VDISTRICT', function($join) use ($profileDetailQuery){
+            $join->on('VDISTRICT.'.$profileDetailQuery->getPlainForeignKey(), '=', $this->getQualifiedKeyName())
+                ->where('VDISTRICT.identifier', '=', 'district_id');
+        })->leftJoin($districtTable.' AS DISTRICT', 'DISTRICT.id', '=', 'VDISTRICT.value');
+
+        $query->leftJoin($profileDetailQuery->getRelated()->getTable().' AS VAREA', function($join) use ($profileDetailQuery){
+            $join->on('VAREA.'.$profileDetailQuery->getPlainForeignKey(), '=', $this->getQualifiedKeyName())
+                ->where('VAREA.identifier', '=', 'area_id');
+        })->leftJoin($areaTable.' AS AREA', 'AREA.id', '=', 'VAREA.value');
+
+        $query->leftJoin($profileDetailQuery->getRelated()->getTable().' AS VPOSTAL', function($join) use ($profileDetailQuery){
+            $join->on('VPOSTAL.'.$profileDetailQuery->getPlainForeignKey(), '=', $this->getQualifiedKeyName())
+                ->where('VPOSTAL.identifier', '=', 'postal_code');
+        });
+
+        $query->selectRaw($this->getTable().'.*, VADDRESS1.value AS address_1, VADDRESS2.value AS address_2, STATE.name AS state, CITY.name AS city, DISTRICT.name AS district, AREA.name AS area, VPOSTAL.value AS postal_code');
+    }
+
+    public function scopeWhereField($query, $key, $value, $operator='=')
+    {
+        $query->whereHas('details', function($qb) use ($key, $value, $operator){
+            $qb->where('identifier', $key)
+                ->where('value', $operator, $value);
+        });
+    }
+
+    public function scopeWhereFields($query, $filters, $or=FALSE)
+    {
+        $method = 'whereHas';
+
+        if($or){
+            $method = 'orWhereHas';
+        }
+
+        foreach($filters as $idx=>$filter){
+            $filter['operator'] = isset($filter['operator'])?$filter['operator']:'=';
+
+            if(in_array($filter['key'], ['state', 'country', 'city', 'district', 'area'])){
+                $query->$method('details', function($qb) use ($filter){
+                    $addressClass = '\Kommercio\Models\Address\\'.studly_case($filter['key']);
+                    $tableName = with(new $addressClass())->getTable();
+
+                    $qb->join($tableName.' AS A', function($join) use ($filter){
+                        $join->on('A.id', '=', 'value')->where('identifier', '=', $filter['key'].'_id');
+                    })->where('identifier', $filter['key'].'_id')->where('A.name', $filter['operator'], $filter['value']);
+                });
+            }else{
+                $query->$method('details', function($qb) use ($filter){
+                    $qb->where('identifier', $filter['key'])
+                        ->where('value', $filter['operator'], $filter['value']);
+                });
+            }
+        }
+    }
 }

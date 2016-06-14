@@ -40,28 +40,16 @@ trait Profileable
 
     public function scopeWhereField($query, $key, $value, $operator='=')
     {
-        $query->whereHas('profile.details', function($qb) use ($key, $value, $operator){
-            $qb->where('identifier', $key)
-                ->where('value', $operator, $value);
+        $query->whereHas('profile', function($qb) use ($key, $value, $operator){
+            $qb->whereField($key, $value, $operator);
         });
     }
 
     public function scopeWhereFields($query, $filters, $or=FALSE)
     {
-        $method = 'whereHas';
-
-        if($or){
-            $method = 'orWhereHas';
-        }
-
-        foreach($filters as $filter){
-            $filter['operator'] = isset($filter['operator'])?$filter['operator']:'=';
-
-            $query->$method('profile.details', function($qb) use ($filter){
-                $qb->where('identifier', $filter['key'])
-                    ->where('value', $filter['operator'], $filter['value']);
-            });
-        }
+        $query->whereHas('profile', function($qb) use ($filters, $or){
+            $qb->whereFields($filters, $or);
+        });
     }
 
     public function scopeOrderByField($query, $key, $dir='DESC')

@@ -3,6 +3,21 @@ var OrderIndex = function () {
     var initTable = function () {
         var $dataTable = new Datatable();
 
+        var columnDefs = [
+            {"name": "no", "targets": 0, "orderable": false},
+            {"name": "reference", "targets": 1},
+            {"name": "checkout_at", "targets": 2},
+            {"name": "delivery_date", "targets": 3},
+            {"name": "billing", "targets": 4, "orderable": false},
+            {"name": "shipping", "targets": 5, "orderable": false},
+            {"name": "total", "targets": 6+additional_columns},
+            {"name": "status", "targets": 7+additional_columns, "orderable": false},
+            {"name": "action", "orderable" : false, "targets": 8+additional_columns}
+        ];
+        for(var i=0; i<additional_columns;i+=1){
+            columnDefs.push({"name": "sticky_product"+i, "targets": 6+i, "orderable": false});
+        }
+
         $dataTable.init({
             token: $('#orders-dataset').data('form_token'),
             src: $('#orders-dataset'),
@@ -29,7 +44,7 @@ var OrderIndex = function () {
                 // So when dropdowns used the scrollable div should be removed.
                 //"dom": "<'row'<'col-md-8 col-sm-12'pli><'col-md-4 col-sm-12'<'table-group-actions pull-right'>>r>t<'row'<'col-md-8 col-sm-12'pli><'col-md-4 col-sm-12'>>",
 
-                "bStateSave": true,
+                "bStateSave": false,
 
                 "lengthMenu": [
                     [50, 100, 150, 200, -1],
@@ -45,17 +60,7 @@ var OrderIndex = function () {
                 "order": [
                     [2, "desc"]
                 ],
-                "columnDefs": [
-                    {"name": "no", "targets": 0, "orderable": false},
-                    {"name": "reference", "targets": 1},
-                    {"name": "checkout_at", "targets": 2},
-                    {"name": "delivery_date", "targets": 3},
-                    {"name": "billing_name", "targets": 4},
-                    {"name": "shipping_name", "targets": 5},
-                    {"name": "total", "targets": 6},
-                    {"name": "status", "targets": 7, "orderable": false},
-                    {"name": "action", "orderable" : false, "targets": 8}
-                ]
+                "columnDefs": columnDefs
             }
         });
     }
