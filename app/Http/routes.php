@@ -520,6 +520,16 @@ Route::group(['middleware' => ['web']], function () {
                         'uses' => 'OrderController@getCartRules'
                     ]);
 
+                    Route::post('coupon/add', [
+                        'as' => 'backend.sales.order.add_coupon',
+                        'uses' => 'OrderController@addCoupon'
+                    ]);
+
+                    Route::post('coupon/{id}/remove', [
+                        'as' => 'backend.sales.order.remove_coupon',
+                        'uses' => 'OrderController@removeCoupon'
+                    ]);
+
                     Route::group(['prefix' => 'payment'], function(){
                         Route::get('{order_id}/index', [
                             'as' => 'backend.sales.order.payment.index',

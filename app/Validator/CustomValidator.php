@@ -5,7 +5,7 @@ namespace Kommercio\Validator;
 use Illuminate\Validation\Validator;
 use Kommercio\Models\Product;
 
-class BackendValidator extends Validator
+class CustomValidator extends Validator
 {
     public function validateProductAttributes($attribute, $value, $parameters)
     {

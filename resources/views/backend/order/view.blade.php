@@ -235,7 +235,7 @@
                                             <div id="cart-price-rules-wrapper">
                                                 @foreach($order->getCartPriceRuleLineItems() as $cartPriceRuleLineItem)
                                                     <div class="row static-info align-reverse tax">
-                                                        <div class="col-md-8 name"> {{ $cartPriceRuleLineItem->cartPriceRule->name }}: </div>
+                                                        <div class="col-md-8 name"> {{ $cartPriceRuleLineItem->getPrintName() }}: </div>
                                                         <div class="col-md-4 value"> {{ PriceFormatter::formatNumber($cartPriceRuleLineItem->total, $order->currency) }} </div>
                                                     </div>
                                                 @endforeach
@@ -243,7 +243,7 @@
                                             <div id="tax-summary-wrapper">
                                                 @foreach($order->getTaxLineItems() as $taxLineItem)
                                                 <div class="row static-info align-reverse tax">
-                                                    <div class="col-md-8 name"> {{ $taxLineItem->tax->getSingleName() }}: </div>
+                                                    <div class="col-md-8 name"> {{ $taxLineItem->name }}: </div>
                                                     <div class="col-md-4 value"> {{ PriceFormatter::formatNumber($taxLineItem->total, $order->currency) }} </div>
                                                 </div>
                                                 @endforeach

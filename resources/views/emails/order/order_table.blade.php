@@ -29,7 +29,7 @@
         @foreach($order->getCartPriceRuleLineItems() as $cartPriceRuleLineItem)
         <tr>
             <td colspan="2"></td>
-            <td colspan="2" align="right"><strong>{{ $cartPriceRuleLineItem->cartPriceRule->name }}</strong></td>
+            <td colspan="2" align="right"><strong>{{ $cartPriceRuleLineItem->getPrintName() }}</strong></td>
             <td>{{ PriceFormatter::formatNumber($cartPriceRuleLineItem->total, $order->currency) }}</td>
         </tr>
         @endforeach
@@ -43,7 +43,7 @@
         @foreach($order->getTaxLineItems() as $taxLineItem)
         <tr>
             <td colspan="2"></td>
-            <td colspan="2" align="right"><strong>{{ $taxLineItem->tax->getSingleName() }}</strong></td>
+            <td colspan="2" align="right"><strong>{{ $taxLineItem->getPrintName() }}</strong></td>
             <td>{{ PriceFormatter::formatNumber($taxLineItem->total, $order->currency) }}</td>
         </tr>
         @endforeach

@@ -3,11 +3,13 @@
 namespace Kommercio\Http\Controllers\Backend\Sales;
 
 use Carbon\Carbon;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Session;
 use Kommercio\Events\OrderUpdate;
 use Kommercio\Facades\AddressHelper;
+use Kommercio\Facades\LanguageHelper;
 use Kommercio\Facades\OrderHelper;
 use Kommercio\Http\Controllers\Controller;
 use Kommercio\Models\Customer;
@@ -210,7 +212,7 @@ class OrderController extends Controller{
             return response()->json($data);
         }
 
-        $stickyProducts = Product::selectSelf()->joinDetail()->where('sticky_line_item', 1)->orderBy('sort_order', 'ASC')->get();
+        $stickyProducts = Product::joinDetail()->selectSelf()->where('sticky_line_item', 1)->orderBy('sort_order', 'ASC')->get();
 
         return view('backend.order.index', [
             'stickyProducts' => $stickyProducts
@@ -221,7 +223,7 @@ class OrderController extends Controller{
     {
         $meat= [];
 
-        $stickyProducts = Product::selectSelf()->joinDetail()->where('sticky_line_item', 1)->orderBy('sort_order', 'ASC')->get();
+        $stickyProducts = Product::joinDetail()->selectSelf()->where('sticky_line_item', 1)->orderBy('sort_order', 'ASC')->get();
 
         foreach($orders as $idx=>$order){
             $orderAction = '';
@@ -300,7 +302,7 @@ class OrderController extends Controller{
         $productLineItems = array_pluck($lineItems, 'sku');
 
         if(!$lineItems){
-            $stickyLineItems = Product::selectSelf()->joinDetail()->where('sticky_line_item', 1)->orderBy('sort_order', 'ASC')->get();
+            $stickyLineItems = Product::joinDetail()->selectSelf()->where('sticky_line_item', 1)->orderBy('sort_order', 'ASC')->get();
             foreach($stickyLineItems as $stickyLineItem){
                 if(!in_array($stickyLineItem->sku, $productLineItems)){
                     $lineItems[] = [
@@ -445,6 +447,10 @@ class OrderController extends Controller{
 
                 if($lineItem->isCartPriceRule){
                     $oldValues['cart_price_rules'][] = $lineItem->line_item_id;
+                }
+
+                if($lineItem->isCoupon){
+                    $oldValues['added_coupons'][] = $lineItem->line_item_id;
                 }
 
                 if($lineItem->isTax){
@@ -672,13 +678,22 @@ class OrderController extends Controller{
             $shippings[] = $shippingLineItem->line_item_id;
         }
 
-        $priceRules = CartPriceRule::getCartPriceRules([
+        $options = [
             'subtotal' => $subtotal,
             'currency' => $order->currency,
             'store_id' => $order->store_id,
             'customer_email' => $order->customer?$order->customer->getProfile()->email:null,
-            'shippings' => $shippings
-        ]);
+            'shippings' => $shippings,
+            'added_coupons' => $request->input('added_coupons', [])
+        ];
+
+        $priceRules = CartPriceRule::getCartPriceRules($options);
+
+        foreach($priceRules as $idx=>$priceRule){
+            if(!$priceRule->validateUsage($options['customer_email'])['valid']){
+                unset($priceRules[$idx]);
+            }
+        }
 
         if($request->ajax()){
             return response()->json([
@@ -687,6 +702,61 @@ class OrderController extends Controller{
             ]);
         }else{
             return $priceRules;
+        }
+    }
+
+    public function addCoupon(Request $request)
+    {
+        $couponCode = $request->input('coupon_code', 'ERRORCOUPON');
+        if(!CartPriceRule::getCouponByCode($couponCode)){
+            return new JsonResponse([
+                'coupon_code' => [trans(LanguageHelper::getTranslationKey('order.coupons.not_exist'))]
+            ], 422);
+        }
+
+        $order = OrderHelper::createDummyOrderFromRequest($request);
+
+        $subtotal = $order->calculateProductTotal() + $order->calculateAdditionalTotal();
+
+        $shippings = [];
+        foreach($order->getShippingLineItems() as $shippingLineItem){
+            $shippings[] = $shippingLineItem->line_item_id;
+        }
+
+        $options = [
+            'subtotal' => $subtotal,
+            'currency' => $order->currency,
+            'store_id' => $order->store_id,
+            'customer_email' => $order->customer?$order->customer->getProfile()->email:null,
+            'shippings' => $shippings,
+            'coupon_code' => $couponCode,
+            'added_coupons' => $request->input('added_coupons', [])
+        ];
+
+        $couponPriceRules = CartPriceRule::getCartPriceRules($options);
+
+        if($couponPriceRules->count() < 1){
+            return new JsonResponse([
+                'coupon_code' => [trans(LanguageHelper::getTranslationKey('order.coupons.invalid'))]
+            ], 422);
+        }else{
+            foreach($couponPriceRules as $couponPriceRule){
+                $couponValidation = $couponPriceRule->validateUsage($options['customer_email']);
+                if(!$couponValidation['valid']){
+                    return new JsonResponse([
+                        'coupon_code' => [trans(LanguageHelper::getTranslationKey($couponValidation['message']))]
+                    ], 422);
+                }
+            }
+        }
+
+        if($request->ajax()){
+            return response()->json([
+                'data' => $couponPriceRules,
+                '_token' => csrf_token()
+            ]);
+        }else{
+            return $couponPriceRules;
         }
     }
 
@@ -726,7 +796,7 @@ class OrderController extends Controller{
 
             if($lineItem->isProduct){
                 foreach($productCartPriceRules as $productCartPriceRule){
-                    $value = $productCartPriceRule->getValue($lineItemTotal);
+                    $value = $productCartPriceRule->getValue($lineItemTotal) * $lineItem->quantity;
 
                     $lineItemTotal += $value;
                     $productCartPriceRule->total += $value;

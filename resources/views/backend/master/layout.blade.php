@@ -41,7 +41,7 @@ License: You must have a valid license purchased only from themeforest(the above
         @yield('top_page_styles')
         <!-- END PAGE STYLES -->
         <!-- BEGIN THEME GLOBAL STYLES -->
-        <link href="{{ asset('backend/assets/template/global/css/components-rounded.min.css') }}" rel="stylesheet" id="style_components" type="text/css" />
+        <link href="{{ asset('backend/assets/template/global/css/components.min.css') }}" rel="stylesheet" id="style_components" type="text/css" />
         <link href="{{ asset('backend/assets/template/global/css/plugins.min.css') }}" rel="stylesheet" type="text/css" />
         <!-- END THEME GLOBAL STYLES -->
 

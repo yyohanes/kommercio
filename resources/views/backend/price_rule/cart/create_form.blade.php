@@ -10,6 +10,17 @@
     'valueColumnClass' => 'col-md-6',
 ])
 
+@include('backend.master.form.fields.text', [
+    'name' => 'coupon_code',
+    'label' => 'Coupon Code',
+    'key' => 'coupon_code',
+    'attr' => [
+        'class' => 'form-control',
+        'id' => 'coupon_code'
+    ],
+    'valueColumnClass' => 'col-md-6',
+])
+
 @include('backend.master.form.fields.select', [
     'name' => 'offer_type',
     'label' => 'Offer Type',

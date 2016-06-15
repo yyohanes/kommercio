@@ -715,24 +715,30 @@ var formHelper = {
             vars.context = document;
         }
 
-        if(!$('#variation-form-messages', vars.context).length){
-            $('.portlet-body', vars.context).prepend('<div id="variation-form-messages" class="alert alert-danger"></div>');
+        if(typeof vars.highlightField === 'undefined'){
+            vars.highlightField = true;
         }
 
-        $('#variation-form-messages', vars.context).append('<div>' + vars.message + '</div>');
-
-        if(typeof vars.highlightParentPrefix !== 'undefined'){
-            $('[name="'+vars.name+'"]', vars.context).parents(vars.highlightParentPrefix + '-default').removeClass(vars.highlightParentPrefix+'-default').addClass(vars.highlightParentPrefix+'-warning');
+        if(!$(vars.messagesWrapper, vars.context).length){
+            $('.portlet-body', vars.context).prepend('<div id="'+vars.messagesWrapper.replace('#', '')+'" class="alert alert-danger"></div>');
         }
 
-        $('[name="'+vars.name+'"]', vars.context).parents('.form-group').addClass('has-error');
+        $(vars.messagesWrapper, vars.context).append('<div>' + vars.message + '</div>');
 
-        var $errorBlock = '<span class="help-block help-error">' + vars.message + '</span>';
+        if(vars.highlightField){
+            if(typeof vars.highlightParentPrefix !== 'undefined'){
+                $('[name="'+vars.name+'"]', vars.context).parents(vars.highlightParentPrefix + '-default').removeClass(vars.highlightParentPrefix+'-default').addClass(vars.highlightParentPrefix+'-warning');
+            }
 
-        if($('[name="'+vars.name+'"]', vars.context).parent().hasClass('input-group')){
-            $('[name="'+vars.name+'"]', vars.context).parent().after($errorBlock);
-        }else{
-            $('[name="'+vars.name+'"]', vars.context).after($errorBlock);
+            $('[name="'+vars.name+'"]', vars.context).parents('.form-group').addClass('has-error');
+
+            var $errorBlock = '<span class="help-block help-error">' + vars.message + '</span>';
+
+            if($('[name="'+vars.name+'"]', vars.context).parent().hasClass('input-group')){
+                $('[name="'+vars.name+'"]', vars.context).parent().after($errorBlock);
+            }else{
+                $('[name="'+vars.name+'"]', vars.context).after($errorBlock);
+            }
         }
     },
     clearFormError: function(vars){
@@ -743,7 +749,7 @@ var formHelper = {
         $(vars.wrapper).find('.has-error').removeClass('has-error');
         $(vars.wrapper).find('.help-error').remove();
 
-        $(vars.wrapper).find('#variation-form-messages').remove();
+        $(vars.wrapper).find(vars.messagesWrapper).remove();
     }
 };
 

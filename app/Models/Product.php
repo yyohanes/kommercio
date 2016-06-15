@@ -559,7 +559,7 @@ class Product extends Model
                 ->where('D.store_id', '=', $store);
         });
 
-        $query->addSelect(DB::raw('D.*'));
+        $query->addSelect(DB::raw('D.*', 'D.id AS detail_id'));
     }
 
     public function scopeWithDetail($query, $store=null)

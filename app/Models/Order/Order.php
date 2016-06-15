@@ -367,7 +367,7 @@ class Order extends Model implements AuthorSignatureInterface
         $lineItems = [];
 
         foreach($this->lineItems as $lineItem){
-            if($lineItem->isCartPriceRule){
+            if($lineItem->isCartPriceRule || $lineItem->isCoupon){
                 $lineItems[] = $lineItem;
             }
         }

@@ -19,7 +19,7 @@ class CartPriceRule extends Model
     const OFFER_TYPE_ORDER_DISCOUNT = 'order_discount';
     const OFFER_TYPE_PRODUCT_DISCOUNT = 'product_discount';
 
-    protected $fillable = ['name', 'price', 'modification', 'modification_type',
+    protected $fillable = ['name', 'coupon_code', 'price', 'modification', 'modification_type',
         'currency', 'store_id', 'customer_id', 'minimum_subtotal', 'max_usage', 'max_usage_per_customer', 'offer_type', 'active', 'active_date_from', 'active_date_to', 'sort_order'];
     protected $toggleFields = ['active'];
     protected $casts = [
@@ -105,12 +105,29 @@ class CartPriceRule extends Model
     public function validateUsage($email = null)
     {
         $valid = is_null($this->max_usage) || $this->max_usage > $this->getUsage();
+        $message = 'order.coupons.successfully_added';
+
+        if(!$valid){
+            $message = 'order.coupons.max_usage_exceeded';
+        }
 
         if($valid && $email){
             $valid = is_null($this->max_usage_per_customer) || $this->max_usage_per_customer > $this->getUsageByEmail($email);
+            if(!$valid){
+                $message = 'order.coupons.max_usage_per_email_exceeded';
+            }
         }
 
-        return $valid;
+        return [
+            'valid' => $valid,
+            'message' => $message
+        ];
+    }
+
+    //Accessors
+    public function getIsCouponAttribute()
+    {
+        return !empty($this->coupon_code);
     }
 
     //Statics
@@ -150,15 +167,24 @@ class CartPriceRule extends Model
         $subtotal = isset($options['subtotal'])?$options['subtotal']:null;
         $customer = null;
         $customer_email = null;
-        if(isset($options['customer_email'])){
+        if(!empty($options['customer_email'])){
             $customer = Customer::getByEmail($options['customer_email']);
-            $customer_email = $options['customer_email'];
         }
 
-        $currency = isset($options['currency'])?:null;
-        $store = isset($options['store_id'])?:null;
+        $coupon_code = isset($options['coupon_code'])?$options['coupon_code']:null;
+
+        $currency = isset($options['currency'])?$options['currency']:null;
+        $store = isset($options['store_id'])?$options['store_id']:null;
+
+        $added_coupons = isset($options['added_coupons'])?$options['added_coupons']:[];
 
         $shippings = isset($options['shippings'])?$options['shippings']:null;
+
+        if($coupon_code){
+            $qb->where('coupon_code', 'LIKE', $coupon_code);
+        }else{
+            $qb->whereNull('coupon_code');
+        }
 
         $qb->where(function($qb) use ($currency){
             $qb->whereNull('currency');
@@ -204,12 +230,27 @@ class CartPriceRule extends Model
 
         $priceRules = $qb->get();
 
-        foreach($priceRules as $idx=>$priceRule){
-            if(!$priceRule->validateUsage($customer_email)){
-                unset($priceRules[$idx]);
+        foreach($added_coupons as $added_coupon){
+            if(!in_array($added_coupon, $priceRules->pluck('id')->all())){
+                $coupon = self::find($added_coupon);
+
+                if($coupon){
+                    $priceRules->push($coupon);
+                }
             }
         }
 
         return $priceRules;
+    }
+
+    public static function getCouponByCode($code)
+    {
+        if(!$code){
+            return false;
+        }
+
+        $qb = self::where('coupon_code', trim($code));
+
+        return $qb->first();
     }
 }

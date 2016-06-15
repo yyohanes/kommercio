@@ -92,13 +92,13 @@ var OrderForm = function () {
         }
     }
 
-    var calculateProductPrice = function($price)
+    var calculateProductPrice = function($price, $quantity)
     {
         var calculated = 0;
 
         for(var i in $cartPriceRules){
             if($cartPriceRules[i].offer_type == 'product_discount'){
-                calculated = calculatePriceRuleValue($price, $cartPriceRules[i].price, $cartPriceRules[i].modification, $cartPriceRules[i].modification_type);
+                calculated = calculatePriceRuleValue($price, $cartPriceRules[i].price, $cartPriceRules[i].modification, $cartPriceRules[i].modification_type) * $quantity;
                 $cartPriceRules[i].total += calculated;
             }
         }
@@ -112,11 +112,13 @@ var OrderForm = function () {
 
         $('.line-item', '#line-items-table').each(function(idx, obj){
             var lineitemTotalAmount = Number($(obj).find('.lineitem-total-amount').inputmask('unmaskedvalue'));
+            var lineitemNetAmount = Number($(obj).find('.net-price-field').inputmask('unmaskedvalue'));
+            var lineitemQuantity = Number($(obj).find('.quantity-field').inputmask('unmaskedvalue'));
 
             if($(obj).data('line_item') == 'product'){
                 $orderOriginalProductTotal += Number(lineitemTotalAmount);
 
-                lineitemTotalAmount += calculateProductPrice(lineitemTotalAmount);
+                lineitemTotalAmount += calculateProductPrice(lineitemNetAmount, lineitemQuantity);
                 $orderProductTotal += lineitemTotalAmount;
             }else if($(obj).data('line_item') == 'fee'){
                 $orderFeeTotal += lineitemTotalAmount;
@@ -217,6 +219,7 @@ var OrderForm = function () {
         var $cartPriceRulePrototype = Handlebars.compile($cartPriceRuleTemplate);
 
         $('#order-form').on('order.major_change', function(e){
+            var priceRuleName, isCoupon;
             $.ajax(global_vars.get_order_cart_rules_path, {
                 method: 'POST',
                 data: $('#order-form').serialize(),
@@ -232,7 +235,14 @@ var OrderForm = function () {
                             total: 0
                         }
 
-                        $('#cart-price-rules-wrapper').append($cartPriceRulePrototype({key: i, label:data.data[i].name, value:0, 'cart_price_rule_id': data.data[i].id}));
+                        isCoupon = !($.trim(data.data[i].coupon_code).length === 0);
+
+                        priceRuleName = isCoupon?'<a class="remove-coupon" data-coupon_id="'+data.data[i].id+'" href="#"><i class="fa fa-remove"></i></a> Coupon (' + data.data[i].coupon_code + ')':data.data[i].name;
+
+                        var $cartPriceRuleRow = $($cartPriceRulePrototype({key: i, label: priceRuleName, is_coupon: (isCoupon?1:0), value:0, 'cart_price_rule_id': data.data[i].id}));
+                        handleRemoveCoupon($cartPriceRuleRow);
+
+                        $('#cart-price-rules-wrapper').append($cartPriceRuleRow);
                     }
 
                     $.ajax(global_vars.get_tax_path, {
@@ -255,8 +265,6 @@ var OrderForm = function () {
                 }
             });
         });
-
-        $('#order-form').trigger('order.major_change');
     }
 
     var handleBillingEmail = function()
@@ -423,6 +431,53 @@ var OrderForm = function () {
 
             $('#order-form').trigger('order.major_change');
         });
+
+        $('#coupon-add-btn').click(function(e){
+            e.preventDefault();
+
+            formHelper.clearFormError({
+                'wrapper': '#coupons-wrapper',
+                'messagesWrapper': '#coupon-messages'
+            });
+
+            App.blockUI({
+                target: '#coupons-wrapper',
+                boxed: true,
+                message: 'Adding coupon...'
+            });
+
+            $.ajax($(this).data('coupon_add'), {
+                'method': 'POST',
+                'data': $('#coupons-wrapper :input').serialize(),
+                'success': function(data){
+                    $('#coupon-field').val('');
+                    $('#coupons-wrapper .added-coupon').remove();
+                    for(var i in data.data){
+                        $('#coupons-wrapper').append('<input type="hidden" name="added_coupons[]" value="'+data.data[i].id+'" class="added-coupon" />');
+                    }
+
+                    $('#order-form').trigger('order.major_change');
+                },
+                'error': function(xhr){
+                    for(var i in xhr.responseJSON){
+                        var $errorName = formHelper.convertDotToSquareBracket(i);
+
+                        formHelper.addFieldError({
+                            'name': $errorName,
+                            'message': xhr.responseJSON[i][0],
+                            'context': '#coupons-wrapper',
+                            'messagesWrapper': '#coupon-messages',
+                            'highlightField': false
+                        });
+
+                        App.scrollTo($('#coupons-wrapper'));
+                    }
+                },
+                'complete': function(){
+                    App.unblockUI('#coupons-wrapper');
+                }
+            });
+        });
     }
 
     var toggleAddShippingButton = function()
@@ -432,6 +487,15 @@ var OrderForm = function () {
         }else{
             $('#add-shipping-lineitem').show();
         }
+    }
+
+    var handleRemoveCoupon = function(context){
+        $('.remove-coupon', context).on('click', function(e){
+            e.preventDefault();
+
+            $('.added-coupon[value="'+$(this).data('coupon_id')+'"]', '#coupons-wrapper').remove();
+            $('#order-form').trigger('order.major_change');
+        });
     }
 
     return {
@@ -453,6 +517,8 @@ var OrderForm = function () {
             $('#billing-information-wrapper').on('address.change', function(){
                 $('#order-form').trigger('order.major_change');
             });
+
+            $('#order-form').trigger('order.major_change');
         },
         lineItemInit: function(lineItem)
         {

@@ -3,6 +3,7 @@
 namespace Kommercio\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Kommercio\Validator\CustomValidator;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -19,6 +20,12 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton('order_helper', 'Kommercio\Helpers\OrderHelper');
         $this->app->singleton('address_helper', 'Kommercio\Helpers\AddressHelper');
         $this->app->singleton('email_helper', 'Kommercio\Helpers\EmailHelper');
+        $this->app->singleton('language_helper', 'Kommercio\Helpers\LanguageHelper');
+
+        $this->app['validator']->resolver(function($translator, $data, $rules, $messages)
+        {
+            return new CustomValidator($translator, $data, $rules, $messages);
+        });
     }
 
     /**

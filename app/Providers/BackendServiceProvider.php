@@ -6,7 +6,6 @@ use Illuminate\Support\ServiceProvider;
 use Kommercio\Models\File;
 use Kommercio\Models\Interfaces\AuthorSignatureInterface;
 use Illuminate\Support\Facades\Storage;
-use Kommercio\Validator\BackendValidator;
 
 class BackendServiceProvider extends ServiceProvider
 {
@@ -40,11 +39,6 @@ class BackendServiceProvider extends ServiceProvider
                     Storage::disk($storage)->delete($folder.$model->filename);
                 }
             }
-        });
-
-        $this->app['validator']->resolver(function($translator, $data, $rules, $messages)
-        {
-            return new BackendValidator($translator, $data, $rules, $messages);
         });
     }
 

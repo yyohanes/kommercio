@@ -33,6 +33,7 @@ class CartPriceRuleFormRequest extends Request
 
         $rules = [
             'name' => 'required',
+            'coupon_code' => 'unique:cart_price_rules,coupon_code'.($this->route('id')?','.$this->route('id'):''),
             'offer_type' => 'in:'.$allowedOfferTypeType,
             'store_id' => 'in:'.$allowedStores,
             'currency' => 'in:'.$allowedCurrencies,
@@ -59,6 +60,9 @@ class CartPriceRuleFormRequest extends Request
 
         if(!$this->has('price')){
             $attributes['price'] = null;
+        }
+        if(!$this->has('coupon_code')){
+            $attributes['coupon_code'] = null;
         }
         if(!$this->has('max_usage')){
             $attributes['max_usage'] = null;

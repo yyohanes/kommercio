@@ -85,7 +85,8 @@ var variationFormBehaviors = function(){
             $('[data-inputmask]', '#product-variation-form-wrapper').inputmask('remove');
             formHelper.clearFormError({
                 'wrapper': '#product-variation-form-wrapper',
-                'highlightParentPrefix': 'panel'
+                'highlightParentPrefix': 'panel',
+                'messagesWrapper': '#variation-form-messages'
             });
 
             App.blockUI({
@@ -121,7 +122,8 @@ var variationFormBehaviors = function(){
                             'name': $errorName,
                             'message': xhr.responseJSON[i][0],
                             'context': '#product-variation-form-wrapper',
-                            'highlightParentPrefix': 'panel'
+                            'highlightParentPrefix': 'panel',
+                            'messagesWrapper': '#variation-form-messages'
                         });
 
                         App.scrollTo($('#product-variation-form-wrapper'));

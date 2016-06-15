@@ -13,31 +13,6 @@
                 </div>
             </div>
         </div>
-
-        @if(config('project.enable_delivery_date', FALSE))
-        <div class="portlet light bordered">
-            <div class="portlet-title">
-                <div class="caption">
-                    <i class="fa fa-clock-o"></i>
-                    <span class="caption-subject">Delivery Date</span>
-                </div>
-            </div>
-            <div class="portlet-body">
-                @include('backend.master.form.fields.text', [
-                    'name' => 'delivery_date',
-                    'label' => 'Delivery Date',
-                    'key' => 'delivery_date',
-                    'attr' => [
-                        'class' => 'form-control date-picker',
-                        'data-date-format' => 'yyyy-mm-dd',
-                        'id' => 'delivery_date',
-                        'placeholder' => 'YYYY-MM-DD'
-                    ],
-                    'defaultValue' => old('delivery_date', $order->delivery_date?$order->delivery_date->format('Y-m-d'):null)
-                ])
-            </div>
-        </div>
-        @endif
     </div>
 
     <div class="col-md-6">
@@ -55,7 +30,36 @@
                 @include('backend.order.customer_information', ['type' => 'shipping_profile'])
             </div>
         </div>
+    </div>
 
+    @if(config('project.enable_delivery_date', FALSE))
+        <div class="col-md-6">
+            <div class="portlet light bordered">
+                <div class="portlet-title">
+                    <div class="caption">
+                        <i class="fa fa-clock-o"></i>
+                        <span class="caption-subject">Delivery Date</span>
+                    </div>
+                </div>
+                <div class="portlet-body">
+                    @include('backend.master.form.fields.text', [
+                        'name' => 'delivery_date',
+                        'label' => 'Delivery Date',
+                        'key' => 'delivery_date',
+                        'attr' => [
+                            'class' => 'form-control date-picker',
+                            'data-date-format' => 'yyyy-mm-dd',
+                            'id' => 'delivery_date',
+                            'placeholder' => 'YYYY-MM-DD'
+                        ],
+                        'defaultValue' => old('delivery_date', $order->delivery_date?$order->delivery_date->format('Y-m-d'):null)
+                    ])
+                </div>
+            </div>
+        </div>
+    @endif
+
+    <div class="col-md-3">
         <div class="portlet light bordered">
             <div class="portlet-title">
                 <div class="caption">
@@ -145,7 +149,7 @@
         </div>
     </div>
 
-    <div class="col-md-6">
+    <div class="col-md-3">
         @include('backend.master.form.fields.textarea', [
             'name' => 'notes',
             'label' => null,
@@ -159,7 +163,29 @@
         ])
     </div>
 
-    <div class="col-md-6">
+    <div class="col-md-4">
+        <div class="portlet light bordered" id="coupons-wrapper">
+            <div class="portlet-title">
+                <div class="caption">
+                    <i class="fa fa-hand-scissors-o"></i>
+                    <span class="caption-subject">Coupons</span>
+                </div>
+            </div>
+            <div class="portlet-body">
+                <div class="input-group">
+                    {!! Form::text('coupon_code', null, ['placeholder' => 'Coupon Code', 'id' => 'coupon-field', 'class' => 'form-control']) !!}
+                    <span class="input-group-btn">
+                    <button id="coupon-add-btn" data-coupon_add="{{ route('backend.sales.order.add_coupon') }}" class="btn btn-default" type="button"><i class="fa fa-plus"></i> Add</button>
+                </span>
+                </div>
+                @foreach(old('added_coupons', []) as $idx=>$added_coupon)
+                    {!! Form::hidden('added_coupons['.$idx.']', $added_coupon, ['class' => 'added-coupon']) !!}
+                @endforeach
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-5">
         <div class="well" id="order-summary">
             <div class="row static-info align-reverse subtotal">
                 <div class="col-md-8 name"> Sub Total: </div>
@@ -177,7 +203,7 @@
             </div>
             <div id="cart-price-rules-wrapper">
                 @foreach($cartPriceRules as $idx=>$cartPriceRule)
-                    @include('backend.order.line_items.form.cart_price_rule', ['key' => $idx, 'label' => $cartPriceRule->name, 'value' => 0, 'cart_price_rule_id' => $cartPriceRule->id, 'idx' => $idx])
+                    @include('backend.order.line_items.form.cart_price_rule', ['key' => $idx, 'label' => $cartPriceRule->name, 'is_coupon' => $cartPriceRule->isCoupon, 'value' => 0, 'cart_price_rule_id' => $cartPriceRule->id, 'idx' => $idx])
                 @endforeach
             </div>
             <div id="tax-summary-wrapper">
@@ -237,7 +263,7 @@
     </script>
 
     <script id="lineitem-cart-price-rule-template" type="text/x-handlebars-template">
-        @include('backend.order.line_items.form.cart_price_rule', ['key' => '@{{key}}','label' => '@{{label}}', 'value' => '@{{value}}', 'cart_price_rule_id' => '@{{cart_price_rule_id}}'])
+        @include('backend.order.line_items.form.cart_price_rule', ['key' => '@{{key}}','label' => '@{{{label}}}', 'value' => '@{{value}}', 'is_coupon' => '@{{is_coupon}}', 'cart_price_rule_id' => '@{{cart_price_rule_id}}'])
     </script>
 
     <script src="{{ asset('backend/assets/scripts/pages/order_form.js') }}" type="text/javascript"></script>

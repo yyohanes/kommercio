@@ -20,6 +20,17 @@ class LineItem extends Model
     ];
 
     //Methods
+    public function getPrintName()
+    {
+        $name = $this->name;
+
+        if($this->isCoupon){
+            $name = 'Coupon ('.$this->getData('coupon_code').')';
+        }
+
+        return $name;
+    }
+
     public function calculateTotal()
     {
         $this->total = round($this->net_price * $this->quantity, config('project.line_item_total_precision'));
@@ -111,7 +122,11 @@ class LineItem extends Model
         $priceRule = CartPriceRule::findOrFail($price_rule_id);
         $this->name = $priceRule->name;
         $this->line_item_id = $priceRule->id;
-        $this->line_item_type = 'cart_price_rule';
+        $this->line_item_type = $priceRule->isCoupon?'coupon':'cart_price_rule';
+
+        if($priceRule->isCoupon){
+            $this->saveData(['coupon_code' => $priceRule->coupon_code]);
+        }
     }
 
     //Accessors
@@ -143,6 +158,11 @@ class LineItem extends Model
     public function getIsCartPriceRuleAttribute()
     {
         return $this->line_item_type == 'cart_price_rule';
+    }
+
+    public function getIsCouponAttribute()
+    {
+        return $this->line_item_type == 'coupon';
     }
 
     public function getQuantityAttribute()
