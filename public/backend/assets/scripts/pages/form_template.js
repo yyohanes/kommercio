@@ -679,11 +679,11 @@ var formHelper = {
     },
     roundNumber: function(value, places, rounding){
         if(typeof places === 'undefined'){
-            places = 2;
+            places = global_vars.line_item_total_precision;
         }
 
         if(typeof rounding === 'undefined'){
-            rounding = global_vars.total_rounding;
+            rounding = 'default';
         }
 
         var multiplier = Math.pow(10, places);
@@ -695,6 +695,19 @@ var formHelper = {
         }else{
             return (Math.round(value * multiplier) / multiplier);
         }
+    },
+    calculateRounding: function(before, after, round){
+        var calculated = after - before;
+
+        if(typeof round === 'undefined'){
+            round = false;
+        }
+
+        if(round){
+            calculated = formHelper.roundNumber(calculated);
+        }
+
+        return calculated;
     },
     convertDotToSquareBracket: function(name){
         var parts = String(name).split('.');

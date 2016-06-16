@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\DB;
 use Kommercio\Facades\ProjectHelper;
 use Kommercio\Models\Order\LineItem;
 use Kommercio\Models\Order\Order;
+use Kommercio\Models\Order\OrderLimit;
 use Kommercio\Models\ProductAttribute\ProductAttributeValue;
 
 class Product extends Model
@@ -374,87 +375,9 @@ class Product extends Model
         $includedPriceRules = $qb->get();
 
         return $includedPriceRules;
-
-        /*
-        $includedPriceRules = [];
-
-        //By Categories
-        $categories = $this->categories;
-        $categoryPriceRules = [];
-        if($categories->count() > 0){
-            $categoryPriceRules = PriceRule::notProductSpecific()->whereHas('priceRuleOptionGroups.categories', function($query) use ($categories){
-                $query->whereIn('id', $categories->pluck('id')->all());
-            })->get();
-
-            foreach($categoryPriceRules as $categoryPriceRule){
-                if(!isset($includedPriceRules[$categoryPriceRule->id])){
-                    $includedPriceRules[$categoryPriceRule->id] = $categoryPriceRule;
-                }
-            }
-        }
-
-        //By manufacturer
-        $manufacturer = $this->manufacturer_id;
-        $manufacturerPriceRules = [];
-        if($manufacturer){
-            $manufacturerPriceRules = PriceRule::notProductSpecific()->whereHas('priceRuleOptionGroups.manufacturers', function($query) use ($manufacturer){
-                $query->whereIn('id', [$manufacturer]);
-            })->get();
-
-            foreach($manufacturerPriceRules as $manufacturerPriceRule){
-                if(!isset($includedPriceRules[$manufacturerPriceRule->id])){
-                    $includedPriceRules[$manufacturerPriceRule->id] = $manufacturerPriceRule;
-                }
-            }
-        }
-
-        //By attribute
-        $attributePriceRules = [];
-        $attributeValueIds = [];
-        if($this->isVariation){
-            $attributeValues = $this->productAttributeValues;
-            $attributeValueIds = $attributeValues->pluck('id')->all();
-        }else{
-            if($this->variations->count() > 0){
-                $attributeValues = ProductAttributeValue::whereHas('products', function($query){
-                    $query->whereIn('product_id', $this->variations->pluck('id')->all());
-                })->get();
-                $attributeValueIds = $attributeValues->pluck('id')->all();
-            }
-        }
-
-        if(count($attributeValueIds) > 0){
-            $attributePriceRules = PriceRule::notProductSpecific()->whereHas('priceRuleOptionGroups.attributeValues', function($query) use ($attributeValueIds){
-                $query->whereIn('id', $attributeValueIds);
-            })->get();
-
-            foreach($attributePriceRules as $attributePriceRule){
-                if(!isset($includedPriceRules[$attributePriceRule->id])){
-                    $includedPriceRules[$attributePriceRule->id] = $attributePriceRule;
-                }
-            }
-        }
-
-        //By features
-        $features = $this->productFeatureValues;
-        $featurePriceRules = [];
-        if($features->count() > 0){
-            $featurePriceRules = PriceRule::notProductSpecific()->whereHas('priceRuleOptionGroups.featureValues', function($query) use ($features){
-                $query->whereIn('id', $features->pluck('id')->all());
-            })->get();
-
-            foreach($featurePriceRules as $featurePriceRule){
-                if(!isset($includedPriceRules[$featurePriceRule->id])){
-                    $includedPriceRules[$featurePriceRule->id] = $featurePriceRule;
-                }
-            }
-        }
-
-        return $includedPriceRules;
-        */
     }
 
-        public function getOrderCount($options = [])
+    public function getOrderCount($options = [])
     {
         $qb = LineItem::isProduct($this->id)
             ->whereHas('order', function($query) use ($options){
@@ -472,6 +395,99 @@ class Product extends Model
         $orderCount = floatval($qb->sum('quantity'));
 
         return $orderCount;
+    }
+
+    public function getPerOrderLimit($options = [])
+    {
+        $store = isset($options['store'])?$options['store']:null;
+        $date = isset($options['date'])?Carbon::createFromFormat('Y-m-d', $options['date']):null;
+
+        //Per Order Limit
+        $orderLimitsQb = $this->getOrderLimitQb(OrderLimit::LIMIT_PER_ORDER, $date, $store);
+        $orderLimits = $orderLimitsQb->get();
+
+        $orderLimit = ($orderLimits->count() > 0)?$this->extractOrderLimit($orderLimits)->limit:null;
+
+        return $orderLimit;
+    }
+
+    public function getOrderLimit($options = [])
+    {
+        $store = isset($options['store'])?$options['store']:null;
+        $date = isset($options['date'])?Carbon::createFromFormat('Y-m-d', $options['date']):null;
+
+        //Delivery Limit
+        $deliveryOrderLimitsQb = $this->getOrderLimitQb(OrderLimit::LIMIT_DELIVERY_DATE, $date, $store);
+        $deliveryOrderLimits = $deliveryOrderLimitsQb->get();
+
+        $deliveryOrderLimit = ($deliveryOrderLimits->count() > 0)?$this->extractOrderLimit($deliveryOrderLimits)->limit:null;
+
+        //Order Total Limit
+        $totalOrderLimitsQb = $this->getOrderLimitQb(OrderLimit::LIMIT_ORDER_DATE, $date, $store);
+        $totalOrderLimits = $totalOrderLimitsQb->get();
+
+        $totalOrderLimit = ($totalOrderLimits->count() > 0)?$this->extractOrderLimit($totalOrderLimits)->limit:null;
+
+        $orderLimits = [$deliveryOrderLimit, $totalOrderLimit];
+
+        foreach($orderLimits as $idx=>$orderLimit){
+            if(is_null($orderLimit)){
+                unset($orderLimits[$idx]);
+            }
+        }
+
+        return $orderLimits?min($orderLimits):null;
+    }
+
+    protected function extractOrderLimit($orderLimits)
+    {
+        $sorted = [
+            OrderLimit::TYPE_PRODUCT => [],
+            OrderLimit::TYPE_PRODUCT_CATEGORY => []
+        ];
+
+        //Has date
+        foreach($orderLimits as $orderLimit){
+            if($orderLimit->hasDate()){
+                $sorted[$orderLimit->type][] = $orderLimit;
+            }
+        }
+
+        //No date
+        foreach($orderLimits as $orderLimit){
+            if(!$orderLimit->hasDate()){
+                $sorted[$orderLimit->type][] = $orderLimit;
+            }
+        }
+
+        foreach($sorted as $sortedWalk){
+            if(!empty($sortedWalk)){
+                return $sortedWalk[0];
+            }
+        }
+    }
+
+    protected function getOrderLimitQb($limit_type, $date, $store)
+    {
+        $qb = OrderLimit::active()
+            ->orderBy('created_at', 'ASC')
+            ->whereLimitType($limit_type)
+            ->whereHas('products', function($qb){
+                $qb->whereIn('id', [$this->id]);
+            })
+            ->orWhereHas('productCategories', function($qb){
+                $qb->whereIn('id', $this->categories->pluck('id')->all());
+            });
+
+        if($store){
+            $qb->whereStore($store);
+        }
+
+        if($date){
+            $qb->withinDate($date);
+        }
+
+        return $qb;
     }
 
     //Accessors

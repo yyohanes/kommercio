@@ -11,7 +11,7 @@ class OrderLimitController extends Controller
 {
     public function index($type)
     {
-        $qb = OrderLimit::where('type', $type);
+        $qb = OrderLimit::where('type', $type)->orderBy('created_at', 'DESC');
 
         $orderLimits = $qb->get();
 

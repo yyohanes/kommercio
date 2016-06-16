@@ -46,7 +46,7 @@ class OrderLimitFormRequest extends Request
             'items' => 'required',
             'items.*' => 'exists:'.$existTable.',id',
             'limit_type' => 'required|in:'.$allowedLimitTypeOptions,
-            'limit' => 'required|numeric',
+            'limit' => 'required|numeric|min:0',
             'date_from' => 'date_format:Y-m-d H:i',
             'date_to' => 'date_format:Y-m-d H:i',
         ];

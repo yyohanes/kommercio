@@ -23,7 +23,25 @@ class OrderLimit extends Model
         'date_from', 'date_to'
     ];
 
+    //Methods
+    public function hasDate()
+    {
+        return !empty($this->date_from) || !empty($this->date_to);
+    }
+
     //Scopes
+    public function scopeActive($query)
+    {
+        $query->where('active', 1);
+    }
+
+    public function scopeWhereStore($query, $store_id)
+    {
+        $query->where($query, function($query) use ($store_id){
+            $query->whereNull('store_id')->orWhereIn('store_id', '=', [$store_id]);
+        });
+    }
+
     public function scopeWhereProduct($query, $product_id)
     {
         $query->whereHas('products', function($query) use ($product_id){
@@ -38,17 +56,14 @@ class OrderLimit extends Model
         });
     }
 
+    public function scopeWhereType($query, $type)
+    {
+        $query->where('type', $type);
+    }
+
     public function scopeWhereLimitType($query, $limit_type)
     {
-        if($limit_type == self::LIMIT_PER_ORDER){
-            $query->where('limit_type', $limit_type);
-        }else{
-            $query->where(function($query) use ($limit_type){
-                $query->where('limit_type', $limit_type)->orWhere(function($query){
-                    $query->whereNull('date_from')->whereNull('date_to');
-                });
-            });
-        }
+        $query->where('limit_type', $limit_type);
     }
 
     public function scopeWithinDate($qb, Carbon $date)
@@ -150,7 +165,7 @@ class OrderLimit extends Model
     {
         $array = [
             self::LIMIT_PER_ORDER => 'Per Order',
-            self::LIMIT_ORDER_DATE => 'Order Date',
+            self::LIMIT_ORDER_DATE => 'Total Order',
         ];
 
         if(config('project.enable_delivery_date')){
@@ -162,21 +177,5 @@ class OrderLimit extends Model
         }
 
         return (isset($array[$option]))?$array[$option]:$array;
-    }
-
-    public static function getProductOrderLimits(Product $product, Carbon $date, $limit_type)
-    {
-        $qb = self::whereProduct($product->id)->withinDate($date)->whereLimitType($limit_type);
-        $orderLimits = $qb->get();
-
-        return $orderLimits;
-    }
-
-    public static function getCategoryOrderLimits(Product $product, Carbon $date, $limit_type)
-    {
-        $qb = self::whereProductCategories($product->categories->pluck('id')->all())->withinDate($date)->whereLimitType($limit_type);
-        $orderLimits = $qb->get();
-
-        return $orderLimits;
     }
 }
