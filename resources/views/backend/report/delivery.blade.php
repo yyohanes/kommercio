@@ -27,9 +27,9 @@
                     </div>
                     <div class="col-md-3">
                         <label class="control-label">Shipping Method</label>
-                        {!! Form::select('search[shipping_method]',
+                        {!! Form::select('search[shipping_method][]',
                         $shippingMethodOptions, old('search.shipping_method', $filter['shipping_method']), [
-                        'class' => 'form-control select2']) !!}
+                        'class' => 'form-control select2', 'multiple' => TRUE]) !!}
                     </div>
                     <div class="col-md-2">
                         <label class="control-label">Status</label>

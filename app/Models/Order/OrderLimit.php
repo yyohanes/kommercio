@@ -37,8 +37,8 @@ class OrderLimit extends Model
 
     public function scopeWhereStore($query, $store_id)
     {
-        $query->where($query, function($query) use ($store_id){
-            $query->whereNull('store_id')->orWhereIn('store_id', '=', [$store_id]);
+        $query->where(function($query) use ($store_id){
+            $query->whereNull('store_id')->orWhereIn('store_id', [$store_id]);
         });
     }
 

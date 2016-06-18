@@ -41,3 +41,8 @@
 #products-dataset .product-image {
   width: 40px;
 }
+
+/* line 59, sass/app.scss */
+#line-items-table .availability div {
+  display: none;
+}

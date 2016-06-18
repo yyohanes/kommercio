@@ -11,6 +11,9 @@ class Tax extends Model
         'active' => 'boolean'
     ];
 
+    //To store calculated total
+    public $total = 0;
+
     //Methods
     public function getSingleName()
     {

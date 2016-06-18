@@ -30,4 +30,9 @@ trait HasDataColumn
     {
         $query->whereRaw('data REGEXP \'.*"'.$key.'";s:[0-9]+:"'.$value.'".*\'');
     }
+
+    public function scopeOrSearchData($query, $key, $value)
+    {
+        $query->orWhereRaw('data REGEXP \'.*"'.$key.'";s:[0-9]+:"'.$value.'".*\'');
+    }
 }

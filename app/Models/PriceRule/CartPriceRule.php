@@ -26,6 +26,7 @@ class CartPriceRule extends Model
         'active' => 'boolean',
     ];
 
+    //To store calculated total
     public $total = 0;
 
     //Relations
@@ -70,7 +71,7 @@ class CartPriceRule extends Model
             $calculatedAmount += ($calculatedAmount * $this->modification/100);
         }
 
-        return $calculatedAmount - $price;
+        return PriceFormatter::round($calculatedAmount);
     }
 
     public function getModificationOutput()

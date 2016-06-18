@@ -1,6 +1,7 @@
 <?php $taxable = isset($product)?$product->productDetail->taxable:false; ?>
 <tr class="line-item" data-taxable="{{ old('line_items.'.$key.'.taxable', $taxable) }}" data-line_item="product" data-line_item_key="{{ $key }}">
     <td>
+        {!! Form::hidden('line_items['.$key.'][line_item_id]', isset($product)?$product->id:null, ['class' => 'line-item-id']) !!}
         {!! Form::hidden('line_items['.$key.'][line_item_type]', 'product') !!}
         {!! Form::hidden('line_items['.$key.'][taxable]', $taxable) !!}
         @include('backend.master.form.fields.text', [
@@ -18,6 +19,10 @@
             'required' => TRUE,
             'defaultValue' => isset($product)?$product->sku:null
         ])
+    </td>
+    <td class="availability">
+        <div class="order-limit-info">Limit: <span class="ordered-total">0</span>/<span class="limit-total">0</span></div>
+        <div class="stock-info">Stock: <span class="stock-total">0</span></div>
     </td>
     <td>
         @include('backend.master.form.fields.number', [

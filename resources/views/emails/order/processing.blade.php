@@ -71,6 +71,7 @@
             </tbody></table>
     </div>
 
+    @if($order->getShippingMethod()->class != 'PickUp')
     <div class="column">
         <table bgcolor="" class="social" width="100%">
             <tbody>
@@ -86,6 +87,7 @@
             </tr>
             </tbody></table>
     </div>
+    @endif
 
     <div class="content">
         <table>

@@ -700,7 +700,7 @@ var formHelper = {
         var calculated = after - before;
 
         if(typeof round === 'undefined'){
-            round = false;
+            round = true;
         }
 
         if(round){

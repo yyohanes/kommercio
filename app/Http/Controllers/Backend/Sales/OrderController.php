@@ -307,6 +307,7 @@ class OrderController extends Controller{
                 if(!in_array($stickyLineItem->sku, $productLineItems)){
                     $lineItems[] = [
                         'line_item_type' => 'product',
+                        'line_item_id' => $stickyLineItem->id,
                         'taxable' => $stickyLineItem->taxable,
                         'sku' => $stickyLineItem->sku,
                         'base_price' => $stickyLineItem->getRetailPrice(),
@@ -438,6 +439,7 @@ class OrderController extends Controller{
                 $lineItemTotal = $lineItem->calculateTotal();
 
                 if($lineItem->isProduct){
+                    $lineItemData['id'] = $lineItem->product->id;
                     $lineItemData['sku'] = $lineItem->product->sku;
                 }
 
@@ -667,7 +669,7 @@ class OrderController extends Controller{
         return response()->json($return);
     }
 
-    public function getCartRules(Request $request)
+    public function getCartRules(Request $request, $internal = false)
     {
         $order = OrderHelper::createDummyOrderFromRequest($request);
 
@@ -695,7 +697,7 @@ class OrderController extends Controller{
             }
         }
 
-        if($request->ajax()){
+        if($request->ajax() || !$internal){
             return response()->json([
                 'data' => $priceRules,
                 '_token' => csrf_token()
@@ -762,13 +764,21 @@ class OrderController extends Controller{
 
     protected function processLineItems(Request $request, $order)
     {
-        $dummyOrder = new Order();
+        $dummyOrder = OrderHelper::createDummyOrderFromRequest($request);
+        $dummyOrderSubtotal = $dummyOrder->calculateSubtotal() + $dummyOrder->calculateAdditionalTotal();
 
+        $cartPriceRules = $this->getCartRules($request, true);
         $productCartPriceRules = [];
         $orderCartPriceRules = [];
+        $taxes = Tax::getTaxes([
+            'country_id' => $request->input('profile.country_id', null),
+            'state_id' => $request->input('profile.state_id', null),
+            'city_id' => $request->input('profile.city_id', null),
+            'district_id' => $request->input('profile.district_id', null),
+            'area_id' => $request->input('profile.area_id', null),
+        ]);
 
-        foreach($request->input('cart_price_rules', []) as $cart_price_rule_id){
-            $cartPriceRule = CartPriceRule::findOrFail($cart_price_rule_id);
+        foreach($cartPriceRules as $cartPriceRule){
 
             if($cartPriceRule->offer_type == CartPriceRule::OFFER_TYPE_ORDER_DISCOUNT){
                 $orderCartPriceRules[] = $cartPriceRule;
@@ -780,8 +790,6 @@ class OrderController extends Controller{
         $existingLineItems = $order->lineItems->all();
         $count = 0;
 
-        $taxableTotal = 0;
-
         foreach($request->input('line_items') as $lineItemDatum){
             if($lineItemDatum['line_item_type'] == 'product' && empty($lineItemDatum['quantity'])){
                 continue;
@@ -790,26 +798,35 @@ class OrderController extends Controller{
             $lineItem = $this->reuseOrCreateLineItem($order, $existingLineItems, $count);
 
             $lineItem->processData($lineItemDatum, $count);
-            $lineItem->save();
-
-            $lineItemTotal = $lineItem->calculateTotal();
+            $lineItemAmount = $lineItem->net_price;
 
             if($lineItem->isProduct){
                 foreach($productCartPriceRules as $productCartPriceRule){
-                    $value = $productCartPriceRule->getValue($lineItemTotal) * $lineItem->quantity;
-
-                    $lineItemTotal += $value;
-                    $productCartPriceRule->total += $value;
+                    $lineItemAmount = $productCartPriceRule->getValue($lineItemAmount);
+                    $productCartPriceRule->total += ($lineItemAmount - $lineItem->net_price) * $lineItem->quantity;
                 }
             }
 
             if($lineItem->taxable){
-                $taxableTotal += $lineItemTotal;
+                foreach($taxes as $tax){
+                    $taxValue = [
+                        'net' => 0,
+                        'gross' => 0
+                    ];
+
+                    $taxValue['gross'] = PriceFormatter::round($tax->calculateTax($lineItemAmount));
+                    $taxValue['net'] = PriceFormatter::round($taxValue['gross']);
+
+                    $order->rounding_total = PriceFormatter::calculateRounding($taxValue['gross'], $taxValue['net']) * $lineItem->quantity;
+
+                    $tax->total += $taxValue['net'] * $lineItem->quantity;
+                }
             }
 
-            $count += 1;
+            $lineItem->calculateTotal();
+            $lineItem->save();
 
-            $dummyOrder->lineItems[] = $lineItem;
+            $count += 1;
         }
 
         foreach($productCartPriceRules as $productCartPriceRule){
@@ -827,12 +844,9 @@ class OrderController extends Controller{
             $count += 1;
         }
 
-        $dummyOrderSubtotal = $dummyOrder->calculateSubtotal() + $dummyOrder->calculateAdditionalTotal();
-
         foreach($orderCartPriceRules as $orderCartPriceRule){
             $value = $orderCartPriceRule->getValue($dummyOrderSubtotal);
-            $orderCartPriceRule->total += $value;
-            $taxableTotal += $value;
+            $orderCartPriceRule->total = $value - $dummyOrderSubtotal;
 
             $priceRuleLineItemDatum = [
                 'cart_price_rule_id' => $orderCartPriceRule->id,
@@ -848,13 +862,11 @@ class OrderController extends Controller{
             $count += 1;
         }
 
-        foreach($request->input('taxes', []) as $tax_id){
-            $tax = Tax::findOrFail($tax_id);
-
+        foreach($taxes as $tax){
             $taxLineItemDatum = [
                 'tax_id' => $tax->id,
                 'line_item_type' => 'tax',
-                'lineitem_total_amount' => $tax->calculateTax($taxableTotal),
+                'lineitem_total_amount' => $tax->total,
             ];
 
             $lineItem = $this->reuseOrCreateLineItem($order, $existingLineItems, $count);

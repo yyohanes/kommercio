@@ -94,19 +94,23 @@ class PriceRule extends Model
 
     public function getValue($price = null)
     {
+        $return = 0;
+
         if(!is_null($this->price)){
-            return $this->price;
+            $return = $this->price;
         }else{
             if(is_null($price)){
                 $price = $this->price;
             }
 
             if($this->modification_type == 'amount'){
-                return $price + $this->modification;
+                $return = $price + $this->modification;
             }else{
-                return $price + ($price * $this->modification / 100);
+                $return = $price + ($price * $this->modification / 100);
             }
         }
+
+        return PriceFormatter::round($return);
     }
 
     public function getModificationOutput()

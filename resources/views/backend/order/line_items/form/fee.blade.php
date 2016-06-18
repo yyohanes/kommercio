@@ -15,7 +15,7 @@
             'required' => TRUE,
         ])
     </td>
-    <td colspan="2"></td>
+    <td colspan="3"></td>
     <td>
         @include('backend.master.form.fields.number', [
             'name' => 'line_items['.$key.'][lineitem_total_amount]',

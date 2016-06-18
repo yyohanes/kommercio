@@ -169,6 +169,11 @@ Route::group(['middleware' => ['web']], function () {
                         'as' => 'backend.catalog.product.autocomplete',
                         'uses' => 'ProductController@autocomplete'
                     ]);
+
+                    Route::get('availability/{id}', [
+                        'as' => 'backend.catalog.product.availability',
+                        'uses' => 'ProductController@availability'
+                    ]);
                 });
 
                 Route::group(['prefix' => 'product-attribute'], function(){

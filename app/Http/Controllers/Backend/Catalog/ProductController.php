@@ -4,6 +4,7 @@ namespace Kommercio\Http\Controllers\Backend\Catalog;
 
 use Carbon\Carbon;
 use Collective\Html\FormFacade;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Request as RequestFacade;
 use Illuminate\Support\Facades\Session;
@@ -630,6 +631,45 @@ class ProductController extends Controller{
         }
 
         return response()->json(['data' => $return, '_token' => csrf_token()]);
+    }
+
+    public function availability(Request $request, $id)
+    {
+        $product = Product::findOrFail($id);
+
+        $options = [
+            'store' => $request->input('store_id'),
+            'date' => Carbon::now()->format('Y-m-d'),
+            'delivery_date' => $request->input('delivery_date', null)
+        ];
+        $orderLimit = $product->getOrderLimit($options);
+
+        $stock = $product->getStock();
+
+        $totalOrderedByDate = $product->getOrderCount([
+            'checkout_at' => $options['date']
+        ]);
+
+        $totalOrderedByDelivery = 0;
+
+        if($options['delivery_date']){
+            $totalOrderedByDelivery = $product->getOrderCount([
+                'delivery_date' => $options['delivery_date'],
+            ]);
+        }
+
+        $totalOrdered = max($totalOrderedByDate, $totalOrderedByDelivery);
+
+        $return = [
+            'ordered_total' => $totalOrdered,
+            'order_limit' => $orderLimit,
+            'stock' => $stock
+        ];
+
+        return new JsonResponse([
+            'data' => $return,
+            '_token' => csrf_token()
+        ]);
     }
 
     protected function deleteable($id)

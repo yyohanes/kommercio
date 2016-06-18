@@ -186,7 +186,7 @@ class Order extends Model implements AuthorSignatureInterface
     public function calculateSubtotal()
     {
         $this->subtotal = $this->calculateProductTotal();
-        $this->subtotal = round($this->subtotal, config('project.line_item_total_precision'));
+        $this->subtotal = PriceFormatter::round($this->subtotal);
 
         return $this->subtotal;
     }
@@ -201,7 +201,7 @@ class Order extends Model implements AuthorSignatureInterface
             }
         }
 
-        $this->shipping_total = round($this->shipping_total, config('project.line_item_total_precision'));
+        $this->shipping_total = PriceFormatter::round($this->shipping_total);
 
         return $this->shipping_total;
     }
@@ -214,7 +214,7 @@ class Order extends Model implements AuthorSignatureInterface
             $this->discount_total += $cartPriceRuleLineItem->calculateTotal();
         }
 
-        $this->discount_total = round($this->discount_total, config('project.line_item_total_precision'));
+        $this->discount_total = PriceFormatter::round($this->discount_total);
 
         return $this->discount_total;
     }
@@ -229,7 +229,7 @@ class Order extends Model implements AuthorSignatureInterface
             }
         }
 
-        $this->tax_total = round($this->tax_total, config('project.line_item_total_precision'));
+        $this->tax_total = PriceFormatter::round($this->tax_total);
 
         return $this->tax_total;
     }
@@ -244,7 +244,7 @@ class Order extends Model implements AuthorSignatureInterface
             }
         }
 
-        $this->additional_total = round($this->additional_total, config('project.line_item_total_precision'));
+        $this->additional_total = PriceFormatter::round($this->additional_total);
 
         return $this->additional_total;
     }
@@ -258,12 +258,11 @@ class Order extends Model implements AuthorSignatureInterface
         $taxTotal = $this->calculateTaxTotal();
 
         $this->total = $subtotal + $shippingTotal + $discountTotal + $additionalTotal + $taxTotal;
-        $beforeRoundingTotal = round($this->total, config('project.line_item_total_precision'));
+        $beforeRoundingTotal = PriceFormatter::round($this->total);
 
-        $roundMode = PriceFormatter::getRoundingMode();
-        $this->total = round($this->total, config('project.total_precision'), $roundMode);
+        $this->total = PriceFormatter::round($this->total, config('project.total_precision'), config('project.total_rounding'));
 
-        $this->rounding_total = round($this->total - $beforeRoundingTotal, config('project.line_item_total_precision'));
+        $this->rounding_total = PriceFormatter::calculateRounding($beforeRoundingTotal, $this->total);
 
         return $this->total;
     }
@@ -278,7 +277,7 @@ class Order extends Model implements AuthorSignatureInterface
             }
         }
 
-        $productTotal = round($productTotal, config('project.line_item_total_precision'));
+        $productTotal = PriceFormatter::round($productTotal);
 
         return $productTotal;
     }
@@ -362,12 +361,19 @@ class Order extends Model implements AuthorSignatureInterface
         return isset($shippingLineItems[$idx])?$shippingLineItems[$idx]:null;
     }
 
+    public function getShippingMethod()
+    {
+        $shippingLineItem = $this->getShippingLineItem();
+
+        return $shippingLineItem?$shippingLineItem->shippingMethod:null;
+    }
+
     public function getCartPriceRuleLineItems()
     {
         $lineItems = [];
 
         foreach($this->lineItems as $lineItem){
-            if($lineItem->isCartPriceRule || $lineItem->isCoupon){
+            if($lineItem->isCartPriceRule){
                 $lineItems[] = $lineItem;
             }
         }

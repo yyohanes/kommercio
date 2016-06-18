@@ -133,14 +133,14 @@ class ReportController extends Controller
         $storeOptions = ['all' => 'All'] + Store::getStoreOptions();
 
         $shippingMethods = ShippingMethod::getShippingMethods();
-        $shippingMethodOptions = ['all' => 'All'];
+        //$shippingMethodOptions = ['all' => 'All'];
         foreach($shippingMethods as $shippingMethodIdx=>$shippingMethod)
         {
             $shippingMethodOptions[$shippingMethodIdx] = $shippingMethod['name'];
         }
 
         $filter = [
-            'shipping_method' => $request->input('search.shipping_method', 'all'),
+            'shipping_method' => $request->input('search.shipping_method', array_keys($shippingMethodOptions)),
             'date_type' => 'delivery_date',
             'date' => $request->input('search.date', $date->format('Y-m-d')),
             'status' => $request->input('search.status', [Order::STATUS_PENDING, Order::STATUS_PROCESSING]),
@@ -156,9 +156,17 @@ class ReportController extends Controller
             $qb->where('store_id', $filter['store']);
         }
 
-        if($filter['shipping_method'] != 'all'){
+        if(count($filter['shipping_method']) != count($shippingMethodOptions)){
             $qb->whereHas('lineItems', function($qb) use ($filter){
-                $qb->lineItemType('shipping')->searchData('shipping_method', $filter['shipping_method']);
+                foreach($filter['shipping_method'] as $idx=>$shippingMethod){
+                    if($idx == 0){
+                        $searchFunction = 'searchData';
+                    }else{
+                        $searchFunction = 'orSearchData';
+                    }
+
+                    $qb->lineItemType('shipping')->$searchFunction('shipping_method', $filter['shipping_method']);
+                }
             });
 
             $shippingMethod = $shippingMethodOptions[$filter['shipping_method']];

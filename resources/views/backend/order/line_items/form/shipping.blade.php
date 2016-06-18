@@ -16,6 +16,7 @@
             'required' => TRUE,
         ])
     </td>
+    <td></td>
     <td>
         @include('backend.master.form.fields.number', [
             'name' => 'line_items['.$key.'][base_price]',
@@ -31,9 +32,7 @@
             'unit' => CurrencyHelper::getCurrentCurrency()['symbol'],
         ])
     </td>
-    <td colspan="2">
-
-    </td>
+    <td colspan="2"></td>
     <td>
         @include('backend.master.form.fields.number', [
             'name' => 'line_items['.$key.'][lineitem_total_amount]',

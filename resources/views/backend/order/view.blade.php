@@ -240,17 +240,18 @@
                                                     </div>
                                                 @endforeach
                                             </div>
-                                            <div id="tax-summary-wrapper">
-                                                @foreach($order->getTaxLineItems() as $taxLineItem)
-                                                <div class="row static-info align-reverse tax">
-                                                    <div class="col-md-8 name"> {{ $taxLineItem->name }}: </div>
-                                                    <div class="col-md-4 value"> {{ PriceFormatter::formatNumber($taxLineItem->total, $order->currency) }} </div>
-                                                </div>
-                                                @endforeach
-                                            </div>
                                             <div class="row static-info align-reverse shipping">
                                                 <div class="col-md-8 name"> Shipping: </div>
                                                 <div class="col-md-4 value"> {{ PriceFormatter::formatNumber($order->shipping_total, $order->currency) }} </div>
+                                            </div>
+
+                                            <div id="tax-summary-wrapper">
+                                                @foreach($order->getTaxLineItems() as $taxLineItem)
+                                                    <div class="row static-info align-reverse tax">
+                                                        <div class="col-md-8 name"> {{ $taxLineItem->name }}: </div>
+                                                        <div class="col-md-4 value"> {{ PriceFormatter::formatNumber($taxLineItem->total, $order->currency) }} </div>
+                                                    </div>
+                                                @endforeach
                                             </div>
 
                                             @if($order->rounding_total > 0 || $order->rounding_total < 0)

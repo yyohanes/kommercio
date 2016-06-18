@@ -99,6 +99,7 @@
                     <thead>
                     <tr>
                         <th> Item </th>
+                        <th style="width: 10%;"> Availability </th>
                         <th style="width: 20%;"> Original Price </th>
                         <th style="width: 20%;"> Net Price </th>
                         <th style="width: 5%;"> Quantity </th>
@@ -244,6 +245,7 @@
         global_vars.product_line_item = '{{ route('backend.sales.order.line_item.row', ['type' => 'product']) }}';
         global_vars.get_order_cart_rules_path = '{{ route('backend.sales.order.get_cart_rules') }}';
         global_vars.get_tax_path = '{{ route('backend.tax.get') }}';
+        global_vars.get_product_availability = '{{ route('backend.catalog.product.availability', ['id' => null]) }}';
     </script>
 
     <script id="lineitem-product-template" type="text/x-handlebars-template">

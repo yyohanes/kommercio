@@ -219,6 +219,10 @@ class Product extends Model
 
     public function getStock($warehouse_id=null)
     {
+        if(!$this->productDetail->manage_stock){
+            return null;
+        }
+
         $warehouses = $this->warehouses;
 
         if(!$warehouse_id){
@@ -232,6 +236,8 @@ class Product extends Model
 
     public function checkStock($amount, $warehouse_id=null)
     {
+        $productDetail = $this->productDetail;
+
         if(!$productDetail->manage_stock){
             return TRUE;
         }
@@ -240,8 +246,6 @@ class Product extends Model
             $defaultWarehouse = $this->store->getDefaultWarehouse();
             $warehouse_id = $defaultWarehouse?$defaultWarehouse->id:null;
         }
-
-        $productDetail = $this->productDetail;
 
         if($productDetail->manage_stock && $warehouse_id){
             $existingStock = $this->getStock($warehouse_id);
@@ -383,12 +387,12 @@ class Product extends Model
             ->whereHas('order', function($query) use ($options){
                 $query->usageCounted();
 
-                if(isset($options['delivery_date'])){
-                    $query->where('delivery_date', $options['delivery_date']);
+                if(!empty($options['delivery_date'])){
+                    $query->whereRaw('DATE_FORMAT(delivery_date, \'%Y-%m-%d\') = ?', [$options['delivery_date']]);
                 }
 
-                if(isset($options['checkout_at'])){
-                    $query->where('checkout_at', $options['checkout_at']);
+                if(!empty($options['checkout_at'])){
+                    $query->whereRaw('DATE_FORMAT(checkout_at, \'%Y-%m-%d\') = ?', [$options['checkout_at']]);
                 }
             });
 
@@ -413,14 +417,19 @@ class Product extends Model
 
     public function getOrderLimit($options = [])
     {
-        $store = isset($options['store'])?$options['store']:null;
-        $date = isset($options['date'])?Carbon::createFromFormat('Y-m-d', $options['date']):null;
+        $store = !empty($options['store'])?$options['store']:null;
+        $date = !empty($options['date'])?Carbon::createFromFormat('Y-m-d', $options['date']):null;
+        $deliveryDate = !empty($options['delivery_date'])?Carbon::createFromFormat('Y-m-d', $options['delivery_date']):null;
 
-        //Delivery Limit
-        $deliveryOrderLimitsQb = $this->getOrderLimitQb(OrderLimit::LIMIT_DELIVERY_DATE, $date, $store);
-        $deliveryOrderLimits = $deliveryOrderLimitsQb->get();
+        $deliveryOrderLimit = null;
 
-        $deliveryOrderLimit = ($deliveryOrderLimits->count() > 0)?$this->extractOrderLimit($deliveryOrderLimits)->limit:null;
+        if($deliveryDate){
+            //Delivery Limit
+            $deliveryOrderLimitsQb = $this->getOrderLimitQb(OrderLimit::LIMIT_DELIVERY_DATE, $deliveryDate, $store);
+            $deliveryOrderLimits = $deliveryOrderLimitsQb->get();
+
+            $deliveryOrderLimit = ($deliveryOrderLimits->count() > 0)?$this->extractOrderLimit($deliveryOrderLimits)->limit:null;
+        }
 
         //Order Total Limit
         $totalOrderLimitsQb = $this->getOrderLimitQb(OrderLimit::LIMIT_ORDER_DATE, $date, $store);

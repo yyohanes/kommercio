@@ -29,12 +29,14 @@
             <td style="width: 50px;"></td>
 
             <td style="width: 25%;">
+                @if($order->getShippingMethod()->class != 'PickUp')
                 <p>
                     <strong>Shipping Information</strong><br/>
                     {{ $order->shippingProfile->full_name }}<br/>
                     {{ $order->shippingProfile->phone_number }}<br/>
                     {!! AddressHelper::printAddress($order->shippingProfile->getDetails()) !!}
                 </p>
+                @endif
             </td>
         </tr>
     </table>

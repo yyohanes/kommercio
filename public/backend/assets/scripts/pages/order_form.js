@@ -1,7 +1,9 @@
 var OrderForm = function () {
     var $orderProductTotal;
     var $orderOriginalProductTotal;
+    var $orderFeeSubtotal;
     var $orderFeeTotal;
+    var $orderShippingSubtotal;
     var $orderShippingTotal;
     var $orderSubtotal;
     var $orderTotalRounding;
@@ -15,7 +17,9 @@ var OrderForm = function () {
     {
         $orderProductTotal = 0;
         $orderOriginalProductTotal = 0;
+        $orderFeeSubtotal = 0;
         $orderFeeTotal = 0;
+        $orderShippingSubtotal = 0;
         $orderShippingTotal = 0;
         $orderPriceRuleTotal = 0;
         $orderSubtotal = 0;
@@ -56,7 +60,7 @@ var OrderForm = function () {
         $orderTotalBeforeRounding = $orderProductTotal + $orderShippingTotal + $orderFeeTotal + $orderPriceRuleTotal;
         $orderTotal = formHelper.roundNumber($orderTotalBeforeRounding, global_vars.total_precision, 'floor');
 
-        $orderTotalRounding += formHelper.calculateRounding($orderTotalBeforeRounding, $orderTotal, true);
+        $orderTotalRounding += formHelper.calculateRounding($orderTotalBeforeRounding, $orderTotal);
     }
 
     var calculateTaxes = function($amount, $quantity)
@@ -74,9 +78,10 @@ var OrderForm = function () {
             };
             $taxAmount.gross = formHelper.roundNumber($amount * ($taxes[i].rate/100));
             $taxAmount.net = formHelper.roundNumber($taxAmount.gross);
+
             $thisTaxAmount += $taxAmount.net;
 
-            $orderTotalRounding += formHelper.calculateRounding($taxAmount.gross, $taxAmount.net, true) * $quantity;
+            $orderTotalRounding += formHelper.calculateRounding($taxAmount.gross, $taxAmount.net) * $quantity;
 
             $taxes[i].total += $taxAmount.net * $quantity;
         }
@@ -96,7 +101,7 @@ var OrderForm = function () {
                 calculated.gross = calculatePriceRuleValue($orderProductTotal + $orderFeeTotal, $cartPriceRules[i].price, $cartPriceRules[i].modification, $cartPriceRules[i].modification_type);
                 calculated.net = formHelper.roundNumber(calculated.gross);
 
-                $orderTotalRounding += formHelper.calculateRounding(calculated.gross, calculated.net, true);
+                $orderTotalRounding += formHelper.calculateRounding(calculated.gross, calculated.net);
 
                 $cartPriceRules[i].total = calculated.net;
             }else if($cartPriceRules[i].offer_type == 'product_discount') {
@@ -123,7 +128,7 @@ var OrderForm = function () {
                 calculated.gross = calculatePriceRuleValue($price, $cartPriceRules[i].price, $cartPriceRules[i].modification, $cartPriceRules[i].modification_type);
                 calculated.net = formHelper.roundNumber(calculated.gross);
 
-                $orderTotalRounding += formHelper.calculateRounding(calculated.gross, calculated.net, true) * $quantity;
+                $orderTotalRounding += formHelper.calculateRounding(calculated.gross, calculated.net) * $quantity;
 
                 $cartPriceRules[i].total += calculated.net * $quantity;
             }
@@ -161,6 +166,9 @@ var OrderForm = function () {
             }else if($(obj).data('line_item') == 'fee'){
                 lineitemTotalAmount = Number($(obj).find('.lineitem-total-amount').inputmask('unmaskedvalue'));
 
+                //Before discount & tax
+                $orderFeeSubtotal += lineitemTotalAmount;
+
                 if($(obj).data('taxable') == '1'){
                     //Single unit price after tax
                     lineitemTotalAmount += calculateTaxes(lineitemTotalAmount);
@@ -170,6 +178,9 @@ var OrderForm = function () {
                 $orderFeeTotal += lineitemTotalAmount;
             }else if($(obj).data('line_item') == 'shipping'){
                 lineitemTotalAmount = Number($(obj).find('.lineitem-total-amount').inputmask('unmaskedvalue'));
+
+                //Before discount & tax
+                $orderShippingSubtotal += lineitemTotalAmount;
 
                 if($(obj).data('taxable') == '1'){
                     //Single unit price after tax
@@ -188,12 +199,12 @@ var OrderForm = function () {
     {
         $('.subtotal .amount', '#order-summary').text(formHelper.convertNumber($orderSubtotal));
 
-        if($orderShippingTotal > 0){
+        if($orderShippingSubtotal > 0){
             $('.shipping', '#order-summary').show();
         }else{
             $('.shipping', '#order-summary').hide();
         }
-        $('.shipping .amount', '#order-summary').text(formHelper.convertNumber($orderShippingTotal));
+        $('.shipping .amount', '#order-summary').text(formHelper.convertNumber($orderShippingSubtotal));
 
         /*
         $('.discount .amount', '#order-summary').text(formHelper.convertNumber($orderProductTotal - $orderOriginalProductTotal));
@@ -547,6 +558,43 @@ var OrderForm = function () {
         });
     }
 
+    var handleAvailability = function()
+    {
+        $('#order-form').on('order.delivery_date_change', function(){
+            $('.line-item[data-line_item="product"]', '#line-items-table').each(function(idx, obj){
+                //Get availability
+                $.ajax(global_vars.get_product_availability + '/' + $(obj).find('.line-item-id').val(), {
+                    data: 'store_id=' + $('input[name="store_id"]', '#order-form').val() + '&delivery_date=' + $('#delivery_date').val(),
+                    success: function(data){
+                        handleLoadedAvailability(data.data.ordered_total, data.data.order_limit, data.data.stock, $(obj));
+                    }
+                });
+            });
+        });
+
+        $('#delivery_date', '#order-form').on('change', function(){
+            $('#order-form').trigger('order.delivery_date_change');
+        });
+    }
+
+    var handleLoadedAvailability = function(ordered_total, order_limit, stock, row)
+    {
+        if(order_limit !== null && order_limit !== undefined){
+            row.find('.order-limit-info .limit-total').text(formHelper.roundNumber(order_limit));
+            row.find('.order-limit-info .ordered-total').text(formHelper.roundNumber(ordered_total));
+            row.find('.order-limit-info').show();
+        }else{
+            row.find('.order-limit-info').hide();
+        }
+
+        if(stock !== null && stock !== undefined){
+            row.find('.stock-info').text(formHelper.roundNumber(stock));
+            row.find('.stock-info').show();
+        }else{
+            row.find('.stock-info').hide();
+        }
+    }
+
     return {
 
         //main function to initiate the module
@@ -554,6 +602,7 @@ var OrderForm = function () {
             handleBillingEmail();
             handleButtons();
             handleTaxAndPriceRules();
+            handleAvailability();
 
             $totalShippingLineItems = $('.line-item[data-line_item="shipping"]', '#line-items-table').length;
             toggleAddShippingButton();
@@ -568,6 +617,7 @@ var OrderForm = function () {
             });
 
             $('#order-form').trigger('order.major_change');
+            $('#order-form').trigger('order.delivery_date_change');
         },
         lineItemInit: function(lineItem)
         {
@@ -597,6 +647,14 @@ var OrderForm = function () {
 
                         $row.find('.net-price-field').trigger('change');
 
+                        //Get availability
+                        $.ajax(global_vars.get_product_availability + '/' + suggestion.id, {
+                            data: 'store_id=' + $('input[name="store_id"]', '#order-form').val() + '&delivery_date=' + $('#delivery_date').val(),
+                            success: function(data){
+                                handleLoadedAvailability(data.data.ordered_total, data.data.order_limit, data.data.stock, $row);
+                            }
+                        });
+
                         $('#order-form').trigger('order.major_change');
                     }
                 });
@@ -606,12 +664,13 @@ var OrderForm = function () {
                 e.preventDefault();
 
                 $lineItem.remove();
-                $('#order-form').trigger('order.major_change');
 
                 if($lineItemType == 'shipping'){
                     $totalShippingLineItems -= 1;
                     toggleAddShippingButton();
                 }
+
+                $('#order-form').trigger('order.major_change');
             });
 
             $('.quantity-field, .net-price-field', lineItem).each(function(idx, obj){
