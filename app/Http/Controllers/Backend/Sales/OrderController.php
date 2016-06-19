@@ -480,7 +480,8 @@ class OrderController extends Controller{
             'lineItems' => $lineItems,
             'taxes' => isset($taxes)?$taxes:[],
             'cartPriceRules' => isset($cartPriceRules)?$cartPriceRules:[],
-            'paymentMethodOptions' => $paymentMethodOptions
+            'paymentMethodOptions' => $paymentMethodOptions,
+            'editOrder' => $order->isCheckout?true:false
         ]);
     }
 
@@ -558,6 +559,11 @@ class OrderController extends Controller{
         $order = Order::find($id);
 
         if($request->isMethod('GET')){
+            $options = [
+                'order' => $order,
+                'backUrl' => $request->get('backUrl', route('backend.sales.order.index'))
+            ];
+
             switch($process){
                 case 'pending':
                     $processForm = 'pending_form';
@@ -576,10 +582,7 @@ class OrderController extends Controller{
                     break;
             }
 
-            return view('backend.order.process.'.$processForm, [
-                'order' => $order,
-                'backUrl' => $request->get('backUrl', route('backend.sales.order.index'))
-            ]);
+            return view('backend.order.process.'.$processForm, $options);
         }else{
             $originalStatus = $order->status;
 

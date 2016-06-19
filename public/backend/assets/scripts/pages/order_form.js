@@ -12,6 +12,7 @@ var OrderForm = function () {
     var $totalShippingLineItems = 0;
     var $orderPriceRuleTotal;
     var $cartPriceRules = {};
+    var $orderedTotal = {};
 
     var reserOrderSummary = function()
     {
@@ -538,6 +539,17 @@ var OrderForm = function () {
                 }
             });
         });
+
+        $('.place-order-btn, button[name="action"]', '#order-form').click(function(e){
+            var problems = checkOverLimit();
+
+            if(problems.length > 0){
+                e.stopPropagation();
+                return confirm(problems + "\nAre you sure you want to proceed?");
+            }
+
+            return true;
+        });
     }
 
     var toggleAddShippingButton = function()
@@ -579,9 +591,22 @@ var OrderForm = function () {
 
     var handleLoadedAvailability = function(ordered_total, order_limit, stock, row)
     {
+        var currentQuantity = Number(row.find('.quantity-field').val());
+
+        var savedQuantity = 0;
+        if($('#order-content-wrapper').data('order_edit') == 1){
+            savedQuantity = currentQuantity;
+        }
+
+        $orderedTotal[row.find('.line-item-id').val()] = {
+            'ordered_total': ordered_total - savedQuantity,
+            'order_limit': order_limit,
+            'stock': stock
+        };
+
         if(order_limit !== null && order_limit !== undefined){
             row.find('.order-limit-info .limit-total').text(formHelper.roundNumber(order_limit));
-            row.find('.order-limit-info .ordered-total').text(formHelper.roundNumber(ordered_total));
+            row.find('.order-limit-info .ordered-total').text(formHelper.roundNumber(ordered_total - savedQuantity + currentQuantity));
             row.find('.order-limit-info').show();
         }else{
             row.find('.order-limit-info').hide();
@@ -593,6 +618,21 @@ var OrderForm = function () {
         }else{
             row.find('.stock-info').hide();
         }
+    }
+
+    var checkOverLimit = function()
+    {
+        var problems = '';
+
+        $('.line-item[data-line_item="product"]', '#line-items-table').each(function(idx, obj){
+            var totalOrdered = Number($(obj).find('.quantity-field').val()) + $orderedTotal[$(obj).find('.line-item-id').val()].ordered_total;
+
+            if((totalOrdered > $orderedTotal[$(obj).find('.line-item-id').val()].order_limit && $orderedTotal[$(obj).find('.line-item-id').val()].order_limit !== null) || (totalOrdered > $orderedTotal[$(obj).find('.line-item-id').val()].stock && $orderedTotal[$(obj).find('.line-item-id').val()].stock !== null)){
+                problems += $(obj).find('.product-search').val() + " order quantity exceeds limit.\n";
+            }
+        });
+
+        return problems;
     }
 
     return {
@@ -673,13 +713,23 @@ var OrderForm = function () {
                 $('#order-form').trigger('order.major_change');
             });
 
-            $('.quantity-field, .net-price-field', lineItem).each(function(idx, obj){
+            $('.quantity-field, .net-price-field', $lineItem).each(function(idx, obj){
                 var $totalAmount;
 
                 $(obj).on('change', function(e){
                     $totalAmount = $lineItem.find('.quantity-field').val() * $lineItem.find('.net-price-field').inputmask('unmaskedvalue');
                     $totalAmount = formHelper.roundNumber($totalAmount);;
                     $lineItem.find('.lineitem-total-amount').val($totalAmount).trigger('change');
+                });
+            });
+
+            $('.quantity-field', $lineItem).each(function(idx, obj){
+                var newQuantity;
+
+                $(obj).on('change', function(e){
+                    newQuantity = $orderedTotal[$lineItem.find('.line-item-id').val()].ordered_total + Number($(obj).val());
+
+                    $lineItem.find('.ordered-total').text(formHelper.roundNumber(newQuantity));
                 });
             });
 

@@ -94,7 +94,7 @@
                     <a href="javascript:;" id="order-clear" class="btn btn-default btn-sm">Clear</a>
                 </div>
             </div>
-            <div class="portlet-body" id="order-content-wrapper">
+            <div class="portlet-body" id="order-content-wrapper" data-order_edit="{{ isset($editOrder)?$editOrder:false }}">
                 <table id="line-items-table" class="table table-hover table-bordered table-striped">
                     <thead>
                     <tr>
