@@ -166,6 +166,10 @@ class CustomerController extends Controller{
     {
         $customer = Customer::findOrFail($id);
 
+        if(!$this->deleteable($customer)){
+            return redirect()->back()->withErrors(['This customer has Orders, therefore, it can\'t be deleted.']);
+        }
+
         $name = 'Customer '.$customer->fullName;
 
         if(isset($customer->user)){
@@ -223,5 +227,10 @@ class CustomerController extends Controller{
         }
 
         return response()->json(['data' => $return, '_token' => csrf_token()]);
+    }
+
+    protected function deleteable(Customer $customer)
+    {
+        return $customer->orders()->count() < 1;
     }
 }

@@ -3,8 +3,9 @@
 namespace Kommercio\Providers;
 
 use Illuminate\Contracts\Auth\Access\Gate as GateContract;
+use Illuminate\Database\Eloquent\Model;
+use Kommercio\Policies\AccessPolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
-use Kommercio\Models\Order\Order;
 
 class AuthServiceProvider extends ServiceProvider
 {
@@ -13,9 +14,7 @@ class AuthServiceProvider extends ServiceProvider
      *
      * @var array
      */
-    protected $policies = [
-        Order::class => 'Kommercio\Policies\OrderPolicy',
-    ];
+    protected $policies = [];
 
     /**
      * Register any application authentication / authorization services.
@@ -27,6 +26,18 @@ class AuthServiceProvider extends ServiceProvider
     {
         $this->registerPolicies($gate);
 
-        //
+        $gate->define('access', function ($user, $permission, $model = null) {
+            if(empty($permission)){
+                return TRUE;
+            }
+
+            return $user->role->hasPermission($permission);
+        });
+
+        $gate->before(function ($user, $ability) {
+            if ($user->isSuperAdmin) {
+                return true;
+            }
+        });
     }
 }

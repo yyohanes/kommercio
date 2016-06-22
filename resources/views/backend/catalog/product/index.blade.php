@@ -31,8 +31,10 @@
                     <span class="caption-subject sbold uppercase"> Products </span>
                 </div>
                 <div class="actions">
+                    @can('access', ['create_product'])
                     <a href="{{ route('backend.catalog.product.create', ['backUrl' => Request::fullUrl()]) }}" class="btn btn-sm btn-info">
                         <i class="fa fa-plus"></i> Add </a>
+                    @endcan
                 </div>
             </div>
 

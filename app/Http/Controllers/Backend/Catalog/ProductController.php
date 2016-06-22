@@ -6,9 +6,12 @@ use Carbon\Carbon;
 use Collective\Html\FormFacade;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Request as RequestFacade;
 use Illuminate\Support\Facades\Session;
 use Kommercio\Facades\CurrencyHelper;
+use Kommercio\Facades\ProjectHelper;
 use Kommercio\Http\Controllers\Controller;
 use Kommercio\Http\Requests\Backend\Catalog\ProductFormRequest;
 use Kommercio\Http\Requests\Backend\Catalog\ProductVariationFormRequest;
@@ -92,8 +95,13 @@ class ProductController extends Controller{
         foreach($products as $idx=>$product){
             $productAction = FormFacade::open(['route' => ['backend.catalog.product.delete', 'id' => $product->id]]);
             $productAction .= '<div class="btn-group btn-group-sm">';
+            if(Gate::allows('access', ['edit_product'])):
             $productAction .= '<a class="btn btn-default" href="'.route('backend.catalog.product.edit', ['id' => $product->id, 'backUrl' => RequestFacade::fullUrl()]).'"><i class="fa fa-pencil"></i> Edit</a>';
+            endif;
+
+            if(Gate::allows('access', ['delete_product'])):
             $productAction .= '<button class="btn btn-default" data-toggle="confirmation" data-original-title="Are you sure?" title=""><i class="fa fa-trash-o"></i> Delete</button></div>';
+            endif;
             $productAction .= FormFacade::close();
 
             $meat[] = [

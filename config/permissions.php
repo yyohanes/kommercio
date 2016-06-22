@@ -14,10 +14,10 @@ return [
         'delete_role' => 'Delete Role',
     ],
     'Product Category' => [
-        'view_category' => 'View Category',
-        'create_category' => 'Create Category',
-        'edit_category' => 'Edit Category',
-        'delete_category' => 'Delete Category',
+        'view_product_category' => 'View Category',
+        'create_product_category' => 'Create Category',
+        'edit_product_category' => 'Edit Category',
+        'delete_product_category' => 'Delete Category',
     ],
     'Product' => [
         'view_product' => 'View Product',
@@ -61,6 +61,12 @@ return [
         'edit_order' => 'Edit Order',
         'delete_order' => 'Delete Order',
         'process_order' => 'Process Order',
+    ],
+    'Payments' => [
+        'view_payment' => 'View Payment',
+        'create_payment' => 'Create Payment',
+        'void_payment' => 'Void Payment',
+        'confirm_payment' => 'Confirm Payment',
     ],
     'Order Limit' => [
         'view_order_limit' => 'View Order Limit',
@@ -113,5 +119,8 @@ return [
     'Report' => [
         'view_sales_report' => 'View Sales Report',
         'view_delivery_report' => 'View Delivery Report',
+    ],
+    'Production Schedule' => [
+        'view_production_schedule' => 'View Schedule',
     ],
 ];

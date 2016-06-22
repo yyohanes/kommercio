@@ -33,6 +33,8 @@ class User extends Authenticatable
         'password', 'remember_token',
     ];
 
+    //Methods
+
     //Accessors
     public function getFullNameAttribute()
     {

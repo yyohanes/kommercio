@@ -545,7 +545,7 @@
                             'label' => 'Manage Stock',
                             'key' => 'productDetail.manage_stock',
                             'value' => 1,
-                            'checked' => old('productDetail.manage_stock', $product->productDetail->manage_stock),
+                            'checked' => old('productDetail.manage_stock', $product->productDetail?$product->productDetail->manage_stock:false),
                             'attr' => [
                                 'class' => 'make-switch',
                                 'id' => 'productDetail[manage_stock]',

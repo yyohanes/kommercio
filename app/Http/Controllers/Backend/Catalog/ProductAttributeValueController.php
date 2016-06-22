@@ -9,7 +9,7 @@ use Kommercio\Models\ProductAttribute\ProductAttribute;
 use Kommercio\Models\ProductAttribute\ProductAttributeValue;
 
 class ProductAttributeValueController extends Controller{
-    public function index($attribute_id)
+    public function index(Request $request, $attribute_id)
     {
         $productAttribute = ProductAttribute::findOrFail($attribute_id);
         $productAttributeValues = $productAttribute->values;

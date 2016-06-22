@@ -26,6 +26,11 @@ class Customer extends Model
         return $this->belongsTo('Kommercio\Models\User');
     }
 
+    public function orders()
+    {
+        return $this->hasMany('Kommercio\Models\Order\Order');
+    }
+
     public function shippingProfile()
     {
         return $this->belongsTo('Kommercio\Models\Profile\Profile', 'shipping_profile_id');

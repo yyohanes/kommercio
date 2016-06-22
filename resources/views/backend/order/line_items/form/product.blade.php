@@ -56,7 +56,7 @@
         ])
     </td>
     <td>
-        @include('backend.master.form.fields.text', [
+        @include('backend.master.form.fields.number', [
             'name' => 'line_items['.$key.'][quantity]',
             'label' => FALSE,
             'key' => 'line_items.'.$key.'.quantity',

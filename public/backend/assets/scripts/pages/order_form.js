@@ -613,7 +613,7 @@ var OrderForm = function () {
         }
 
         if(stock !== null && stock !== undefined){
-            row.find('.stock-info').text(formHelper.roundNumber(stock));
+            row.find('.stock-total').text(formHelper.roundNumber(stock + savedQuantity - currentQuantity));
             row.find('.stock-info').show();
         }else{
             row.find('.stock-info').hide();
@@ -724,12 +724,14 @@ var OrderForm = function () {
             });
 
             $('.quantity-field', $lineItem).each(function(idx, obj){
-                var newQuantity;
+                var newQuantity, newStock;
 
                 $(obj).on('change', function(e){
                     newQuantity = $orderedTotal[$lineItem.find('.line-item-id').val()].ordered_total + Number($(obj).val());
+                    newStock = $orderedTotal[$lineItem.find('.line-item-id').val()].stock - Number($(obj).val());
 
                     $lineItem.find('.ordered-total').text(formHelper.roundNumber(newQuantity));
+                    $lineItem.find('.stock-total').text(formHelper.roundNumber(newStock));
                 });
             });
 

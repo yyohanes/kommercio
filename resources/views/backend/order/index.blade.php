@@ -40,8 +40,10 @@
                     <span class="caption-subject sbold uppercase"> Orders </span>
                 </div>
                 <div class="actions">
+                    @can('access', ['create_order'])
                     <a href="{{ route('backend.sales.order.create', ['backUrl' => Request::fullUrl()]) }}" class="btn btn-sm btn-info">
                         <i class="fa fa-plus"></i> Add </a>
+                    @endcan
                 </div>
             </div>
 

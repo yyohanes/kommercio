@@ -52,5 +52,6 @@ class Kernel extends HttpKernel
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'backend.order_editable' => \Kommercio\Http\Middleware\Backend\OrderEditable::class,
         'backend.order_deleteable' => \Kommercio\Http\Middleware\Backend\OrderDeleteable::class,
+        'backend.access' => \Kommercio\Http\Middleware\Backend\Access::class,
     ];
 }

@@ -30,9 +30,9 @@ class Product extends Model
         'available' => 'boolean',
     ];
     protected $dates = ['deleted_at'];
-    protected $with = ['productDetail'];
     private $_warehouse;
     private $_store;
+    private $_productDetail;
 
     public $translatedAttributes = ['name', 'description_short', 'description', 'slug', 'meta_title', 'meta_description', 'locale', 'thumbnail', 'thumbnails', 'images'];
 
@@ -52,9 +52,9 @@ class Product extends Model
         return $this->belongsTo('Kommercio\Models\Manufacturer');
     }
 
-    public function productDetail()
+    public function productDetails()
     {
-        return $this->hasOne('Kommercio\Models\ProductDetail')->where('store_id', $this->store->id);
+        return $this->hasMany('Kommercio\Models\ProductDetail');
     }
 
     public function parent()
@@ -219,7 +219,7 @@ class Product extends Model
 
     public function getStock($warehouse_id=null)
     {
-        if(!$this->productDetail->manage_stock){
+        if($this->productDetail && !$this->productDetail->manage_stock){
             return null;
         }
 
@@ -500,6 +500,19 @@ class Product extends Model
     }
 
     //Accessors
+    public function getProductDetailAttribute()
+    {
+        if(!isset($this->_productDetail)){
+            $this->_productDetail = $this->productDetails()->where('store_id', $this->store->id)->first();
+        }
+
+        if(!$this->_productDetail){
+            $this->_productDetail = $this->productDetails()->where('store_id', ProjectHelper::getDefaultStore()->id)->first();
+        }
+
+        return $this->_productDetail;
+    }
+
     public function getIsVariationAttribute()
     {
         return $this->combination_type == self::COMBINATION_TYPE_VARIATION;
@@ -577,10 +590,10 @@ class Product extends Model
     {
         $store = $store?$store:ProjectHelper::getActiveStore()->id;
 
-        $productDetailTable = $this->productDetail()->getRelated()->getTable();
+        $productDetailTable = $this->productDetails()->getRelated()->getTable();
 
         $query->leftJoin($productDetailTable.' AS D', function($join) use ($productDetailTable, $store){
-            $join->on('D.'.$this->productDetail()->getPlainForeignKey(), '=', $this->getTable().'.id')
+            $join->on('D.'.$this->productDetails()->getPlainForeignKey(), '=', $this->getTable().'.id')
                 ->where('D.store_id', '=', $store);
         });
 
