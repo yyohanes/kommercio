@@ -16,6 +16,7 @@
 
     <script type="text/javascript">
         var additional_columns = {{ $stickyProducts->count() }};
+        var show_store_column = {{ Auth::user()->manageMultipleStores }};
     </script>
 
     <script src="{{ asset('backend/assets/scripts/pages/order_index.js') }}" type="text/javascript"></script>
@@ -64,6 +65,9 @@
                         @endforeach
                         <th>Total</th>
                         <th>Status</th>
+                        @if(Auth::user()->manageMultipleStores)
+                        <th>Store</th>
+                        @endif
                         <th></th>
                     </tr>
                     <tr role="row" class="filter">
@@ -86,6 +90,9 @@
                         @endforeach
                         <td></td>
                         <td>{!! Form::select('filter[status]', ['' => 'All'] + \Kommercio\Models\Order\Order::getStatusOptions(), null, ['class' => 'form-control form-filter input-sm']) !!}</td>
+                        @if(Auth::user()->manageMultipleStores)
+                            <td>{!! Form::select('filter[store_id]', ['' => 'All'] + \Kommercio\Models\Store::getStoreOptions(), null, ['class' => 'form-control form-filter input-sm']) !!}</td>
+                        @endif
                         <td>
                             <div class="margin-bottom-5 btn-group btn-group-xs">
                                 <button class="btn btn-default filter-submit margin-bottom">

@@ -31,8 +31,10 @@
                     <span class="caption-subject sbold uppercase"> Product Features </span>
                 </div>
                 <div class="actions">
+                    @can('access', ['create_product_feature'])
                     <a href="{{ route('backend.catalog.product_feature.create', ['backUrl' => Request::fullUrl()]) }}" class="btn btn-sm btn-info">
                         <i class="fa fa-plus"></i> Add </a>
+                    @endcan
                 </div>
             </div>
 
@@ -48,13 +50,21 @@
                     <tbody>
                     @foreach($productFeatures as $productFeature)
                         <tr>
-                            <td><i class="fa fa-reorder"></i> <a class="feature-name btn btn-sm blue-madison" data-feature_id="{{ $productFeature->id }}" href="{{ route('backend.catalog.product_feature.value.index', ['feature_id' => $productFeature]) }}">{{ $productFeature->name }}</a></td>
+                            <td>
+                                @can('access', ['edit_product_feature'])
+                                <i class="fa fa-reorder"></i>
+                                @endcan
+                                <a class="feature-name btn btn-sm blue-madison" data-feature_id="{{ $productFeature->id }}" href="{{ route('backend.catalog.product_feature.value.index', ['feature_id' => $productFeature]) }}">{{ $productFeature->name }}</a></td>
                             <td>{{ $productFeature->valueCount }}</td>
                             <td class="text-center">
                                 {!! Form::open(['route' => ['backend.catalog.product_feature.delete', 'id' => $productFeature->id]]) !!}
                                 <div class="btn-group btn-group-sm">
+                                    @can('access', ['edit_product_feature'])
                                     <a class="btn btn-default" href="{{ route('backend.catalog.product_feature.edit', ['id' => $productFeature->id, 'backUrl' => Request::fullUrl()]) }}"><i class="fa fa-pencil"></i> Edit</a>
+                                    @endcan
+                                    @can('access', ['delete_product_feature'])
                                     <button class="btn btn-default" data-toggle="confirmation" data-original-title="Are you sure?" title=""><i class="fa fa-trash-o"></i> Delete</button>
+                                    @endcan
                                 </div>
                                 {!! Form::close() !!}
                             </td>

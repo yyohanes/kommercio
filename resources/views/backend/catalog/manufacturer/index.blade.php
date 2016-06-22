@@ -31,8 +31,10 @@
                     <span class="caption-subject sbold uppercase"> Manufacturers </span>
                 </div>
                 <div class="actions">
+                    @can('access', ['create_manufacturer'])
                     <a href="{{ route('backend.catalog.manufacturer.create', ['backUrl' => Request::fullUrl()]) }}" class="btn btn-sm btn-info">
                         <i class="fa fa-plus"></i> Add </a>
+                    @endcan
                 </div>
             </div>
 
@@ -55,8 +57,12 @@
                             <td class="text-center">
                                 {!! Form::open(['route' => ['backend.catalog.manufacturer.delete', 'id' => $manufacturer->id]]) !!}
                                 <div class="btn-group btn-group-sm">
+                                    @can('access', ['edit_manufacturer'])
                                     <a class="btn btn-default" href="{{ route('backend.catalog.manufacturer.edit', ['id' => $manufacturer->id, 'backUrl' => Request::fullUrl()]) }}"><i class="fa fa-pencil"></i> Edit</a>
+                                    @endcan
+                                    @can('access', ['delete_manufacturer'])
                                     <button class="btn btn-default" data-toggle="confirmation" data-original-title="Are you sure?" title=""><i class="fa fa-trash-o"></i> Delete</button>
+                                    @endcan
                                 </div>
                                 {!! Form::close() !!}
                             </td>

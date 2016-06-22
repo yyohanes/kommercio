@@ -24,6 +24,9 @@ class User extends Authenticatable
 
     protected $profileKeys = ['profile'];
 
+    private $_manage_multiple_stores;
+    private $_managed_stores;
+
     /**
      * The attributes excluded from the model's JSON form.
      *
@@ -34,6 +37,18 @@ class User extends Authenticatable
     ];
 
     //Methods
+    public function getManagedStores()
+    {
+        if(!isset($this->_managed_stores)){
+            if($this->isSuperAdmin){
+                $this->_managed_stores = Store::orderBy('created_at', 'DESC')->get();
+            }else{
+                $this->_managed_stores = $this->stores;
+            }
+        }
+
+        return $this->_managed_stores;
+    }
 
     //Accessors
     public function getFullNameAttribute()
@@ -62,6 +77,15 @@ class User extends Authenticatable
         return $this->id == 1 || ($this->role && $this->role->id == 1);
     }
 
+    public function getManageMultipleStoresAttribute()
+    {
+        if(!isset($this->_manage_multiple_stores)){
+            $this->_manage_multiple_stores = $this->getManagedStores()->count() > 1;
+        }
+
+        return $this->_manage_multiple_stores;
+    }
+
     //Scopes
     public function scopeNotCustomer($query)
     {
@@ -76,7 +100,7 @@ class User extends Authenticatable
 
     public function stores()
     {
-        return $this->belongsToMany('Kommercio\Models\Store');
+        return $this->belongsToMany('Kommercio\Models\Store')->orderBy('created_at', 'DESC');
     }
 
     public function customer()

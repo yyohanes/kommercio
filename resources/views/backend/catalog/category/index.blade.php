@@ -31,8 +31,10 @@
                     <span class="caption-subject sbold uppercase"> {{ $parentCategory?$parentCategory->name:'Categories' }} </span>
                 </div>
                 <div class="actions">
+                    @can('create_product_category')
                     <a href="{{ route('backend.catalog.category.create', ['parent_id' => $parentCategory?$parentCategory->id:null, 'backUrl' => Request::fullUrl()]) }}" class="btn btn-sm btn-info">
                         <i class="fa fa-plus"></i> Add </a>
+                    @endcan
                 </div>
             </div>
 
@@ -50,15 +52,23 @@
                     <tbody>
                     @foreach($categories as $category)
                         <tr>
-                            <td><i class="fa fa-reorder"></i> <a class="category-name btn btn-sm blue-madison" data-category_id="{{ $category->id }}" href="{{ route('backend.catalog.category.index', ['parent' => $category->id]) }}">{{ $category->name }}</a></td>
+                            <td>
+                                @can('edit_product_category')
+                                <i class="fa fa-reorder"></i>
+                                @endcan
+                                <a class="category-name btn btn-sm blue-madison" data-category_id="{{ $category->id }}" href="{{ route('backend.catalog.category.index', ['parent' => $category->id]) }}">{{ $category->name }}</a></td>
                             <td>{!! $category->description !!}</td>
                             <td>{{ $category->childrenCount }}</td>
                             <td><i class="fa fa-{{ $category->active?'check text-success':'remove text-danger' }}"></i></td>
                             <td class="text-center">
                                 {!! Form::open(['route' => ['backend.catalog.category.delete', 'id' => $category->id]]) !!}
                                 <div class="btn-group btn-group-sm">
+                                    @can('edit_product_category')
                                     <a class="btn btn-default" href="{{ route('backend.catalog.category.edit', ['id' => $category->id, 'backUrl' => Request::fullUrl()]) }}"><i class="fa fa-pencil"></i> Edit</a>
+                                    @endcan
+                                    @can('delete_product_category')
                                     <button class="btn btn-default" data-toggle="confirmation" data-original-title="Are you sure?" title=""><i class="fa fa-trash-o"></i> Delete</button>
+                                    @endcan
                                 </div>
                                 {!! Form::close() !!}
                             </td>

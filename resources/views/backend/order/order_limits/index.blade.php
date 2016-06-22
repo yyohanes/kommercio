@@ -19,8 +19,10 @@
                     <span class="caption-subject sbold uppercase"> {{ \Kommercio\Models\Order\OrderLimit::getTypeOptions($type) }} Order Limit </span>
                 </div>
                 <div class="actions">
+                    @can('access', ['create_order_limit'])
                     <a href="{{ route('backend.order_limit.create', ['type' => $type, 'backUrl' => Request::fullUrl()]) }}" class="btn btn-sm btn-info">
                         <i class="fa fa-plus"></i> Add </a>
+                    @endcan
                 </div>
             </div>
 
@@ -63,8 +65,13 @@
                             <td class="text-center">
                                 {!! Form::open(['route' => ['backend.order_limit.delete', 'id' => $orderLimit->id]]) !!}
                                 <div class="btn-group btn-group-sm">
+                                    @can('access', ['edit_order_limit'])
                                     <a class="btn btn-default" href="{{ route('backend.order_limit.edit', ['id' => $orderLimit->id, 'backUrl' => Request::fullUrl()]) }}"><i class="fa fa-pencil"></i> Edit</a>
+                                    @endcan
+
+                                    @can('access', ['delete_order_limit'])
                                     <button class="btn btn-default" data-toggle="confirmation" data-original-title="Are you sure?" title=""><i class="fa fa-trash-o"></i> Delete</button>
+                                    @endcan
                                 </div>
                                 {!! Form::close() !!}
                             </td>

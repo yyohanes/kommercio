@@ -3,6 +3,7 @@
 namespace Kommercio\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
 
 class Store extends Model
 {
@@ -51,9 +52,13 @@ class Store extends Model
         return $defaultStore;
     }
 
-    public static function getStoreOptions()
+    public static function getStoreOptions($all = false)
     {
-        $stores = self::orderBy('created_at', 'DESC')->pluck('name', 'id')->all();
+        if($all){
+            $stores = self::orderBy('created_at', 'DESC')->pluck('name', 'id')->all();
+        }else{
+            $stores = Auth::user()->getManagedStores()->pluck('name', 'id')->all();
+        }
 
         return $stores;
     }

@@ -31,8 +31,10 @@
                     <span class="caption-subject sbold uppercase"> Payment Method </span>
                 </div>
                 <div class="actions">
+                    @can('access', ['create_payment_method'])
                     <a href="{{ route('backend.payment_method.create', ['backUrl' => Request::fullUrl()]) }}" class="btn btn-sm btn-info">
                         <i class="fa fa-plus"></i> Add </a>
+                    @endcan
                 </div>
             </div>
 
@@ -51,8 +53,13 @@
                             <td class="text-center">
                                 {!! Form::open(['route' => ['backend.payment_method.delete', 'id' => $paymentMethod->id]]) !!}
                                 <div class="btn-group btn-group-sm">
+                                    @can('access', ['edit_payment_method'])
                                     <a class="btn btn-default" href="{{ route('backend.payment_method.edit', ['id' => $paymentMethod->id, 'backUrl' => Request::fullUrl()]) }}"><i class="fa fa-pencil"></i> Edit</a>
+                                    @endcan
+
+                                    @can('access', ['delete_payment_method'])
                                     <button class="btn btn-default" data-toggle="confirmation" data-original-title="Are you sure?" title=""><i class="fa fa-trash-o"></i> Delete</button>
+                                    @endcan
                                 </div>
                                 {!! Form::close() !!}
                             </td>

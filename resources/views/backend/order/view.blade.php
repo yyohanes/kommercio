@@ -24,15 +24,15 @@
                     <span class="caption-subject sbold uppercase">Order #{{ $order->reference }}</span>
                 </div>
                 <div class="actions">
-                    @if(!$order->status || in_array($order->status, [\Kommercio\Models\Order\Order::STATUS_ADMIN_CART]))
+                    @if(Gate::allows('access', ['edit_order']) && (!$order->status || in_array($order->status, [\Kommercio\Models\Order\Order::STATUS_ADMIN_CART]))))
                         <a href="{{ route('backend.sales.order.edit', ['id' => $order->id, 'backUrl' => Request::fullUrl()]) }}" class="btn btn-info"><i class="fa fa-pencil"></i> Edit </a>
                     @endif
 
-                    @if(in_array($order->status, [\Kommercio\Models\Order\Order::STATUS_PENDING]))
+                    @if(Gate::allows('access', ['process_order']) && in_array($order->status, [\Kommercio\Models\Order\Order::STATUS_PENDING]))
                         <a class="btn {{ OrderHelper::getOrderStatusLabelClass(\Kommercio\Models\Order\Order::STATUS_PROCESSING) }} modal-ajax" href="{{ route('backend.sales.order.process', ['action' => 'processing', 'id' => $order->id, 'backUrl' => Request::fullUrl()]) }}"><i class="fa fa-toggle-right"></i> Process Order</a>
                     @endif
 
-                    @if(in_array($order->status, [\Kommercio\Models\Order\Order::STATUS_PENDING, \Kommercio\Models\Order\Order::STATUS_PROCESSING]))
+                    @if(Gate::allows('access', ['process_order']) && in_array($order->status, [\Kommercio\Models\Order\Order::STATUS_PENDING, \Kommercio\Models\Order\Order::STATUS_PROCESSING]))
                         <a class="btn {{ OrderHelper::getOrderStatusLabelClass(\Kommercio\Models\Order\Order::STATUS_COMPLETED) }} modal-ajax" href="{{ route('backend.sales.order.process', ['action' => 'completed', 'id' => $order->id, 'backUrl' => Request::fullUrl()]) }}"><i class="fa fa-check-circle"></i> Complete Order</a>
                         <a class="btn {{ OrderHelper::getOrderStatusLabelClass(\Kommercio\Models\Order\Order::STATUS_CANCELLED) }} modal-ajax" href="{{ route('backend.sales.order.process', ['action' => 'cancelled', 'id' => $order->id, 'backUrl' => Request::fullUrl()]) }}"><i class="fa fa-remove"></i> Cancel Order</a>
                         <a class="btn btn-info" href="{{ route('backend.sales.order.print', ['id' => $order->id]) }}" target="_blank"><i class="fa fa-print"></i> Print Order</a>
@@ -47,9 +47,11 @@
                             <li class="active" role="presentation">
                                 <a href="#tab_details" data-toggle="tab"> Details </a>
                             </li>
+                            @can('access', ['view_payment'])
                             <li role="presentation">
                                 <a href="#tab_payments" data-toggle="tab"> Payments </a>
                             </li>
+                            @endcan
                         </ul>
 
                         <div class="tab-content">
@@ -269,12 +271,15 @@
                                 </div>
                             </div>
 
+                            @can('access', ['view_payment'])
                             <div class="tab-pane" id="tab_payments">
                                 <div class="form-body">
                                     <div class="margin-bottom-10">
+                                        @can('access', ['create_payment'])
                                         <a class="btn btn-default" id="payment-add-btn" href="#">
                                             <i class="icon-plus"></i> Add Payment
                                         </a>
+                                        @endcan
                                     </div>
 
                                     <div id="payment-form-wrapper"
@@ -300,6 +305,7 @@
                                     </div>
                                 </div>
                             </div>
+                            @endcan
                         </div>
                     </div>
                 </div>

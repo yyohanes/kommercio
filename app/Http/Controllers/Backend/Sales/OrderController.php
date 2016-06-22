@@ -5,7 +5,9 @@ namespace Kommercio\Http\Controllers\Backend\Sales;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Session;
 use Kommercio\Events\OrderUpdate;
 use Kommercio\Facades\AddressHelper;
@@ -29,8 +31,11 @@ use Kommercio\Models\Tax;
 class OrderController extends Controller{
     public function index(Request $request)
     {
+        $userManagedStores = Auth::user()->getManagedStores();
+
         $qb = Order::joinBillingProfile()
-            ->joinShippingProfile();
+            ->joinShippingProfile()
+            ->belongsToStore($userManagedStores->pluck('id')->all());
 
         if($request->ajax() || $request->wantsJson()){
             $totalRecords = $qb->count();
@@ -235,28 +240,35 @@ class OrderController extends Controller{
                 $orderAction .= '<a class="btn btn-default" href="' . route('backend.sales.order.print', ['id' => $order->id]) . '" target="_blank"><i class="fa fa-print"></i></a>';
             }
 
-            if(in_array($order->status, [Order::STATUS_PENDING, Order::STATUS_PROCESSING])) {
-                $orderAction .= '<button type="button" class="btn btn-default hold-on-click dropdown-toggle" data-toggle="dropdown" data-hover="dropdown" data-close-others="true" aria-expanded="true"><i class="fa fa-flag-o"></i></button><ul class="dropdown-menu" role="menu">';
-                if (in_array($order->status, [Order::STATUS_PENDING])) {
-                    $orderAction .= '<li><a class="modal-ajax" href="' . route('backend.sales.order.process', ['action' => 'processing', 'id' => $order->id, 'backUrl' => RequestFacade::fullUrl()]) . '"><i class="fa fa-toggle-right"></i> Process</a></li>';
-                }
+            if(Gate::allows('access', ['process_order'])):
+                if(in_array($order->status, [Order::STATUS_PENDING, Order::STATUS_PROCESSING])) {
+                    $orderAction .= '<button type="button" class="btn btn-default hold-on-click dropdown-toggle" data-toggle="dropdown" data-hover="dropdown" data-close-others="true" aria-expanded="true"><i class="fa fa-flag-o"></i></button><ul class="dropdown-menu" role="menu">';
+                    if (in_array($order->status, [Order::STATUS_PENDING])) {
+                        $orderAction .= '<li><a class="modal-ajax" href="' . route('backend.sales.order.process', ['action' => 'processing', 'id' => $order->id, 'backUrl' => RequestFacade::fullUrl()]) . '"><i class="fa fa-toggle-right"></i> Process</a></li>';
+                    }
 
-                if (in_array($order->status, [Order::STATUS_PENDING, Order::STATUS_PROCESSING])) {
-                    $orderAction .= '<li><a class="modal-ajax" href="' . route('backend.sales.order.process', ['action' => 'completed', 'id' => $order->id, 'backUrl' => RequestFacade::fullUrl()]) . '"><i class="fa fa-check-circle"></i> Complete</a></li>';
-                    $orderAction .= '<li><a class="modal-ajax" href="' . route('backend.sales.order.process', ['action' => 'cancelled', 'id' => $order->id, 'backUrl' => RequestFacade::fullUrl()]) . '"><i class="fa fa-remove"></i> Cancel</a></li>';
+                    if (in_array($order->status, [Order::STATUS_PENDING, Order::STATUS_PROCESSING])) {
+                        $orderAction .= '<li><a class="modal-ajax" href="' . route('backend.sales.order.process', ['action' => 'completed', 'id' => $order->id, 'backUrl' => RequestFacade::fullUrl()]) . '"><i class="fa fa-check-circle"></i> Complete</a></li>';
+                        $orderAction .= '<li><a class="modal-ajax" href="' . route('backend.sales.order.process', ['action' => 'cancelled', 'id' => $order->id, 'backUrl' => RequestFacade::fullUrl()]) . '"><i class="fa fa-remove"></i> Cancel</a></li>';
+                    }
+                    $orderAction .= '</ul>';
                 }
-                $orderAction .= '</ul>';
-            }
+            endif;
 
             $orderAction .= '</div>';
 
             if($order->isEditable){
                 $orderAction .= FormFacade::open(['route' => ['backend.sales.order.delete', 'id' => $order->id], 'class' => 'form-in-btn-group']);
                 $orderAction .= '<div class="btn-group btn-group-xs">';
-                $orderAction .= '<a class="btn btn-default" href="'.route('backend.sales.order.edit', ['id' => $order->id, 'backUrl' => RequestFacade::fullUrl()]).'"><i class="fa fa-pencil"></i></a>';
+
+                if(Gate::allows('access', ['edit_order'])):
+                    $orderAction .= '<a class="btn btn-default" href="'.route('backend.sales.order.edit', ['id' => $order->id, 'backUrl' => RequestFacade::fullUrl()]).'"><i class="fa fa-pencil"></i></a>';
+                endif;
 
                 if($order->isDeleteable) {
-                    $orderAction .= '<button class="btn btn-default" data-toggle="confirmation" data-original-title="Are you sure?" title="" class="btn-link"><i class="fa fa-trash-o"></i></button></div>';
+                    if (Gate::allows('access', ['delete_order'])):
+                        $orderAction .= '<button class="btn btn-default" data-toggle="confirmation" data-original-title="Are you sure?" title="" class="btn-link"><i class="fa fa-trash-o"></i></button></div>';
+                    endif;
                 }
 
                 $orderAction .= FormFacade::close().'</div>';
@@ -278,8 +290,13 @@ class OrderController extends Controller{
             $rowMeat = array_merge($rowMeat, [
                 PriceFormatter::formatNumber($order->total, $order->currency),
                 '<label class="label label-sm bg-'.OrderHelper::getOrderStatusLabelClass($order->status).' bg-font-'.OrderHelper::getOrderStatusLabelClass($order->status).'">'.Order::getStatusOptions($order->status, TRUE).'</label>',
-                $orderAction
             ]);
+
+            if(Auth::user()->manageMultipleStores){
+                $rowMeat = array_merge($rowMeat, [$order->store->name]);
+            }
+
+            $rowMeat = array_merge($rowMeat, [$orderAction]);
 
             $meat[] = $rowMeat;
         }

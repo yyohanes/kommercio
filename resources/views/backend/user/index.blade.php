@@ -31,8 +31,10 @@
                     <span class="caption-subject sbold uppercase"> Users </span>
                 </div>
                 <div class="actions">
+                    @can('access', ['create_user'])
                     <a href="{{ route('backend.user.create', ['backUrl' => Request::fullUrl()]) }}" class="btn btn-sm btn-info">
                         <i class="fa fa-plus"></i> Add </a>
+                    @endcan
                 </div>
             </div>
 
@@ -65,12 +67,18 @@
                                     ~
                                 @endif
                             </td>
-                            <td>{{ \Kommercio\Models\User::getStatusOptions($user->status) }}</td>
+                            <td class="text-center">
+                                {!! '<i class="fa fa-'.($user->status == \Kommercio\Models\User::STATUS_ACTIVE?'check text-success':'remove text-danger').'"></i>' !!}
+                            </td>
                             <td class="text-center">
                                 {!! Form::open(['route' => ['backend.user.delete', 'id' => $user->id]]) !!}
                                 <div class="btn-group btn-group-sm">
+                                    @can('access', ['edit_user'])
                                     <a class="btn btn-default" href="{{ route('backend.user.edit', ['id' => $user->id, 'backUrl' => Request::fullUrl()]) }}"><i class="fa fa-pencil"></i> Edit</a>
+                                    @endcan
+                                    @can('access', ['delete_user'])
                                     <button class="btn btn-default" data-toggle="confirmation" data-original-title="Are you sure?" title=""><i class="fa fa-trash-o"></i> Delete</button>
+                                    @endcan
                                 </div>
                                 {!! Form::close() !!}
                             </td>

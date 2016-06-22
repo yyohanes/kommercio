@@ -569,7 +569,7 @@ Route::group(['middleware' => ['web']], function () {
                     Route::any('process/{action}/{id?}', [
                         'as' => 'backend.sales.order.process',
                         'uses' => 'OrderController@process',
-                        'permissions' => ['process_order']
+                        'permissions' => ['place_order', 'process_order']
                     ]);
 
                     Route::post('copy/customer_information/{type}/{profile_id?}', [

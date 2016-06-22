@@ -451,6 +451,11 @@ class Order extends Model implements AuthorSignatureInterface
         });
     }
 
+    public function scopeBelongsToStore($query, $stores)
+    {
+        $query->whereIn('store_id', $stores);
+    }
+
     //Accessors
     public function getIsEditableAttribute()
     {

@@ -58,6 +58,7 @@ class RoleController extends Controller{
     {
         $role = Role::findOrFail($id);
         $role->fill($request->all());
+        $role->save();
 
         $permissions = array_keys($request->input('permissions', []));
         $role->savePermissions($permissions);

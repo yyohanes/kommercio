@@ -35,8 +35,10 @@
                     <span class="caption-subject sbold uppercase"> Roles </span>
                 </div>
                 <div class="actions">
+                    @can('access', ['create_role'])
                     <a href="{{ route('backend.user.role.create', ['backUrl' => Request::fullUrl()]) }}" class="btn btn-sm btn-info">
                         <i class="fa fa-plus"></i> Add </a>
+                    @endcan
                 </div>
             </div>
 
@@ -57,8 +59,12 @@
                             <td class="text-center">
                                 {!! Form::open(['route' => ['backend.user.role.delete', 'id' => $role->id]]) !!}
                                 <div class="btn-group btn-group-sm">
+                                    @can('access', ['edit_role'])
                                     <a class="btn btn-default" href="{{ route('backend.user.role.edit', ['id' => $role->id, 'backUrl' => Request::fullUrl()]) }}"><i class="fa fa-pencil"></i> Edit</a>
+                                    @endcan
+                                    @can('access', ['delete_role'])
                                     <button class="btn btn-default" data-toggle="confirmation" data-original-title="Are you sure?" title=""><i class="fa fa-trash-o"></i> Delete</button>
+                                    @endcan
                                 </div>
                                 {!! Form::close() !!}
                             </td>

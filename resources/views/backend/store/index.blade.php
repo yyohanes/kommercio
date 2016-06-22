@@ -14,8 +14,10 @@
                     <span class="caption-subject sbold uppercase"> Stores </span>
                 </div>
                 <div class="actions">
+                    @can('access', ['create_store'])
                     <a href="{{ route('backend.store.create', ['backUrl' => Request::fullUrl()]) }}" class="btn btn-sm btn-info">
                         <i class="fa fa-plus"></i> Add </a>
+                    @endcan
                 </div>
             </div>
 
@@ -48,8 +50,13 @@
                             <td class="text-center">
                                 {!! Form::open(['route' => ['backend.store.delete', 'id' => $store->id]]) !!}
                                 <div class="btn-group btn-group-sm">
+                                    @can('access', ['edit_store'])
                                     <a class="btn btn-default" href="{{ route('backend.store.edit', ['id' => $store->id, 'backUrl' => Request::fullUrl()]) }}"><i class="fa fa-pencil"></i> Edit</a>
+                                    @endcan
+
+                                    @can('access', ['delete_store'])
                                     <button class="btn btn-default" data-toggle="confirmation" data-original-title="Are you sure?" title=""><i class="fa fa-trash-o"></i> Delete</button>
+                                    @endcan
                                 </div>
                                 {!! Form::close() !!}
                             </td>

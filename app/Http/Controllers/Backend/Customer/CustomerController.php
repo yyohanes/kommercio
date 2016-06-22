@@ -3,6 +3,7 @@
 namespace Kommercio\Http\Controllers\Backend\Customer;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Kommercio\Http\Controllers\Controller;
 use Kommercio\Models\Customer;
 use Kommercio\Http\Requests\Backend\Customer\CustomerFormRequest;
@@ -83,8 +84,12 @@ class CustomerController extends Controller{
 
             $customerAction = FormFacade::open(['route' => ['backend.customer.delete', 'id' => $customer->id]]);
             $customerAction .= '<div class="btn-group btn-group-sm">';
-            $customerAction .= '<a class="btn btn-default" href="'.route('backend.customer.edit', ['id' => $customer->id, 'backUrl' => RequestFacade::fullUrl()]).'"><i class="fa fa-pencil"></i> Edit</a>';
-            $customerAction .= '<button class="btn btn-default" data-toggle="confirmation" data-original-title="Are you sure?" title=""><i class="fa fa-trash-o"></i> Delete</button></div>';
+            if(Gate::allows('access', ['edit_customer'])):
+                $customerAction .= '<a class="btn btn-default" href="'.route('backend.customer.edit', ['id' => $customer->id, 'backUrl' => RequestFacade::fullUrl()]).'"><i class="fa fa-pencil"></i> Edit</a>';
+            endif;
+            if(Gate::allows('access', ['delete_customer'])):
+                $customerAction .= '<button class="btn btn-default" data-toggle="confirmation" data-original-title="Are you sure?" title=""><i class="fa fa-trash-o"></i> Delete</button></div>';
+            endif;
             $customerAction .= FormFacade::close();
 
             $meat[] = [

@@ -35,8 +35,10 @@
                     <span class="caption-subject sbold uppercase">{{ $pageTitle }}</span>
                 </div>
                 <div class="actions">
+                    @can('access', ['create_address'])
                     <a href="{{ route('backend.configuration.address.create', ['type' => $type, 'parent_id' => $parentObj?$parentObj->id:null, 'backUrl' => Request::fullUrl()]) }}" class="btn btn-sm btn-info">
                         <i class="fa fa-plus"></i> Add </a>
+                    @endcan
                 </div>
             </div>
 
@@ -72,8 +74,14 @@
                                     @if($address->has_descendant)
                                     <a class="btn btn-default" href="{{ route('backend.configuration.address.index', ['parent_id' => $address->id, 'type' => $address->childType]) }}"><i class="fa fa-eye"></i> View {{ ucfirst(str_plural($address->childType)) }}</a>
                                     @endif
+
+                                    @can('access', ['edit_address'])
                                     <a class="btn btn-default" href="{{ route('backend.configuration.address.edit', ['id' => $address->id, 'type' => $type, 'backUrl' => Request::fullUrl()]) }}"><i class="fa fa-pencil"></i> Edit</a>
+                                    @endcan
+
+                                    @can('access', ['delete_address'])
                                     <button class="btn btn-default" data-toggle="confirmation" data-original-title="Are you sure?" title=""><i class="fa fa-trash-o"></i> Delete</button>
+                                    @endcan
                                 </div>
                                 {!! Form::close() !!}
                             </td>

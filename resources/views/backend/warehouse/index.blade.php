@@ -14,8 +14,10 @@
                     <span class="caption-subject sbold uppercase"> Warehouses </span>
                 </div>
                 <div class="actions">
+                    @can('access', ['create_warehouse'])
                     <a href="{{ route('backend.warehouse.create', ['backUrl' => Request::fullUrl()]) }}" class="btn btn-sm btn-info">
                         <i class="fa fa-plus"></i> Add </a>
+                    @endcan
                 </div>
             </div>
 
@@ -38,8 +40,13 @@
                             <td class="text-center">
                                 {!! Form::open(['route' => ['backend.warehouse.delete', 'id' => $warehouse->id]]) !!}
                                 <div class="btn-group btn-group-sm">
+                                    @can('access', ['edit_warehouse'])
                                     <a class="btn btn-default" href="{{ route('backend.warehouse.edit', ['id' => $warehouse->id, 'backUrl' => Request::fullUrl()]) }}"><i class="fa fa-pencil"></i> Edit</a>
+                                    @endcan
+
+                                    @can('access', ['delete_warehouse'])
                                     <button class="btn btn-default" data-toggle="confirmation" data-original-title="Are you sure?" title=""><i class="fa fa-trash-o"></i> Delete</button>
+                                    @endcan
                                 </div>
                                 {!! Form::close() !!}
                             </td>

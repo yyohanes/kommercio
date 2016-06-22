@@ -66,7 +66,7 @@ class PaymentController extends Controller{
             'payment.payment_method_id' => 'required',
             'payment.amount' => 'required|numeric|min:0',
             'payment.currency' => 'required',
-            'payment.notes' => 'required'
+            'payment.notes' => ''
         ];
 
         $this->validate($request, $rules);

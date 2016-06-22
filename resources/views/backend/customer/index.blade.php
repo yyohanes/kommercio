@@ -27,8 +27,10 @@
                     <span class="caption-subject sbold uppercase"> Customers </span>
                 </div>
                 <div class="actions">
+                    @can('access', ['create_customer'])
                     <a href="{{ route('backend.customer.create', ['backUrl' => Request::fullUrl()]) }}" class="btn btn-sm btn-info">
                         <i class="fa fa-plus"></i> Add </a>
+                    @endcan
                 </div>
             </div>
 

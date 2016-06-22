@@ -60,6 +60,7 @@ return [
         'create_order' => 'Create Order',
         'edit_order' => 'Edit Order',
         'delete_order' => 'Delete Order',
+        'place_order' => 'Place Order',
         'process_order' => 'Process Order',
     ],
     'Payments' => [
@@ -99,7 +100,7 @@ return [
         'delete_address' => 'Delete Address',
     ],
     'Tax' => [
-        'view_tax' => 'View Taxe',
+        'view_tax' => 'View Tax',
         'create_tax' => 'Create Tax',
         'edit_tax' => 'Edit Tax',
         'delete_tax' => 'Delete Tax',

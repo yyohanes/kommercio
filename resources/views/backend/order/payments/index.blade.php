@@ -21,11 +21,11 @@
         </td>
         <td>
             <div class="btn-group btn-group-sm">
-                @if(in_array($payment->status, [\Kommercio\Models\Order\Payment::STATUS_REVIEW]))
+                @if(Gate::allows('access', ['confirm_payment']) && in_array($payment->status, [\Kommercio\Models\Order\Payment::STATUS_REVIEW]))
                     <a href="{{ route('backend.sales.order.payment.process', ['id' => $payment->id, 'process' => 'accept', 'backUrl' => route('backend.sales.order.view', ['order_id' => $payment->order_id]).'#tab_payments']) }}" class="modal-ajax btn btn-default">Accept</a>
                 @endif
 
-                @if(!in_array($payment->status, [\Kommercio\Models\Order\Payment::STATUS_VOID]))
+                @if(Gate::allows('access', ['void_payment']) && !in_array($payment->status, [\Kommercio\Models\Order\Payment::STATUS_VOID]))
                 <a href="{{ route('backend.sales.order.payment.process', ['id' => $payment->id, 'process' => 'void', 'backUrl' => route('backend.sales.order.view', ['order_id' => $payment->order_id]).'#tab_payments']) }}" class="modal-ajax btn btn-default">Void</a>
                 @endif
             </div>

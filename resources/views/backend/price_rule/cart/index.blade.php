@@ -35,8 +35,10 @@
                     <span class="caption-subject sbold uppercase">Cart Price Rules</span>
                 </div>
                 <div class="actions">
+                    @can('access', ['create_cart_price_rule'])
                     <a href="{{ route('backend.price_rule.cart.create', ['backUrl' => Request::fullUrl()]) }}" class="btn btn-sm btn-info">
                         <i class="fa fa-plus"></i> Add </a>
+                    @endcan
                 </div>
             </div>
 
@@ -70,8 +72,12 @@
                                 <div class="btn-group btn-group-sm">
                                     {!! Form::open(['route' => ['backend.price_rule.cart.delete', 'id' => $priceRule->id]]) !!}
                                     <div class="btn-group btn-group-sm">
+                                        @can('access', ['edit_cart_price_rule'])
                                         <a class="btn btn-default" href="{{ route('backend.price_rule.cart.edit', ['id' => $priceRule->id, 'backUrl' => Request::fullUrl()]) }}"><i class="fa fa-pencil"></i> Edit</a>
+                                        @endcan
+                                        @can('access', ['delete_cart_price_rule'])
                                         <button class="btn btn-default" data-toggle="confirmation" data-original-title="Are you sure?" title=""><i class="fa fa-trash-o"></i> Delete</button>
+                                        @endcan
                                     </div>
                                     {!! Form::close() !!}
                                 </div>
