@@ -76,6 +76,11 @@ class Order extends Model implements AuthorSignatureInterface
         return $this->hasMany('Kommercio\Models\Order\Payment');
     }
 
+    public function comments()
+    {
+        return $this->hasMany('Kommercio\Models\Order\OrderComment');
+    }
+
     //Methods
     public function generateReference()
     {

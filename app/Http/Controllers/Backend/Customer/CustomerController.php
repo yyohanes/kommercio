@@ -119,7 +119,6 @@ class CustomerController extends Controller{
             $accountData = [
                 'email' => $request->input('profile.email'),
                 'status' => $request->input('user.status'),
-                'password' => bcrypt($request->input('user.password')),
             ];
 
             if($request->has('user.password')){

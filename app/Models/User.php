@@ -39,10 +39,47 @@ class User extends Authenticatable
         $fullName = $this->getProfile()->full_name;
 
         if(empty(trim($fullName))){
-            $fullName = $this->emaill;
+            $fullName = '';
         }
 
         return $fullName;
+    }
+
+    public function getRoleAttribute()
+    {
+        return $this->roles->first();
+    }
+
+    public function getIsMasterSuperAdminAttribute()
+    {
+        return $this->id == 1;
+    }
+
+    public function getIsSuperAdminAttribute()
+    {
+        return $this->id == 1 || ($this->role && $this->role->id == 1);
+    }
+
+    //Scopes
+    public function scopeNotCustomer($query)
+    {
+        $query->whereDoesntHave('customer');
+    }
+
+    //Relations
+    public function roles()
+    {
+        return $this->belongsToMany('Kommercio\Models\Role\Role');
+    }
+
+    public function stores()
+    {
+        return $this->belongsToMany('Kommercio\Models\Store');
+    }
+
+    public function customer()
+    {
+        return $this->hasOne('Kommercio\Models\Customer');
     }
 
     //Statics

@@ -595,12 +595,13 @@ var formBehaviors = function(){
             $.ajax($(this).attr('href'), {
                 success: function(data){
                     var $loadedData = $(data);
+
                     $($modal).find('.modal-content').html($loadedData);
 
-                    formBehaviors.init($loadedData);
-                    App.initAjax();
-
                     $($modal).modal('show');
+
+                    formBehaviors.init($($modal).find('.modal-content'));
+                    App.initAjax();
                 }
             });
         });

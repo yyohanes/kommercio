@@ -53,7 +53,7 @@ class Store extends Model
 
     public static function getStoreOptions()
     {
-        $stores = Store::orderBy('created_at', 'DESC')->pluck('name', 'id')->all();
+        $stores = self::orderBy('created_at', 'DESC')->pluck('name', 'id')->all();
 
         return $stores;
     }
@@ -72,5 +72,10 @@ class Store extends Model
     public function orderLimits()
     {
         return $this->hasMany('Kommercio\Models\Order\OrderLimit');
+    }
+
+    public function users()
+    {
+        return $this->belongsToMany('Kommercio\Models\User');
     }
 }

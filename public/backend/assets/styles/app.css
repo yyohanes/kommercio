@@ -46,3 +46,8 @@
 #line-items-table .availability div {
   display: none;
 }
+
+/* line 65, sass/app.scss */
+.permissions-check-all, .permissions-uncheck-all {
+  font-size: 12px;
+}

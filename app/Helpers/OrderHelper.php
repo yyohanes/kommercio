@@ -6,7 +6,9 @@ use Illuminate\Http\Request;
 use Kommercio\Models\Customer;
 use Kommercio\Models\Order\LineItem;
 use Kommercio\Models\Order\Order;
+use Kommercio\Models\Order\OrderComment;
 use Kommercio\Models\Order\Payment;
+use Kommercio\Models\User;
 
 class OrderHelper
 {
@@ -72,5 +74,26 @@ class OrderHelper
         }
 
         return $order;
+    }
+
+    public function saveOrderComment($message, $key, Order $order, User $author = NULL, $type = OrderComment::TYPE_INTERNAL)
+    {
+        $comment = new OrderComment([
+            'body' => $message,
+            'type' => $type
+        ]);
+        $comment->saveData([
+            'key' => $key
+        ]);
+
+        $comment->order()->associate($order);
+
+        if($author){
+            $comment->saveData([
+                'author_name' => $author->fullName
+            ]);
+        }
+
+        return $comment->save();
     }
 }

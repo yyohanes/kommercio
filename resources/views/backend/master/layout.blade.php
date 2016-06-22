@@ -68,7 +68,7 @@ License: You must have a valid license purchased only from themeforest(the above
 </head>
 <!-- END HEAD -->
 
-<body class="@yield('body_class', 'page-header-fixed page-sidebar-closed-hide-logo page-sidebar-closed page-content-white')">
+<body class="@yield('body_class', 'page-header-fixed page-sidebar-closed-hide-logo page-content-white')">
 @section('body_content')
         <!-- BEGIN HEADER -->
 <div class="page-header navbar navbar-fixed-top">
@@ -198,7 +198,7 @@ License: You must have a valid license purchased only from themeforest(the above
 <!-- BEGIN FOOTER -->
 <!-- BEGIN INNER FOOTER -->
 <div class="page-footer">
-    <div class="container"> {{ date('Y') }} &copy; Powered by Kommercio.</div>
+    <div class="page-footer-inner"> {{ date('Y') }} &copy; Powered by Kommercio.</div>
 </div>
 <div class="scroll-to-top">
     <i class="icon-arrow-up"></i>

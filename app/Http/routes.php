@@ -324,7 +324,7 @@ Route::group(['middleware' => ['web']], function () {
                     });
                 });
 
-                Route::group(['prefix' => 'manufacturer'], function(){
+                    Route::group(['prefix' => 'manufacturer'], function(){
                     Route::get('index', [
                         'as' => 'backend.catalog.manufacturer.index',
                         'uses' => 'ManufacturerController@index'
@@ -877,6 +877,71 @@ Route::group(['middleware' => ['web']], function () {
                     'as' => 'backend.report.delivery',
                     'uses' => 'ReportController@delivery'
                 ]);
+            });
+
+            //Users
+            Route::group(['prefix' => 'user', 'namespace' => 'User'], function(){
+                Route::get('index', [
+                    'as' => 'backend.user.index',
+                    'uses' => 'UserController@index'
+                ]);
+
+                Route::get('create', [
+                    'as' => 'backend.user.create',
+                    'uses' => 'UserController@create'
+                ]);
+
+                Route::post('store', [
+                    'as' => 'backend.user.store',
+                    'uses' => 'UserController@store'
+                ]);
+
+                Route::get('edit/{id}', [
+                    'as' => 'backend.user.edit',
+                    'uses' => 'UserController@edit'
+                ]);
+
+                Route::post('update/{id}', [
+                    'as' => 'backend.user.update',
+                    'uses' => 'UserController@update'
+                ]);
+
+                Route::post('delete/{id}', [
+                    'as' => 'backend.user.delete',
+                    'uses' => 'UserController@delete'
+                ]);
+
+                Route::group(['prefix' => 'role'], function(){
+                    Route::get('index', [
+                        'as' => 'backend.user.role.index',
+                        'uses' => 'RoleController@index'
+                    ]);
+
+                    Route::get('create', [
+                        'as' => 'backend.user.role.create',
+                        'uses' => 'RoleController@create'
+                    ]);
+
+                    Route::post('store', [
+                        'as' => 'backend.user.role.store',
+                        'uses' => 'RoleController@store'
+                    ]);
+
+                    Route::get('edit/{id}', [
+                        'as' => 'backend.user.role.edit',
+                        'uses' => 'RoleController@edit'
+                    ]);
+
+                    Route::post('update/{id}', [
+                        'as' => 'backend.user.role.update',
+                        'uses' => 'RoleController@update'
+                    ]);
+
+                    Route::post('delete/{id}', [
+                        'as' => 'backend.user.role.delete',
+                        'uses' => 'RoleController@delete'
+                    ]);
+                });
             });
         });
     });

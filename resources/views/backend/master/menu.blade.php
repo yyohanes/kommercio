@@ -1,25 +1,24 @@
-<ul class="page-sidebar-menu page-sidebar-menu-closed page-header-fixed page-sidebar-menu-hover-submenu page-sidebar-menu-light" data-keep-expanded="false" data-auto-scroll="true" data-slide-speed="200" style="padding-top: 20px;">
+<ul class="page-sidebar-menu page-header-fixed" data-keep-expanded="true" data-auto-scroll="true" data-slide-speed="200">
     <li class="sidebar-toggler-wrapper hide">
         <!-- BEGIN SIDEBAR TOGGLER BUTTON -->
         <div class="sidebar-toggler"> </div>
         <!-- END SIDEBAR TOGGLER BUTTON -->
     </li>
 
-    <li class="nav-item start {{ NavigationHelper::activeClass('dashboard')?'active':'' }}">
+    <li class="nav-item start open {{ NavigationHelper::activeClass('dashboard')?'active':'' }}">
         <a href="{{ route('backend.dashboard') }}" class="nav-link ">
             <i class="icon-home"></i>
             <span class="title">Dashboard</span>
-            <span class="arrow"></span>
         </a>
     </li>
 
-    <li class="nav-item {{ NavigationHelper::activeClass('catalog')?'active open':'' }}">
+    <li class="nav-item open {{ NavigationHelper::activeClass('catalog')?'active':'' }}">
         <a href="javascript:;" class="nav-link nav-toggle">
             <i class="fa fa-book"></i>
             <span class="title">Catalog</span>
-            <span class="arrow"></span>
+            <span class="arrow open"></span>
         </a>
-        <ul class="sub-menu">
+        <ul class="sub-menu" style="display: block;">
             <li class="nav-item {{ NavigationHelper::activeClass('catalog/product/index')?'active':'' }}">
                 <a href="{{ route('backend.catalog.product.index') }}" class="nav-link"> Product </a>
             </li>
@@ -38,20 +37,22 @@
         </ul>
     </li>
 
-    <li class="nav-item {{ NavigationHelper::activeClass('sales')?'active open':'' }}">
+    <li class="nav-item open {{ NavigationHelper::activeClass('sales')?'active':'' }}">
         <a href="javascript:;" class="nav-link">
             <i class="fa fa-smile-o"></i>
             <span class="title">Sales</span>
+            <span class="arrow open"></span>
         </a>
 
-        <ul class="sub-menu">
+        <ul class="sub-menu" style="display: block;">
             <li class="nav-item {{ NavigationHelper::activeClass('sales/order/')?'active':'' }}">
                 <a href="{{ route('backend.sales.order.index') }}" class="nav-link"> Order </a>
             </li>
 
             <li class="nav-item {{ NavigationHelper::activeClass('sales/order-limit')?'active':'' }}">
-                <a href="javascript:;" class="nav-link">
+                <a href="javascript:;" class="nav-link nav-toggle">
                     <span class="title">Order Limit</span>
+                    <span class="arrow"></span>
                 </a>
 
                 <ul class="sub-menu">
@@ -67,13 +68,13 @@
         </ul>
     </li>
 
-    <li class="nav-item {{ NavigationHelper::activeClass('price-rule')?'active open':'' }}">
+    <li class="nav-item open {{ NavigationHelper::activeClass('price-rule')?'active':'' }}">
         <a href="javascript:;" class="nav-link nav-toggle">
             <i class="fa fa-tags"></i>
             <span class="title">Price Rule</span>
-            <span class="arrow"></span>
+            <span class="arrow open"></span>
         </a>
-        <ul class="sub-menu">
+        <ul class="sub-menu" style="display: block;">
             <li class="nav-item {{ NavigationHelper::activeClass('price-rule/cart')?'active':'' }}">
                 <a href="{{ route('backend.price_rule.cart.index') }}" class="nav-link"> Cart Price Rules </a>
             </li>
@@ -83,20 +84,20 @@
         </ul>
     </li>
 
-    <li class="nav-item {{ NavigationHelper::activeClass('customer')?'active open':'' }}">
+    <li class="nav-item open {{ NavigationHelper::activeClass('customer')?'active':'' }}">
         <a href="{{ route('backend.customer.index') }}" class="nav-link">
             <i class="fa fa-users"></i>
             <span class="title">Customer</span>
         </a>
     </li>
 
-    <li class="nav-item {{ NavigationHelper::activeClass('report')?'active open':'' }}">
+    <li class="nav-item open {{ NavigationHelper::activeClass('report')?'active':'' }}">
         <a href="javascript:;" class="nav-link nav-toggle">
             <i class="fa fa-bar-chart"></i>
             <span class="title">Report</span>
-            <span class="arrow"></span>
+            <span class="arrow open"></span>
         </a>
-        <ul class="sub-menu">
+        <ul class="sub-menu" style="display: block;">
             <li class="nav-item {{ NavigationHelper::activeClass('report/sales')?'active':'' }}">
                 <a href="{{ route('backend.report.sales_year') }}" class="nav-link"> Sales </a>
             </li>
@@ -109,14 +110,14 @@
         </ul>
     </li>
 
-    <li class="nav-item {{ NavigationHelper::activeClass('configuration')?'active open':'' }}">
+    <li class="nav-item open {{ NavigationHelper::activeClass('configuration')?'active':'' }}">
         <a href="javascript:;" class="nav-link nav-toggle">
             <i class="fa fa-wrench"></i>
             <span class="title">Configuration</span>
-            <span class="arrow"></span>
+            <span class="arrow open"></span>
         </a>
-        <ul class="sub-menu">
-            <li class="nav-item {{ NavigationHelper::activeClass('configuration/tax')?'active open':'' }}">
+        <ul class="sub-menu" style="display: block;">
+            <li class="nav-item {{ NavigationHelper::activeClass('configuration/tax')?'active':'' }}">
                 <a href="{{ route('backend.tax.index') }}" class="nav-link">Tax</a>
             </li>
 
@@ -128,20 +129,35 @@
                 <a href="{{ route('backend.shipping_method.index') }}" class="nav-link"> Shipping Method </a>
             </li>
 
-            <li class="nav-item {{ NavigationHelper::activeClass('configuration/store')?'active open':'' }}">
+            <li class="nav-item {{ NavigationHelper::activeClass('configuration/store')?'active':'' }}">
                 <a href="{{ route('backend.store.index') }}" class="nav-link">Store</a>
             </li>
 
-            <li class="nav-item {{ NavigationHelper::activeClass('configuration/address/country')?'active open':'' }}">
+            <li class="nav-item {{ NavigationHelper::activeClass('configuration/address/country')?'active':'' }}">
                 <a href="{{ route('backend.configuration.address.index', ['type' => 'country']) }}" class="nav-link">Address</a>
             </li>
         </ul>
     </li>
 
-    <li class="nav-item {{ NavigationHelper::activeClass('warehouse')?'active open':'' }}">
+    <li class="nav-item open {{ NavigationHelper::activeClass('warehouse')?'active':'' }}">
         <a href="{{ route('backend.warehouse.index') }}" class="nav-link">
             <i class="fa fa-archive"></i>
             <span class="title">Warehouse</span>
         </a>
+    </li>
+
+    <li class="nav-item open {{ NavigationHelper::activeClass('user')?'active':'' }}">
+        <a href="javascript:;" class="nav-link nav-toggle">
+            <i class="fa fa-lock"></i>
+            <span class="title">Access</span>
+        </a>
+        <ul class="sub-menu" style="display: block;">
+            <li class="nav-item {{ NavigationHelper::activeClass('user/index')?'active':'' }}">
+                <a href="{{ route('backend.user.index') }}" class="nav-link">Users</a>
+            </li>
+            <li class="nav-item {{ NavigationHelper::activeClass('user/role/index')?'active':'' }}">
+                <a href="{{ route('backend.user.role.index') }}" class="nav-link">Roles</a>
+            </li>
+        </ul>
     </li>
 </ul>
