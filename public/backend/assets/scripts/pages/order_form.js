@@ -540,16 +540,23 @@ var OrderForm = function () {
             });
         });
 
+        $('.place-order-btn, button[name="action"]', '#order-form').unbind('click');
         $('.place-order-btn, button[name="action"]', '#order-form').click(function(e){
             var problems = checkOverLimit();
 
             if(problems.length > 0){
-                e.stopPropagation();
-                return confirm(problems + "\nAre you sure you want to proceed?");
+                var $confirmed = confirm(problems + "\nAre you sure you want to proceed?");
+
+                if(!$confirmed){
+                    e.stopImmediatePropagation();
+                    return $confirmed;
+                }
             }
 
             return true;
         });
+
+        formBehaviors.handleModalAjaxBtn($('#order-form'));
     }
 
     var toggleAddShippingButton = function()

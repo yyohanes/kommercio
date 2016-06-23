@@ -661,6 +661,9 @@ var formBehaviors = function(){
         reInitInputMask: function(context){
             //Re-init inputmask on #line-items-table level so auto remove mask will work
             $('input[data-inputmask]', context).inputmask('remove');
+        },
+        handleModalAjaxBtn: function(context){
+            handleAjaxModal(context);
         }
     }
 }();
