@@ -8,14 +8,24 @@ var OrderView = function () {
         });
     }
 
+    var handleOrderInternalMemoForm = function()
+    {
+        $('#internal-memo-add-btn').on('click', function(e){
+            e.preventDefault();
+
+            orderInternalMemoFormBehaviors.loadForm('?new_form');
+        });
+    }
+
     return {
 
         //main function to initiate the module
         init: function () {
             handleOrderPaymentForm();
+            handleOrderInternalMemoForm();
 
             $(document).ajaxComplete(function( event,request, settings ) {
-                App.unblockUI('#tab_payments');
+                App.unblockUI('#order-wrapper');
             });
         }
     };
@@ -32,7 +42,7 @@ var orderPaymentFormBehaviors = {
             });
 
             App.blockUI({
-                target: '#tab_payments',
+                target: '#order-wrapper',
                 boxed: true,
                 message: 'Saving payment...'
             });
@@ -63,7 +73,8 @@ var orderPaymentFormBehaviors = {
                         formHelper.addFieldError({
                             'name': $errorName,
                             'message': xhr.responseJSON[i][0],
-                            'context': '#payment-form-wrapper'
+                            'context': '#payment-form-wrapper',
+                            'messagesWrapper' : '#payment-form-messages'
                         });
 
                         App.scrollTo($('#payment-form-wrapper'));
@@ -94,7 +105,7 @@ var orderPaymentFormBehaviors = {
         }
 
         App.blockUI({
-            target: '#tab_payments',
+            target: '#order-wrapper',
             boxed: true,
             message: message
         });
@@ -130,6 +141,121 @@ var orderPaymentFormBehaviors = {
                 $('#payment-index-wrapper').html($orderPaymentIndex);
 
                 formBehaviors.init($orderPaymentIndex);
+                App.initAjax();
+            }
+        });
+    }
+};
+
+var orderInternalMemoFormBehaviors = {
+    initAjax: function(context){
+        $('#internal-memo-save', context).click(function(e){
+            e.preventDefault();
+
+            formHelper.clearFormError({
+                'wrapper': '#internal-memo-form-wrapper'
+            });
+
+            App.blockUI({
+                target: '#order-wrapper',
+                boxed: true,
+                message: 'Saving internal memo...'
+            });
+
+            $.ajax($(this).data('internal_memo_save'), {
+                'method': 'POST',
+                'data': $('#internal-memo-form-wrapper :input').serialize(),
+                'success': function(data){
+                    if(data.result == 'success'){
+                        $.bootstrapGrowl(data.message, {
+                            ele: 'body', // which element to append to
+                            type: 'success', // (null, 'info', 'danger', 'success')
+                            offset: {from: 'top', amount: 20}, // 'top', or 'bottom'
+                            align: 'right', // ('left', 'right', or 'center')
+                            width: 250, // (integer, or 'auto')
+                            delay: 4000, // Time while the message will be displayed. It's not equivalent to the *demo* timeOut!
+                            allow_dismiss: true, // If true then will display a cross to close the popup.
+                            stackup_spacing: 10 // spacing between consecutively stacked growls.
+                        });
+
+                        orderInternalMemoFormBehaviors.closeForm();
+                        orderInternalMemoFormBehaviors.refreshOrderPaymentIndex();
+                    }
+                },
+                'error': function(xhr){
+                    for(var i in xhr.responseJSON){
+                        var $errorName = formHelper.convertDotToSquareBracket(i);
+                        formHelper.addFieldError({
+                            'name': $errorName,
+                            'message': xhr.responseJSON[i][0],
+                            'context': '#internal-memo-form-wrapper',
+                            'messagesWrapper' : '#internal-memo-form-messages'
+                        });
+
+                        App.scrollTo($('#internal-memo-form-wrapper'));
+                    }
+
+                    formBehaviors.initComponents(context);
+                }
+            });
+        });
+
+        $('#internal-memo-cancel', context).on('click', function(e){
+            e.preventDefault();
+
+            orderInternalMemoFormBehaviors.closeForm();
+        });
+    },
+    loadForm: function(formData, formUrl, method, message){
+        if(typeof method === 'undefined'){
+            method = 'GET';
+        }
+
+        if(typeof message === 'undefined'){
+            message = 'Loading form...';
+        }
+
+        if(typeof formUrl === 'undefined'){
+            formUrl = $('#internal-memo-form-wrapper').data('internal_memo_form');
+        }
+
+        App.blockUI({
+            target: '#order-wrapper',
+            boxed: true,
+            message: message
+        });
+
+        $.ajax(formUrl, {
+            'method': method,
+            'data': formData,
+            'success': function(data){
+                var $internalMemoForm = $(data.html);
+
+                $('#internal-memo-form-wrapper').html($internalMemoForm);
+
+                formBehaviors.init($internalMemoForm);
+                orderInternalMemoFormBehaviors.initAjax($internalMemoForm);
+                App.initAjax();
+            },
+            'error': function(){
+                alert('An error occured. Please refresh this page.');
+            }
+        });
+    },
+    closeForm: function()
+    {
+        $('#internal-memo-form-wrapper').empty();
+    },
+    refreshOrderPaymentIndex: function()
+    {
+        $.ajax($('#internal-memo-form-wrapper').data('internal_memo_index'), {
+            'method': 'GET',
+            'success': function(data){
+                var $internalMemoIndex = $(data.html);
+
+                $('#internal-memo-index-wrapper').html($internalMemoIndex);
+
+                formBehaviors.init($internalMemoIndex);
                 App.initAjax();
             }
         });

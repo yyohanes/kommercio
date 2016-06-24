@@ -3,6 +3,7 @@
 namespace Kommercio\Helpers;
 
 use Illuminate\Support\Facades\Mail;
+use Kommercio\Facades\ProjectHelper;
 
 class EmailHelper
 {
@@ -16,11 +17,7 @@ class EmailHelper
 
     public function getTemplate($template)
     {
-        $viewPath = 'project::emails.'.$template;
-
-        if(!view()->exists($viewPath)){
-            $viewPath = 'emails.'.$template;
-        }
+        $viewPath = ProjectHelper::getViewTemplate('emails.'.$template);
 
         return $viewPath;
     }

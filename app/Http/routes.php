@@ -633,6 +633,26 @@ Route::group(['middleware' => ['web']], function () {
                             'permissions' => ['confirm_payment', 'void_payment']
                         ]);
                     });
+
+                    Route::group(['prefix' => 'internal-memo'], function(){
+                        Route::get('{order_id}/index', [
+                            'as' => 'backend.sales.order.internal_memo.index',
+                            'uses' => 'OrderCommentController@orderCommentIndex',
+                            'permissions' => ['view_order_internal_memo']
+                        ]);
+
+                        Route::get('{order_id}/form', [
+                            'as' => 'backend.sales.order.internal_memo.form',
+                            'uses' => 'OrderCommentController@orderCommentForm',
+                            'permissions' => ['create_order_internal_memo']
+                        ]);
+
+                        Route::post('{order_id}/save', [
+                            'as' => 'backend.sales.order.internal_memo.save',
+                            'uses' => 'OrderCommentController@orderCommentSave',
+                            'permissions' => ['create_order_internal_memo']
+                        ]);
+                    });
                 });
 
                 //Order Limits
@@ -1010,6 +1030,12 @@ Route::group(['middleware' => ['web']], function () {
                     'as' => 'backend.report.delivery',
                     'uses' => 'ReportController@delivery',
                     'permissions' => ['view_delivery_report']
+                ]);
+
+                Route::get('production-schedule', [
+                    'as' => 'backend.report.production_schedule',
+                    'uses' => 'ReportController@productionSchedule',
+                    'permissions' => ['view_production_schedule']
                 ]);
             });
 

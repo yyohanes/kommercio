@@ -58,6 +58,12 @@
                 <div class="caption">
                     <span class="caption-subject sbold uppercase">{{ $shippingMethod }} on {{ $deliveryDate->format('l, j M Y') }}</span>
                 </div>
+                <div class="actions">
+                    @can('access', ['view_order'])
+                    <a target="_blank" href="{{ Request::fullUrlWithQuery(['print_invoices' => TRUE]).'' }}" class="btn btn-sm btn-info">
+                        <i class="fa fa-print"></i> All Invoices</a>
+                    @endcan
+                </div>
             </div>
 
             <div class="portlet-body">
@@ -66,6 +72,7 @@
                         <thead>
                         <tr>
                             <th style="width: 10px;"></th>
+                            <th></th>
                             <th>Order #</th>
                             <th>Purchased On</th>
                             <th>Status</th>
@@ -74,7 +81,7 @@
                             <th>Email</th>
                             <th>Address</th>
                             @foreach($orderedProducts as $orderedProduct)
-                            <th>{{ $orderedProduct['name'] }}</th>
+                            <th>{{ $orderedProduct['product']->name }}</th>
                             @endforeach
                             <th>Total</th>
                             <th>Payment</th>
@@ -89,6 +96,14 @@
                         @foreach($orders as $idx=>$order)
                             <tr>
                                 <td>{{ $idx+1 }}</td>
+                                <td>
+                                    @can('access', ['view_order'])
+                                    <div class="btn-group btn-group-xs">
+                                        <a class="btn btn-default" href="{{ route('backend.sales.order.view', ['id' => $order->id, 'backUrl' => Request::fullUrl()]) }}"><i class="fa fa-search"></i></a>
+                                        <a class="btn btn-default" href="{{ route('backend.sales.order.print', ['id' => $order->id]) }}" target="_blank"><i class="fa fa-print"></i></a>
+                                    </div>
+                                    @endcan
+                                </td>
                                 <td>{{ $order->reference }}</td>
                                 <td>{{ $order->checkout_at?$order->checkout_at->format('d M Y, H:i'):'' }}</td>
                                 <td>{!! '<label class="label label-sm bg-'.OrderHelper::getOrderStatusLabelClass($order->status).' bg-font-'.OrderHelper::getOrderStatusLabelClass($order->status).'">'.$order->statusLabel.'</label>' !!}</td>
@@ -110,6 +125,7 @@
                         @endforeach
                         </tbody>
                         <tfoot>
+                            <td></td>
                             <td></td>
                             <td></td>
                             <td></td>

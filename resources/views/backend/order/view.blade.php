@@ -41,7 +41,7 @@
             </div>
 
             <div class="portlet-body">
-                <div class="form-body">
+                <div class="form-body" id="order-wrapper">
                     <div class="tabbable-bordered">
                         <ul class="nav nav-tabs" role="tablist">
                             <li class="active" role="presentation">
@@ -50,6 +50,12 @@
                             @can('access', ['view_payment'])
                             <li role="presentation">
                                 <a href="#tab_payments" data-toggle="tab"> Payments </a>
+                            </li>
+                            @endcan
+
+                            @can('access', ['view_order_internal_memo'])
+                            <li role="presentation">
+                                <a href="#tab_internal_memo" data-toggle="tab"> Order Memo </a>
                             </li>
                             @endcan
                         </ul>
@@ -300,6 +306,39 @@
                                             <tbody id="payment-index-wrapper">
                                             <?php $payments = $order->payments; ?>
                                             @include('backend.order.payments.index')
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                            @endcan
+
+                            @can('access', ['view_order_internal_memo'])
+                            <div class="tab-pane" id="tab_internal_memo">
+                                <div class="form-body">
+                                    <div class="margin-bottom-10">
+                                        @can('access', ['create_order_internal_memo'])
+                                        <a class="btn btn-default" id="internal-memo-add-btn" href="#">
+                                            <i class="icon-plus"></i> Add Internal Memo
+                                        </a>
+                                        @endcan
+                                    </div>
+
+                                    <div id="internal-memo-form-wrapper"
+                                         data-internal_memo_form="{{ route('backend.sales.order.internal_memo.form', ['order_id' => $order->id]) }}"
+                                         data-internal_memo_index="{{ route('backend.sales.order.internal_memo.index', ['order_id' => $order->id]) }}"></div>
+
+                                    <div class="table-scrollable">
+                                        <table class="table table-striped table-hover">
+                                            <thead>
+                                            <tr>
+                                                <th style="width: 60%;">Memo</th>
+                                                <th>By</th>
+                                                <th>Date</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody id="internal-memo-index-wrapper">
+                                            @include('backend.order.internal_memos.index')
                                             </tbody>
                                         </table>
                                     </div>

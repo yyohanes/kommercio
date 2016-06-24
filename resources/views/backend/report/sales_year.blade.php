@@ -63,6 +63,7 @@
                             <th> Sales </th>
                             <th> Discount </th>
                             <th> Shipping </th>
+                            <th> Tax </th>
                         </tr>
                         </thead>
                         <tbody>
@@ -70,12 +71,14 @@
                             $total = 0;
                             $shippingTotal = 0;
                             $discountTotal = 0;
+                            $taxTotal = 0;
                             ?>
                             @foreach($months as $idx=>$month)
                                 <?php
                                     $total += isset($results[$idx])?$results[$idx]->total:0;
                                     $shippingTotal += isset($results[$idx])?$results[$idx]->shipping_total:0;
                                     $discountTotal += isset($results[$idx])?$results[$idx]->discount_total:0;
+                                    $taxTotal += isset($results[$idx])?$results[$idx]->tax_total:0;
                                     $date = date_create_from_format('Y-n', $filter['year'].'-'.$idx);
                                 ?>
                                 <tr>
@@ -83,6 +86,7 @@
                                     <td>{{ PriceFormatter::formatNumber((isset($results[$idx])?$results[$idx]->total:0)) }}</td>
                                     <td>{{ PriceFormatter::formatNumber((isset($results[$idx])?abs($results[$idx]->discount_total):0)) }}</td>
                                     <td>{{ PriceFormatter::formatNumber((isset($results[$idx])?$results[$idx]->shipping_total:0)) }}</td>
+                                    <td>{{ PriceFormatter::formatNumber((isset($results[$idx])?$results[$idx]->tax_total:0)) }}</td>
                                 </tr>
                             @endforeach
                         </tbody>
@@ -92,6 +96,7 @@
                                 <td>{{ PriceFormatter::formatNumber($total) }}</td>
                                 <td>{{ PriceFormatter::formatNumber(abs($discountTotal)) }}</td>
                                 <td>{{ PriceFormatter::formatNumber($shippingTotal) }}</td>
+                                <td>{{ PriceFormatter::formatNumber($taxTotal) }}</td>
                             </tr>
                         </tfoot>
                     </table>
@@ -126,6 +131,8 @@
             'shipping_print': '{{ PriceFormatter::formatNumber((isset($results[$idx])?$results[$idx]->shipping_total:0)) }}',
             'discount': {{ isset($results[$idx])?abs($results[$idx]->discount_total):0 }},
             'discount_print': '{{ PriceFormatter::formatNumber((isset($results[$idx])?abs($results[$idx]->discount_total):0)) }}',
+            'tax': {{ isset($results[$idx])?abs($results[$idx]->tax_total):0 }},
+            'tax_print': '{{ PriceFormatter::formatNumber((isset($results[$idx])?abs($results[$idx]->tax_total):0)) }}'
         });
         @endforeach
 
@@ -186,6 +193,21 @@
                     "lineAlpha": 1,
                     "title": "Discount",
                     "valueField": "discount"
+                },
+                {
+                    "balloonText": "<span style='font-size:13px;'>[[title]] in [[category]] : <b>[[tax_print]]</b></span>",
+                    "bullet": "round",
+                    "dashLengthField": "dashLengthLine",
+                    "lineThickness": 3,
+                    "bulletSize": 7,
+                    "bulletBorderAlpha": 1,
+                    "bulletColor": "#FFFFFF",
+                    "useLineColorForBulletBorder": true,
+                    "bulletBorderThickness": 3,
+                    "fillAlphas": 0,
+                    "lineAlpha": 1,
+                    "title": "Tax",
+                    "valueField": "tax"
                 }],
                 "categoryField": "month",
                 "categoryAxis": {

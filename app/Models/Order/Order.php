@@ -81,6 +81,11 @@ class Order extends Model implements AuthorSignatureInterface
         return $this->hasMany('Kommercio\Models\Order\OrderComment');
     }
 
+    public function internalMemos()
+    {
+        return $this->comments()->internalMemo()->orderBy('created_at', 'DESC');
+    }
+
     //Methods
     public function generateReference()
     {

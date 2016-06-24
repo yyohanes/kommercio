@@ -122,7 +122,7 @@
     </li>
     @endcan
 
-    @can('access', ['view_sales_report', 'view_delivery_report'])
+    @can('access', ['view_sales_report', 'view_delivery_report', 'view_production_schedule'])
     <li class="nav-item open {{ NavigationHelper::activeClass('report')?'active':'' }}">
         <a href="javascript:;" class="nav-link nav-toggle">
             <i class="fa fa-bar-chart"></i>
@@ -140,6 +140,12 @@
             @can('access', ['view_delivery_report'])
             <li class="nav-item {{ NavigationHelper::activeClass('report/delivery')?'active':'' }}">
                 <a href="{{ route('backend.report.delivery') }}" class="nav-link"> Delivery </a>
+            </li>
+            @endcan
+
+            @can('access', ['view_production_schedule'])
+            <li class="nav-item {{ NavigationHelper::activeClass('report/production-schedule')?'active':'' }}">
+                <a href="{{ route('backend.report.production_schedule') }}" class="nav-link"> Production Schedule </a>
             </li>
             @endcan
             @endif

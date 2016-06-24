@@ -13,6 +13,7 @@ use Kommercio\Events\OrderUpdate;
 use Kommercio\Facades\AddressHelper;
 use Kommercio\Facades\LanguageHelper;
 use Kommercio\Facades\OrderHelper;
+use Kommercio\Facades\ProjectHelper;
 use Kommercio\Http\Controllers\Controller;
 use Kommercio\Models\Customer;
 use Kommercio\Models\Order\Order;
@@ -413,20 +414,17 @@ class OrderController extends Controller{
             'order' => $order,
             'lineItems' => $lineItems,
             'billingProfile' => $billingProfile,
-            'shippingProfile' => $shippingProfile
+            'shippingProfile' => $shippingProfile,
+            'internalMemos' => $order->internalMemos
         ]);
     }
 
     public function printOrder($id)
     {
         $order = Order::findOrFail($id);
-        $billingProfile = $order->billingProfile?$order->billingProfile->fillDetails():new Profile();
-        $shippingProfile = $order->shippingProfile?$order->shippingProfile->fillDetails():new Profile();
 
-        return view('print.order.invoice', [
-            'order' => $order,
-            'billingProfile' => $billingProfile,
-            'shippingProfile' => $shippingProfile
+        return view(ProjectHelper::getViewTemplate('print.order.invoice'), [
+            'order' => $order
         ]);
     }
 

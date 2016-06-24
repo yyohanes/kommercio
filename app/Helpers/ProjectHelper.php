@@ -32,4 +32,15 @@ class ProjectHelper
 
         return $defaultStore;
     }
+
+    public function getViewTemplate($template)
+    {
+        $viewPath = 'project::'.$template;
+
+        if(!view()->exists($viewPath)){
+            $viewPath = $template;
+        }
+
+        return $viewPath;
+    }
 }

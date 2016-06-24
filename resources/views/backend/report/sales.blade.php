@@ -86,6 +86,7 @@
                             <th> Sales </th>
                             <th> Discount </th>
                             <th> Shipping </th>
+                            <th> Tax </th>
                             <th></th>
                         </tr>
                         </thead>
@@ -96,6 +97,7 @@
                         $total = 0;
                         $shippingTotal = 0;
                         $discountTotal = 0;
+                        $taxTotal = 0;
                         ?>
                         @while($dateFrom->lte($dateTo))
                             <?php
@@ -103,12 +105,14 @@
                             $total += isset($results[$idx])?$results[$idx]->total:0;
                             $shippingTotal += isset($results[$idx])?$results[$idx]->shipping_total:0;
                             $discountTotal += isset($results[$idx])?$results[$idx]->discount_total:0;
+                            $taxTotal += isset($results[$idx])?$results[$idx]->tax_total:0;
                             ?>
                             <tr>
                                 <td>{{ $dateFrom->format('d F y') }}</td>
                                 <td>{{ PriceFormatter::formatNumber((isset($results[$idx])?$results[$idx]->total:0)) }}</td>
                                 <td>{{ PriceFormatter::formatNumber((isset($results[$idx])?abs($results[$idx]->discount_total):0)) }}</td>
                                 <td>{{ PriceFormatter::formatNumber((isset($results[$idx])?$results[$idx]->shipping_total:0)) }}</td>
+                                <td>{{ PriceFormatter::formatNumber((isset($results[$idx])?$results[$idx]->tax_total:0)) }}</td>
                                 <td></td>
                             </tr>
                             <?php $dateFrom->modify('+1 day'); ?>
@@ -119,7 +123,8 @@
                             <td class="text-right">Total</td>
                             <td>{{ PriceFormatter::formatNumber($total) }}</td>
                             <td>{{ PriceFormatter::formatNumber(abs($discountTotal)) }}</td>
-                            <td colspan="2">{{ PriceFormatter::formatNumber($shippingTotal) }}</td>
+                            <td>{{ PriceFormatter::formatNumber($shippingTotal) }}</td>
+                            <td colspan="2">{{ PriceFormatter::formatNumber($taxTotal) }}</td>
                         </tr>
                         </tfoot>
                     </table>
@@ -159,6 +164,8 @@
             'shipping_print': '{{ PriceFormatter::formatNumber((isset($results[$idx])?$results[$idx]->shipping_total:0)) }}',
             'discount': {{ isset($results[$idx])?abs($results[$idx]->discount_total):0 }},
             'discount_print': '{{ PriceFormatter::formatNumber((isset($results[$idx])?abs($results[$idx]->discount_total):0)) }}',
+            'tax': {{ isset($results[$idx])?abs($results[$idx]->tax_total):0 }},
+            'tax_print': '{{ PriceFormatter::formatNumber((isset($results[$idx])?abs($results[$idx]->tax_total):0)) }}'
         });
         <?php $dateFrom->modify('+1 day'); ?>
         @endwhile
@@ -220,6 +227,21 @@
                     "lineAlpha": 1,
                     "title": "Discount",
                     "valueField": "discount"
+                },
+                {
+                    "balloonText": "<span style='font-size:13px;'>[[title]] in [[category]] : <b>[[tax_print]]</b></span>",
+                    "bullet": "round",
+                    "dashLengthField": "dashLengthLine",
+                    "lineThickness": 3,
+                    "bulletSize": 7,
+                    "bulletBorderAlpha": 1,
+                    "bulletColor": "#FFFFFF",
+                    "useLineColorForBulletBorder": true,
+                    "bulletBorderThickness": 3,
+                    "fillAlphas": 0,
+                    "lineAlpha": 1,
+                    "title": "Tax",
+                    "valueField": "tax"
                 }],
                 "categoryField": "date",
                 "categoryAxis": {

@@ -225,7 +225,17 @@ table.content-table td, table.content-table th {
   border: 1px solid #999;
 }
 
-/* line 178, sass/print.scss */
+/* line 177, sass/print.scss */
+.vertical-spacer {
+  height: 50px;
+}
+
+/* line 179, sass/print.scss */
+.page-break {
+  page-break-before: always;
+}
+
+/* line 181, sass/print.scss */
 hr {
   margin: 0;
 }
@@ -237,7 +247,7 @@ hr {
   /* ====================
       INTERMEDIATE: Menu
      ==================== */
-  /* line 192, sass/print.scss */
+  /* line 195, sass/print.scss */
   nav a {
     float: left;
     width: 27%;
@@ -246,12 +256,12 @@ hr {
     margin-bottom: 0;
   }
 
-  /* line 200, sass/print.scss */
+  /* line 203, sass/print.scss */
   nav li:first-child a {
     margin-left: 0;
   }
 
-  /* line 204, sass/print.scss */
+  /* line 207, sass/print.scss */
   nav li:last-child a {
     margin-right: 0;
   }
@@ -259,12 +269,12 @@ hr {
   /* ========================
       INTERMEDIATE: IE Fixes
      ======================== */
-  /* line 212, sass/print.scss */
+  /* line 215, sass/print.scss */
   nav ul li {
     display: inline;
   }
 
-  /* line 216, sass/print.scss */
+  /* line 219, sass/print.scss */
   .oldie nav a {
     margin: 0 0.7%;
   }
@@ -273,12 +283,12 @@ hr {
   /* ============
       WIDE: Menu
      ============ */
-  /* line 227, sass/print.scss */
+  /* line 230, sass/print.scss */
   .title {
     float: left;
   }
 
-  /* line 231, sass/print.scss */
+  /* line 234, sass/print.scss */
   nav {
     float: right;
     width: 38%;
@@ -287,13 +297,13 @@ hr {
   /* ============
       WIDE: Main
      ============ */
-  /* line 240, sass/print.scss */
+  /* line 243, sass/print.scss */
   .main article {
     float: left;
     width: 57%;
   }
 
-  /* line 245, sass/print.scss */
+  /* line 248, sass/print.scss */
   .main aside {
     float: right;
     width: 28%;
@@ -303,7 +313,7 @@ hr {
   /* ===============
       Maximal Width
      =============== */
-  /* line 257, sass/print.scss */
+  /* line 260, sass/print.scss */
   .wrapper {
     width: 1026px;
     /* 1140px - 10% for margins */
@@ -313,13 +323,13 @@ hr {
 /* ==========================================================================
    Helper classes
    ========================================================================== */
-/* line 267, sass/print.scss */
+/* line 270, sass/print.scss */
 .hidden {
   display: none !important;
   visibility: hidden;
 }
 
-/* line 272, sass/print.scss */
+/* line 275, sass/print.scss */
 .visuallyhidden {
   border: 0;
   clip: rect(0 0 0 0);
@@ -331,7 +341,7 @@ hr {
   width: 1px;
 }
 
-/* line 283, sass/print.scss */
+/* line 286, sass/print.scss */
 .visuallyhidden.focusable:active,
 .visuallyhidden.focusable:focus {
   clip: auto;
@@ -342,29 +352,29 @@ hr {
   width: auto;
 }
 
-/* line 293, sass/print.scss */
+/* line 296, sass/print.scss */
 .invisible {
   visibility: hidden;
 }
 
-/* line 297, sass/print.scss */
+/* line 300, sass/print.scss */
 .clearfix:before,
 .clearfix:after {
   content: " ";
   display: table;
 }
 
-/* line 303, sass/print.scss */
+/* line 306, sass/print.scss */
 .clearfix:after {
   clear: both;
 }
 
-/* line 307, sass/print.scss */
+/* line 310, sass/print.scss */
 .clearfix {
   *zoom: 1;
 }
 
-/* line 311, sass/print.scss */
+/* line 314, sass/print.scss */
 .print-hidden {
   display: none;
 }
@@ -373,7 +383,7 @@ hr {
    Print styles
    ========================================================================== */
 @media print {
-  /* line 320, sass/print.scss */
+  /* line 323, sass/print.scss */
   *,
   *:before,
   *:after {
@@ -383,52 +393,52 @@ hr {
     text-shadow: none !important;
   }
 
-  /* line 329, sass/print.scss */
+  /* line 332, sass/print.scss */
   a,
   a:visited {
     text-decoration: underline;
   }
 
-  /* line 334, sass/print.scss */
+  /* line 337, sass/print.scss */
   a[href]:after {
     content: " (" attr(href) ")";
   }
 
-  /* line 338, sass/print.scss */
+  /* line 341, sass/print.scss */
   abbr[title]:after {
     content: " (" attr(title) ")";
   }
 
-  /* line 342, sass/print.scss */
+  /* line 345, sass/print.scss */
   a[href^="#"]:after,
   a[href^="javascript:"]:after {
     content: "";
   }
 
-  /* line 347, sass/print.scss */
+  /* line 350, sass/print.scss */
   pre,
   blockquote {
     border: 1px solid #999;
     page-break-inside: avoid;
   }
 
-  /* line 353, sass/print.scss */
+  /* line 356, sass/print.scss */
   thead {
     display: table-header-group;
   }
 
-  /* line 357, sass/print.scss */
+  /* line 360, sass/print.scss */
   tr,
   img {
     page-break-inside: avoid;
   }
 
-  /* line 362, sass/print.scss */
+  /* line 365, sass/print.scss */
   img {
     max-width: 100% !important;
   }
 
-  /* line 366, sass/print.scss */
+  /* line 369, sass/print.scss */
   p,
   h2,
   h3 {
@@ -436,13 +446,13 @@ hr {
     widows: 3;
   }
 
-  /* line 373, sass/print.scss */
+  /* line 376, sass/print.scss */
   h2,
   h3 {
     page-break-after: avoid;
   }
 
-  /* line 378, sass/print.scss */
+  /* line 381, sass/print.scss */
   footer {
     page-break-after: always;
   }

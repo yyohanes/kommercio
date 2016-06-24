@@ -52,12 +52,18 @@ class Store extends Model
         return $defaultStore;
     }
 
-    public static function getStoreOptions($all = false)
+    public static function getStoreOptions($all = false, $withAllOption = FALSE)
     {
+        $stores = [];
+
+        if($withAllOption){
+            $stores += ['all' => 'All'];
+        }
+
         if($all){
-            $stores = self::orderBy('created_at', 'DESC')->pluck('name', 'id')->all();
+            $stores += self::orderBy('created_at', 'DESC')->pluck('name', 'id')->all();
         }else{
-            $stores = Auth::user()->getManagedStores()->pluck('name', 'id')->all();
+            $stores += Auth::user()->getManagedStores()->pluck('name', 'id')->all();
         }
 
         return $stores;

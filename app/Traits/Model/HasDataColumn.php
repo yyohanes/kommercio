@@ -28,11 +28,16 @@ trait HasDataColumn
     //Scopes
     public function scopeSearchData($query, $key, $value)
     {
-        $query->whereRaw('data REGEXP \'.*"'.$key.'";s:[0-9]+:"'.$value.'".*\'');
-    }
-
-    public function scopeOrSearchData($query, $key, $value)
-    {
-        $query->orWhereRaw('data REGEXP \'.*"'.$key.'";s:[0-9]+:"'.$value.'".*\'');
+        if(is_array($value)){
+            foreach($value as $idx=>$value_single){
+                if($idx == 0){
+                    $query->whereRaw('data REGEXP \'.*"'.$key.'";s:[0-9]+:"'.$value_single.'".*\'');
+                }else{
+                    $query->orWhereRaw('data REGEXP \'.*"'.$key.'";s:[0-9]+:"'.$value_single.'".*\'');
+                }
+            }
+        }else{
+            $query->whereRaw('data REGEXP \'.*"'.$key.'";s:[0-9]+:"'.$value_single.'".*\'');
+        }
     }
 }
