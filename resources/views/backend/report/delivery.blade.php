@@ -60,7 +60,7 @@
                 </div>
                 <div class="actions">
                     @can('access', ['view_order'])
-                    <a target="_blank" href="{{ Request::fullUrlWithQuery(['print_invoices' => TRUE]).'' }}" class="btn btn-sm btn-info">
+                    <a target="_blank" href="{{ $printAllInvoicesUrl }}" class="btn btn-sm btn-info">
                         <i class="fa fa-print"></i> All Invoices</a>
                     @endcan
                 </div>
@@ -99,7 +99,7 @@
                                 <td>
                                     @can('access', ['view_order'])
                                     <div class="btn-group btn-group-xs">
-                                        <a class="btn btn-default" href="{{ route('backend.sales.order.view', ['id' => $order->id, 'backUrl' => Request::fullUrl()]) }}"><i class="fa fa-search"></i></a>
+                                        <a class="btn btn-default" href="{{ route('backend.sales.order.view', ['id' => $order->id, 'backUrl' => Request::getRequestUri()]) }}"><i class="fa fa-search"></i></a>
                                         <a class="btn btn-default" href="{{ route('backend.sales.order.print', ['id' => $order->id]) }}" target="_blank"><i class="fa fa-print"></i></a>
                                     </div>
                                     @endcan

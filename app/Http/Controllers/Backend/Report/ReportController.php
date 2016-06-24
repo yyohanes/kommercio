@@ -208,6 +208,8 @@ class ReportController extends Controller
             }
         }
 
+        $printAllInvoicesUrl = $request->url().'?'.http_build_query(array_merge($request->query(), ['print_invoices' => TRUE]));
+
         return view('backend.report.delivery', [
             'filter' => $filter,
             'orderStatusOptions' => $orderStatusOptions,
@@ -216,7 +218,8 @@ class ReportController extends Controller
             'orders' => $orders,
             'orderedProducts' => $orderedProducts,
             'shippingMethodOptions' => $shippingMethodOptions,
-            'shippingMethod' => $shippingMethod
+            'shippingMethod' => $shippingMethod,
+            'printAllInvoicesUrl' => $printAllInvoicesUrl
         ]);
     }
 
