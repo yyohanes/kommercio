@@ -442,7 +442,10 @@ class Product extends Model
 
         $totalOrderLimit = ($totalOrderLimits->count() > 0)?$this->extractOrderLimit($totalOrderLimits)->limit:null;
 
-        $orderLimits = [$deliveryOrderLimit, $totalOrderLimit];
+        $orderLimits = [
+            'delivery_date' => $deliveryOrderLimit,
+            'checkout_at' => $totalOrderLimit
+        ];
 
         foreach($orderLimits as $idx=>$orderLimit){
             if(is_null($orderLimit)){
@@ -450,7 +453,15 @@ class Product extends Model
             }
         }
 
-        return $orderLimits?min($orderLimits):null;
+        $limitType = 'checkout_at';
+
+        if(isset($orderLimits['checkout_at']) && $totalOrderLimit <= $deliveryOrderLimit){
+            $limitType = 'checkout_at';
+        }elseif(isset($orderLimits['delivery_date'])){
+            $limitType = 'delivery_date';
+        }
+
+        return $orderLimits?['limit_type' => $limitType, 'limit' => $orderLimits[$limitType]]:null;
     }
 
     protected function extractOrderLimit($orderLimits)

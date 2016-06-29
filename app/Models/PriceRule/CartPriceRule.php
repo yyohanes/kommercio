@@ -152,7 +152,7 @@ class CartPriceRule extends Model
             return $this->products->all();
         }
 
-        $products = [];
+        $optionGroupProducts = [];
         foreach($this->productOptionGroups as $idx => $productOptionGroup){
             if($idx == 0){
                 $optionGroupProducts = $productOptionGroup->getProducts();

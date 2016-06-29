@@ -654,23 +654,27 @@ class ProductController extends Controller{
 
         $stock = $product->getStock();
 
-        $totalOrderedByDate = $product->getOrderCount([
-            'checkout_at' => $options['date']
-        ]);
+        if(isset($orderLimit['limit_type']) && $orderLimit['limit_type'] == 'delivery_date'){
+            $totalOrderedByDelivery = 0;
 
-        $totalOrderedByDelivery = 0;
+            if($options['delivery_date']){
+                $totalOrderedByDelivery = $product->getOrderCount([
+                    'delivery_date' => $options['delivery_date'],
+                ]);
+            }
 
-        if($options['delivery_date']){
-            $totalOrderedByDelivery = $product->getOrderCount([
-                'delivery_date' => $options['delivery_date'],
+            $totalOrdered = $totalOrderedByDelivery;
+        }else{
+            $totalOrderedByDate = $product->getOrderCount([
+                'checkout_at' => $options['date']
             ]);
-        }
 
-        $totalOrdered = max($totalOrderedByDate, $totalOrderedByDelivery);
+            $totalOrdered = $totalOrderedByDate;
+        }
 
         $return = [
             'ordered_total' => $totalOrdered,
-            'order_limit' => $orderLimit,
+            'order_limit' => is_null($orderLimit)?$orderLimit:$orderLimit['limit'],
             'stock' => $stock
         ];
 
