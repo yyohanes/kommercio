@@ -89,6 +89,19 @@
 ])
 
 @include('backend.master.form.fields.checkbox', [
+    'name' => 'is_discount',
+    'label' => 'Is Discount',
+    'key' => 'is_discount',
+    'value' => 1,
+    'attr' => [
+        'class' => 'make-switch',
+        'id' => 'is_discount',
+        'data-on-color' => 'warning'
+    ],
+    'checked' => $priceRule->is_discount,
+])
+
+@include('backend.master.form.fields.checkbox', [
     'name' => 'active',
     'label' => 'Active',
     'key' => 'active',

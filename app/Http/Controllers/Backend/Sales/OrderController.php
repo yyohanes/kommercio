@@ -704,7 +704,7 @@ class OrderController extends Controller{
             'store_id' => $order->store_id,
             'customer_email' => $order->customer?$order->customer->getProfile()->email:null,
             'shippings' => $shippings,
-            'added_coupons' => $request->input('added_coupons', [])
+            'added_coupons' => $request->input('added_coupons', []),
         ];
 
         $priceRules = CartPriceRule::getCartPriceRules($options);
@@ -716,8 +716,14 @@ class OrderController extends Controller{
         }
 
         if($request->ajax() || !$internal){
+            $returnedData = [];
+
+            foreach($priceRules as $priceRule){
+                $returnedData[] = $priceRule->toArray() + ['products' => array_keys($priceRule->getProducts())];
+            }
+
             return response()->json([
-                'data' => $priceRules,
+                'data' => $returnedData,
                 '_token' => csrf_token()
             ]);
         }else{
@@ -739,6 +745,7 @@ class OrderController extends Controller{
         $subtotal = $order->calculateProductTotal() + $order->calculateAdditionalTotal();
 
         $shippings = [];
+
         foreach($order->getShippingLineItems() as $shippingLineItem){
             $shippings[] = $shippingLineItem->line_item_id;
         }
@@ -820,8 +827,12 @@ class OrderController extends Controller{
 
             if($lineItem->isProduct){
                 foreach($productCartPriceRules as $productCartPriceRule){
-                    $lineItemAmount = $productCartPriceRule->getValue($lineItemAmount);
-                    $productCartPriceRule->total += ($lineItemAmount - $lineItem->net_price) * $lineItem->quantity;
+                    $productCartPriceRuleProducts = $productCartPriceRule->getProducts();
+
+                    if(empty($productCartPriceRuleProducts) || isset($productCartPriceRuleProducts[$lineItem->line_item_id])){
+                        $lineItemAmount = $productCartPriceRule->getValue($lineItemAmount);
+                        $productCartPriceRule->total += ($lineItemAmount - $lineItem->net_price) * $lineItem->quantity;
+                    }
                 }
             }
 

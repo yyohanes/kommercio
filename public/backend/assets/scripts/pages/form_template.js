@@ -179,9 +179,9 @@ var formBehaviors = function(){
     var handleSelectDependent = function(context){
         $('[data-select_dependent]', context).each(function(idx, obj){
             $($(obj).data('select_dependent')).on('change', function(){
-                if($(this).val() == $(obj).data('select_dependent_value')){
+                if($(obj).data('select_dependent_value') !== undefined && $(this).val() == $(obj).data('select_dependent_value')){
                     $(obj).show();
-                }else if($(this).val() != $(obj).data('select_dependent_not_value')) {
+                }else if($(obj).data('select_dependent_not_value') !== undefined && $(this).val() != $(obj).data('select_dependent_not_value')) {
                     $(obj).show();
                 }else{
                     $(obj).hide();

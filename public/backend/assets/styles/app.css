@@ -1,53 +1,64 @@
-/* line 3, sass/app.scss */
+/* line 2, sass/app.scss */
+.side-margin-0 {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+/* line 6, sass/app.scss */
+.side-margin-0 .form-group {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+/* line 13, sass/app.scss */
 .images-upload .dropzone {
   padding: 2em;
   border: 1px dashed #ccc;
   text-align: center;
   color: #999;
 }
-/* line 11, sass/app.scss */
+/* line 21, sass/app.scss */
 .images-upload.is-dragover .dropzone {
   background: #eee;
 }
 
-/* line 20, sass/app.scss */
+/* line 30, sass/app.scss */
 .page-header.navbar .page-logo .logo-default {
   margin: 2px 0 0;
   height: 40px;
 }
 
-/* line 28, sass/app.scss */
+/* line 38, sass/app.scss */
 .note-editor.panel {
   overflow: visible;
 }
 
-/* line 34, sass/app.scss */
+/* line 44, sass/app.scss */
 .table .btn-group .btn {
   margin-right: 0;
 }
 
-/* line 40, sass/app.scss */
+/* line 50, sass/app.scss */
 .form-in-btn-group {
   display: inline-block;
 }
 
-/* line 45, sass/app.scss */
+/* line 55, sass/app.scss */
 .sortable-placeholder {
   border: 2px dashed #ccc;
   height: 150px;
 }
 
-/* line 52, sass/app.scss */
+/* line 62, sass/app.scss */
 #products-dataset .product-image {
   width: 40px;
 }
 
-/* line 59, sass/app.scss */
+/* line 69, sass/app.scss */
 #line-items-table .availability div {
   display: none;
 }
 
-/* line 65, sass/app.scss */
+/* line 75, sass/app.scss */
 .permissions-check-all, .permissions-uncheck-all {
   font-size: 12px;
 }

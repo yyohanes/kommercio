@@ -1005,10 +1005,55 @@ Route::group(['middleware' => ['web']], function () {
                     'permissions' => ['edit_customer']
                 ]);
 
+                Route::get('view/{id}', [
+                    'as' => 'backend.customer.view',
+                    'uses' => 'CustomerController@view',
+                    'permissions' => ['view_customer']
+                ]);
+
                 Route::post('delete/{id}', [
                     'as' => 'backend.customer.delete',
                     'uses' => 'CustomerController@delete',
                     'permissions' => ['delete_customer']
+                ]);
+            });
+
+            //Page
+            Route::group(['prefix' => 'page', 'namespace' => 'CMS'], function(){
+                Route::get('index', [
+                    'as' => 'backend.cms.page.index',
+                    'uses' => 'PageController@index',
+                    'permissions' => ['view_page']
+                ]);
+
+                Route::get('create', [
+                    'as' => 'backend.cms.page.create',
+                    'uses' => 'PageController@create',
+                    'permissions' => ['create_page']
+                ]);
+
+                Route::post('store', [
+                    'as' => 'backend.cms.page.store',
+                    'uses' => 'PageController@store',
+                    'permissions' => ['create_page']
+                ]);
+
+                Route::get('edit/{id}', [
+                    'as' => 'backend.cms.page.edit',
+                    'uses' => 'PageController@edit',
+                    'permissions' => ['edit_page']
+                ]);
+
+                Route::post('update/{id}', [
+                    'as' => 'backend.cms.page.update',
+                    'uses' => 'PageController@update',
+                    'permissions' => ['edit_page']
+                ]);
+
+                Route::post('delete/{id}', [
+                    'as' => 'backend.cms.page.delete',
+                    'uses' => 'PageController@delete',
+                    'permissions' => ['delete_page']
                 ]);
             });
 

@@ -96,6 +96,11 @@ class Product extends Model
         }
     }
 
+    public function cartPriceRules()
+    {
+        return $this->belongsToMany('Kommercio\Models\PriceRule\CartPriceRule');
+    }
+
     public function warehouses()
     {
         return $this->belongsToMany('Kommercio\Models\Warehouse')->withPivot('stock');

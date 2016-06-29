@@ -48,6 +48,7 @@
                     <tr>
                         <th style="width: 10px;"></th>
                         <th> Rule </th>
+                        <th> Is Discount </th>
                         <th> Price </th>
                         <th> Modification </th>
                         <th> Currency </th>
@@ -61,6 +62,7 @@
                         <tr>
                             <td><i class="fa fa-reorder"></i></td>
                             <td class="price-rule-name" data-price_rule_id="{{ $priceRule->id }}">{{ $priceRule->name?$priceRule->name:'-' }}</td>
+                            <td> <i class="fa {{ $priceRule->is_discount?'fa-check text-success':'fa-remove text-danger' }}"></i> </td>
                             <td> {{ $priceRule->price?PriceFormatter::formatNumber($priceRule->price, $priceRule->currency):'-' }} </td>
                             <td> {{ $priceRule->modification?$priceRule->getModificationOutput():'-' }} </td>
                             <td> {{ $priceRule->currency?CurrencyHelper::getCurrency($priceRule->currency)['iso']:'All' }} </td>

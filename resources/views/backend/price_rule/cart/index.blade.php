@@ -49,6 +49,7 @@
                         <th style="width: 10px;"></th>
                         <th> Name </th>
                         <th> Type </th>
+                        <th> Coupon </th>
                         <th> Price </th>
                         <th> Modification </th>
                         <th> Currency </th>
@@ -63,6 +64,7 @@
                             <td><i class="fa fa-reorder"></i></td>
                             <td class="price-rule-name" data-price_rule_id="{{ $priceRule->id }}">{{ $priceRule->name?$priceRule->name:'-' }}</td>
                             <td> {{ \Kommercio\Models\PriceRule\CartPriceRule::getOfferTypeOptions($priceRule->offer_type) }} </td>
+                            <td> {{ $priceRule->coupon_code }} </td>
                             <td> {{ $priceRule->price?PriceFormatter::formatNumber($priceRule->price, $priceRule->currency):'-' }} </td>
                             <td> {{ $priceRule->modification?$priceRule->getModificationOutput():'-' }} </td>
                             <td> {{ $priceRule->currency?CurrencyHelper::getCurrency($priceRule->currency)['iso']:'All' }} </td>

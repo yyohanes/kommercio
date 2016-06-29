@@ -3,6 +3,8 @@
 namespace Kommercio\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
+use Kommercio\Models\Order\Order;
 use Kommercio\Traits\Model\Profileable;
 
 class Customer extends Model
@@ -28,7 +30,7 @@ class Customer extends Model
 
     public function orders()
     {
-        return $this->hasMany('Kommercio\Models\Order\Order');
+        return $this->hasMany('Kommercio\Models\Order\Order')->orderBy('checkout_at', 'DESC');
     }
 
     public function shippingProfile()
@@ -42,6 +44,24 @@ class Customer extends Model
         $query->whereHas('user', function($qb) use ($status){
             $qb->where('status', $status);
         });
+    }
+
+    public function scopeJoinOrderTotal($query, $status = [])
+    {
+        if(empty($status)){
+            $status = [Order::STATUS_COMPLETED, Order::STATUS_PROCESSING, Order::STATUS_PENDING];
+        }
+
+        $customerTable = $this->orders()->getParent()->getTable();
+
+        $orderQuery = Order::selectRaw('customer_id, SUM(total * conversion_rate) AS total, SUM(discount_total * conversion_rate) AS discount_total, SUM(shipping_total * conversion_rate) AS shipping_total, SUM(tax_total * conversion_rate) AS tax_total, SUM(additional_total * conversion_rate) AS additional_total')
+            ->groupBy('customer_id')
+            ->whereIn('status', $status);
+
+        $query
+            ->selectRaw($customerTable.'.*, O.*')
+            ->leftJoin(DB::raw('('.$orderQuery->toSql().') AS O'), 'O.customer_id', '=', $customerTable.'.id')
+            ->mergeBindings($orderQuery->getQuery());
     }
 
     //Accessors

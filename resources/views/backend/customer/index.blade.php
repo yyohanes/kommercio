@@ -45,7 +45,7 @@
                         <th>Account</th>
                         <th>Status</th>
                         <th>Since</th>
-                        <th>Last Seen</th>
+                        <th>Order Total</th>
                         <th></th>
                     </tr>
                     <tr role="row" class="filter">

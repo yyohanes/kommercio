@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Kommercio\Facades\PriceFormatter;
 use Kommercio\Models\Customer;
 use Kommercio\Models\Order\Order;
+use Kommercio\Models\Product;
 use Kommercio\Traits\Model\ToggleDate;
 
 class CartPriceRule extends Model
@@ -38,6 +39,11 @@ class CartPriceRule extends Model
     public function customer()
     {
         return $this->belongsTo('Kommercio\Models\Customer');
+    }
+
+    public function products()
+    {
+        return $this->belongsToMany('Kommercio\Models\Product');
     }
 
     public function shippingOptionGroup()
@@ -123,6 +129,39 @@ class CartPriceRule extends Model
             'valid' => $valid,
             'message' => $message
         ];
+    }
+
+    public function validateProduct(Product $product, $options = [])
+    {
+        $validateResults = [];
+
+        foreach($this->productOptionGroups as $priceRuleOptionGroup){
+            $validateResults[] = $priceRuleOptionGroup->validateProduct($product);
+        }
+
+        if(count(array_unique($validateResults)) === 1){
+            return current($validateResults);
+        }
+
+        return TRUE;
+    }
+
+    public function getProducts()
+    {
+        if($this->products->count() > 0){
+            return $this->products->all();
+        }
+
+        $products = [];
+        foreach($this->productOptionGroups as $idx => $productOptionGroup){
+            if($idx == 0){
+                $optionGroupProducts = $productOptionGroup->getProducts();
+            }else{
+                $optionGroupProducts = array_intersect_key($optionGroupProducts, $productOptionGroup->getProducts());
+            }
+        }
+
+        return $optionGroupProducts;
     }
 
     //Accessors
@@ -220,7 +259,7 @@ class CartPriceRule extends Model
         });
 
         $qb->where(function($qb) use ($shippings){
-            $qb->whereDoesntHave('shippingOptionGroup.shippingMethods');
+            $qb->whereDoesntHave('shippingOptionGroup');
 
             if($shippings){
                 $qb->orWhereHas('shippingOptionGroup.shippingMethods', function ($query) use ($shippings) {
@@ -230,6 +269,7 @@ class CartPriceRule extends Model
         });
 
         $priceRules = $qb->get();
+
 
         foreach($added_coupons as $added_coupon){
             if(!in_array($added_coupon, $priceRules->pluck('id')->all())){

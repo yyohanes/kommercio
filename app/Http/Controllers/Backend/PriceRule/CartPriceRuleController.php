@@ -11,6 +11,7 @@ use Kommercio\Models\Customer;
 use Kommercio\Models\Order\Order;
 use Kommercio\Models\PriceRule\CartPriceRule;
 use Kommercio\Models\PriceRule\CartPriceRuleOptionGroup;
+use Kommercio\Models\Product;
 use Kommercio\Models\ShippingMethod\ShippingMethod;
 use Kommercio\Models\Store;
 
@@ -41,13 +42,20 @@ class CartPriceRuleController extends Controller
 
         $shippingMethodOptions = ShippingMethod::getShippingMethodObjects()->pluck('name', 'id')->all();
 
+        $defaultProducts = [];
+        foreach(old('products', []) as $item){
+            $itemObj = Product::findOrFail($item);
+            $defaultProducts[$itemObj->id] = $itemObj->getName();
+        }
+
         return view('backend.price_rule.cart.create', [
             'priceRule' => $priceRule,
             'currencyOptions' => $currencyOptions,
             'storeOptions' => $storeOptions,
             'reductionTypeOptions' => $reductionTypeOptions,
             'offerTypeOptions' => $offerTypeOptions,
-            'shippingMethodOptions' => $shippingMethodOptions
+            'shippingMethodOptions' => $shippingMethodOptions,
+            'defaultProducts' => $defaultProducts
         ]);
     }
 
@@ -67,6 +75,7 @@ class CartPriceRuleController extends Controller
         }
 
         $priceRule->save();
+        $priceRule->products()->sync($request->input('products', []));
 
         $this->processPriceRuleOptionGroups($priceRule, $request);
 
@@ -87,13 +96,38 @@ class CartPriceRuleController extends Controller
 
         $shippingMethodOptions = ShippingMethod::getShippingMethodObjects()->pluck('name', 'id')->all();
 
+        $defaultProducts = [];
+        foreach(old('items', $priceRule->products) as $item){
+            $defaultProducts[$item->id] = $item->getName();
+        }
+
+        $oldCartPriceOptionGroups = old('cart_price_rule_option_groups');
+
+        if(!$oldCartPriceOptionGroups && $priceRule->productOptionGroups){
+            //Flash other attributes because we flashed options value
+            $flashedInput = $priceRule->attributesToArray();
+
+            foreach($priceRule->productOptionGroups as $idx=>$priceRuleOptionGroup){
+                $idx += 1;
+
+                foreach($priceRuleOptionGroup->optionFields as $optionField){
+                    $flashedInput['options'][$idx][$optionField] = $priceRuleOptionGroup->{$optionField}->pluck('id')->all();
+                }
+
+                $flashedInput['cart_price_rule_option_groups'][$idx] = $priceRuleOptionGroup->id;
+            }
+
+            Session::flashInput($flashedInput);
+        }
+
         return view('backend.price_rule.cart.edit', [
             'priceRule' => $priceRule,
             'currencyOptions' => $currencyOptions,
             'storeOptions' => $storeOptions,
             'reductionTypeOptions' => $reductionTypeOptions,
             'offerTypeOptions' => $offerTypeOptions,
-            'shippingMethodOptions' => $shippingMethodOptions
+            'shippingMethodOptions' => $shippingMethodOptions,
+            'defaultProducts' => $defaultProducts
         ]);
     }
 
@@ -113,6 +147,7 @@ class CartPriceRuleController extends Controller
         }
 
         $priceRule->save();
+        $priceRule->products()->sync($request->input('products', []));
 
         $this->processPriceRuleOptionGroups($priceRule, $request);
 
@@ -162,15 +197,50 @@ class CartPriceRuleController extends Controller
 
     protected function processPriceRuleOptionGroups($priceRule, $request)
     {
-        if($priceRule->shippingOptionGroup){
-            $shippingOptionGroup = $priceRule->shippingOptionGroup;
-        }else{
-            $shippingOptionGroup = new CartPriceRuleOptionGroup();
-            $shippingOptionGroup->type = CartPriceRuleOptionGroup::TYPE_SHIPPING;
-            $priceRule->shippingOptionGroup()->save($shippingOptionGroup);
+        if(!empty($request->input('shipping', []))){
+            if($priceRule->shippingOptionGroup){
+                $shippingOptionGroup = $priceRule->shippingOptionGroup;
+            }else{
+                $shippingOptionGroup = new CartPriceRuleOptionGroup();
+                $shippingOptionGroup->type = CartPriceRuleOptionGroup::TYPE_SHIPPING;
+                $priceRule->shippingOptionGroup()->save($shippingOptionGroup);
+            }
+
+            $shippingOptionGroup->shippingMethods()->sync($request->input('shipping', []));
+        }elseif($priceRule->shippingOptionGroup){
+            $priceRule->shippingOptionGroup->delete();
         }
 
-        $shippingOptionGroup->shippingMethods()->sync($request->input('shipping', []));
+        $priceRuleOptionGroupIds = $priceRule->productOptionGroups->pluck('id')->all();
+
+        $sortOrder = 0;
+        foreach($request->input('cart_price_rule_option_groups', []) as $idx=>$priceRuleId){
+            $sortOrder += 1;
+            if($priceRuleId && in_array($priceRuleId, $priceRuleOptionGroupIds)){
+                $priceRuleOptionGroup = CartPriceRuleOptionGroup::findOrFail($priceRuleId);
+            }else{
+                $priceRuleOptionGroup = new CartPriceRuleOptionGroup();
+                $priceRuleOptionGroup->type = CartPriceRuleOptionGroup::TYPE_PRODUCTS;
+                $priceRuleOptionGroup->priceRule()->associate($priceRule);
+            }
+
+            if($request->has('options.'.$idx)){
+                $priceRuleOptionGroup->sort_order = $sortOrder;
+                $priceRuleOptionGroup->save();
+
+                foreach($priceRuleOptionGroup->optionFields as $optionField){
+                    $priceRuleOptionGroup->{$optionField}()->sync($request->input('options.'.$idx.'.'.$optionField, []));
+                }
+            }else{
+                $priceRuleOptionGroup->delete();
+            }
+        }
+
+        //Delete old ones
+        $toBeDeleted = array_diff($priceRuleOptionGroupIds, $request->input('cart_price_rule_option_groups', []));
+        if($toBeDeleted){
+            CartPriceRuleOptionGroup::destroy($toBeDeleted);
+        }
     }
 
     protected function deleteable($id)

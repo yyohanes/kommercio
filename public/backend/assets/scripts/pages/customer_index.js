@@ -52,7 +52,7 @@ var CustomerIndex = function () {
                     {"name": "account", "targets": 4, "orderable": false},
                     {"name": "status", "targets": 5, "orderable": false},
                     {"name": "created_at", "targets": 6},
-                    {"name": "last_active", "targets": 7},
+                    {"name": "total", "targets": 7},
                     {"name": "action", "orderable" : false, "targets": 8}
                 ]
             }

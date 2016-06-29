@@ -117,7 +117,7 @@ var OrderForm = function () {
 
     //$quantity argument is required to sum total of each rules.
     //Return calculated price for single product
-    var calculateProductCartPrice = function($price, $quantity)
+    var calculateProductCartPrice = function($price, $quantity, $product_id)
     {
         var calculated = {
             net: 0,
@@ -126,12 +126,23 @@ var OrderForm = function () {
 
         for(var i in $cartPriceRules){
             if($cartPriceRules[i].offer_type == 'product_discount'){
-                calculated.gross = calculatePriceRuleValue($price, $cartPriceRules[i].price, $cartPriceRules[i].modification, $cartPriceRules[i].modification_type);
-                calculated.net = formHelper.roundNumber(calculated.gross);
+                if($cartPriceRules[i].products.length > 0){
+                    if($cartPriceRules[i].products.indexOf(Number($product_id)) >= 0){
+                        calculated.gross = calculatePriceRuleValue($price, $cartPriceRules[i].price, $cartPriceRules[i].modification, $cartPriceRules[i].modification_type);
+                        calculated.net = formHelper.roundNumber(calculated.gross);
 
-                $orderTotalRounding += formHelper.calculateRounding(calculated.gross, calculated.net) * $quantity;
+                        $orderTotalRounding += formHelper.calculateRounding(calculated.gross, calculated.net) * $quantity;
 
-                $cartPriceRules[i].total += calculated.net * $quantity;
+                        $cartPriceRules[i].total += calculated.net * $quantity;
+                    }
+                }else{
+                    calculated.gross = calculatePriceRuleValue($price, $cartPriceRules[i].price, $cartPriceRules[i].modification, $cartPriceRules[i].modification_type);
+                    calculated.net = formHelper.roundNumber(calculated.gross);
+
+                    $orderTotalRounding += formHelper.calculateRounding(calculated.gross, calculated.net) * $quantity;
+
+                    $cartPriceRules[i].total += calculated.net * $quantity;
+                }
             }
         }
 
@@ -142,19 +153,20 @@ var OrderForm = function () {
     {
         reserOrderSummary();
 
-        var lineitemTotalAmount, lineitemNetAmount, lineitemQuantity;
+        var lineitemTotalAmount, lineitemNetAmount, lineitemQuantity, lineitemId;
 
         $('.line-item', '#line-items-table').each(function(idx, obj){
             //Total line item after discount & tax
             lineitemNetAmount = Number($(obj).find('.net-price-field').inputmask('unmaskedvalue'));
             lineitemQuantity = Number($(obj).find('.quantity-field').inputmask('unmaskedvalue'));
+            lineitemId = $(obj).find('.line-item-id').val();
 
             if($(obj).data('line_item') == 'product'){
                 //Before discount & tax
                 $orderOriginalProductTotal += lineitemNetAmount * lineitemQuantity;
 
                 //Single unit price before tax
-                lineitemNetAmount += calculateProductCartPrice(lineitemNetAmount, lineitemQuantity);
+                lineitemNetAmount += calculateProductCartPrice(lineitemNetAmount, lineitemQuantity, lineitemId);
 
                 if($(obj).data('taxable') == '1'){
                     //Single unit price after tax
@@ -293,7 +305,8 @@ var OrderForm = function () {
                             price: data.data[i].price,
                             modification: data.data[i].modification,
                             modification_type: data.data[i].modification_type,
-                            total: 0
+                            total: 0,
+                            products: data.data[i].products
                         }
 
                         isCoupon = !($.trim(data.data[i].coupon_code).length === 0);
@@ -509,7 +522,7 @@ var OrderForm = function () {
 
             $.ajax($(this).data('coupon_add'), {
                 'method': 'POST',
-                'data': $('#coupons-wrapper :input').serialize(),
+                'data': $('#order-form :input').serialize(),
                 'success': function(data){
                     $('#coupon-field').val('');
                     $('#coupons-wrapper .added-coupon').remove();

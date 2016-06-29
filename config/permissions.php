@@ -126,4 +126,10 @@ return [
     'Production Schedule' => [
         'view_production_schedule' => 'View Schedule',
     ],
+    'Pages' => [
+        'view_page' => 'View Page',
+        'create_page' => 'Create Page',
+        'edit_page' => 'Edit Page',
+        'delete_page' => 'Delete Page',
+    ],
 ];

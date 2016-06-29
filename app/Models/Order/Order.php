@@ -221,10 +221,14 @@ class Order extends Model implements AuthorSignatureInterface
         $this->discount_total = 0;
 
         foreach($this->getCartPriceRuleLineItems() as $cartPriceRuleLineItem){
-            $this->discount_total += $cartPriceRuleLineItem->calculateTotal();
+            $this->discount_total += PriceFormatter::round($cartPriceRuleLineItem->calculateTotal());
         }
 
-        $this->discount_total = PriceFormatter::round($this->discount_total);
+        foreach($this->getCouponLineItems() as $couponLineItem){
+            $this->discount_total += PriceFormatter::round($couponLineItem->calculateTotal());
+        }
+
+        $this->discount_total = PriceFormatter::round($this->discount_total, 1);
 
         return $this->discount_total;
     }
@@ -384,6 +388,19 @@ class Order extends Model implements AuthorSignatureInterface
 
         foreach($this->lineItems as $lineItem){
             if($lineItem->isCartPriceRule){
+                $lineItems[] = $lineItem;
+            }
+        }
+
+        return $lineItems;
+    }
+
+    public function getCouponLineItems()
+    {
+        $lineItems = [];
+
+        foreach($this->lineItems as $lineItem){
+            if($lineItem->isCoupon){
                 $lineItems[] = $lineItem;
             }
         }

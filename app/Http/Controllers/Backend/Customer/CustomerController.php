@@ -4,6 +4,7 @@ namespace Kommercio\Http\Controllers\Backend\Customer;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Kommercio\Facades\PriceFormatter;
 use Kommercio\Http\Controllers\Controller;
 use Kommercio\Models\Customer;
 use Kommercio\Http\Requests\Backend\Customer\CustomerFormRequest;
@@ -42,6 +43,8 @@ class CustomerController extends Controller{
             }
 
             $filteredRecords = $qb->count();
+
+            $qb->joinOrderTotal();
 
             $columns = $request->input('columns');
             foreach($request->input('order', []) as $order){
@@ -83,12 +86,15 @@ class CustomerController extends Controller{
             $customer->loadProfileFields();
 
             $customerAction = FormFacade::open(['route' => ['backend.customer.delete', 'id' => $customer->id]]);
-            $customerAction .= '<div class="btn-group btn-group-sm">';
+            $customerAction .= '<div class="btn-group btn-group-xs">';
+            if(Gate::allows('access', ['view_customer'])):
+                $customerAction .= '<a class="btn btn-default" href="'.route('backend.customer.view', ['id' => $customer->id, 'backUrl' => RequestFacade::fullUrl()]).'"><i class="fa fa-search"></i></a>';
+            endif;
             if(Gate::allows('access', ['edit_customer'])):
-                $customerAction .= '<a class="btn btn-default" href="'.route('backend.customer.edit', ['id' => $customer->id, 'backUrl' => RequestFacade::fullUrl()]).'"><i class="fa fa-pencil"></i> Edit</a>';
+                $customerAction .= '<a class="btn btn-default" href="'.route('backend.customer.edit', ['id' => $customer->id, 'backUrl' => RequestFacade::fullUrl()]).'"><i class="fa fa-pencil"></i></a>';
             endif;
             if(Gate::allows('access', ['delete_customer'])):
-                $customerAction .= '<button class="btn btn-default" data-toggle="confirmation" data-original-title="Are you sure?" title=""><i class="fa fa-trash-o"></i> Delete</button></div>';
+                $customerAction .= '<button class="btn btn-default" data-toggle="confirmation" data-original-title="Are you sure?" title=""><i class="fa fa-trash-o"></i></button></div>';
             endif;
             $customerAction .= FormFacade::close();
 
@@ -100,7 +106,7 @@ class CustomerController extends Controller{
                 '<i class="fa fa-'.(isset($customer->user)?'check text-success':'remove text-danger').'"></i>',
                 isset($customer->user)?'<i class="fa fa-'.($customer->user->status == User::STATUS_ACTIVE?'check text-success':'remove text-danger').'"></i>':'',
                 $customer->created_at?$customer->created_at->format('d M Y H:i'):'',
-                $customer->last_active?$customer->last_active->format('d M Y H:i'):'',
+                PriceFormatter::formatNumber($customer->total),
                 $customerAction
             ];
         }
@@ -165,6 +171,19 @@ class CustomerController extends Controller{
         $customer = Customer::saveCustomer($request->input('profile'), $accountData);
 
         return redirect($request->get('backUrl', route('backend.customer.index')))->with('success', ['Customer is successfully updated.']);
+    }
+
+    public function view($id)
+    {
+        $customer = Customer::joinOrderTotal()->where('id', $id)->first();
+
+        //Fill Profile Details
+        $customer->load(['user', 'orders']);
+        $customer->loadProfileFields();
+
+        return view('backend.customer.view', [
+            'customer' => $customer
+        ]);
     }
 
     public function delete($id)
