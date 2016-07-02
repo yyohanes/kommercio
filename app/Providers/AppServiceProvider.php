@@ -2,6 +2,7 @@
 
 namespace Kommercio\Providers;
 
+use Illuminate\Http\Request;
 use Illuminate\Support\ServiceProvider;
 use Kommercio\Validator\CustomValidator;
 

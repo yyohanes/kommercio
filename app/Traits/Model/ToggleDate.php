@@ -36,7 +36,11 @@ trait ToggleDate
                 $this->attributes[$key] = Carbon::createFromFormat($format, $value);
             }
         } else {
-            return parent::setAttribute($key, $value);
+            if(method_exists($this, 'translateableSetAttribute')){
+                $this->translateableSetAttribute($key, $value);
+            }else{
+                return parent::setAttribute($key, $value);
+            }
         }
 
         return $this;

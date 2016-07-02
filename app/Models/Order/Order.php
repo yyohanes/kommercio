@@ -221,11 +221,11 @@ class Order extends Model implements AuthorSignatureInterface
         $this->discount_total = 0;
 
         foreach($this->getCartPriceRuleLineItems() as $cartPriceRuleLineItem){
-            $this->discount_total += PriceFormatter::round($cartPriceRuleLineItem->calculateTotal());
+            $this->discount_total += $cartPriceRuleLineItem->calculateTotal();
         }
 
         foreach($this->getCouponLineItems() as $couponLineItem){
-            $this->discount_total += PriceFormatter::round($couponLineItem->calculateTotal());
+            $this->discount_total += $couponLineItem->calculateTotal();
         }
 
         $this->discount_total = PriceFormatter::round($this->discount_total, 1);

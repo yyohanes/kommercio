@@ -15,6 +15,7 @@ class Kernel extends HttpKernel
      */
     protected $middleware = [
         \Illuminate\Foundation\Http\Middleware\CheckForMaintenanceMode::class,
+        \Kommercio\Http\Middleware\UrlAlias::class,
     ];
 
     /**
@@ -53,5 +54,6 @@ class Kernel extends HttpKernel
         'backend.order_editable' => \Kommercio\Http\Middleware\Backend\OrderEditable::class,
         'backend.order_deleteable' => \Kommercio\Http\Middleware\Backend\OrderDeleteable::class,
         'backend.access' => \Kommercio\Http\Middleware\Backend\Access::class,
+        'url_alias' => \Kommercio\Http\Middleware\UrlAlias::class,
     ];
 }

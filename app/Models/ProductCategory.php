@@ -4,10 +4,10 @@ namespace Kommercio\Models;
 
 use Dimsav\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Model;
+use Kommercio\Models\Interfaces\UrlAliasInterface;
 use Kommercio\Traits\AuthorSignature;
-use Kommercio\Models\Interfaces\AuthorSignatureInterface;
 
-class ProductCategory extends Model
+class ProductCategory extends Model implements UrlAliasInterface
 {
     use Translatable;
 
@@ -21,6 +21,27 @@ class ProductCategory extends Model
     public function getName()
     {
         return $this->name.($this->parent?' ('.$this->parent->name.')':'');
+    }
+
+    public function getUrlAlias()
+    {
+        $paths = [];
+
+        $parent = $this->parent;
+        while($parent){
+            $paths[] = $parent->slug;
+            $parent = $parent->parent;
+        }
+        $paths = array_reverse($paths);
+
+        $paths[] = $this->slug;
+
+        return implode('/', $paths);
+    }
+
+    public function getInternalPathSlug()
+    {
+        return 'product-category';
     }
 
     //Relations

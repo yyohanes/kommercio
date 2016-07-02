@@ -708,7 +708,6 @@ class OrderController extends Controller{
         ];
 
         $priceRules = CartPriceRule::getCartPriceRules($options);
-        \Log::info($priceRules);
 
         foreach($priceRules as $idx=>$priceRule){
             if(!$priceRule->validateUsage($options['customer_email'])['valid']){

@@ -1018,43 +1018,211 @@ Route::group(['middleware' => ['web']], function () {
                 ]);
             });
 
-            //Page
-            Route::group(['prefix' => 'page', 'namespace' => 'CMS'], function(){
-                Route::get('index', [
-                    'as' => 'backend.cms.page.index',
-                    'uses' => 'PageController@index',
-                    'permissions' => ['view_page']
-                ]);
+            //CMS
+            Route::group(['namespace' => 'CMS'], function(){
+                //Banner
+                Route::group(['prefix' => 'banner'], function() {
+                    Route::get('group/index', [
+                        'as' => 'backend.cms.banner_group.index',
+                        'uses' => 'BannerGroupController@index',
+                        'permissions' => ['view_banner']
+                    ]);
 
-                Route::get('create', [
-                    'as' => 'backend.cms.page.create',
-                    'uses' => 'PageController@create',
-                    'permissions' => ['create_page']
-                ]);
+                    Route::get('group/create', [
+                        'as' => 'backend.cms.banner_group.create',
+                        'uses' => 'BannerGroupController@create',
+                        'permissions' => ['create_banner_group']
+                    ]);
 
-                Route::post('store', [
-                    'as' => 'backend.cms.page.store',
-                    'uses' => 'PageController@store',
-                    'permissions' => ['create_page']
-                ]);
+                    Route::post('group/store', [
+                        'as' => 'backend.cms.banner_group.store',
+                        'uses' => 'BannerGroupController@store',
+                        'permissions' => ['create_banner_group']
+                    ]);
 
-                Route::get('edit/{id}', [
-                    'as' => 'backend.cms.page.edit',
-                    'uses' => 'PageController@edit',
-                    'permissions' => ['edit_page']
-                ]);
+                    Route::get('group/edit/{id}', [
+                        'as' => 'backend.cms.banner_group.edit',
+                        'uses' => 'BannerGroupController@edit',
+                        'permissions' => ['edit_banner_group']
+                    ]);
 
-                Route::post('update/{id}', [
-                    'as' => 'backend.cms.page.update',
-                    'uses' => 'PageController@update',
-                    'permissions' => ['edit_page']
-                ]);
+                    Route::post('group/update/{id}', [
+                        'as' => 'backend.cms.banner_group.update',
+                        'uses' => 'BannerGroupController@update',
+                        'permissions' => ['edit_banner_group']
+                    ]);
 
-                Route::post('delete/{id}', [
-                    'as' => 'backend.cms.page.delete',
-                    'uses' => 'PageController@delete',
-                    'permissions' => ['delete_page']
-                ]);
+                    Route::post('group/delete/{id}', [
+                        'as' => 'backend.cms.banner_group.delete',
+                        'uses' => 'BannerGroupController@delete',
+                        'permissions' => ['delete_banner_group']
+                    ]);
+
+                    //Banners
+                    Route::get('{banner_group_id}/index', [
+                        'as' => 'backend.cms.banner.index',
+                        'uses' => 'BannerController@index',
+                        'permissions' => ['view_banner']
+                    ]);
+
+                    Route::get('create', [
+                        'as' => 'backend.cms.banner.create',
+                        'uses' => 'BannerController@create',
+                        'permissions' => ['create_banner']
+                    ]);
+
+                    Route::post('store', [
+                        'as' => 'backend.cms.banner.store',
+                        'uses' => 'BannerController@store',
+                        'permissions' => ['create_banner']
+                    ]);
+
+                    Route::get('edit/{id}', [
+                        'as' => 'backend.cms.banner.edit',
+                        'uses' => 'BannerController@edit',
+                        'permissions' => ['edit_banner']
+                    ]);
+
+                    Route::post('update/{id}', [
+                        'as' => 'backend.cms.banner.update',
+                        'uses' => 'BannerController@update',
+                        'permissions' => ['edit_banner']
+                    ]);
+
+                    Route::post('delete/{id}', [
+                        'as' => 'backend.cms.banner.delete',
+                        'uses' => 'BannerController@delete',
+                        'permissions' => ['delete_banner']
+                    ]);
+
+                    Route::post('reorder', [
+                        'as' => 'backend.cms.banner.reorder',
+                        'uses' => 'BannerController@reorder',
+                        'permissions' => ['edit_banner']
+                    ]);
+                });
+
+                //Page
+                Route::group(['prefix' => 'page'], function(){
+                    Route::get('index', [
+                        'as' => 'backend.cms.page.index',
+                        'uses' => 'PageController@index',
+                        'permissions' => ['view_page']
+                    ]);
+
+                    Route::get('create', [
+                        'as' => 'backend.cms.page.create',
+                        'uses' => 'PageController@create',
+                        'permissions' => ['create_page']
+                    ]);
+
+                    Route::post('store', [
+                        'as' => 'backend.cms.page.store',
+                        'uses' => 'PageController@store',
+                        'permissions' => ['create_page']
+                    ]);
+
+                    Route::get('edit/{id}', [
+                        'as' => 'backend.cms.page.edit',
+                        'uses' => 'PageController@edit',
+                        'permissions' => ['edit_page']
+                    ]);
+
+                    Route::post('update/{id}', [
+                        'as' => 'backend.cms.page.update',
+                        'uses' => 'PageController@update',
+                        'permissions' => ['edit_page']
+                    ]);
+
+                    Route::post('delete/{id}', [
+                        'as' => 'backend.cms.page.delete',
+                        'uses' => 'PageController@delete',
+                        'permissions' => ['delete_page']
+                    ]);
+                });
+
+                //Menu
+                Route::group(['prefix' => 'menu'], function(){
+                    Route::get('index', [
+                        'as' => 'backend.cms.menu.index',
+                        'uses' => 'MenuController@index',
+                        'permissions' => ['view_menu']
+                    ]);
+
+                    Route::get('create', [
+                        'as' => 'backend.cms.menu.create',
+                        'uses' => 'MenuController@create',
+                        'permissions' => ['create_menu']
+                    ]);
+
+                    Route::post('store', [
+                        'as' => 'backend.cms.menu.store',
+                        'uses' => 'MenuController@store',
+                        'permissions' => ['create_menu']
+                    ]);
+
+                    Route::get('edit/{id}', [
+                        'as' => 'backend.cms.menu.edit',
+                        'uses' => 'MenuController@edit',
+                        'permissions' => ['edit_menu']
+                    ]);
+
+                    Route::post('update/{id}', [
+                        'as' => 'backend.cms.menu.update',
+                        'uses' => 'MenuController@update',
+                        'permissions' => ['edit_menu']
+                    ]);
+
+                    Route::post('delete/{id}', [
+                        'as' => 'backend.cms.menu.delete',
+                        'uses' => 'MenuController@delete',
+                        'permissions' => ['delete_menu']
+                    ]);
+
+                    Route::group(['prefix' => 'items'], function(){
+                        Route::get('{menu_id}/index', [
+                            'as' => 'backend.cms.menu_item.index',
+                            'uses' => 'MenuItemController@index',
+                            'permissions' => ['view_menu_item']
+                        ]);
+
+                        Route::get('create', [
+                            'as' => 'backend.cms.menu_item.create',
+                            'uses' => 'MenuItemController@create',
+                            'permissions' => ['create_menu_item']
+                        ]);
+
+                        Route::post('store', [
+                            'as' => 'backend.cms.menu_item.store',
+                            'uses' => 'MenuItemController@store',
+                            'permissions' => ['create_menu_item']
+                        ]);
+
+                        Route::get('edit/{id}', [
+                            'as' => 'backend.cms.menu_item.edit',
+                            'uses' => 'MenuItemController@edit',
+                            'permissions' => ['edit_menu_item']
+                        ]);
+
+                        Route::post('update/{id}', [
+                            'as' => 'backend.cms.menu_item.update',
+                            'uses' => 'MenuItemController@update',
+                            'permissions' => ['edit_menu_item']
+                        ]);
+
+                        Route::post('delete/{id}', [
+                            'as' => 'backend.cms.menu_item.delete',
+                            'uses' => 'MenuItemController@delete',
+                            'permissions' => ['delete_menu_item']
+                        ]);
+
+                        Route::post('{menu_id}/reorder', [
+                            'as' => 'backend.cms.menu_item.reorder',
+                            'uses' => 'MenuItemController@reorder',
+                            'permissions' => ['edit_menu_item']
+                        ]);
+                    });
+                });
             });
 
             //Report

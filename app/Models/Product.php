@@ -8,12 +8,13 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
 use Kommercio\Facades\ProjectHelper;
+use Kommercio\Models\Interfaces\UrlAliasInterface;
 use Kommercio\Models\Order\LineItem;
 use Kommercio\Models\Order\Order;
 use Kommercio\Models\Order\OrderLimit;
 use Kommercio\Models\ProductAttribute\ProductAttributeValue;
 
-class Product extends Model
+class Product extends Model implements UrlAliasInterface
 {
     use SoftDeletes, Translatable;
 
@@ -112,6 +113,26 @@ class Product extends Model
     }
 
     //Methods
+    public function getUrlAlias()
+    {
+        $paths = [];
+
+        $category = $this->defaultCategory;
+
+        if($category){
+            $paths[] = $category->getUrlAlias();
+        }
+
+        $paths[] = $this->slug;
+
+        return implode('/', $paths);
+    }
+
+    public function getInternalPathSlug()
+    {
+        return 'product';
+    }
+
     public function getName()
     {
         return $this->name;

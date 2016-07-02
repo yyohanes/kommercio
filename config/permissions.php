@@ -132,4 +132,15 @@ return [
         'edit_page' => 'Edit Page',
         'delete_page' => 'Delete Page',
     ],
+    'Banners' => [
+        'view_banner' => 'View Banner',
+        'create_banner' => 'Create Banner',
+        'edit_banner' => 'Edit Banner',
+        'delete_banner' => 'Delete Banner',
+    ],
+    'Banner Groups' => [
+        'create_banner_group' => 'Create Banner Group',
+        'edit_banner_group' => 'Edit Banner Group',
+        'delete_banner_group' => 'Delete Banner Group',
+    ],
 ];

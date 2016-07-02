@@ -172,6 +172,7 @@ var OrderForm = function () {
                     //Single unit price after tax
                     lineitemNetAmount += calculateTaxes(lineitemNetAmount, lineitemQuantity);
                 }
+                //lineitemNetAmount = formHelper.roundNumber(lineitemNetAmount, global_vars.total_precision);
 
                 lineitemTotalAmount = lineitemNetAmount * lineitemQuantity;
 
@@ -187,6 +188,7 @@ var OrderForm = function () {
                     lineitemTotalAmount += calculateTaxes(lineitemTotalAmount);
                     lineitemTotalAmount = formHelper.roundNumber(lineitemTotalAmount);
                 }
+                //lineitemTotalAmount = formHelper.roundNumber(lineitemTotalAmount, global_vars.total_precision);
 
                 $orderFeeTotal += lineitemTotalAmount;
             }else if($(obj).data('line_item') == 'shipping'){
@@ -200,6 +202,8 @@ var OrderForm = function () {
                     lineitemTotalAmount += calculateTaxes(lineitemTotalAmount);
                     lineitemTotalAmount = formHelper.roundNumber(lineitemTotalAmount);
                 }
+
+                //lineitemTotalAmount = formHelper.roundNumber(lineitemTotalAmount, global_vars.total_precision);
 
                 $orderShippingTotal += lineitemTotalAmount;
             }
@@ -598,7 +602,6 @@ var OrderForm = function () {
                 $.ajax(global_vars.get_product_availability + '/' + $(obj).find('.line-item-id').val(), {
                     data: 'store_id=' + $('input[name="store_id"]', '#order-form').val() + '&delivery_date=' + $('#delivery_date').val(),
                     success: function(data){
-                        console.log(data);
                         handleLoadedAvailability(data.data.ordered_total, data.data.order_limit, data.data.stock, $(obj));
                     }
                 });

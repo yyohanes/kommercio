@@ -203,6 +203,33 @@
     </li>
     @endcan
 
+    @can('access', ['view_page', 'view_banner', 'view_menu'])
+    <li class="nav-item open {{ NavigationHelper::activeClass('cms')?'active':'' }}">
+        <a href="javascript:;" class="nav-link nav-toggle">
+            <i class="fa fa-book"></i>
+            <span class="title">CMS</span>
+            <span class="arrow open"></span>
+        </a>
+        <ul class="sub-menu" style="display: block;">
+            @can('access', ['view_menu'])
+            <li class="nav-item {{ NavigationHelper::activeClass('menu')?'active':'' }}">
+                <a href="{{ route('backend.cms.menu.index') }}" class="nav-link">Menus</a>
+            </li>
+            @endcan
+            @can('access', ['view_page'])
+            <li class="nav-item {{ NavigationHelper::activeClass('page')?'active':'' }}">
+                <a href="{{ route('backend.cms.page.index') }}" class="nav-link">Pages</a>
+            </li>
+            @endcan
+            @can('access', ['view_banner'])
+            <li class="nav-item {{ NavigationHelper::activeClass('banner')?'active':'' }}">
+                <a href="{{ route('backend.cms.banner_group.index') }}" class="nav-link">Banners</a>
+            </li>
+            @endcan
+        </ul>
+    </li>
+    @endcan
+
     @can('access', ['view_user', 'view_role'])
     <li class="nav-item open {{ NavigationHelper::activeClass('user')?'active':'' }}">
         <a href="javascript:;" class="nav-link nav-toggle">

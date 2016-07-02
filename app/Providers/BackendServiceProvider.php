@@ -6,6 +6,8 @@ use Illuminate\Support\ServiceProvider;
 use Kommercio\Models\File;
 use Kommercio\Models\Interfaces\AuthorSignatureInterface;
 use Illuminate\Support\Facades\Storage;
+use Kommercio\Models\Interfaces\UrlAliasInterface;
+use Kommercio\Models\UrlAlias;
 
 class BackendServiceProvider extends ServiceProvider
 {
@@ -30,7 +32,19 @@ class BackendServiceProvider extends ServiceProvider
             }
         });
 
+        $this->app['events']->listen('eloquent.saved*', function ($model) {
+            if ($model instanceof UrlAliasInterface) {
+                UrlAlias::saveAlias($model->getUrlAlias(), $model);
+            }
+        });
+
         $this->app['events']->listen('eloquent.deleting*', function ($model) {
+            if ($model instanceof UrlAliasInterface) {
+                if(!property_exists($model, 'forceDeleting') || (property_exists($model, 'forceDeleting') && $model->forceDeleting)){
+                    UrlAlias::deleteAlias($model->getInternalPathSlug().'/'.$model->id);
+                }
+            }
+
             if ($model instanceof File || is_a($model, 'Kommercio\Models\File')) {
                 $storage = !empty($model->storage)?$model->storage:config('filesystems.default');
                 $folder = rtrim($model->folder, '/') . '/';

@@ -4,10 +4,9 @@ namespace Kommercio\Models\CMS;
 
 use Dimsav\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Model;
-use Kommercio\Models\Interfaces\UrlAliasInterface;
 use Kommercio\Traits\Model\ToggleDate;
 
-class Page extends Model implements UrlAliasInterface
+class MenuItem extends Model
 {
     use Translatable, ToggleDate {
         Translatable::setAttribute as translateableSetAttribute;
@@ -18,41 +17,24 @@ class Page extends Model implements UrlAliasInterface
         'active' => 'boolean',
     ];
 
-    public $fillable = ['name', 'slug', 'body', 'parent_id', 'meta_title', 'meta_description', 'images', 'active'];
-    public $translatedAttributes = ['name', 'slug', 'body', 'meta_title', 'meta_description', 'images'];
+    protected $fillable = ['name', 'menu_id', 'parent_id', 'active', 'sort_order', 'url'];
     protected $toggleFields = ['active'];
+    public $translatedAttributes = ['name', 'url', 'data'];
 
     //Relations
+    public function menu()
+    {
+        return $this->belongsTo('Kommercio\Models\CMS\Menu');
+    }
+
     public function parent()
     {
-        return $this->belongsTo('Kommercio\Models\CMS\Page', 'parent_id');
+        return $this->belongsTo('Kommercio\Models\CMS\MenuItem', 'parent_id');
     }
 
     public function children()
     {
-        return $this->hasMany('Kommercio\Models\CMS\Page', 'parent_id');
-    }
-
-    //Methods
-    public function getUrlAlias()
-    {
-        $paths = [];
-
-        $parent = $this->parent;
-        while($parent){
-            $paths[] = $parent->slug;
-            $parent = $parent->parent;
-        }
-        $paths = array_reverse($paths);
-
-        $paths[] = $this->slug;
-
-        return implode('/', $paths);
-    }
-
-    public function getInternalPathSlug()
-    {
-        return 'page';
+        return $this->hasMany('Kommercio\Models\CMS\MenuItem', 'parent_id');
     }
 
     //Accessors
@@ -66,9 +48,17 @@ class Page extends Model implements UrlAliasInterface
     }
 
     //Statics
+    public static function getLinkTargetOptions()
+    {
+        return [
+            '_self' => 'Current Tab',
+            '_blank' => 'New Tab'
+        ];
+    }
+
     public static function getRootPages()
     {
-        return self::whereNull('parent_id')->orderBy('created_at', 'DESC')->get();
+        return self::whereNull('parent_id')->orderBy('sort_order', 'ASC')->get();
     }
 
     public static function getPossibleParentOptions($exclude=null)
@@ -78,7 +68,7 @@ class Page extends Model implements UrlAliasInterface
         }
 
         $options = [];
-        $roots = self::whereNotIn('id', [$exclude])->whereNull('parent_id')->orderBy('created_at', 'DESC')->get();
+        $roots = self::whereNotIn('id', [$exclude])->whereNull('parent_id')->orderBy('sort_order', 'ASC')->get();
 
         self::_loopChildrenOptions($options, $roots, 0, $exclude);
 

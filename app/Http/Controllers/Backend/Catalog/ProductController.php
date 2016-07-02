@@ -330,7 +330,7 @@ class ProductController extends Controller{
 
     public function delete(Request $request, $id)
     {
-        $product = Product::findOrFail($id);
+        $product = Product::withTrashed()->findOrFail($id);
 
         if(!$this->deleteable($product->id)){
             return redirect()->back()->withErrors(['Can\'t delete this product. It is used in settled Orders.']);
