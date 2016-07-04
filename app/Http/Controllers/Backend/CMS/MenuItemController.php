@@ -26,7 +26,7 @@ class MenuItemController extends Controller{
         $menu = Menu::findOrFail($request->get('menu_id'));
         $menuItem = new MenuItem();
 
-        $parentOptions = ['None'] + MenuItem::getPossibleParentOptions([]);
+        $parentOptions = ['None'] + MenuItem::getPossibleParentOptions($menu->id, []);
 
         return view('backend.cms.menu_item.create', [
             'menuItem' => $menuItem,
@@ -51,7 +51,7 @@ class MenuItemController extends Controller{
     {
         $menuItem = MenuItem::findOrFail($id);
 
-        $parentOptions = ['None'] + MenuItem::getPossibleParentOptions($menuItem->id);
+        $parentOptions = ['None'] + MenuItem::getPossibleParentOptions($menuItem->menu_id, $menuItem->id);
 
         return view('backend.cms.menu_item.edit', [
             'menuItem' => $menuItem,

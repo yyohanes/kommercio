@@ -29,5 +29,10 @@ return [
             'name' => 'Kommercio',
             'email' => 'admin@kommercio.id'
         ],
+    ],
+    'home_uri' => 'backoffice',
+    'login_images' => [
+        'backend/assets/images/login/bg1.jpg',
+        'backend/assets/images/login/bg2.jpg'
     ]
 ];

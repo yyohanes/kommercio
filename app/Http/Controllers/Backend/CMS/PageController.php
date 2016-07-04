@@ -2,7 +2,6 @@
 
 namespace Kommercio\Http\Controllers\Backend\CMS;
 
-use Illuminate\Http\Request;
 use Kommercio\Http\Controllers\Controller;
 use Kommercio\Http\Requests\Backend\CMS\PageFormRequest;
 use Kommercio\Models\CMS\Page;

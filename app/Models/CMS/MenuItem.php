@@ -61,14 +61,20 @@ class MenuItem extends Model
         return self::whereNull('parent_id')->orderBy('sort_order', 'ASC')->get();
     }
 
-    public static function getPossibleParentOptions($exclude=null)
+    public static function getPossibleParentOptions($menu_id = null, $exclude=null)
     {
         if(empty($exclude)){
             $exclude = [0];
         }
 
         $options = [];
-        $roots = self::whereNotIn('id', [$exclude])->whereNull('parent_id')->orderBy('sort_order', 'ASC')->get();
+        $qb = self::whereNotIn('id', [$exclude])->whereNull('parent_id')->orderBy('sort_order', 'ASC');
+
+        if(!empty($menu_id)){
+            $qb->where('menu_id', $menu_id);
+        }
+
+        $roots = $qb->get();
 
         self::_loopChildrenOptions($options, $roots, 0, $exclude);
 

@@ -143,4 +143,15 @@ return [
         'edit_banner_group' => 'Edit Banner Group',
         'delete_banner_group' => 'Delete Banner Group',
     ],
+    'Menus' => [
+        'view_menu' => 'View Menu',
+        'create_menu' => 'Create Menu',
+        'edit_menu' => 'Edit Menu',
+        'delete_menu' => 'Delete Menu',
+    ],
+    'Menu Items' => [
+        'create_menu_item' => 'Create Menu Item',
+        'edit_menu_item' => 'Edit Menu Item',
+        'delete_menu_item' => 'Delete Menu Item',
+    ],
 ];

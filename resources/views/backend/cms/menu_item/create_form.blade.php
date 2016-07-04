@@ -88,7 +88,7 @@
         'class' => 'form-control select2',
         'id' => 'data[target]'
     ],
-    'defaultOptions' => old('data.target', $menuItem->getTranslation()->getData('target'))
+    'defaultOptions' => old('data.target', $menuItem->exists?$menuItem->getTranslation()->getData('target'):null)
 ])
 
 {!! Form::hidden('menu_id', $menu->id) !!}

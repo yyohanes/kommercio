@@ -18,9 +18,9 @@ var DatasetReorder = function () {
             $dataset.on( 'row-reorder', function ( e, details, changes ) {
                 var newOrders = [];
 
-                for(var i in details){
-                    newOrders.push($(details[i].node).find('.'+$rowClass).data($rowValue));
-                }
+                $(obj).find('.'+$rowClass).each(function(idy, objy){
+                    newOrders.push($(objy).data($rowValue));
+                });
 
                 if(newOrders.length > 0){
                     App.blockUI({

@@ -39,6 +39,7 @@ class BannerController extends Controller{
     {
         $banner = new Banner();
         $banner->fill($request->all());
+        $banner->saveData($request->input('data'));
         $banner->save();
 
         if($request->has('image')){
@@ -72,6 +73,7 @@ class BannerController extends Controller{
     {
         $banner = Banner::findOrFail($id);
         $banner->fill($request->all());
+        $banner->saveData($request->input('data'));
         $banner->save();
 
         $images = [];
@@ -114,6 +116,7 @@ class BannerController extends Controller{
 
         return response()->json([
             'result' => 'success',
+            '_token' => csrf_token()
         ]);
     }
 }

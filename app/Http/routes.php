@@ -12,6 +12,14 @@
 */
 
 Route::group(['middleware' => ['web']], function () {
+    Route::group(['namespace' => 'Frontend'], function(){
+        //Pages
+        Route::get('page/{id}', [
+            'as' => 'frontend.page.view',
+            'uses' => 'PageController@view'
+        ]);
+    });
+
     Route::group(['prefix' => config('kommercio.backend_prefix'), 'namespace' => 'Backend', 'middleware' => 'backend.access'], function(){
         // Authentication Routes...
         Route::get('login', [
@@ -1183,7 +1191,7 @@ Route::group(['middleware' => ['web']], function () {
                         Route::get('{menu_id}/index', [
                             'as' => 'backend.cms.menu_item.index',
                             'uses' => 'MenuItemController@index',
-                            'permissions' => ['view_menu_item']
+                            'permissions' => ['view_menu']
                         ]);
 
                         Route::get('create', [
@@ -1334,4 +1342,6 @@ Route::group(['middleware' => ['web']], function () {
     Route::get('images/{style}/{image}', 'ImageController@style')->where('image', '.*');
 
     Route::get('address/{type}/options/{parent?}', 'AddressController@options');
+
+    Route::get('cron/minute', 'CronController@minute');
 });

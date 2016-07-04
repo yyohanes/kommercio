@@ -4,11 +4,12 @@ namespace Kommercio\Models\CMS;
 
 use Dimsav\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Model;
+use Kommercio\Traits\Model\HasDataColumn;
 use Kommercio\Traits\Model\ToggleDate;
 
 class Banner extends Model
 {
-    use Translatable, ToggleDate {
+    use Translatable, ToggleDate, HasDataColumn{
         Translatable::setAttribute as translateableSetAttribute;
         ToggleDate::setAttribute insteadof Translatable;
     }

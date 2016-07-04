@@ -18,6 +18,14 @@
 @section('bottom_scripts')
     @parent
 
+    <script>
+        global_vars.login_images = [
+            @foreach(config('project.login_images', config('kommercio.login_images')) as $idx => $projectImage)
+            {{ $idx!=0?',':'' }}'{{ asset($projectImage) }}'
+            @endforeach
+        ];
+    </script>
+
     <!-- BEGIN PAGE LEVEL PLUGINS -->
     <script src="{{ asset('backend/assets/template/global/plugins/jquery-validation/js/jquery.validate.min.js') }}" type="text/javascript"></script>
     <script src="{{ asset('backend/assets/template/global/plugins/jquery-validation/js/additional-methods.min.js') }}" type="text/javascript"></script>
@@ -35,7 +43,7 @@
 <div class="user-login-5">
     <div class="row bs-reset">
         <div class="col-md-6 login-container bs-reset">
-            <img class="login-logo login-6" src="{{ asset('backend/assets/images/logo.png') }}" />
+            <img class="login-logo login-6" src="{{ file_exists(public_path('project/assets/images/backoffice-logo.png'))?asset('project/assets/images/backoffice-logo.png'):asset('backend/assets/images/logo.png') }}" />
             <div class="login-content">
                 <h1>{{ env('PROJECT_NAME') }} Back Office</h1>
 
@@ -43,6 +51,7 @@
             </div>
 
             <div class="login-footer">
+                <!--
                 <div class="row bs-reset">
                     <div class="col-xs-5 bs-reset">
                         <ul class="login-social">
@@ -59,6 +68,7 @@
                         </div>
                     </div>
                 </div>
+                -->
             </div>
         </div>
         <div class="col-md-6 bs-reset">

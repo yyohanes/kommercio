@@ -89,3 +89,28 @@
         </div>
     </div>
 </div>
+
+<hr/>
+
+@include('backend.master.form.fields.text', [
+    'name' => 'data[url]',
+    'label' => 'Path',
+    'key' => 'data.url',
+    'attr' => [
+        'class' => 'form-control',
+        'id' => 'data[url]'
+    ],
+    'defaultOptions' => old('data.url', $banner->exists?$banner->getTranslation()->getData('url'):null)
+])
+
+@include('backend.master.form.fields.select', [
+    'name' => 'data[target]',
+    'label' => 'Open path in',
+    'key' => 'data.target',
+    'options' => \Kommercio\Models\CMS\MenuItem::getLinkTargetOptions(),
+    'attr' => [
+        'class' => 'form-control select2',
+        'id' => 'data[target]'
+    ],
+    'defaultOptions' => old('data.target', $banner->exists?$banner->getTranslation()->getData('target'):null)
+])
