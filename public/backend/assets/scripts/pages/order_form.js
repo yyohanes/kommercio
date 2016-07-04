@@ -348,6 +348,14 @@ var OrderForm = function () {
 
     var handleBillingEmail = function()
     {
+        //If one country
+        $('.country-select').each(function(idx, obj) {
+            if ($(obj).find('option').length <= 2) {
+                $(obj).val($(obj).find('option:eq(1)').val());
+                $(obj).select2();
+            }
+        });
+
         $('#profile\\[email\\]').bind('typeahead:select', function(e, suggestion){
             if(suggestion.profile_id){
                 App.blockUI({
