@@ -1339,6 +1339,11 @@ Route::group(['middleware' => ['web']], function () {
         });
     });
 
+    Route::post('availability/calendar', [
+        'as' => 'catalog.product.availability_calendar',
+        'uses' => 'Backend\Catalog\ProductController@availabilityCalendar',
+    ]);
+
     Route::get('images/{style}/{image}', 'ImageController@style')->where('image', '.*');
 
     Route::get('address/{type}/options/{parent?}', 'AddressController@options');

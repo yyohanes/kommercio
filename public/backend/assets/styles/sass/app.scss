@@ -57,6 +57,11 @@
   height: 150px;
 }
 
+//Datepicker
+.day.disabled-date{
+  text-decoration: line-through;
+}
+
 //Pages
 #products-dataset{
   .product-image{

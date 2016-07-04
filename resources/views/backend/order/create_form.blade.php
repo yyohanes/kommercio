@@ -34,7 +34,7 @@
 
     @if(config('project.enable_delivery_date', FALSE))
         <div class="col-md-6">
-            <div class="portlet light bordered">
+            <div class="portlet light bordered" id="delivery-date-panel">
                 <div class="portlet-title">
                     <div class="caption">
                         <i class="fa fa-clock-o"></i>
@@ -47,7 +47,7 @@
                         'label' => 'Delivery Date',
                         'key' => 'delivery_date',
                         'attr' => [
-                            'class' => 'form-control date-picker',
+                            'class' => 'form-control',
                             'data-date-format' => 'yyyy-mm-dd',
                             'id' => 'delivery_date',
                             'placeholder' => 'YYYY-MM-DD'
@@ -246,6 +246,7 @@
         global_vars.get_order_cart_rules_path = '{{ route('backend.sales.order.get_cart_rules') }}';
         global_vars.get_tax_path = '{{ route('backend.tax.get') }}';
         global_vars.get_product_availability = '{{ route('backend.catalog.product.availability', ['id' => null]) }}';
+        global_vars.get_availability_calendar = '{{ route('catalog.product.availability_calendar') }}';
     </script>
 
     <script id="lineitem-product-template" type="text/x-handlebars-template">

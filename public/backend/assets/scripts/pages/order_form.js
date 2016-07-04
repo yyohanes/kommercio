@@ -13,6 +13,7 @@ var OrderForm = function () {
     var $orderPriceRuleTotal;
     var $cartPriceRules = {};
     var $orderedTotal = {};
+    var $disabledDates = [];
 
     var reserOrderSummary = function()
     {
@@ -596,6 +597,8 @@ var OrderForm = function () {
 
     var handleAvailability = function()
     {
+        var datePickerClosed = true;
+
         $('#order-form').on('order.delivery_date_change', function(){
             $('.line-item[data-line_item="product"]', '#line-items-table').each(function(idx, obj){
                 //Get availability
@@ -608,8 +611,62 @@ var OrderForm = function () {
             });
         });
 
-        $('#delivery_date', '#order-form').on('changeDate', function(e){
+        //Availability from Calendar
+        $datePicker = $('#delivery_date', '#order-form');
+        $datePicker.datepicker({
+            rtl: App.isRTL(),
+            beforeShowDay: function(e){
+                if($disabledDates.indexOf(e.getFullYear() + '-' + (e.getMonth()+1) + '-' + e.getDate()) > -1){
+                    return 'disabled-date';
+                }
+            }
+        }).on('show', function(e){
+            if(datePickerClosed){
+                if(e.date == undefined){
+                    e.date = new Date();
+                }
+
+                handleOnChangeMonth(e.date.getMonth(), e.date.getFullYear());
+            }
+
+            datePickerClosed = false;
+        }).on('hide', function(e){
+            datePickerClosed = true;
+        }).on('changeMonth', function(e){
+            handleOnChangeMonth(e.date.getMonth(), e.date.getFullYear());
+        }).on('changeDate', function(e){
+            if($disabledDates.indexOf(e.date.getFullYear() + '-' + (e.date.getMonth()+1) + '-' + e.date.getDate()) > -1){
+                var $confirmed = confirm('This date is not supposed to be selected. Are you sure you want to continue?');
+
+                if(!$confirmed){
+                    e.preventDefault();
+                    $datePicker.datepicker('update', '');
+                }else{
+                    $datePicker.datepicker('hide');
+                }
+            }else{
+                $datePicker.datepicker('hide');
+            }
+        });
+
+        $datePicker.on('changeDate', function(e){
             $('#order-form').trigger('order.delivery_date_change');
+        });
+        //End Availability from Calendar
+    }
+
+    var handleOnChangeMonth = function(month, year)
+    {
+        $.ajax(global_vars.get_availability_calendar, {
+            method: 'POST',
+            data: $('#order-form').serialize() + '&month=' + month + '&year=' + year,
+            success: function(data){
+                $disabledDates = data.disabled_dates;
+                $('#delivery_date', '#order-form').datepicker('update');
+            },
+            complete: function(){
+
+            }
         });
     }
 

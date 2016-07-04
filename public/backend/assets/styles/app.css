@@ -48,17 +48,22 @@
   height: 150px;
 }
 
-/* line 62, sass/app.scss */
+/* line 61, sass/app.scss */
+.day.disabled-date {
+  text-decoration: line-through;
+}
+
+/* line 67, sass/app.scss */
 #products-dataset .product-image {
   width: 40px;
 }
 
-/* line 69, sass/app.scss */
+/* line 74, sass/app.scss */
 #line-items-table .availability div {
   display: none;
 }
 
-/* line 75, sass/app.scss */
+/* line 80, sass/app.scss */
 .permissions-check-all, .permissions-uncheck-all {
   font-size: 12px;
 }

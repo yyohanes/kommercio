@@ -787,6 +787,11 @@ class OrderController extends Controller{
         }
     }
 
+    public function disabledDates(Request $request)
+    {
+
+    }
+
     protected function processLineItems(Request $request, $order)
     {
         $dummyOrder = OrderHelper::createDummyOrderFromRequest($request);

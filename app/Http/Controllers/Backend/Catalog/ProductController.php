@@ -684,6 +684,56 @@ class ProductController extends Controller{
         ]);
     }
 
+    public function availabilityCalendar(Request $request)
+    {
+        //Form months array
+        $month = $request->input('month');
+        $year = $request->input('year');
+
+        $months[] = $month;
+
+        if(($month - 1) < 1){
+            $months[] = 12;
+        }else{
+            $months[] = $month - 1;
+        }
+
+        if(($month + 1) > 12){
+            $months[] = 1;
+        }else{
+            $months[] = $month + 1;
+        }
+
+        $products = [];
+
+        foreach($request->input('line_items') as $lineItemDatum) {
+            if ($lineItemDatum['line_item_type'] == 'product' && empty($lineItemDatum['quantity'])) {
+                continue;
+            }
+
+            $products[] = Product::findOrFail($lineItemDatum['line_item_id']);
+        }
+
+        $disabledDates = [];
+
+        foreach($products as $product){
+            $options = [
+                'store' => $request->input('store_id'),
+                'quantity' => $lineItemDatum['quantity'],
+                'year' => $year,
+                'months' => $months,
+                'format' => 'Y-n-j'
+            ];
+
+            $disabledDates += $product->getUnavailableDeliveryDates($options);
+        }
+
+        return new JsonResponse([
+            'disabled_dates' => array_unique($disabledDates),
+            '_token' => csrf_token()
+        ]);
+    }
+
     protected function deleteable($id)
     {
         $orderCount = Order::checkout()->whereHasLineItem($id, 'product')->count();

@@ -458,10 +458,13 @@ class Product extends Model implements UrlAliasInterface
         }
 
         //Order Total Limit
-        $totalOrderLimitsQb = $this->getOrderLimitQb(OrderLimit::LIMIT_ORDER_DATE, $date, $store);
-        $totalOrderLimits = $totalOrderLimitsQb->get();
+        $totalOrderLimit = null;
+        if($date){
+            $totalOrderLimitsQb = $this->getOrderLimitQb(OrderLimit::LIMIT_ORDER_DATE, $date, $store);
+            $totalOrderLimits = $totalOrderLimitsQb->get();
 
-        $totalOrderLimit = ($totalOrderLimits->count() > 0)?$this->extractOrderLimit($totalOrderLimits)->limit:null;
+            $totalOrderLimit = ($totalOrderLimits->count() > 0)?$this->extractOrderLimit($totalOrderLimits)->limit:null;
+        }
 
         $orderLimits = [
             'delivery_date' => $deliveryOrderLimit,
@@ -485,28 +488,81 @@ class Product extends Model implements UrlAliasInterface
         return $orderLimits?['limit_type' => $limitType, 'limit' => $orderLimits[$limitType]]:null;
     }
 
+    public function getUnavailableDeliveryDates($options)
+    {
+        $disabledDates = [];
+        $quantity = !empty($options['quantity'])?$options['quantity']:0;
+        $store = !empty($options['store'])?$options['store']:null;
+        $months = !empty($options['months'])?$options['months']:[];
+        $year = !empty($options['year'])?$options['year']:date('Y');
+        $format = !empty($options['format'])?$options['format']:'Y-m-d';
+
+        if(!$months){
+            throw new \Exception('You need to specify months.');
+        }
+
+        foreach($months as $month){
+            $dayToRun = Carbon::createFromFormat('j-n-Y', '1-'.$month.'-'.$year);
+            $dayToRun->setTime(0, 0, 0);
+
+            $lastDayOfMonth = clone $dayToRun;
+            $lastDayOfMonth->modify('last day of this month');
+
+            while($dayToRun->lte($lastDayOfMonth)){
+                $dayOrderCount = $this->getOrderCount([
+                    'delivery_date' => $dayToRun->format($format)
+                ]);
+
+                $dayOrderLimit = $this->getOrderLimit([
+                    'store' => $store,
+                    'delivery_date' => $dayToRun->format($format)
+                ]);
+
+                if(is_array($dayOrderLimit) && $dayOrderCount + $quantity > $dayOrderLimit['limit']){
+                    $disabledDates[] = $dayToRun->format($format);
+                }
+
+                $dayToRun->addDay();
+            }
+        }
+
+        return $disabledDates;
+    }
+
     protected function extractOrderLimit($orderLimits)
     {
         $sorted = [
-            OrderLimit::TYPE_PRODUCT => [],
-            OrderLimit::TYPE_PRODUCT_CATEGORY => []
+            'has_date' => [
+                OrderLimit::TYPE_PRODUCT => [],
+                OrderLimit::TYPE_PRODUCT_CATEGORY => []
+            ],
+            'no_date' => [
+                OrderLimit::TYPE_PRODUCT => [],
+                OrderLimit::TYPE_PRODUCT_CATEGORY => []
+            ]
         ];
 
         //Has date
         foreach($orderLimits as $orderLimit){
             if($orderLimit->hasDate()){
-                $sorted[$orderLimit->type][] = $orderLimit;
+                $sorted['has_date'][$orderLimit->type][] = $orderLimit;
             }
         }
 
         //No date
         foreach($orderLimits as $orderLimit){
             if(!$orderLimit->hasDate()){
-                $sorted[$orderLimit->type][] = $orderLimit;
+                $sorted['no_date'][$orderLimit->type][] = $orderLimit;
             }
         }
 
-        foreach($sorted as $sortedWalk){
+        foreach($sorted['has_date'] as $sortedWalk){
+            if(!empty($sortedWalk)){
+                return $sortedWalk[0];
+            }
+        }
+
+        foreach($sorted['no_date'] as $sortedWalk){
             if(!empty($sortedWalk)){
                 return $sortedWalk[0];
             }

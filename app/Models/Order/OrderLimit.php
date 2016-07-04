@@ -68,18 +68,12 @@ class OrderLimit extends Model
 
     public function scopeWithinDate($qb, Carbon $date)
     {
-        $fromDate = clone $date;
-        $fromDate->setTime(0, 0, 0);
-
-        $toDate = clone $date;
-        $toDate->modify('+1 day')->setTime(0, 0, 0);
-
-        $qb->where(function($query) use ($fromDate){
-            $query->whereNull('date_from')->orWhere('date_from', '<=', $fromDate);
+        $qb->where(function($query) use ($date){
+            $query->whereNull('date_from')->orWhere('date_from', '<=', $date->format('Y-m-d H:i:s'));
         });
 
-        $qb->where(function($query) use ($toDate){
-            $query->whereNull('date_to')->orWhere('date_to', '>', $toDate);
+        $qb->where(function($query) use ($date){
+            $query->whereNull('date_to')->orWhere('date_to', '>=', $date->format('Y-m-d H:i:s'));
         });
     }
 
