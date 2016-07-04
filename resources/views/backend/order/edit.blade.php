@@ -16,7 +16,7 @@
 
 @section('content')
     <div class="col-md-12">
-        {!! Form::model($order, ['route' => ['backend.sales.order.update', 'id' => $order->id], 'class' => 'form-horizontal', 'id' => 'order-form']) !!}
+        {!! Form::model($order, ['route' => ['backend.sales.order.update', 'id' => $order->id], 'class' => 'form-horizontal', 'data-order_id' => $order->id, 'id' => 'order-form']) !!}
         <div class="portlet light portlet-fit portlet-form bordered">
             <div class="portlet-title">
                 <div class="caption">

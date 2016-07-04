@@ -689,40 +689,40 @@ class ProductController extends Controller{
         //Form months array
         $month = $request->input('month');
         $year = $request->input('year');
+        $order = Order::find($request->input('order_id', null));
 
-        $months[] = $month;
+        $focusedDate = Carbon::createFromFormat('Y-n', $year.'-'.$month);
 
-        if(($month - 1) < 1){
-            $months[] = 12;
-        }else{
-            $months[] = $month - 1;
-        }
+        $months[] = $focusedDate->format('n-Y');
 
-        if(($month + 1) > 12){
-            $months[] = 1;
-        }else{
-            $months[] = $month + 1;
-        }
+        $focusedDate->modify('-1 month');
+        $months[] = $focusedDate->format('n-Y');
+
+        $focusedDate->modify('+2 months');
+        $months[] = $focusedDate->format('n-Y');
 
         $products = [];
 
-        foreach($request->input('line_items') as $lineItemDatum) {
+        foreach($request->input('line_items') as $idx=>$lineItemDatum) {
             if ($lineItemDatum['line_item_type'] == 'product' && empty($lineItemDatum['quantity'])) {
                 continue;
+            }elseif($lineItemDatum['line_item_type'] == 'product'){
+                $products[$idx] = Product::findOrFail($lineItemDatum['line_item_id']);
             }
-
-            $products[] = Product::findOrFail($lineItemDatum['line_item_id']);
         }
 
         $disabledDates = [];
 
-        foreach($products as $product){
+        foreach($products as $idx=>$product){
+            $orderedQuantity = $request->input('line_items.'.$idx.'.quantity');
+
             $options = [
                 'store' => $request->input('store_id'),
-                'quantity' => $lineItemDatum['quantity'],
-                'year' => $year,
+                'quantity' => $orderedQuantity,
                 'months' => $months,
-                'format' => 'Y-n-j'
+                'format' => 'Y-n-j',
+                'saved_quantity' => ($order && $order->isCheckout)?$order->getProductQuantity($product->id):0,
+                'saved_delivery_date' => $order?$order->delivery_date->format('j-n-Y'):null
             ];
 
             $disabledDates += $product->getUnavailableDeliveryDates($options);

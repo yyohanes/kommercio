@@ -606,6 +606,7 @@ var OrderForm = function () {
     var handleAvailability = function()
     {
         var datePickerClosed = true;
+        var datepickerDate;
 
         $('#order-form').on('order.delivery_date_change', function(){
             $('.line-item[data-line_item="product"]', '#line-items-table').each(function(idx, obj){
@@ -623,6 +624,7 @@ var OrderForm = function () {
         $datePicker = $('#delivery_date', '#order-form');
         $datePicker.datepicker({
             rtl: App.isRTL(),
+            container: '#delivery-date-panel',
             beforeShowDay: function(e){
                 if($disabledDates.indexOf(e.getFullYear() + '-' + (e.getMonth()+1) + '-' + e.getDate()) > -1){
                     return 'disabled-date';
@@ -630,11 +632,13 @@ var OrderForm = function () {
             }
         }).on('show', function(e){
             if(datePickerClosed){
-                if(e.date == undefined){
-                    e.date = new Date();
+                datepickerDate = $(e.target).datepicker('getDate');
+
+                if(datepickerDate == null){
+                    datepickerDate = new Date();
                 }
 
-                handleOnChangeMonth(e.date.getMonth(), e.date.getFullYear());
+                handleOnChangeMonth(datepickerDate.getMonth(), datepickerDate.getFullYear(), $(e.target).datepicker('getDate'));
             }
 
             datePickerClosed = false;
@@ -663,17 +667,24 @@ var OrderForm = function () {
         //End Availability from Calendar
     }
 
-    var handleOnChangeMonth = function(month, year)
+    var handleOnChangeMonth = function(month, year, date)
     {
+        $('#delivery-date-panel .datepicker-days').css('visibility', 'hidden');
+
         $.ajax(global_vars.get_availability_calendar, {
             method: 'POST',
-            data: $('#order-form').serialize() + '&month=' + month + '&year=' + year,
+            data: $('#order-form').serialize() + '&month=' + (month+1) + '&year=' + year + '&order_id=' + $('#order-form').data('order_id'),
             success: function(data){
-                $disabledDates = data.disabled_dates;
-                $('#delivery_date', '#order-form').datepicker('update');
+                $disabledDates = $.makeArray(data.disabled_dates);
+
+                if(typeof date !== 'undefined'){
+                    $('#delivery_date', '#order-form').datepicker('update', date);
+                }
             },
             complete: function(){
-
+                setTimeout(function(){
+                    $('#delivery-date-panel .datepicker-days').css('visibility', 'visible');
+                }, 250);
             }
         });
     }

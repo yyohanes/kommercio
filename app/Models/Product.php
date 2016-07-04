@@ -492,9 +492,11 @@ class Product extends Model implements UrlAliasInterface
     {
         $disabledDates = [];
         $quantity = !empty($options['quantity'])?$options['quantity']:0;
+        $saved_quantity = !empty($options['saved_quantity'])?$options['saved_quantity']:0;
+        $saved_delivery_date = !empty($options['saved_delivery_date'])?$options['saved_delivery_date']:null;
+        $quantity = !empty($options['quantity'])?$options['quantity']:0;
         $store = !empty($options['store'])?$options['store']:null;
         $months = !empty($options['months'])?$options['months']:[];
-        $year = !empty($options['year'])?$options['year']:date('Y');
         $format = !empty($options['format'])?$options['format']:'Y-m-d';
 
         if(!$months){
@@ -502,7 +504,7 @@ class Product extends Model implements UrlAliasInterface
         }
 
         foreach($months as $month){
-            $dayToRun = Carbon::createFromFormat('j-n-Y', '1-'.$month.'-'.$year);
+            $dayToRun = Carbon::createFromFormat('j-n-Y', '1-'.$month);
             $dayToRun->setTime(0, 0, 0);
 
             $lastDayOfMonth = clone $dayToRun;
@@ -510,8 +512,12 @@ class Product extends Model implements UrlAliasInterface
 
             while($dayToRun->lte($lastDayOfMonth)){
                 $dayOrderCount = $this->getOrderCount([
-                    'delivery_date' => $dayToRun->format($format)
+                    'delivery_date' => $dayToRun->format('Y-m-d')
                 ]);
+
+                if($dayToRun->format('j-n-Y') == $saved_delivery_date){
+                    $dayOrderCount -= $saved_quantity;
+                }
 
                 $dayOrderLimit = $this->getOrderLimit([
                     'store' => $store,
