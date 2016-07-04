@@ -679,12 +679,14 @@ var OrderForm = function () {
 
                 if(typeof date !== 'undefined'){
                     $('#delivery_date', '#order-form').datepicker('update', date);
+                }else{
+                    $('#delivery_date', '#order-form').datepicker('fill');
                 }
+
+                $('#delivery-date-panel .datepicker-days').css('visibility', 'visible');
             },
             complete: function(){
-                setTimeout(function(){
-                    $('#delivery-date-panel .datepicker-days').css('visibility', 'visible');
-                }, 250);
+
             }
         });
     }
