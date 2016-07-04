@@ -1343,5 +1343,8 @@ Route::group(['middleware' => ['web']], function () {
 
     Route::get('address/{type}/options/{parent?}', 'AddressController@options');
 
-    Route::get('cron/minute', 'CronController@minute');
+    Route::group(['prefix' => 'cron'], function(){
+        Route::get('minute', 'CronController@minute');
+        Route::get('start-of-day', 'CronController@startOfDay');
+    });
 });

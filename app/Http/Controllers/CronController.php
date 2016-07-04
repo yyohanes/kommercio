@@ -4,6 +4,8 @@ namespace Kommercio\Http\Controllers;
 
 use Illuminate\Routing\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Event;
+use Kommercio\Events\Cron as CronEvent;
 use Kommercio\Facades\ProjectHelper;
 
 class CronController extends Controller
@@ -43,7 +45,26 @@ class CronController extends Controller
         }
         /* End Toggle Date Models */
 
+        //Dispatch Cron event
+        Event::fire(new CronEvent('minute'));
+
         //Unflag global cron minute
         ProjectHelper::saveConfig('cron_minute_is_running', 'false');
+    }
+
+    public function startOfDay()
+    {
+        if(ProjectHelper::getConfig('cron_start_of_day_is_running') == 'true'){
+            abort(403, 'Start of Day cron is already running.');
+        }
+
+        //Flag global cron minute
+        ProjectHelper::saveConfig('cron_start_of_day_is_running', 'true');
+
+        //Dispatch Cron event
+        Event::fire(new CronEvent('start_of_day'));
+
+        //Unflag global cron minute
+        ProjectHelper::saveConfig('cron_start_of_day_is_running', 'false');
     }
 }

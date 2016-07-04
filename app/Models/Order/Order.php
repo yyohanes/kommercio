@@ -11,10 +11,11 @@ use Kommercio\Models\Interfaces\AuthorSignatureInterface;
 use Kommercio\Models\Profile\Profile;
 use Kommercio\Models\Tax;
 use Kommercio\Traits\Model\AuthorSignature;
+use Kommercio\Traits\Model\HasDataColumn;
 
 class Order extends Model implements AuthorSignatureInterface
 {
-    use SoftDeletes, AuthorSignature;
+    use SoftDeletes, AuthorSignature, HasDataColumn;
 
     const STATUS_CANCELLED = 'cancelled';
     const STATUS_ADMIN_CART = 'admin_cart';
@@ -22,6 +23,8 @@ class Order extends Model implements AuthorSignatureInterface
     const STATUS_PENDING = 'pending';
     const STATUS_PROCESSING = 'processing';
     const STATUS_COMPLETED = 'completed';
+
+    public static $processedStatus = [self::STATUS_PENDING, self::STATUS_PROCESSING];
 
     public $referenceFormat;
 
@@ -464,6 +467,11 @@ class Order extends Model implements AuthorSignatureInterface
     public function scopeUsageCounted($query)
     {
         $query->whereIn('status', [self::STATUS_PENDING, self::STATUS_PROCESSING, self::STATUS_COMPLETED]);
+    }
+
+    public function scopeProcessed($query)
+    {
+        $query->whereIn('status', config('project.processed_order_status', self::$processedStatus));
     }
 
     public function scopeWhereHasLineItem($query, $line_item_id, $line_item_type)

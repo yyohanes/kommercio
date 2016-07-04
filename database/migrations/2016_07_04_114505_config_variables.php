@@ -12,6 +12,10 @@ class ConfigVariables extends Migration
      */
     public function up()
     {
+        Schema::table('orders', function(Blueprint $table){
+            $table->text('data')->nullable()->after('notes');
+        });
+
         Schema::create('config_variables', function(Blueprint $table){
             $table->string('key')->unique();
             $table->text('value')->nullable();
@@ -26,5 +30,11 @@ class ConfigVariables extends Migration
     public function down()
     {
         Schema::drop('config_variables');
+
+        if(Schema::hasColumn('orders', 'data')){
+            Schema::table('orders', function(Blueprint $table){
+                $table->dropColumn('data');
+            });
+        }
     }
 }

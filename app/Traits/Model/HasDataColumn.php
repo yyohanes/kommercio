@@ -4,7 +4,7 @@ namespace Kommercio\Traits\Model;
 
 trait HasDataColumn
 {
-    public function saveData($data)
+    public function saveData($data, $immediateSave = false)
     {
         $oldData = unserialize($this->data);
         $oldData = $oldData?$oldData:[];
@@ -12,6 +12,10 @@ trait HasDataColumn
         $data = array_merge($oldData, $data);
 
         $this->data = serialize($data);
+
+        if($immediateSave){
+            $this->save();
+        }
     }
 
     public function getData($attribute=null)
@@ -26,18 +30,24 @@ trait HasDataColumn
     }
 
     //Scopes
-    public function scopeSearchData($query, $key, $value)
+    public function scopeSearchData($query, $key, $value, $whereNot = false)
     {
+        $regexpFunc = 'REGEXP';
+
+        if($whereNot){
+            $regexpFunc = 'NOT REGEXP';
+        }
+
         if(is_array($value)){
             foreach($value as $idx=>$value_single){
                 if($idx == 0){
-                    $query->whereRaw('data REGEXP \'.*"'.$key.'";s:[0-9]+:"'.$value_single.'".*\'');
+                    $query->whereRaw('data '.$regexpFunc.' \'.*"'.$key.'";s:[0-9]+:"'.$value_single.'".*\'');
                 }else{
-                    $query->orWhereRaw('data REGEXP \'.*"'.$key.'";s:[0-9]+:"'.$value_single.'".*\'');
+                    $query->orWhereRaw('data '.$regexpFunc.' \'.*"'.$key.'";s:[0-9]+:"'.$value_single.'".*\'');
                 }
             }
         }else{
-            $query->whereRaw('data REGEXP \'.*"'.$key.'";s:[0-9]+:"'.$value_single.'".*\'');
+            $query->whereRaw('data '.$regexpFunc.' \'.*"'.$key.'";s:[0-9]+:"'.$value.'".*\'');
         }
     }
 }
