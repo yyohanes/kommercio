@@ -18,6 +18,16 @@ class EventServiceProvider extends ServiceProvider
         ],
     ];
 
+    public function __construct($app)
+    {
+        parent::__construct($app);
+
+        //Add package Cron Listener
+        if(file_exists(app_path('packages/project/src/Project/Listeners/CronListener.php'))){
+            $listen['Kommercio\Events\Cron'] = ['Project\Listeners\CronListener'];
+        }
+    }
+
     /**
      * Register any other events for your application.
      *
