@@ -12,7 +12,7 @@
         </a>
     </li>
 
-    @can('access', ['view_product', 'view_product_category', 'view_product_attribute', 'view_product_feature', 'view_manufacturer'])
+    @can('access', [['view_product', 'view_product_category', 'view_product_attribute', 'view_product_feature', 'view_manufacturer']])
     <li class="nav-item open {{ NavigationHelper::activeClass('catalog')?'active':'' }}">
         <a href="javascript:;" class="nav-link nav-toggle">
             <i class="fa fa-book"></i>
@@ -53,7 +53,7 @@
     </li>
     @endcan
 
-    @can('access', ['view_order', 'view_order_limit'])
+    @can('access', [['view_order', 'view_order_limit']])
     <li class="nav-item open {{ NavigationHelper::activeClass('sales')?'active':'' }}">
         <a href="javascript:;" class="nav-link">
             <i class="fa fa-smile-o"></i>
@@ -90,7 +90,7 @@
     </li>
     @endcan
 
-    @can('access', ['view_product_price_rule', 'view_cart_price_rule'])
+    @can('access', [['view_product_price_rule', 'view_cart_price_rule']])
     <li class="nav-item open {{ NavigationHelper::activeClass('price-rule')?'active':'' }}">
         <a href="javascript:;" class="nav-link nav-toggle">
             <i class="fa fa-tags"></i>
@@ -122,7 +122,7 @@
     </li>
     @endcan
 
-    @can('access', ['view_delivery_report', 'view_production_schedule', 'view_sales_report'])
+    @can('access', [['view_sales_report', 'view_delivery_report', 'view_production_schedule']])
     <li class="nav-item open {{ NavigationHelper::activeClass('report')?'active':'' }}">
         <a href="javascript:;" class="nav-link nav-toggle">
             <i class="fa fa-bar-chart"></i>
@@ -153,7 +153,7 @@
     </li>
     @endcan
 
-    @can('access', ['view_tax', 'view_payment_method', 'view_shipping_method', 'view_store', 'view_address'])
+    @can('access', [['view_tax', 'view_payment_method', 'view_shipping_method', 'view_store', 'view_address']])
     <li class="nav-item open {{ NavigationHelper::activeClass('configuration')?'active':'' }}">
         <a href="javascript:;" class="nav-link nav-toggle">
             <i class="fa fa-wrench"></i>
@@ -203,7 +203,7 @@
     </li>
     @endcan
 
-    @can('access', ['view_page', 'view_banner', 'view_menu'])
+    @can('access', [['view_page', 'view_banner', 'view_menu']])
     <li class="nav-item open {{ NavigationHelper::activeClass('cms')?'active':'' }}">
         <a href="javascript:;" class="nav-link nav-toggle">
             <i class="fa fa-book"></i>
@@ -230,7 +230,7 @@
     </li>
     @endcan
 
-    @can('access', ['view_user', 'view_role'])
+    @can('access', [['view_user', 'view_role']])
     <li class="nav-item open {{ NavigationHelper::activeClass('user')?'active':'' }}">
         <a href="javascript:;" class="nav-link nav-toggle">
             <i class="fa fa-lock"></i>

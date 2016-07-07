@@ -44,7 +44,11 @@ class Role extends Model
     {
         $permissions = $this->getPermissions();
 
-        return $this->exists && in_array($permission, $permissions);
+        if(is_array($permission)){
+            return $this->exists && array_intersect($permission, $permissions);
+        }else{
+            return $this->exists && in_array($permission, $permissions);
+        }
     }
 
     //Relations
