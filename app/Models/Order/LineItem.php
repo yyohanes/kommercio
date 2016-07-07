@@ -46,7 +46,11 @@ class LineItem extends Model
     public function processData($data, $sort_order = 0)
     {
         if($data['line_item_type'] == 'product'){
-            $this->linkProductBySKU($data['sku']);
+            if(!empty($data['sku'])){
+                $this->linkProductBySKU($data['sku']);
+            }elseif(!empty($data['line_item_id'])){
+                $this->linkProductById($data['line_item_id']);
+            }
             $this->net_price = $data['net_price'];
             $this->quantity = $data['quantity'];
 
@@ -102,6 +106,16 @@ class LineItem extends Model
     public function linkProductBySKU($sku)
     {
         $product = Product::where('sku', $sku)->firstOrFail();
+        $this->name = $product->name;
+        $this->taxable = $product->productDetail->taxable;
+        $this->line_item_id = $product->id;
+        $this->line_item_type = 'product';
+        $this->base_price = $product->getRetailPrice();
+    }
+
+    public function linkProductById($id)
+    {
+        $product = Product::findOrFail($id);
         $this->name = $product->name;
         $this->taxable = $product->productDetail->taxable;
         $this->line_item_id = $product->id;

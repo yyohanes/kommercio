@@ -12,8 +12,11 @@ class PageController extends Controller
     {
         $page = Page::findOrFail($id);
 
-        return view(ProjectHelper::getViewTemplate('frontend.page.view'), [
-            'page' => $page
+        $view_name = ProjectHelper::findViewTemplate(['frontend.page.view_'.$page->id, 'frontend.page.view']);
+
+        return view($view_name, [
+            'page' => $page,
+            'seoModel' => $page
         ]);
     }
 }

@@ -4,6 +4,7 @@ namespace Kommercio\Models\CMS;
 
 use Dimsav\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Model;
+use Kommercio\Facades\FrontendHelper;
 use Kommercio\Traits\Model\ToggleDate;
 
 class MenuItem extends Model
@@ -38,6 +39,17 @@ class MenuItem extends Model
     }
 
     //Accessors
+    public function getExternalPathAttribute()
+    {
+        if($this->url){
+            $path = FrontendHelper::get_url($this->url);
+        }else{
+            $path = '#';
+        }
+
+        return $path;
+    }
+
     public function getChildrenCountAttribute()
     {
         if(!$this->relationLoaded('children')){

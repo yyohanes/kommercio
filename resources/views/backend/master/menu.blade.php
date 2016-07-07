@@ -122,7 +122,7 @@
     </li>
     @endcan
 
-    @can('access', ['view_sales_report', 'view_delivery_report', 'view_production_schedule'])
+    @can('access', ['view_delivery_report', 'view_production_schedule', 'view_sales_report'])
     <li class="nav-item open {{ NavigationHelper::activeClass('report')?'active':'' }}">
         <a href="javascript:;" class="nav-link nav-toggle">
             <i class="fa fa-bar-chart"></i>

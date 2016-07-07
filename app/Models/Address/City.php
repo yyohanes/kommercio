@@ -14,6 +14,6 @@ class City extends Address
 
     public function districts()
     {
-        return $this->hasMany('Kommercio\Models\Address\Disctrict')->orderBy('sort_order', 'ASC');
+        return $this->hasMany('Kommercio\Models\Address\District')->orderBy('sort_order', 'ASC');
     }
 }

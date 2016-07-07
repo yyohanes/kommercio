@@ -51,7 +51,7 @@ class MenuController extends Controller{
 
     public function update(Request $request, $id)
     {
-        $rules = $this->getRules();
+        $rules = $this->getRules($id);
         $this->validate($request, $rules);
 
         $menu = Menu::findOrFail($id);
@@ -72,10 +72,11 @@ class MenuController extends Controller{
         return redirect()->back()->with('success', [$name.' has been deleted.']);
     }
 
-    protected function getRules()
+    protected function getRules($id=null)
     {
         $rules = [
-            'name' => 'required'
+            'name' => 'required',
+            'slug' => 'required|unique:menus,slug'.($id?','.$id:'')
         ];
 
         return $rules;

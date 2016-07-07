@@ -32,4 +32,31 @@ class CustomValidator extends Validator
     {
         return Product::where('sku', $value)->count() > 0;
     }
+
+    public function validateIsActive($attribute, $value, $parameters)
+    {
+        $product_id = $value;
+
+        $product = Product::findOrFail($product_id);
+
+        return $product->productDetail->active;
+    }
+
+    public function validateIsAvailable($attribute, $value, $parameters)
+    {
+        $product_id = $value;
+
+        $product = Product::findOrFail($product_id);
+
+        return $product->productDetail->available;
+    }
+
+    public function validateIsPurchaseable($attribute, $value, $parameters)
+    {
+        $product_id = $value;
+
+        $product = Product::findOrFail($product_id);
+
+        return $product->isPurchaseable;
+    }
 }

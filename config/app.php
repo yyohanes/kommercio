@@ -167,6 +167,7 @@ return [
         Kommercio\Providers\EventServiceProvider::class,
         Kommercio\Providers\RouteServiceProvider::class,
         Kommercio\Providers\BackendServiceProvider::class,
+        Kommercio\Providers\FrontendServiceProvider::class,
     ],
 
     /*
@@ -223,6 +224,7 @@ return [
         'AddressHelper' => \Kommercio\Facades\AddressHelper::class,
         'OrderHelper' => \Kommercio\Facades\OrderHelper::class,
         'EmailHelper' => \Kommercio\Facades\EmailHelper::class,
+        'FrontendHelper' => \Kommercio\Facades\FrontendHelper::class,
     ],
 
 ];

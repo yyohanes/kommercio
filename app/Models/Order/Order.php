@@ -8,7 +8,10 @@ use Illuminate\Support\Facades\DB;
 use Kommercio\Facades\CurrencyHelper;
 use Kommercio\Facades\PriceFormatter;
 use Kommercio\Models\Interfaces\AuthorSignatureInterface;
+use Kommercio\Models\PriceRule\CartPriceRule;
+use Kommercio\Models\Product;
 use Kommercio\Models\Profile\Profile;
+use Kommercio\Models\ShippingMethod\ShippingMethod;
 use Kommercio\Models\Tax;
 use Kommercio\Traits\Model\AuthorSignature;
 use Kommercio\Traits\Model\HasDataColumn;
@@ -90,6 +93,212 @@ class Order extends Model implements AuthorSignatureInterface
     }
 
     //Methods
+    public function reset()
+    {
+        if(in_array($this->status, [self::STATUS_CART, self::STATUS_ADMIN_CART])){
+            $this->lineItems()->delete();
+
+            $this->delivery_date = null;
+            $this->store_id = null;
+            $this->payment_method_id = null;
+
+            $time = $this->freshTimestamp();
+            $this->setCreatedAt($time);
+            $this->setUpdatedAt($time);
+
+            $this->save();
+        }
+    }
+
+    public function addToCart(Product $product, $quantity = 1, $options = [])
+    {
+        $existingLineItems = $this->getProductLineItems();
+
+        //if already exists
+        $alreadyExist = FALSE;
+        foreach($existingLineItems as $existingLineItem){
+            if($existingLineItem->line_item_id == $product->id){
+                $alreadyExist = TRUE;
+                $existingLineItem->quantity += $quantity;
+                $existingLineItem->calculateTotal();
+                $existingLineItem->save();
+                break;
+            }
+        }
+
+        if(!$alreadyExist){
+            $lineItem = new LineItem();
+            $lineItem->order()->associate($this);
+            $lineItem->processData([
+                'line_item_type' => 'product',
+                'net_price' => $product->getNetPrice(),
+                'quantity' => $quantity,
+                'sku' => $product->sku
+            ]);
+            $lineItem->save();
+        }
+
+        $this->load('lineItems');
+
+        return $this;
+    }
+
+    public function removeFromCart(Product $product)
+    {
+        $existingLineItems = $this->getProductLineItems();
+
+        foreach($existingLineItems as $existingLineItem){
+            if($existingLineItem->line_item_id == $product->id){
+                $existingLineItem->delete();
+            }
+        }
+
+        $this->load('lineItems');
+
+        return $this;
+    }
+
+    public function updateQuantity(Product $product, $quantity = 1)
+    {
+        $existingLineItems = $this->getProductLineItems();
+
+        //if already exists
+        $alreadyExist = FALSE;
+        foreach($existingLineItems as $existingLineItem){
+            if($existingLineItem->line_item_id == $product->id){
+                $alreadyExist = TRUE;
+
+                if($quantity){
+                    $existingLineItem->quantity = $quantity;
+                    $existingLineItem->calculateTotal();
+                    $existingLineItem->save();
+                }else{
+                    $existingLineItem->delete();
+                }
+
+                break;
+            }
+        }
+
+        if(!$alreadyExist){
+            $lineItem = new LineItem();
+            $lineItem->order()->associate($this);
+            $lineItem->processData([
+                'line_item_type' => 'product',
+                'net_price' => $product->getNetPrice(),
+                'quantity' => $quantity,
+                'sku' => $product->sku
+            ]);
+            $lineItem->save();
+        }
+
+        $this->load('lineItems');
+
+        return $this;
+    }
+
+    public function addCoupon(CartPriceRule $coupon)
+    {
+        $existingLineItems = $this->getCouponLineItems();
+
+        //if already exists
+        $alreadyExist = FALSE;
+        foreach($existingLineItems as $existingLineItem){
+            if($existingLineItem->line_item_id == $coupon->id){
+                $alreadyExist = TRUE;
+                break;
+            }
+        }
+
+        if(!$alreadyExist){
+            $lineItem = new LineItem();
+            $lineItem->order()->associate($this);
+            $lineItem->processData([
+                'line_item_type' => 'cart_price_rule',
+                'cart_price_rule_id' => $coupon->id,
+                'lineitem_total_amount' => 0, //This is purposely set to 0 because it's not possible to calculate now. Calculation will be done later at Controller level
+            ]);
+            $lineItem->save();
+        }
+
+        $this->load('lineItems');
+
+        return $this;
+    }
+
+    public function removeCoupon(CartPriceRule $coupon)
+    {
+        $existingLineItems = $this->getCouponLineItems();
+
+        //if already exists
+        $alreadyExist = FALSE;
+        foreach($existingLineItems as $existingLineItem){
+            if($existingLineItem->line_item_id == $coupon->id){
+                $existingLineItem->delete();
+                break;
+            }
+        }
+
+        $this->load('lineItems');
+
+        return $this;
+    }
+
+    public function updateShippingMethod($selected_method)
+    {
+        $existingLineItems = $this->getShippingLineItems();
+
+        //if already exists
+        $alreadyExist = FALSE;
+        foreach($existingLineItems as $existingLineItem){
+            if($existingLineItem->getData('shipping_method') == $selected_method){
+                $alreadyExist = TRUE;
+                $existingLineItem->clearData();
+                $lineItem = $existingLineItem;
+            }else{
+                $existingLineItem->delete();
+            }
+        }
+
+        if(!$alreadyExist){
+            $lineItem = new LineItem();
+            $lineItem->order()->associate($this);
+        }
+
+        //Get all methods first than filter
+        $shippingOptions = ShippingMethod::getShippingMethods([
+            'order' => $this
+        ]);
+
+        foreach($shippingOptions as $selectedMethod => $shippingOption){
+            if($selectedMethod == $selected_method){
+                $shipping_method = ShippingMethod::findOrFail($shippingOption['shipping_method_id']);
+                $price = CurrencyHelper::convert($shippingOption['price']['amount'], $shippingOption['price']['currency']);
+                break;
+            }
+        }
+
+        if(isset($shipping_method)){
+            $lineItem->processData([
+                'line_item_type' => 'shipping',
+                'name' => $shippingOption['name'],
+                'line_item_id' => $shipping_method->id,
+                'taxable' => $shipping_method->taxable,
+                'shipping_method' => $selected_method,
+                'base_price' => $price,
+                'lineitem_total_amount' => $price, //This is purposely set to default because it's not possible to calculate now. Calculation will be done later at Controller level
+            ]);
+            $lineItem->calculateTotal();
+            $lineItem->save();
+        }else{
+            $lineItem->delete();
+        }
+
+        $this->load('lineItems');
+
+        return $this;
+    }
+
     public function generateReference()
     {
         $format = $this->referenceFormat;
@@ -385,6 +594,13 @@ class Order extends Model implements AuthorSignatureInterface
         return $shippingLineItem?$shippingLineItem->shippingMethod:null;
     }
 
+    public function getSelectedShippingMethod()
+    {
+        $shippingLineItem = $this->getShippingLineItem();
+
+        return $shippingLineItem?$shippingLineItem->getData('shipping_method'):null;
+    }
+
     public function getCartPriceRuleLineItems()
     {
         $lineItems = [];
@@ -487,6 +703,18 @@ class Order extends Model implements AuthorSignatureInterface
     }
 
     //Accessors
+    public function getItemsCountAttribute()
+    {
+        $productLineItems = $this->getProductLineItems();
+
+        $count = 0;
+        foreach($productLineItems as $productLineItem){
+            $count += $productLineItem->quantity;
+        }
+
+        return $count;
+    }
+
     public function getIsEditableAttribute()
     {
         return in_array($this->status, [self::STATUS_ADMIN_CART, self::STATUS_CART, self::STATUS_PENDING]);

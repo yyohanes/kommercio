@@ -7,16 +7,18 @@ use Dimsav\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
+use Kommercio\Facades\FrontendHelper;
 use Kommercio\Facades\ProjectHelper;
 use Kommercio\Models\Interfaces\UrlAliasInterface;
 use Kommercio\Models\Order\LineItem;
 use Kommercio\Models\Order\Order;
 use Kommercio\Models\Order\OrderLimit;
 use Kommercio\Models\ProductAttribute\ProductAttributeValue;
+use Kommercio\Traits\Model\SeoTrait;
 
 class Product extends Model implements UrlAliasInterface
 {
-    use SoftDeletes, Translatable;
+    use SoftDeletes, Translatable, SeoTrait;
 
     const TYPE_DEFAULT = 'default';
 
@@ -113,6 +115,17 @@ class Product extends Model implements UrlAliasInterface
     }
 
     //Methods
+    public function getExternalPath()
+    {
+        if($this->isVariation){
+            $path = $this->getInternalPathSlug().'/'.$this->parent->id;
+        }else{
+            $path = $this->getInternalPathSlug().'/'.$this->id;
+        }
+
+        return FrontendHelper::get_url($path);
+    }
+
     public function getUrlAlias()
     {
         $paths = [];
@@ -535,6 +548,19 @@ class Product extends Model implements UrlAliasInterface
         return $disabledDates;
     }
 
+    public function getViewSuggestions()
+    {
+        $viewSuggestions = [];
+
+        if($this->defaultCategory){
+            $viewSuggestions[] = 'frontend.catalog.product.view_category_'.$this->defaultCategory->id;
+        }
+
+        $viewSuggestions += ['frontend.catalog.product.view_'.$this->id, 'frontend.catalog.product.view'];
+
+        return $viewSuggestions;
+    }
+
     protected function extractOrderLimit($orderLimits)
     {
         $sorted = [
@@ -617,6 +643,11 @@ class Product extends Model implements UrlAliasInterface
         return $this->combination_type == self::COMBINATION_TYPE_VARIATION;
     }
 
+    public function getIsPurchaseableAttribute()
+    {
+        return in_array($this->combination_type, [self::COMBINATION_TYPE_VARIATION, self::COMBINATION_TYPE_SINGLE]);
+    }
+
     public function getStoreAttribute()
     {
         if(!$this->_store){
@@ -652,6 +683,33 @@ class Product extends Model implements UrlAliasInterface
     }
 
     //Scopes
+    public function scopeActive($query)
+    {
+        $store = ProjectHelper::getActiveStore()->id;
+
+        $query->whereHas('productDetail', function($query){
+            $query->where('active', true);
+        });
+    }
+
+    public function scopeCatalogVisible($query)
+    {
+        $store = ProjectHelper::getActiveStore()->id;
+
+        $query->whereHas('productDetail', function($query){
+            $query->whereIn('visibility', [ProductDetail::VISIBILITY_CATALOG, ProductDetail::VISIBILITY_EVERYWHERE]);
+        });
+    }
+
+    public function scopeSearchVisible($query)
+    {
+        $store = ProjectHelper::getActiveStore()->id;
+
+        $query->whereHas('productDetail', function($query, $store){
+            $query->whereIn('visibility', [ProductDetail::VISIBILITY_SEARCH, ProductDetail::VISIBILITY_EVERYWHERE]);
+        });
+    }
+
     public function scopeProductEntity($query)
     {
         $query->whereNotIn('combination_type', [self::COMBINATION_TYPE_VARIATION]);

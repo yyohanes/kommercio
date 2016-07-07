@@ -6,10 +6,11 @@ use Dimsav\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Model;
 use Kommercio\Models\Interfaces\UrlAliasInterface;
 use Kommercio\Traits\AuthorSignature;
+use Kommercio\Traits\Model\SeoTrait;
 
 class ProductCategory extends Model implements UrlAliasInterface
 {
-    use Translatable;
+    use Translatable, SeoTrait;
 
     protected $fillable = ['name', 'description', 'parent_id', 'active', 'sort_order', 'slug', 'meta_title', 'meta_description'];
     protected $casts = [
@@ -60,6 +61,27 @@ class ProductCategory extends Model implements UrlAliasInterface
         return $this->morphedByMany('Kommercio\Models\Order\OrderLimit', 'order_limitable');
     }
 
+    public function products()
+    {
+        return $this->belongsToMany('Kommercio\Models\Product', 'category_product')->productEntity();
+    }
+
+    //Methods
+    public function getViewSuggestions()
+    {
+        $viewSuggestions = [];
+
+        $viewSuggestions[] = 'frontend.catalog.product_category.view_'.$this->id;
+
+        if($this->parent){
+            $viewSuggestions[] = 'frontend.catalog.product_category.view_'.$this->parent->id;
+        }
+
+        $viewSuggestions[] = 'frontend.catalog.product_category.view';
+
+        return $viewSuggestions;
+    }
+
     //Accessors
     public function getChildrenCountAttribute()
     {
@@ -68,6 +90,12 @@ class ProductCategory extends Model implements UrlAliasInterface
         }
 
         return $this->children->count();
+    }
+
+    //Scopes
+    public function scopeActive($query)
+    {
+        $query->where('active', true);
     }
 
     //Statics

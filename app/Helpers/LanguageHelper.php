@@ -8,10 +8,10 @@ class LanguageHelper
 {
     public function getTranslationKey($key)
     {
-        $root = '';
+        $root = 'project::';
 
-        if(Lang::has('project.'.$key)){
-            $root = 'project::';
+        if(!Lang::has($root.$key)){
+            $root = '';
         }
 
         return $root.$key;

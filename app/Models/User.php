@@ -67,6 +67,11 @@ class User extends Authenticatable
         return $this->roles->first();
     }
 
+    public function getIsCustomerAttribute()
+    {
+        return isset($this->customer);
+    }
+
     public function getIsMasterSuperAdminAttribute()
     {
         return $this->id == 1;

@@ -350,9 +350,11 @@ var OrderForm = function () {
     {
         //If one country
         $('.country-select').each(function(idx, obj) {
-            if ($(obj).find('option').length <= 2) {
+            if ($(obj).find('option').length <= 2 && $(obj).find(':selected').index() == 0) {
                 $(obj).val($(obj).find('option:eq(1)').val());
                 $(obj).select2();
+
+                $(obj).change();
             }
         });
 
@@ -610,13 +612,15 @@ var OrderForm = function () {
 
         $('#order-form').on('order.delivery_date_change', function(){
             $('.line-item[data-line_item="product"]', '#line-items-table').each(function(idx, obj){
-                //Get availability
-                $.ajax(global_vars.get_product_availability + '/' + $(obj).find('.line-item-id').val(), {
-                    data: 'store_id=' + $('input[name="store_id"]', '#order-form').val() + '&delivery_date=' + $('#delivery_date').val(),
-                    success: function(data){
-                        handleLoadedAvailability(data.data.ordered_total, data.data.order_limit, data.data.stock, $(obj));
-                    }
-                });
+                if($(obj).find('.line-item-id').val() != ''){
+                    //Get availability
+                    $.ajax(global_vars.get_product_availability + '/' + $(obj).find('.line-item-id').val(), {
+                        data: 'store_id=' + $('input[name="store_id"]', '#order-form').val() + '&delivery_date=' + $('#delivery_date').val(),
+                        success: function(data){
+                            handleLoadedAvailability(data.data.ordered_total, data.data.order_limit, data.data.stock, $(obj));
+                        }
+                    });
+                }
             });
         });
 
@@ -624,6 +628,7 @@ var OrderForm = function () {
         $datePicker = $('#delivery_date', '#order-form');
         $datePicker.datepicker({
             rtl: App.isRTL(),
+            format: 'yyyy-mm-dd',
             container: '#delivery-date-panel',
             beforeShowDay: function(e){
                 if($disabledDates.indexOf(e.getFullYear() + '-' + (e.getMonth()+1) + '-' + e.getDate()) > -1){
@@ -673,7 +678,7 @@ var OrderForm = function () {
 
         $.ajax(global_vars.get_availability_calendar, {
             method: 'POST',
-            data: $('#order-form').serialize() + '&month=' + (month+1) + '&year=' + year + '&order_id=' + $('#order-form').data('order_id'),
+            data: $('#order-form').serialize() + '&month=' + (month+1) + '&year=' + year + '&order_id=' + $('#order-form').data('order_id') + '&internal=1',
             success: function(data){
                 $disabledDates = $.makeArray(data.disabled_dates);
 

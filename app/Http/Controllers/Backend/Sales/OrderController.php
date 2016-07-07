@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Session;
+use Kommercio\Events\OrderEvent;
 use Kommercio\Events\OrderUpdate;
 use Kommercio\Facades\AddressHelper;
 use Kommercio\Facades\LanguageHelper;
@@ -376,7 +377,7 @@ class OrderController extends Controller{
         $order->saveProfile('billing', $request->input('profile'));
         $order->saveProfile('shipping', $request->input('shipping_profile'));
 
-        $this->processLineItems($request, $order);
+        OrderHelper::processLineItems($request, $order);
 
         $order->load('lineItems');
         $order->processStocks();
@@ -522,7 +523,7 @@ class OrderController extends Controller{
             $order->returnStocks();
         }
 
-        $this->processLineItems($request, $order);
+        OrderHelper::processLineItems($request, $order);
 
         $order->load('lineItems');
         $order->processStocks();
@@ -672,7 +673,7 @@ class OrderController extends Controller{
         $order = OrderHelper::createDummyOrderFromRequest($request);
 
         $shippingOptions = ShippingMethod::getShippingMethods([
-            'subtotal' => $order->calculateSubtotal()
+            'order' => $order
         ]);
 
         foreach($shippingOptions as $idx=>$shippingOption){
@@ -689,31 +690,7 @@ class OrderController extends Controller{
 
     public function getCartRules(Request $request, $internal = false)
     {
-        $order = OrderHelper::createDummyOrderFromRequest($request);
-
-        $subtotal = $order->calculateProductTotal() + $order->calculateAdditionalTotal();
-
-        $shippings = [];
-        foreach($order->getShippingLineItems() as $shippingLineItem){
-            $shippings[] = $shippingLineItem->line_item_id;
-        }
-
-        $options = [
-            'subtotal' => $subtotal,
-            'currency' => $order->currency,
-            'store_id' => $order->store_id,
-            'customer_email' => $order->customer?$order->customer->getProfile()->email:null,
-            'shippings' => $shippings,
-            'added_coupons' => $request->input('added_coupons', []),
-        ];
-
-        $priceRules = CartPriceRule::getCartPriceRules($options);
-
-        foreach($priceRules as $idx=>$priceRule){
-            if(!$priceRule->validateUsage($options['customer_email'])['valid']){
-                unset($priceRules[$idx]);
-            }
-        }
+        $priceRules = OrderHelper::getCartRules($request);
 
         if($request->ajax() || !$internal){
             $returnedData = [];
@@ -734,47 +711,13 @@ class OrderController extends Controller{
     public function addCoupon(Request $request)
     {
         $couponCode = $request->input('coupon_code', 'ERRORCOUPON');
-        if(!CartPriceRule::getCouponByCode($couponCode)){
+
+        $couponPriceRules = CartPriceRule::addCoupon($couponCode, $request);
+
+        if(is_string($couponPriceRules)){
             return new JsonResponse([
-                'coupon_code' => [trans(LanguageHelper::getTranslationKey('order.coupons.not_exist'))]
+                'coupon_code' => [$couponPriceRules]
             ], 422);
-        }
-
-        $order = OrderHelper::createDummyOrderFromRequest($request);
-
-        $subtotal = $order->calculateProductTotal() + $order->calculateAdditionalTotal();
-
-        $shippings = [];
-
-        foreach($order->getShippingLineItems() as $shippingLineItem){
-            $shippings[] = $shippingLineItem->line_item_id;
-        }
-
-        $options = [
-            'subtotal' => $subtotal,
-            'currency' => $order->currency,
-            'store_id' => $order->store_id,
-            'customer_email' => $order->customer?$order->customer->getProfile()->email:null,
-            'shippings' => $shippings,
-            'coupon_code' => $couponCode,
-            'added_coupons' => $request->input('added_coupons', [])
-        ];
-
-        $couponPriceRules = CartPriceRule::getCartPriceRules($options);
-
-        if($couponPriceRules->count() < 1){
-            return new JsonResponse([
-                'coupon_code' => [trans(LanguageHelper::getTranslationKey('order.coupons.invalid'))]
-            ], 422);
-        }else{
-            foreach($couponPriceRules as $couponPriceRule){
-                $couponValidation = $couponPriceRule->validateUsage($options['customer_email']);
-                if(!$couponValidation['valid']){
-                    return new JsonResponse([
-                        'coupon_code' => [trans(LanguageHelper::getTranslationKey($couponValidation['message']))]
-                    ], 422);
-                }
-            }
         }
 
         if($request->ajax()){
@@ -787,162 +730,15 @@ class OrderController extends Controller{
         }
     }
 
-    public function disabledDates(Request $request)
-    {
-
-    }
-
-    protected function processLineItems(Request $request, $order)
-    {
-        $dummyOrder = OrderHelper::createDummyOrderFromRequest($request);
-        $dummyOrderSubtotal = $dummyOrder->calculateSubtotal() + $dummyOrder->calculateAdditionalTotal();
-
-        $cartPriceRules = $this->getCartRules($request, true);
-        $productCartPriceRules = [];
-        $orderCartPriceRules = [];
-        $taxes = Tax::getTaxes([
-            'country_id' => $request->input('profile.country_id', null),
-            'state_id' => $request->input('profile.state_id', null),
-            'city_id' => $request->input('profile.city_id', null),
-            'district_id' => $request->input('profile.district_id', null),
-            'area_id' => $request->input('profile.area_id', null),
-        ]);
-
-        foreach($cartPriceRules as $cartPriceRule){
-
-            if($cartPriceRule->offer_type == CartPriceRule::OFFER_TYPE_ORDER_DISCOUNT){
-                $orderCartPriceRules[] = $cartPriceRule;
-            }elseif($cartPriceRule->offer_type == CartPriceRule::OFFER_TYPE_PRODUCT_DISCOUNT){
-                $productCartPriceRules[] = $cartPriceRule;
-            }
-        }
-
-        $existingLineItems = $order->lineItems->all();
-        $count = 0;
-
-        foreach($request->input('line_items') as $lineItemDatum){
-            if($lineItemDatum['line_item_type'] == 'product' && empty($lineItemDatum['quantity'])){
-                continue;
-            }
-
-            $lineItem = $this->reuseOrCreateLineItem($order, $existingLineItems, $count);
-
-            $lineItem->processData($lineItemDatum, $count);
-            $lineItemAmount = $lineItem->net_price;
-
-            if($lineItem->isProduct){
-                foreach($productCartPriceRules as $productCartPriceRule){
-                    $productCartPriceRuleProducts = $productCartPriceRule->getProducts();
-
-                    if(empty($productCartPriceRuleProducts) || isset($productCartPriceRuleProducts[$lineItem->line_item_id])){
-                        $lineItemAmount = $productCartPriceRule->getValue($lineItemAmount);
-                        $productCartPriceRule->total += ($lineItemAmount - $lineItem->net_price) * $lineItem->quantity;
-                    }
-                }
-            }
-
-            if($lineItem->taxable){
-                foreach($taxes as $tax){
-                    $taxValue = [
-                        'net' => 0,
-                        'gross' => 0
-                    ];
-
-                    $taxValue['gross'] = PriceFormatter::round($tax->calculateTax($lineItemAmount));
-                    $taxValue['net'] = PriceFormatter::round($taxValue['gross']);
-
-                    $order->rounding_total = PriceFormatter::calculateRounding($taxValue['gross'], $taxValue['net']) * $lineItem->quantity;
-
-                    $tax->total += $taxValue['net'] * $lineItem->quantity;
-                }
-            }
-
-            $lineItem->calculateTotal();
-            $lineItem->save();
-
-            $count += 1;
-        }
-
-        foreach($productCartPriceRules as $productCartPriceRule){
-            $priceRuleLineItemDatum = [
-                'cart_price_rule_id' => $productCartPriceRule->id,
-                'line_item_type' => 'cart_price_rule',
-                'lineitem_total_amount' => $productCartPriceRule->total,
-            ];
-
-            $lineItem = $this->reuseOrCreateLineItem($order, $existingLineItems, $count);
-
-            $lineItem->processData($priceRuleLineItemDatum, $count);
-            $lineItem->save();
-
-            $count += 1;
-        }
-
-        foreach($orderCartPriceRules as $orderCartPriceRule){
-            $value = $orderCartPriceRule->getValue($dummyOrderSubtotal);
-            $orderCartPriceRule->total = $value - $dummyOrderSubtotal;
-
-            $priceRuleLineItemDatum = [
-                'cart_price_rule_id' => $orderCartPriceRule->id,
-                'line_item_type' => 'cart_price_rule',
-                'lineitem_total_amount' => $orderCartPriceRule->total,
-            ];
-
-            $lineItem = $this->reuseOrCreateLineItem($order, $existingLineItems, $count);
-
-            $lineItem->processData($priceRuleLineItemDatum, $count);
-            $lineItem->save();
-
-            $count += 1;
-        }
-
-        foreach($taxes as $tax){
-            $taxLineItemDatum = [
-                'tax_id' => $tax->id,
-                'line_item_type' => 'tax',
-                'lineitem_total_amount' => $tax->total,
-            ];
-
-            $lineItem = $this->reuseOrCreateLineItem($order, $existingLineItems, $count);
-
-            $lineItem->processData($taxLineItemDatum, $count);
-            $lineItem->save();
-
-            $count += 1;
-        }
-
-        //Delete unused line items
-        foreach($existingLineItems as $existingLineItem){
-            $existingLineItem->delete();
-        }
-    }
-
-    protected function reuseOrCreateLineItem($order, &$existingLineItems, $count)
-    {
-        if(!isset($existingLineItems[$count])){
-            $lineItem = new LineItem();
-            $lineItem->order()->associate($order);
-        }else{
-            //Clone and reset existing line item and will eventually be updated with new data
-            $lineItem = $existingLineItems[$count];
-            unset($existingLineItems[$count]);
-
-            $lineItem->clearData();
-        }
-
-        return $lineItem;
-    }
-
     protected function placeOrder(Order $order)
     {
         $order->status = Order::STATUS_PENDING;
         $order->checkout_at = Carbon::now();
+        $order->ip_address = RequestFacade::ip();
+        $order->user_agent = RequestFacade::header('User-Agent');
         $order->generateReference();
 
-        //Call all shipping processing methods
-        foreach($order->getShippingLineItems() as $shippingLineItem){
-            $shippingLineItem->shippingMethod->getProcessor()->beforePlaceOrder($order);
-        }
+        Event::fire(new OrderEvent('before_place_order', $order));
 
         return $order;
     }

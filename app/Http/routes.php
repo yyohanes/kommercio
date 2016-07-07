@@ -18,6 +18,53 @@ Route::group(['middleware' => ['web']], function () {
             'as' => 'frontend.page.view',
             'uses' => 'PageController@view'
         ]);
+
+        //Catalog
+        Route::any('product-categories/{parent_id?}', [
+            'as' => 'frontend.catalog.product_categories',
+            'uses' => 'CatalogController@productCategories'
+        ]);
+
+        Route::any('product-category/{id}', [
+            'as' => 'frontend.catalog.product_category.view',
+            'uses' => 'CatalogController@viewCategory'
+        ]);
+
+        Route::any('product/{id}', [
+            'as' => 'frontend.catalog.product.view',
+            'uses' => 'CatalogController@viewProduct'
+        ]);
+
+        //Order
+        Route::get('cart', [
+            'as' => 'frontend.order.cart',
+            'uses' => 'OrderController@cart'
+        ]);
+
+        Route::post('cart/update', [
+            'as' => 'frontend.order.cart.update',
+            'uses' => 'OrderController@cartUpdate'
+        ]);
+
+        Route::post('order/add-to-cart', [
+            'as' => 'frontend.order.add_to_cart',
+            'uses' => 'OrderController@addToCart'
+        ]);
+
+        Route::get('checkout', [
+            'as' => 'frontend.order.checkout',
+            'uses' => 'OrderController@checkout'
+        ]);
+
+        Route::post('checkout/process', [
+            'as' => 'frontend.order.checkout.process',
+            'uses' => 'OrderController@checkoutProcess'
+        ]);
+
+        Route::get('checkout/complete', [
+            'as' => 'frontend.order.checkout.complete',
+            'uses' => 'OrderController@checkoutComplete'
+        ]);
     });
 
     Route::group(['prefix' => config('kommercio.backend_prefix'), 'namespace' => 'Backend', 'middleware' => 'backend.access'], function(){

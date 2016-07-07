@@ -18,12 +18,12 @@ trait HasDataColumn
         }
     }
 
-    public function getData($attribute=null)
+    public function getData($attribute=null, $default=null)
     {
         $data = unserialize($this->data);
 
         if($attribute){
-            return isset($data[$attribute])?$data[$attribute]:null;
+            return isset($data[$attribute])?$data[$attribute]:$default;
         }
 
         return $data;

@@ -23,4 +23,9 @@ class Media extends File
 
         return config('kommercio.images_path').'/'.$size.'/'.$path;
     }
+
+    public function getCaptionAttribute()
+    {
+        return $this->pivot->caption;
+    }
 }

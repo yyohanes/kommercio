@@ -31,6 +31,7 @@ class ImageController extends GlideImageController
     protected function getPresets($style)
     {
         $styles = config('kommercio.image_styles');
+        $styles += config('project.image_styles', []);
 
         return $styles[$style];
     }

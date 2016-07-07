@@ -100,7 +100,7 @@
         'class' => 'form-control',
         'id' => 'data[url]'
     ],
-    'defaultOptions' => old('data.url', $banner->exists?$banner->getTranslation()->getData('url'):null)
+    'defaultOptions' => old('data.url', $banner->exists?$banner->getData('url'):null)
 ])
 
 @include('backend.master.form.fields.select', [
@@ -112,5 +112,5 @@
         'class' => 'form-control select2',
         'id' => 'data[target]'
     ],
-    'defaultOptions' => old('data.target', $banner->exists?$banner->getTranslation()->getData('target'):null)
+    'defaultOptions' => old('data.target', $banner->exists?$banner->getData('target'):null)
 ])

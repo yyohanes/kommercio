@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Request as RequestFacade;
 use Illuminate\Support\Facades\Session;
 use Kommercio\Facades\CurrencyHelper;
+use Kommercio\Facades\FrontendHelper;
 use Kommercio\Facades\ProjectHelper;
 use Kommercio\Http\Controllers\Controller;
 use Kommercio\Http\Requests\Backend\Catalog\ProductFormRequest;
@@ -689,32 +690,47 @@ class ProductController extends Controller{
         //Form months array
         $month = $request->input('month');
         $year = $request->input('year');
-        $order = Order::find($request->input('order_id', null));
+        $internal = $request->input('internal', 0);
 
         $focusedDate = Carbon::createFromFormat('Y-n', $year.'-'.$month);
 
         $months[] = $focusedDate->format('n-Y');
 
-        $focusedDate->modify('-1 month');
-        $months[] = $focusedDate->format('n-Y');
-
-        $focusedDate->modify('+2 months');
-        $months[] = $focusedDate->format('n-Y');
-
         $products = [];
+        $disabledDates = [];
+        $orderedQuantities = [];
 
-        foreach($request->input('line_items') as $idx=>$lineItemDatum) {
-            if ($lineItemDatum['line_item_type'] == 'product' && empty($lineItemDatum['quantity'])) {
-                continue;
-            }elseif($lineItemDatum['line_item_type'] == 'product'){
-                $products[$idx] = Product::findOrFail($lineItemDatum['line_item_id']);
+        if($internal){
+            $focusedDate->modify('-1 month');
+            $months[] = $focusedDate->format('n-Y');
+
+            $focusedDate->modify('+2 months');
+            $months[] = $focusedDate->format('n-Y');
+
+            $order = Order::find($request->input('order_id', null));
+
+            foreach($request->input('line_items', []) as $idx=>$lineItemDatum) {
+                if ($lineItemDatum['line_item_type'] == 'product' && empty($lineItemDatum['quantity'])) {
+                    continue;
+                }elseif($lineItemDatum['line_item_type'] == 'product' && !empty($lineItemDatum['line_item_id'])){
+                    $products[$idx] = Product::findOrFail($lineItemDatum['line_item_id']);
+                    $orderedQuantities[$idx] = $request->input('line_items.'.$idx.'.quantity');
+                }
+            }
+        }else{
+            $focusedDate->modify('+1 week');
+            $months[] = $focusedDate->format('n-Y');
+
+            $order = FrontendHelper::getCurrentOrder();
+
+            foreach($order->getProductLineItems() as $idx => $productLineItem) {
+                $products[$idx] = $productLineItem->product;
+                $orderedQuantities[$idx] = $productLineItem->quantity;
             }
         }
 
-        $disabledDates = [];
-
         foreach($products as $idx=>$product){
-            $orderedQuantity = $request->input('line_items.'.$idx.'.quantity');
+            $orderedQuantity = $orderedQuantities[$idx];
 
             $options = [
                 'store' => $request->input('store_id'),
@@ -722,7 +738,7 @@ class ProductController extends Controller{
                 'months' => $months,
                 'format' => 'Y-n-j',
                 'saved_quantity' => ($order && $order->isCheckout)?$order->getProductQuantity($product->id):0,
-                'saved_delivery_date' => $order?$order->delivery_date->format('j-n-Y'):null
+                'saved_delivery_date' => ($order && $order->delivery_date)?$order->delivery_date->format('j-n-Y'):null
             ];
 
             $disabledDates += $product->getUnavailableDeliveryDates($options);
@@ -732,6 +748,15 @@ class ProductController extends Controller{
             'disabled_dates' => array_unique($disabledDates),
             '_token' => csrf_token()
         ]);
+    }
+
+    public function getViewSuggestions()
+    {
+        $viewSuggestions = [];
+
+        $viewSuggestions += ['frontend.catalog.product_category.view_'.$this->id, 'frontend.catalog.product_category.view'];
+
+        return $viewSuggestions;
     }
 
     protected function deleteable($id)

@@ -35,15 +35,38 @@ class ProjectHelper
 
     public function getActiveStore()
     {
-        $user = Auth::user();
-
-        if($user->isSuperAdmin){
+        if(!Auth::check()){
             $defaultStore = Store::where('default', 1)->first();
         }else{
-            $defaultStore = $user->stores->first();
+            $user = Auth::user();
+
+            if($user->isCustomer || $user->isSuperAdmin){
+                $defaultStore = Store::where('default', 1)->first();
+            }else{
+                $defaultStore = $user->stores->first();
+            }
         }
 
         return $defaultStore;
+    }
+
+    public function findViewTemplate($templates = [])
+    {
+        foreach($templates as $template){
+            $viewPath = 'project::'.$template;
+
+            if(view()->exists($viewPath)){
+                return $viewPath;
+            }
+        }
+
+        foreach($templates as $template){
+            $viewPath = $template;
+
+            if(view()->exists($viewPath)){
+                return $viewPath;
+            }
+        }
     }
 
     public function getViewTemplate($template)

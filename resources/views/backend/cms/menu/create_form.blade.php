@@ -9,6 +9,19 @@
     'required' => TRUE
 ])
 
+@include('backend.master.form.fields.text', [
+    'name' => 'slug',
+    'label' => 'Machine Name',
+    'key' => 'slug',
+    'attr' => [
+        'class' => 'form-control',
+        'id' => 'slug',
+        'data-slug_source' => '#name'
+    ],
+    'help_text' => 'Advanced: Automatically generated. Only change if you know what you are doing.',
+    'required' => TRUE
+])
+
 @include('backend.master.form.fields.textarea', [
     'name' => 'description',
     'label' => 'Description',

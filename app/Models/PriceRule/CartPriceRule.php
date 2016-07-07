@@ -3,6 +3,8 @@
 namespace Kommercio\Models\PriceRule;
 
 use Illuminate\Database\Eloquent\Model;
+use Kommercio\Facades\LanguageHelper;
+use Kommercio\Facades\OrderHelper;
 use Kommercio\Facades\PriceFormatter;
 use Kommercio\Models\Customer;
 use Kommercio\Models\Order\Order;
@@ -293,5 +295,57 @@ class CartPriceRule extends Model
         $qb = self::where('coupon_code', trim($code));
 
         return $qb->first();
+    }
+
+    public static function addCoupon($couponCode, $request, Order $order = null)
+    {
+        $addedCoupons = [];
+
+        if($order){
+            foreach($order->getCouponLineItems() as $couponLineItem){
+                $addedCoupons[] = $couponLineItem->line_item_id;
+            }
+        }
+
+        $addedCoupons = array_unique(array_merge($addedCoupons, $request->input('added_coupons', [])));
+
+        if(!self::getCouponByCode($couponCode)){
+            return trans(LanguageHelper::getTranslationKey('order.coupons.not_exist'));
+        }
+
+        $order = OrderHelper::createDummyOrderFromRequest($request);
+
+        $subtotal = $order->calculateProductTotal() + $order->calculateAdditionalTotal();
+
+        $shippings = [];
+
+        foreach($order->getShippingLineItems() as $shippingLineItem){
+            $shippings[] = $shippingLineItem->line_item_id;
+        }
+
+        $options = [
+            'subtotal' => $subtotal,
+            'currency' => $order->currency,
+            'store_id' => $order->store_id,
+            'customer_email' => $order->customer?$order->customer->getProfile()->email:null,
+            'shippings' => $shippings,
+            'coupon_code' => $couponCode,
+            'added_coupons' => $addedCoupons
+        ];
+
+        $couponPriceRules = self::getCartPriceRules($options);
+
+        if($couponPriceRules->count() < 1){
+            return trans(LanguageHelper::getTranslationKey('order.coupons.invalid'));
+        }else{
+            foreach($couponPriceRules as $couponPriceRule){
+                $couponValidation = $couponPriceRule->validateUsage($options['customer_email']);
+                if(!$couponValidation['valid']){
+                    return trans(LanguageHelper::getTranslationKey($couponValidation['message']));
+                }
+            }
+        }
+
+        return $couponPriceRules;
     }
 }

@@ -3,11 +3,15 @@
 namespace Kommercio\Helpers;
 
 use Illuminate\Http\Request;
+use Kommercio\Facades\PriceFormatter as PriceFormatterFacade;
 use Kommercio\Models\Customer;
 use Kommercio\Models\Order\LineItem;
 use Kommercio\Models\Order\Order;
 use Kommercio\Models\Order\OrderComment;
 use Kommercio\Models\Order\Payment;
+use Kommercio\Models\PriceRule\CartPriceRule;
+use Kommercio\Models\Product;
+use Kommercio\Models\Tax;
 use Kommercio\Models\User;
 
 class OrderHelper
@@ -62,7 +66,7 @@ class OrderHelper
 
         $count = 0;
         foreach($request->input('line_items', []) as $lineItemDatum){
-            if($lineItemDatum['line_item_type'] == 'product' && (empty($lineItemDatum['quantity']) || empty($lineItemDatum['sku']))){
+            if($lineItemDatum['line_item_type'] == 'product' && (empty($lineItemDatum['quantity']) || (empty($lineItemDatum['sku']) || empty($lineItemDatum['line_item_id'])))){
                 continue;
             }
 
@@ -74,6 +78,215 @@ class OrderHelper
         }
 
         return $order;
+    }
+
+    public function processLineItems(Request $request, $order, $freeEdit = true)
+    {
+        $dummyOrder = $this->createDummyOrderFromRequest($request);
+        $dummyOrderSubtotal = $dummyOrder->calculateSubtotal() + $dummyOrder->calculateAdditionalTotal();
+
+        $cartPriceRules = $this->getCartRules($request, $order);
+        $productCartPriceRules = [];
+        $orderCartPriceRules = [];
+        $taxes = Tax::getTaxes([
+            'country_id' => $request->input('profile.country_id', null),
+            'state_id' => $request->input('profile.state_id', null),
+            'city_id' => $request->input('profile.city_id', null),
+            'district_id' => $request->input('profile.district_id', null),
+            'area_id' => $request->input('profile.area_id', null),
+        ]);
+
+        foreach($cartPriceRules as $cartPriceRule){
+            if($cartPriceRule->offer_type == CartPriceRule::OFFER_TYPE_ORDER_DISCOUNT){
+                $orderCartPriceRules[] = $cartPriceRule;
+            }elseif($cartPriceRule->offer_type == CartPriceRule::OFFER_TYPE_PRODUCT_DISCOUNT){
+                $productCartPriceRules[] = $cartPriceRule;
+            }
+        }
+
+        $count = 0;
+
+        $lineItems = [];
+
+        if($freeEdit){
+            $existingLineItems = $order->lineItems->all();
+
+            foreach($request->input('line_items', []) as $lineItemDatum) {
+                if ($lineItemDatum['line_item_type'] == 'product' && empty($lineItemDatum['quantity'])) {
+                    continue;
+                }
+
+                $lineItem = $this->reuseOrCreateLineItem($order, $existingLineItems, $count);
+
+                $lineItem->processData($lineItemDatum, $count);
+
+                $lineItems[] = $lineItem;
+            }
+        }else{
+            $lineItems = $order->lineItems;
+
+            $existingLineItems = $order->lineItems->all();
+
+            foreach($lineItems as $idx => $lineItem){
+                if($lineItem->isProduct || $lineItem->isFee || $lineItem->isShipping){
+                    unset($existingLineItems[$idx]);
+                }
+            }
+        }
+
+        foreach($lineItems as $lineItem){
+            if($lineItem->isProduct && empty($lineItem->quantity)){
+                $lineItem->delete();
+                continue;
+            }
+
+            $lineItemAmount = $lineItem->net_price;
+
+            if($lineItem->isProduct){
+                foreach($productCartPriceRules as $productCartPriceRule){
+                    $productCartPriceRuleProducts = $productCartPriceRule->getProducts();
+
+                    if(empty($productCartPriceRuleProducts) || isset($productCartPriceRuleProducts[$lineItem->line_item_id])){
+                        $lineItemAmount = $productCartPriceRule->getValue($lineItemAmount);
+                        $productCartPriceRule->total += ($lineItemAmount - $lineItem->net_price) * $lineItem->quantity;
+                    }
+                }
+            }
+
+            if($lineItem->taxable){
+                foreach($taxes as $tax){
+                    $taxValue = [
+                        'net' => 0,
+                        'gross' => 0
+                    ];
+
+                    $taxValue['gross'] = PriceFormatterFacade::round($tax->calculateTax($lineItemAmount));
+                    $taxValue['net'] = PriceFormatterFacade::round($taxValue['gross']);
+
+                    $order->rounding_total = PriceFormatterFacade::calculateRounding($taxValue['gross'], $taxValue['net']) * $lineItem->quantity;
+
+                    $tax->total += $taxValue['net'] * $lineItem->quantity;
+                }
+            }
+
+            $lineItem->calculateTotal();
+            $lineItem->save();
+
+            $count += 1;
+        }
+
+        foreach($productCartPriceRules as $productCartPriceRule){
+            $priceRuleLineItemDatum = [
+                'cart_price_rule_id' => $productCartPriceRule->id,
+                'line_item_type' => 'cart_price_rule',
+                'lineitem_total_amount' => $productCartPriceRule->total,
+            ];
+
+            $lineItem = $this->reuseOrCreateLineItem($order, $existingLineItems, $count);
+
+            $lineItem->processData($priceRuleLineItemDatum, $count);
+            $lineItem->save();
+            $lineItems[] = $lineItem;
+
+            $count += 1;
+        }
+
+        foreach($orderCartPriceRules as $orderCartPriceRule){
+            $value = $orderCartPriceRule->getValue($dummyOrderSubtotal);
+            $orderCartPriceRule->total = $value - $dummyOrderSubtotal;
+
+            $priceRuleLineItemDatum = [
+                'cart_price_rule_id' => $orderCartPriceRule->id,
+                'line_item_type' => 'cart_price_rule',
+                'lineitem_total_amount' => $orderCartPriceRule->total,
+            ];
+
+            $lineItem = $this->reuseOrCreateLineItem($order, $existingLineItems, $count);
+
+            $lineItem->processData($priceRuleLineItemDatum, $count);
+            $lineItem->save();
+            $lineItems[] = $lineItem;
+
+            $count += 1;
+        }
+
+        foreach($taxes as $tax){
+            $taxLineItemDatum = [
+                'tax_id' => $tax->id,
+                'line_item_type' => 'tax',
+                'lineitem_total_amount' => $tax->total,
+            ];
+
+            $lineItem = $this->reuseOrCreateLineItem($order, $existingLineItems, $count);
+
+            $lineItem->processData($taxLineItemDatum, $count);
+            $lineItem->save();
+            $lineItems[] = $lineItem;
+
+            $count += 1;
+        }
+
+        //Delete unused line items
+        foreach($existingLineItems as $existingLineItem){
+            $existingLineItem->delete();
+        }
+    }
+
+    public function reuseOrCreateLineItem($order, &$existingLineItems, $count)
+    {
+        if(!isset($existingLineItems[$count])){
+            $lineItem = new LineItem();
+            $lineItem->order()->associate($order);
+        }else{
+            //Clone and reset existing line item and will eventually be updated with new data
+            $lineItem = $existingLineItems[$count];
+            unset($existingLineItems[$count]);
+
+            $lineItem->clearData();
+        }
+
+        return $lineItem;
+    }
+
+    public function getCartRules(Request $request, $referencedOrder = null)
+    {
+        $order = $this->createDummyOrderFromRequest($request);
+
+        $subtotal = $order->calculateProductTotal() + $order->calculateAdditionalTotal();
+
+        $shippings = [];
+        foreach($order->getShippingLineItems() as $shippingLineItem){
+            $shippings[] = $shippingLineItem->line_item_id;
+        }
+
+        $addedCoupons = [];
+
+        if($referencedOrder){
+            foreach($referencedOrder->getCouponLineItems() as $couponLineItem){
+                $addedCoupons[] = $couponLineItem->line_item_id;
+            }
+        }
+
+        $addedCoupons = array_unique(array_merge($addedCoupons, $request->input('added_coupons', [])));
+
+        $options = [
+            'subtotal' => $subtotal,
+            'currency' => $order->currency,
+            'store_id' => $order->store_id,
+            'customer_email' => $order->customer?$order->customer->getProfile()->email:null,
+            'shippings' => $shippings,
+            'added_coupons' => $addedCoupons,
+        ];
+
+        $priceRules = CartPriceRule::getCartPriceRules($options);
+
+        foreach($priceRules as $idx=>$priceRule){
+            if(!$priceRule->validateUsage($options['customer_email'])['valid']){
+                unset($priceRules[$idx]);
+            }
+        }
+
+        return $priceRules;
     }
 
     public function saveOrderComment($message, $key, Order $order, User $author = NULL, $type = OrderComment::TYPE_INTERNAL)
@@ -95,5 +308,24 @@ class OrderHelper
         }
 
         return $comment->save();
+    }
+
+    public function convertFrontendCartRequest(Request $request)
+    {
+        $attributes = $request->all();
+
+        $productLineItems = [];
+        foreach($request->input('products', []) as $idx => $productLineItem){
+            $product = Product::findOrFail($productLineItem['id']);
+            $productLineItems[$idx] = [
+                'line_item_type' => 'product',
+                'line_item_id' => $productLineItem['id'],
+                'net_price' => $product->getNetPrice(),
+                'quantity' => $productLineItem['quantity']
+            ];
+        }
+        $attributes['line_items'] = $productLineItems;
+
+        $request->replace($attributes);
     }
 }

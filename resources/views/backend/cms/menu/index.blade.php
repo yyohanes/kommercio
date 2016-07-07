@@ -41,6 +41,7 @@
                     <thead>
                     <tr>
                         <th>Name</th>
+                        <th>Machine Name</th>
                         <th>Description</th>
                         <th style="width: 20%;">Action</th>
                     </tr>
@@ -49,6 +50,7 @@
                     @foreach($menus as $menu)
                         <tr>
                             <td><a href="{{ route('backend.cms.menu_item.index', ['menu_id' => $menu->id]) }}" class="btn btn-sm blue-madison">{{ $menu->name }}</a></td>
+                            <td>{{ $menu->slug }}</td>
                             <td>{!! nl2br($menu->description) !!}</td>
                             <td class="text-center">
                                 {!! Form::open(['route' => ['backend.cms.menu.delete', 'id' => $menu->id]]) !!}

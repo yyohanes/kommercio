@@ -5,11 +5,12 @@ namespace Kommercio\Models\CMS;
 use Dimsav\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Model;
 use Kommercio\Models\Interfaces\UrlAliasInterface;
+use Kommercio\Traits\Model\SeoTrait;
 use Kommercio\Traits\Model\ToggleDate;
 
 class Page extends Model implements UrlAliasInterface
 {
-    use Translatable, ToggleDate {
+    use SeoTrait, Translatable, ToggleDate {
         Translatable::setAttribute as translateableSetAttribute;
         ToggleDate::setAttribute insteadof Translatable;
     }
@@ -21,6 +22,9 @@ class Page extends Model implements UrlAliasInterface
     public $fillable = ['name', 'slug', 'body', 'parent_id', 'meta_title', 'meta_description', 'images', 'active'];
     public $translatedAttributes = ['name', 'slug', 'body', 'meta_title', 'meta_description', 'images'];
     protected $toggleFields = ['active'];
+    protected $seoDefaultFields = [
+        'meta_description' => 'body'
+    ];
 
     //Relations
     public function parent()

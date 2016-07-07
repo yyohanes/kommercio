@@ -247,6 +247,13 @@
                                                         <div class="col-md-4 value"> {{ PriceFormatter::formatNumber($cartPriceRuleLineItem->total, $order->currency) }} </div>
                                                     </div>
                                                 @endforeach
+
+                                                @foreach($order->getCouponLineItems() as $couponLineItem)
+                                                    <div class="row static-info align-reverse tax">
+                                                        <div class="col-md-8 name"> {{ $couponLineItem->getPrintName() }}: </div>
+                                                        <div class="col-md-4 value"> {{ PriceFormatter::formatNumber($couponLineItem->total, $order->currency) }} </div>
+                                                    </div>
+                                                @endforeach
                                             </div>
                                             <div class="row static-info align-reverse shipping">
                                                 <div class="col-md-8 name"> Shipping: </div>
