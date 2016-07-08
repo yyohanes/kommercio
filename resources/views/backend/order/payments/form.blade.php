@@ -56,6 +56,19 @@
             ],
         ])
 
+        @include('backend.master.form.fields.images', [
+            'name' => 'attachments',
+            'label' => 'Payment Proof',
+            'key' => 'attachments',
+            'attr' => [
+                'class' => 'form-control',
+                'id' => 'attachments'
+            ],
+            'multiple' => TRUE,
+            'existing' => $payment->attachments,
+            'caption' => FALSE
+        ])
+
         <div class="margin-top-15 text-center">
             <button id="payment-save" data-payment_save="{{ route('backend.sales.order.payment.save', ['order_id' => $order->id]) }}" class="btn btn-info"><i class="fa fa-save"></i> Enter Payment</button>
             <button id="payment-cancel" class="btn btn-default"><i class="fa fa-remove"></i> Cancel</button>

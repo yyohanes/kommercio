@@ -77,6 +77,11 @@ class OrderLimit extends Model
         });
     }
 
+    public function scopeAllDays($query)
+    {
+        $query->whereNull('date_from')->whereNull('date_to');
+    }
+
     //Relations
     public function store()
     {

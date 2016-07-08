@@ -624,43 +624,43 @@ Route::group(['middleware' => ['web']], function () {
                     Route::any('process/{action}/{id?}', [
                         'as' => 'backend.sales.order.process',
                         'uses' => 'OrderController@process',
-                        'permissions' => ['place_order', 'process_order']
+                        'permissions' => [['place_order', 'process_order', 'complete_order', 'cancel_order']]
                     ]);
 
                     Route::post('copy/customer_information/{type}/{profile_id?}', [
                         'as' => 'backend.sales.order.copy_customer_information',
                         'uses' => 'OrderController@copyCustomerInformation',
-                        'permissions' => ['create_order', 'edit_order']
+                        'permissions' => [['create_order', 'edit_order']]
                     ]);
 
                     Route::post('line_item/{type}/row/{id?}', [
                         'as' => 'backend.sales.order.line_item.row',
                         'uses' => 'OrderController@lineItemRow',
-                        'permissions' => ['create_order', 'edit_order']
+                        'permissions' => [['create_order', 'edit_order']]
                     ]);
 
                     Route::any('shipping/options', [
                         'as' => 'backend.sales.order.shipping_options',
                         'uses' => 'OrderController@shippingOptions',
-                        'permissions' => ['create_order', 'edit_order']
+                        'permissions' => [['create_order', 'edit_order']]
                     ]);
 
                     Route::post('order-cart-rules/get', [
                         'as' => 'backend.sales.order.get_cart_rules',
                         'uses' => 'OrderController@getCartRules',
-                        'permissions' => ['create_order', 'edit_order']
+                        'permissions' => [['create_order', 'edit_order']]
                     ]);
 
                     Route::post('coupon/add', [
                         'as' => 'backend.sales.order.add_coupon',
                         'uses' => 'OrderController@addCoupon',
-                        'permissions' => ['create_order', 'edit_order']
+                        'permissions' => [['create_order', 'edit_order']]
                     ]);
 
                     Route::post('coupon/{id}/remove', [
                         'as' => 'backend.sales.order.remove_coupon',
                         'uses' => 'OrderController@removeCoupon',
-                        'permissions' => ['create_order', 'edit_order']
+                        'permissions' => [['create_order', 'edit_order']]
                     ]);
 
                     Route::group(['prefix' => 'payment'], function(){
@@ -685,7 +685,7 @@ Route::group(['middleware' => ['web']], function () {
                         Route::any('process/{action}/{id}', [
                             'as' => 'backend.sales.order.payment.process',
                             'uses' => 'PaymentController@process',
-                            'permissions' => ['confirm_payment', 'void_payment']
+                            'permissions' => [['confirm_payment', 'void_payment']]
                         ]);
                     });
 
@@ -973,13 +973,13 @@ Route::group(['middleware' => ['web']], function () {
                     Route::get('get', [
                         'as' => 'backend.tax.get',
                         'uses' => 'TaxController@get',
-                        'permissions' => ['create_order', 'edit_order']
+                        'permissions' => [['create_order', 'edit_order']]
                     ]);
 
                     Route::get('country_children/{country_id?}', [
                         'as' => 'backend.tax.country_children',
                         'uses' => 'TaxController@countryChildren',
-                        'permissions' => ['create_tax', 'edit_tax']
+                        'permissions' => [['create_tax', 'edit_tax']]
                     ]);
                 });
             });

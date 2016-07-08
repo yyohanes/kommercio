@@ -242,16 +242,22 @@ class OrderController extends Controller{
                 $orderAction .= '<a class="btn btn-default" href="' . route('backend.sales.order.print', ['id' => $order->id]) . '" target="_blank"><i class="fa fa-print"></i></a>';
             }
 
-            if(Gate::allows('access', ['process_order'])):
+            if(Gate::allows('access', [['process_order', 'complete_order', 'cancel_order']])):
                 if(in_array($order->status, [Order::STATUS_PENDING, Order::STATUS_PROCESSING])) {
                     $orderAction .= '<button type="button" class="btn btn-default hold-on-click dropdown-toggle" data-toggle="dropdown" data-hover="dropdown" data-close-others="true" aria-expanded="true"><i class="fa fa-flag-o"></i></button><ul class="dropdown-menu" role="menu">';
                     if (in_array($order->status, [Order::STATUS_PENDING])) {
+                        if(Gate::allows('access', ['process_order'])):
                         $orderAction .= '<li><a class="modal-ajax" href="' . route('backend.sales.order.process', ['action' => 'processing', 'id' => $order->id, 'backUrl' => RequestFacade::fullUrl()]) . '"><i class="fa fa-toggle-right"></i> Process</a></li>';
+                        endif;
                     }
 
                     if (in_array($order->status, [Order::STATUS_PENDING, Order::STATUS_PROCESSING])) {
+                        if(Gate::allows('access', ['complete_order'])):
                         $orderAction .= '<li><a class="modal-ajax" href="' . route('backend.sales.order.process', ['action' => 'completed', 'id' => $order->id, 'backUrl' => RequestFacade::fullUrl()]) . '"><i class="fa fa-check-circle"></i> Complete</a></li>';
+                        endif;
+                        if(Gate::allows('access', ['cancel_order'])):
                         $orderAction .= '<li><a class="modal-ajax" href="' . route('backend.sales.order.process', ['action' => 'cancelled', 'id' => $order->id, 'backUrl' => RequestFacade::fullUrl()]) . '"><i class="fa fa-remove"></i> Cancel</a></li>';
+                        endif;
                     }
                     $orderAction .= '</ul>';
                 }
@@ -604,14 +610,23 @@ class OrderController extends Controller{
 
             switch($process){
                 case 'processing':
+                    if(!Gate::allows(['process_order'])){
+                        abort(403);
+                    }
                     $order->status = Order::STATUS_PROCESSING;
                     $message = 'Order has been set to <span class="label bg-'.OrderHelper::getOrderStatusLabelClass($order->status).' bg-font-'.OrderHelper::getOrderStatusLabelClass($order->status).'">Processing.</span>';
                     break;
                 case 'completed':
+                    if(!Gate::allows(['complete_order'])){
+                        abort(403);
+                    }
                     $order->status = Order::STATUS_COMPLETED;
                     $message = 'Order has been <span class="label bg-'.OrderHelper::getOrderStatusLabelClass($order->status).' bg-font-'.OrderHelper::getOrderStatusLabelClass($order->status).'">Completed.</span>';
                     break;
                 case 'cancelled':
+                    if(!Gate::allows(['cancel_order'])){
+                        abort(403);
+                    }
                     $order->returnStocks();
                     $order->status = Order::STATUS_CANCELLED;
                     $message = 'Order has been <span class="label bg-'.OrderHelper::getOrderStatusLabelClass($order->status).' bg-font-'.OrderHelper::getOrderStatusLabelClass($order->status).'">Cancelled.</span>';

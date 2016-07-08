@@ -74,9 +74,18 @@ class PaymentController extends Controller{
         $payment = new Payment();
         $payment->fill($request->input('payment'));
         $payment->order()->associate($order);
-        $payment->status = Payment::STATUS_SUCCESS;
+        $payment->status = Payment::STATUS_PENDING;
 
         $payment->save();
+
+        if($request->has('attachments')){
+            foreach($request->input('attachments', []) as $idx=>$image){
+                $images[$image] = [
+                    'type' => 'attachment',
+                ];
+            }
+            $payment->attachMedia($images, 'attachment');
+        }
 
         return response()->json([
             'result' => 'success',
@@ -117,7 +126,7 @@ class PaymentController extends Controller{
                     break;
                 case 'accept':
                     $status = Payment::STATUS_SUCCESS;
-                    $rules['reason'] = 'required';
+                    //$rules['reason'] = 'required';
                     $message = 'Payment has been set to <span class="label bg-' . OrderHelper::getPaymentStatusLabelClass($payment->status) . ' bg-font-' . OrderHelper::getPaymentStatusLabelClass($payment->status) . '">Success.</span>';
                     break;
                 default:

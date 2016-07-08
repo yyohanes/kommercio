@@ -6,10 +6,24 @@
 {!! Form::open(['route' => ['backend.sales.order.payment.process', 'process' => 'accept', 'id' => $payment->id]]) !!}
 <div class="modal-body">
     <div class="form-body">
-        <div class="form-group">
-            @include('backend.master.form.fields.textarea', [
+        @if($payment->amount == $payment->order->total)
+            <div class="form-group" style="margin-bottom: 1em;">
+                <label class="control-label col-md-3">Process Order</label>
+                <div class="col-md-9">
+                    <div class="checkbox-list">
+                        <label class="checkbox-inline">
+                            {!! Form::checkbox('process_order', 1, true) !!} Yes
+                        </label>
+                    </div>
+                </div>
+
+                <div class="clearfix"></div>
+            </div>
+        @endif
+
+        @include('backend.master.form.fields.textarea', [
             'name' => 'reason',
-            'label' => 'Accept Reason',
+            'label' => 'Notes',
             'key' => 'reason',
             'attr' => [
                 'class' => 'form-control',
@@ -17,7 +31,6 @@
                 'rows' => 3
             ],
         ])
-        </div>
 
         <div class="clearfix"></div>
     </div>

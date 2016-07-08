@@ -675,6 +675,7 @@ var OrderForm = function () {
     var handleOnChangeMonth = function(month, year, date)
     {
         $('#delivery-date-panel .datepicker-days').css('visibility', 'hidden');
+        $('#delivery-date-panel .datepicker').addClass('loading');
 
         $.ajax(global_vars.get_availability_calendar, {
             method: 'POST',
@@ -689,6 +690,7 @@ var OrderForm = function () {
                 }
 
                 $('#delivery-date-panel .datepicker-days').css('visibility', 'visible');
+                $('#delivery-date-panel .datepicker').removeClass('loading');
             },
             complete: function(){
 
@@ -834,11 +836,13 @@ var OrderForm = function () {
                 var newQuantity, newStock;
 
                 $(obj).on('change', function(e){
-                    newQuantity = $orderedTotal[$lineItem.find('.line-item-id').val()].ordered_total + Number($(obj).val());
-                    newStock = $orderedTotal[$lineItem.find('.line-item-id').val()].stock - Number($(obj).val());
+                    if(typeof $orderedTotal[$lineItem.find('.line-item-id').val()] != 'undefined'){
+                        newQuantity = $orderedTotal[$lineItem.find('.line-item-id').val()].ordered_total + Number($(obj).val());
+                        $lineItem.find('.ordered-total').text(formHelper.roundNumber(newQuantity));
 
-                    $lineItem.find('.ordered-total').text(formHelper.roundNumber(newQuantity));
-                    $lineItem.find('.stock-total').text(formHelper.roundNumber(newStock));
+                        newStock = $orderedTotal[$lineItem.find('.line-item-id').val()].stock - Number($(obj).val());
+                        $lineItem.find('.stock-total').text(formHelper.roundNumber(newStock));
+                    }
                 });
             });
 

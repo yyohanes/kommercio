@@ -16,6 +16,7 @@
                 'id' => 'reason',
                 'rows' => 3
             ],
+            'required' => true
         ])
         </div>
 

@@ -606,11 +606,13 @@ class Product extends Model implements UrlAliasInterface
         $qb = OrderLimit::active()
             ->orderBy('created_at', 'ASC')
             ->whereLimitType($limit_type)
-            ->whereHas('products', function($qb){
-                $qb->whereIn('id', [$this->id]);
-            })
-            ->orWhereHas('productCategories', function($qb){
-                $qb->whereIn('id', $this->categories->pluck('id')->all());
+            ->where(function($qb){
+                $qb->whereHas('products', function($qb){
+                    $qb->whereIn('id', [$this->id]);
+                })
+                ->orWhereHas('productCategories', function($qb){
+                    $qb->whereIn('id', $this->categories->pluck('id')->all());
+                });
             });
 
         if($store){
@@ -619,6 +621,8 @@ class Product extends Model implements UrlAliasInterface
 
         if($date){
             $qb->withinDate($date);
+        }else{
+            $qb->allDays();
         }
 
         return $qb;

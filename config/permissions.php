@@ -62,6 +62,8 @@ return [
         'delete_order' => 'Delete Order',
         'place_order' => 'Place Order',
         'process_order' => 'Process Order',
+        'complete_order' => 'Complete Order',
+        'cancel_order' => 'Cancel Order',
         'view_order_internal_memo' => 'View Internal Memo',
         'create_order_internal_memo' => 'Create Internal Memo',
     ],

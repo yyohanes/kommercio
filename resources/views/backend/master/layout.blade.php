@@ -32,6 +32,7 @@ License: You must have a valid license purchased only from themeforest(the above
         <link href="{{ asset('backend/assets/template/global/plugins/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet" type="text/css" />
         <link href="{{ asset('backend/assets/template/global/plugins/uniform/css/uniform.default.css') }}" rel="stylesheet" type="text/css" />
         <link href="{{ asset('backend/assets/template/global/plugins/bootstrap-switch/css/bootstrap-switch.min.css') }}" rel="stylesheet" type="text/css" />
+        <link href="{{ asset('backend/assets/template/global/plugins/fancybox/source/jquery.fancybox.css') }}" rel="stylesheet" type="text/css" />
         <link href="{{ asset('backend/assets/template/global/plugins/jquery-file-upload/blueimp-gallery/blueimp-gallery.min.css') }}" rel="stylesheet" type="text/css" />
         <link href="{{ asset('backend/assets/template/global/plugins/jquery-file-upload/css/jquery.fileupload.css') }}" rel="stylesheet" type="text/css" />
         <link href="{{ asset('backend/assets/template/global/plugins/jquery-file-upload/css/jquery.fileupload-ui.css') }}" rel="stylesheet" type="text/css" />
@@ -238,6 +239,7 @@ License: You must have a valid license purchased only from themeforest(the above
     <script src="{{ asset('backend/assets/template/global/plugins/bootstrap-switch/js/bootstrap-switch.min.js') }}" type="text/javascript"></script>
     <script src="{{ asset('backend/assets/template/global/plugins/bootstrap-confirmation/bootstrap-confirmation.min.js') }}" type="text/javascript"></script>
     <script src="{{ asset('backend/assets/template/global/plugins/bootstrap-growl/jquery.bootstrap-growl.min.js') }}" type="text/javascript"></script>
+    <script src="{{ asset('backend/assets/template/global/plugins/fancybox/source/jquery.fancybox.pack.js') }}" type="text/javascript"></script>
     <script src="{{ asset('backend/assets/template/global/plugins/jquery-file-upload/js/vendor/jquery.ui.widget.js') }}" type="text/javascript"></script>
     <script src="{{ asset('backend/assets/template/global/plugins/jquery-file-upload/js/vendor/load-image.min.js') }}" type="text/javascript"></script>
     <script src="{{ asset('backend/assets/template/global/plugins/jquery-file-upload/js/vendor/canvas-to-blob.min.js') }}" type="text/javascript"></script>

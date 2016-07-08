@@ -7,10 +7,11 @@ use Illuminate\Database\Eloquent\Model;
 use Kommercio\Models\Interfaces\AuthorSignatureInterface;
 use Kommercio\Traits\Model\AuthorSignature;
 use Kommercio\Traits\Model\HasDataColumn;
+use Kommercio\Traits\Model\MediaAttachable;
 
 class Payment extends Model implements AuthorSignatureInterface
 {
-    use AuthorSignature, HasDataColumn;
+    use AuthorSignature, HasDataColumn, MediaAttachable;
 
     const STATUS_VOID = 'void';
     const STATUS_SUCCESS = 'success';
@@ -35,6 +36,12 @@ class Payment extends Model implements AuthorSignatureInterface
     public function paymentMethod()
     {
         return $this->belongsTo('Kommercio\Models\PaymentMethod\PaymentMethod');
+    }
+
+    //Relations
+    public function attachments()
+    {
+        return $this->media('attachment');
     }
 
     //Methods
