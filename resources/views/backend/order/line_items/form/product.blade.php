@@ -32,7 +32,6 @@
             'attr' => [
                 'class' => 'form-control input-sm base-price-field',
                 'id' => 'line_items['.$key.'][base_price]',
-                'readonly' => TRUE
             ],
             'required' => TRUE,
             'unitPosition' => 'front',
@@ -47,7 +46,8 @@
             'key' => 'line_items.'.$key.'.net_price',
             'attr' => [
                 'class' => 'form-control input-sm net-price-field',
-                'id' => 'line_items['.$key.'][net_price]'
+                'id' => 'line_items['.$key.'][net_price]',
+                'readonly' => TRUE
             ],
             'required' => TRUE,
             'unitPosition' => 'front',

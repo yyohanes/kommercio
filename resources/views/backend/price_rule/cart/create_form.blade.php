@@ -35,21 +35,6 @@
 
 <div id="prices-detail-wrapper" data-select_dependent="#offer_type" data-select_dependent_not_value="free_shipping">
 @include('backend.master.form.fields.number', [
-    'name' => 'price',
-    'label' => 'Price',
-    'key' => 'price',
-    'attr' => [
-        'class' => 'form-control',
-        'id' => 'price',
-        'data-currency_dependent' => '#currency',
-        'data-number_type' => 'amount',
-    ],
-    'unit' => CurrencyHelper::getCurrentCurrency()['symbol'],
-    'unitPosition' => 'front',
-    'valueColumnClass' => 'col-md-6',
-])
-
-@include('backend.master.form.fields.number', [
     'name' => 'modification',
     'label' => 'Modification',
     'key' => 'modification',

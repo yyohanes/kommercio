@@ -1,11 +1,10 @@
 var OrderForm = function () {
+    var $orderProductSubtotal;
     var $orderProductTotal;
-    var $orderOriginalProductTotal;
-    var $orderFeeSubtotal;
     var $orderFeeTotal;
-    var $orderShippingSubtotal;
     var $orderShippingTotal;
     var $orderSubtotal;
+    var $orderTotalBeforeRounding;
     var $orderTotalRounding;
     var $orderTotal;
     var $taxes = {};
@@ -14,138 +13,139 @@ var OrderForm = function () {
     var $cartPriceRules = {};
     var $orderedTotal = {};
     var $disabledDates = [];
+    var $lineItems = {};
 
     var reserOrderSummary = function()
     {
+        $orderProductSubtotal = 0;
         $orderProductTotal = 0;
-        $orderOriginalProductTotal = 0;
-        $orderFeeSubtotal = 0;
         $orderFeeTotal = 0;
-        $orderShippingSubtotal = 0;
         $orderShippingTotal = 0;
         $orderPriceRuleTotal = 0;
         $orderSubtotal = 0;
+        $orderTotalBeforeRounding = 0;
         $orderTotalRounding = 0;
         $orderTotal = 0;
 
-        for(var i in $taxes){
-            $taxes[i].total = 0;
-        }
-
         for(var i in $cartPriceRules){
             $cartPriceRules[i].total = 0;
+        }
+
+        for(var i in $taxes){
+            $taxes[i].total = 0;
         }
     }
 
     var totalOrderSummary = function()
     {
         //Round tax & price rules to prevent weird long decimal
+        $orderProductSubtotal = formHelper.roundNumber($orderProductSubtotal);
         $orderProductTotal = formHelper.roundNumber($orderProductTotal);
-        $orderOriginalProductTotal = formHelper.roundNumber($orderOriginalProductTotal);
         $orderFeeTotal = formHelper.roundNumber($orderFeeTotal);
         $orderShippingTotal = formHelper.roundNumber($orderShippingTotal);
         $orderPriceRuleTotal = formHelper.roundNumber($orderPriceRuleTotal);
 
-        $orderSubtotal = $orderOriginalProductTotal + $orderFeeTotal;
+        $orderSubtotal = $orderProductSubtotal + $orderFeeTotal;
 
-        calculateOrderPriceRules();
+        for(var i in $lineItems){
+            //Calculate Cart Price Rules
+            for(var j in $lineItems[i].cartPriceRules){
+                if(typeof $cartPriceRules[j] === 'undefined'){
+                    delete $lineItems[i].cartPriceRules[j];
+                }else{
+                    $cartPriceRules[j].total += formHelper.roundNumber($lineItems[i].cartPriceRules[j]);
+                    $orderPriceRuleTotal += formHelper.roundNumber($lineItems[i].cartPriceRules[j]);
+                }
+            }
 
-        //Round tax & price rules to prevent weird long decimal
-        for(var i in $cartPriceRules){
-            $cartPriceRules[i].total = formHelper.roundNumber($cartPriceRules[i].total);
+            //Calculate Taxes
+            for(var j in $lineItems[i].taxes){
+                $taxes[j].total += $lineItems[i].taxes[j];
+                $taxes[j].total = formHelper.roundNumber($taxes[j].total);
+            }
         }
 
-        for(var i in $taxes){
-            $taxes[i].total = formHelper.roundNumber($taxes[i].total);
-        }
-
-        $orderTotalBeforeRounding = $orderProductTotal + $orderShippingTotal + $orderFeeTotal + $orderPriceRuleTotal;
+        $orderTotalBeforeRounding = $orderProductSubtotal + $orderFeeTotal + $orderShippingTotal + $orderPriceRuleTotal;
         $orderTotal = formHelper.roundNumber($orderTotalBeforeRounding, global_vars.total_precision, 'floor');
 
         $orderTotalRounding += formHelper.calculateRounding($orderTotalBeforeRounding, $orderTotal);
     }
 
-    var calculateTaxes = function($amount, $quantity)
+    var calculateTax = function($lineItem, $quantity)
     {
-        if(typeof $quantity === 'undefined'){
-            $quantity = 1;
-        }
-
         var $thisTaxAmount = 0;
+        var $calculatedTaxAmount = 0;
+
+        $product_id = ($lineItem.object.data('line_item') == 'product')?$lineItem.object.find('.line-item-id').val():false;
 
         for(var i in $taxes){
+            var $originalTaxAmount = {
+                gross: 0,
+                net: 0
+            };
+            $originalTaxAmount.gross = formHelper.roundNumber($lineItem.net * ($taxes[i].rate/100));
+            $originalTaxAmount.net = formHelper.roundNumber($originalTaxAmount.gross);
+
+            $thisTaxAmount += $originalTaxAmount.net;
+
             var $taxAmount = {
                 gross: 0,
                 net: 0
             };
-            $taxAmount.gross = formHelper.roundNumber($amount * ($taxes[i].rate/100));
+
+            $taxAmount.gross = formHelper.roundNumber($lineItem.calculated * ($taxes[i].rate/100));
             $taxAmount.net = formHelper.roundNumber($taxAmount.gross);
 
-            $thisTaxAmount += $taxAmount.net;
+            $calculatedTaxAmount += $taxAmount.net;
 
-            $orderTotalRounding += formHelper.calculateRounding($taxAmount.gross, $taxAmount.net) * $quantity;
-
-            $taxes[i].total += $taxAmount.net * $quantity;
+            $lineItem.taxes[i] = $taxAmount.net * $quantity;
         }
+
+        $lineItem.total += $calculatedTaxAmount * $quantity;
+        $lineItem.calculated += $calculatedTaxAmount;
+        $lineItem.net += $thisTaxAmount;
 
         return $thisTaxAmount;
     }
 
-    var calculateOrderPriceRules = function()
-    {
-        for(var i in $cartPriceRules){
-            var calculated = {
-                net: 0,
-                gross: 0
-            };
-
-            if($cartPriceRules[i].offer_type == 'order_discount'){
-                calculated.gross = calculatePriceRuleValue($orderProductTotal + $orderFeeTotal, $cartPriceRules[i].price, $cartPriceRules[i].modification, $cartPriceRules[i].modification_type);
-                calculated.net = formHelper.roundNumber(calculated.gross);
-
-                $orderTotalRounding += formHelper.calculateRounding(calculated.gross, calculated.net);
-
-                $cartPriceRules[i].total = calculated.net;
-            }else if($cartPriceRules[i].offer_type == 'product_discount') {
-
-            }else{
-                $cartPriceRules[i].total = 0;
-            }
-
-            $orderPriceRuleTotal += calculated.net;
-        }
-    }
-
     //$quantity argument is required to sum total of each rules.
     //Return calculated price for single product
-    var calculateProductCartPrice = function($price, $quantity, $product_id)
+    var calculateCartPrice = function($lineItem, $quantity)
     {
         var calculated = {
             net: 0,
             gross: 0
         };
 
+        $product_id = ($lineItem.object.data('line_item') == 'product')?$lineItem.object.find('.line-item-id').val():false;
+
         for(var i in $cartPriceRules){
-            if($cartPriceRules[i].offer_type == 'product_discount'){
+            calculated.gross = calculatePriceRuleValue($lineItem.net, $cartPriceRules[i].price, $cartPriceRules[i].modification, $cartPriceRules[i].modification_type);
+            calculated.net = formHelper.roundNumber(calculated.gross);
+
+            if($cartPriceRules[i].offer_type == 'product_discount' && $lineItem.object.data('line_item') == 'product'){
                 if($cartPriceRules[i].products.length > 0){
-                    if($cartPriceRules[i].products.indexOf(Number($product_id)) >= 0){
-                        calculated.gross = calculatePriceRuleValue($price, $cartPriceRules[i].price, $cartPriceRules[i].modification, $cartPriceRules[i].modification_type);
-                        calculated.net = formHelper.roundNumber(calculated.gross);
-
-                        $orderTotalRounding += formHelper.calculateRounding(calculated.gross, calculated.net) * $quantity;
-
-                        $cartPriceRules[i].total += calculated.net * $quantity;
+                    if($cartPriceRules[i].products.indexOf(Number($product_id)) < 0){
+                        continue;
                     }
-                }else{
-                    calculated.gross = calculatePriceRuleValue($price, $cartPriceRules[i].price, $cartPriceRules[i].modification, $cartPriceRules[i].modification_type);
-                    calculated.net = formHelper.roundNumber(calculated.gross);
-
-                    $orderTotalRounding += formHelper.calculateRounding(calculated.gross, calculated.net) * $quantity;
-
-                    $cartPriceRules[i].total += calculated.net * $quantity;
                 }
+            }else if($cartPriceRules[i].modification_type == 'percent'){
+
+            }else if($cartPriceRules[i].modification_type == 'amount' && $cartPriceRules[i].applied_line_items.length < 1){
+
+            }else{
+                continue;
             }
+
+            if($cartPriceRules[i].applied_line_items.indexOf($lineItem) < 0){
+                $cartPriceRules[i].applied_line_items.push($lineItem);
+            }
+
+            $lineItem.cartPriceRules[i] = calculated.net * $quantity;
         }
+
+        $lineItem.total = ($lineItem.net + calculated.net) * $quantity;
+        $lineItem.calculated = $lineItem.net + calculated.net;
 
         return calculated.net;
     }
@@ -154,57 +154,24 @@ var OrderForm = function () {
     {
         reserOrderSummary();
 
-        var lineitemTotalAmount, lineitemNetAmount, lineitemQuantity, lineitemId;
+        var lineitemTotalAmount, lineitemNetAmount, lineitemQuantity, lineitem;
 
         $('.line-item', '#line-items-table').each(function(idx, obj){
             //Total line item after discount & tax
             lineitemNetAmount = Number($(obj).find('.net-price-field').inputmask('unmaskedvalue'));
             lineitemQuantity = Number($(obj).find('.quantity-field').inputmask('unmaskedvalue'));
-            lineitemId = $(obj).find('.line-item-id').val();
+            lineitem = $lineItems[$(obj).data('uid')];
 
             if($(obj).data('line_item') == 'product'){
-                //Before discount & tax
-                $orderOriginalProductTotal += lineitemNetAmount * lineitemQuantity;
+                $orderProductSubtotal += lineitemNetAmount * lineitemQuantity;
 
-                //Single unit price before tax
-                lineitemNetAmount += calculateProductCartPrice(lineitemNetAmount, lineitemQuantity, lineitemId);
-
-                if($(obj).data('taxable') == '1'){
-                    //Single unit price after tax
-                    lineitemNetAmount += calculateTaxes(lineitemNetAmount, lineitemQuantity);
-                }
-                //lineitemNetAmount = formHelper.roundNumber(lineitemNetAmount, global_vars.total_precision);
-
-                lineitemTotalAmount = lineitemNetAmount * lineitemQuantity;
-
-                $orderProductTotal += lineitemTotalAmount;
+                $orderProductTotal += lineitem.total;
             }else if($(obj).data('line_item') == 'fee'){
                 lineitemTotalAmount = Number($(obj).find('.lineitem-total-amount').inputmask('unmaskedvalue'));
-
-                //Before discount & tax
-                $orderFeeSubtotal += lineitemTotalAmount;
-
-                if($(obj).data('taxable') == '1'){
-                    //Single unit price after tax
-                    lineitemTotalAmount += calculateTaxes(lineitemTotalAmount);
-                    lineitemTotalAmount = formHelper.roundNumber(lineitemTotalAmount);
-                }
-                //lineitemTotalAmount = formHelper.roundNumber(lineitemTotalAmount, global_vars.total_precision);
 
                 $orderFeeTotal += lineitemTotalAmount;
             }else if($(obj).data('line_item') == 'shipping'){
                 lineitemTotalAmount = Number($(obj).find('.lineitem-total-amount').inputmask('unmaskedvalue'));
-
-                //Before discount & tax
-                $orderShippingSubtotal += lineitemTotalAmount;
-
-                if($(obj).data('taxable') == '1'){
-                    //Single unit price after tax
-                    lineitemTotalAmount += calculateTaxes(lineitemTotalAmount);
-                    lineitemTotalAmount = formHelper.roundNumber(lineitemTotalAmount);
-                }
-
-                //lineitemTotalAmount = formHelper.roundNumber(lineitemTotalAmount, global_vars.total_precision);
 
                 $orderShippingTotal += lineitemTotalAmount;
             }
@@ -213,25 +180,34 @@ var OrderForm = function () {
         totalOrderSummary();
     }
 
+    var calculateLineItemNetPrice = function($lineitem, $price, $quantity)
+    {
+        if(typeof $quantity === 'undefined'){
+            $quantity = 1;
+        }
+
+        $lineitem.net = $price;
+
+        if($lineitem.object.data('taxable') == '1'){
+            calculateCartPrice($lineitem, $quantity);
+            calculateTax($lineitem, $quantity);
+        }else{
+            calculateCartPrice($lineitem, $quantity);
+        }
+
+        return formHelper.roundNumber($lineitem.net);
+    }
+
     var printOrderSummary = function()
     {
         $('.subtotal .amount', '#order-summary').text(formHelper.convertNumber($orderSubtotal));
 
-        if($orderShippingSubtotal > 0){
+        if($orderShippingTotal > 0){
             $('.shipping', '#order-summary').show();
         }else{
             $('.shipping', '#order-summary').hide();
         }
-        $('.shipping .amount', '#order-summary').text(formHelper.convertNumber($orderShippingSubtotal));
-
-        /*
-        $('.discount .amount', '#order-summary').text(formHelper.convertNumber($orderProductTotal - $orderOriginalProductTotal));
-        if(($orderProductTotal - $orderOriginalProductTotal) != 0){
-            $('.discount', '#order-summary').show();
-        }else{
-            $('.discount', '#order-summary').hide();
-        }
-        */
+        $('.shipping .amount', '#order-summary').text(formHelper.convertNumber($orderShippingTotal));
 
         for(var i in $taxes){
             $('.tax[data-tax_id="'+i+'"] .amount', '#order-summary').text(formHelper.convertNumber($taxes[i].total));
@@ -303,6 +279,7 @@ var OrderForm = function () {
                 data: $('#order-form').serialize(),
                 success: function(data){
                     $cartPriceRules = {};
+                    $productPriceRulesTotal = {};
                     $('#cart-price-rules-wrapper').empty();
                     for(var i in data.data){
                         $cartPriceRules[data.data[i].id] = {
@@ -311,7 +288,8 @@ var OrderForm = function () {
                             modification: data.data[i].modification,
                             modification_type: data.data[i].modification_type,
                             total: 0,
-                            products: data.data[i].products
+                            products: data.data[i].products,
+                            applied_line_items: []
                         }
 
                         isCoupon = !($.trim(data.data[i].coupon_code).length === 0);
@@ -328,6 +306,7 @@ var OrderForm = function () {
                         data: 'country_id='+$('#profile\\[country_id\\]').val()+'&state_id='+$('#profile\\[state_id\\]').val()+'&city_id='+$('#profile\\[city_id\\]').val()+'&district_id='+$('#profile\\[district_id\\]').val()+'&area_id='+$('#profile\\[area_id\\]').val(),
                         success: function(data) {
                             $taxes = {};
+                            $productTaxes = {};
                             $('#tax-summary-wrapper').empty();
                             for(var i in data.data){
                                 $taxes[data.data[i].id] = {
@@ -336,6 +315,8 @@ var OrderForm = function () {
                                 }
                                 $('#tax-summary-wrapper').append($taxPrototype({key: i, label:data.data[i].name+' ('+data.data[i].rate+'%)', value:0, rate:data.data[i].rate, 'tax_id': data.data[i].id}));
                             }
+
+                            $('.base-price-field', '#order-form').trigger('change');
 
                             calculateOrderSummary();
                             printOrderSummary();
@@ -487,12 +468,9 @@ var OrderForm = function () {
 
             $newShippingLineItem.find('.name-field').val($selectedShippingOption.data('name'));
             $newShippingLineItem.find('.base-price-field').val($selectedShippingOption.data('price'));
-            $newShippingLineItem.find('.lineitem-total-amount').val($selectedShippingOption.data('price'));
 
             formBehaviors.init($newShippingLineItem);
             OrderForm.lineItemInit($newShippingLineItem);
-
-            $newShippingLineItem.find('.lineitem-total-amount').trigger('change');
 
             $('#shipping-options-wrapper').hide()
 
@@ -758,7 +736,6 @@ var OrderForm = function () {
 
             $('.line-item', '#line-items-table').each(function(idx, obj){
                 OrderForm.lineItemInit($(obj));
-                $(obj).find('.net-price-field').trigger('change');
             });
 
             $('#billing-information-wrapper').on('address.change', function(){
@@ -772,6 +749,17 @@ var OrderForm = function () {
         {
             var $lineItem = lineItem;
             var $lineItemType = $lineItem.data('line_item');
+            var $timestamp = new Date().getTime();
+            $lineItem.attr('data-uid', $timestamp);
+            $lineItems[$timestamp] = {
+                uid: $timestamp,
+                object: $lineItem,
+                cartPriceRules: {},
+                taxes: {},
+                total: 0,
+                net: 0,
+                calculated: 0
+            };
 
             $('.product-search', lineItem).bind('typeahead:select', function(e, suggestion){
                 App.blockUI({
@@ -794,7 +782,7 @@ var OrderForm = function () {
 
                         $row.find('.quantity-field').focus();
 
-                        $row.find('.net-price-field').trigger('change');
+                        $row.find('.base-price-field').trigger('change');
 
                         //Get availability
                         $.ajax(global_vars.get_product_availability + '/' + suggestion.id, {
@@ -812,6 +800,13 @@ var OrderForm = function () {
             $('.line-item-remove', $lineItem).on('click', function(e){
                 e.preventDefault();
 
+                for(var i in $cartPriceRules){
+                    $cartPriceRules[i].applied_line_items = $.grep($cartPriceRules[i].applied_line_items, function(n, i){
+                        return n.uid != $lineItem.data('uid');
+                    });
+                }
+
+                delete $lineItems[$lineItem.data('uid')];
                 $lineItem.remove();
 
                 if($lineItemType == 'shipping'){
@@ -822,13 +817,21 @@ var OrderForm = function () {
                 $('#order-form').trigger('order.major_change');
             });
 
-            $('.quantity-field, .net-price-field', $lineItem).each(function(idx, obj){
+            $('.quantity-field, .base-price-field', $lineItem).each(function(idx, obj){
                 var $totalAmount;
+                var $netPrice;
 
-                $(obj).on('change', function(e){
-                    $totalAmount = $lineItem.find('.quantity-field').val() * $lineItem.find('.net-price-field').inputmask('unmaskedvalue');
-                    $totalAmount = formHelper.roundNumber($totalAmount);;
-                    $lineItem.find('.lineitem-total-amount').val($totalAmount).trigger('change');
+                $(obj).on('change', function(e, stopImmediateTrigger){
+                    $netPrice = calculateLineItemNetPrice($lineItems[$lineItem.data('uid')], Number($lineItem.find('.base-price-field').inputmask('unmaskedvalue')), $lineItem.find('.quantity-field').val());
+                    $totalAmount = $lineItem.find('.quantity-field').val() * $netPrice;
+                    $totalAmount = formHelper.roundNumber($totalAmount);
+                    $lineItem.find('.net-price-field').val($netPrice);
+
+                    $lineItem.find('.lineitem-total-amount').val($totalAmount);
+
+                    if(!stopImmediateTrigger){
+                        $lineItem.find('.lineitem-total-amount').trigger('change');
+                    }
                 });
             });
 
@@ -846,7 +849,7 @@ var OrderForm = function () {
                 });
             });
 
-            $lineItem.find('.lineitem-total-amount').on('change', function(e){
+            $lineItem.find('.lineitem-total-amount').change(function(e){
                 calculateOrderSummary();
                 printOrderSummary();
             });

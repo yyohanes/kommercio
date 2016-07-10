@@ -54,17 +54,7 @@ class CronController extends Controller
 
     public function startOfDay()
     {
-        if(ProjectHelper::getConfig('cron_start_of_day_is_running') == 'true'){
-            abort(403, 'Start of Day cron is already running.');
-        }
-
-        //Flag global cron minute
-        ProjectHelper::saveConfig('cron_start_of_day_is_running', 'true');
-
         //Dispatch Cron event
         Event::fire(new CronEvent('start_of_day'));
-
-        //Unflag global cron minute
-        ProjectHelper::saveConfig('cron_start_of_day_is_running', 'false');
     }
 }
