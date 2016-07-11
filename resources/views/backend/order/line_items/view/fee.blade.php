@@ -2,8 +2,11 @@
     <td colspan="2">
         {{ $lineItem->name }}
     </td>
-    <td colspan="2"></td>
     <td>
-        {{ PriceFormatter::formatNumber($lineItem->calculateTotal(), $lineItem->order->currency) }}
+        {{ PriceFormatter::formatNumber($lineItem->net_price, $lineItem->order->currency) }}
+    </td>
+    <td></td>
+    <td>
+        {{ PriceFormatter::formatNumber($lineItem->calculateSubtotal(), $lineItem->order->currency) }}
     </td>
 </tr>

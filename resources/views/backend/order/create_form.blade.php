@@ -100,10 +100,9 @@
                     <tr>
                         <th> Item </th>
                         <th style="width: 10%;"> Availability </th>
-                        <th style="width: 20%;"> Base Price </th>
-                        <th style="width: 20%;"> Net Price </th>
+                        <th style="width: 18%;"> Price </th>
                         <th style="width: 5%;"> Quantity </th>
-                        <th style="width: 20%;"> Total </th>
+                        <th style="width: 18%;"> Total </th>
                         <th>  </th>
                     </tr>
                     </thead>
@@ -207,6 +206,11 @@
                     @include('backend.order.line_items.form.cart_price_rule', ['key' => $idx, 'label' => $cartPriceRule->name, 'is_coupon' => $cartPriceRule->isCoupon, 'value' => 0, 'cart_price_rule_id' => $cartPriceRule->id, 'idx' => $idx])
                 @endforeach
             </div>
+            <div id="tax-summary-wrapper">
+                @foreach($taxes as $idx=>$tax)
+                    @include('backend.order.line_items.form.tax', ['key' => $idx, 'label' => $tax->getSingleName(), 'value' => 0, 'rate' => $tax->rate, 'tax_id' => $tax->id, 'idx' => $idx])
+                @endforeach
+            </div>
             <div class="row static-info align-reverse rounding">
                 <div class="col-md-8 name"> Rounding: </div>
                 <div class="col-md-4 value"> <span class="currency-symbol">{{ CurrencyHelper::getCurrentCurrency()['symbol'] }}</span> <span class="amount">0</span> </div>
@@ -214,14 +218,6 @@
             <div class="row static-info align-reverse total">
                 <div class="col-md-8 name"> Grand Total: </div>
                 <div class="col-md-4 value"> <span class="currency-symbol">{{ CurrencyHelper::getCurrentCurrency()['symbol'] }}</span> <span class="amount">0</span> </div>
-            </div>
-
-            <hr/>
-
-            <div id="tax-summary-wrapper">
-                @foreach($taxes as $idx=>$tax)
-                    @include('backend.order.line_items.form.tax', ['key' => $idx, 'label' => $tax->getSingleName(), 'value' => 0, 'rate' => $tax->rate, 'tax_id' => $tax->id, 'idx' => $idx])
-                @endforeach
             </div>
         </div>
     </div>

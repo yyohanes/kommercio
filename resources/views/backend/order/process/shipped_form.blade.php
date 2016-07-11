@@ -1,19 +1,18 @@
 <div class="modal-header">
     <button type="button" class="close" data-dismiss="modal" aria-hidden="true"></button>
-    <h4 class="modal-title">Cancel Order</h4>
+    <h4 class="modal-title">Ship Order</h4>
 </div>
 
-{!! Form::open(['route' => ['backend.sales.order.process', 'process' => 'cancelled', 'id' => $order->id], 'class' => 'form-client-validation', 'id' => 'form-cancel-'.$order->id]) !!}
+{!! Form::open(['route' => ['backend.sales.order.process', 'process' => 'shipped', 'id' => $order->id]]) !!}
 <div class="modal-body">
     <div class="form-body">
-        @include('backend.master.form.fields.textarea', [
-            'name' => 'notes',
-            'label' => 'Why do you cancel this?',
-            'key' => 'notes',
+        @include('backend.master.form.fields.text', [
+            'name' => 'tracking_number',
+            'label' => 'Tracking Number (if any)',
+            'key' => 'tracking_number',
             'attr' => [
                 'class' => 'form-control',
-                'id' => 'notes',
-                'rows' => 3,
+                'id' => 'tracking_number',
                 'data-rule-required' => 'true'
             ]
         ])

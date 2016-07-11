@@ -24,6 +24,7 @@
         <div class="order-limit-info">Limit: <span class="ordered-total">0</span>/<span class="limit-total">0</span></div>
         <div class="stock-info">Stock: <span class="stock-total">0</span></div>
     </td>
+    <!--
     <td>
         @include('backend.master.form.fields.number', [
             'name' => 'line_items['.$key.'][base_price]',
@@ -32,6 +33,7 @@
             'attr' => [
                 'class' => 'form-control input-sm base-price-field',
                 'id' => 'line_items['.$key.'][base_price]',
+                'readonly' => TRUE
             ],
             'required' => TRUE,
             'unitPosition' => 'front',
@@ -39,6 +41,7 @@
             'defaultValue' => isset($product)?$product->getRetailPrice():null
         ])
     </td>
+    -->
     <td>
         @include('backend.master.form.fields.number', [
             'name' => 'line_items['.$key.'][net_price]',
@@ -47,7 +50,6 @@
             'attr' => [
                 'class' => 'form-control input-sm net-price-field',
                 'id' => 'line_items['.$key.'][net_price]',
-                'readonly' => TRUE
             ],
             'required' => TRUE,
             'unitPosition' => 'front',

@@ -240,6 +240,8 @@ License: You must have a valid license purchased only from themeforest(the above
     <script src="{{ asset('backend/assets/template/global/plugins/bootstrap-confirmation/bootstrap-confirmation.min.js') }}" type="text/javascript"></script>
     <script src="{{ asset('backend/assets/template/global/plugins/bootstrap-growl/jquery.bootstrap-growl.min.js') }}" type="text/javascript"></script>
     <script src="{{ asset('backend/assets/template/global/plugins/fancybox/source/jquery.fancybox.pack.js') }}" type="text/javascript"></script>
+    <script src="{{ asset('backend/assets/template/global/plugins/jquery-validation/js/jquery.validate.min.js') }}" type="text/javascript"></script>
+    <script src="{{ asset('backend/assets/template/global/plugins/jquery-validation/js/additional-methods.min.js') }}" type="text/javascript"></script>
     <script src="{{ asset('backend/assets/template/global/plugins/jquery-file-upload/js/vendor/jquery.ui.widget.js') }}" type="text/javascript"></script>
     <script src="{{ asset('backend/assets/template/global/plugins/jquery-file-upload/js/vendor/load-image.min.js') }}" type="text/javascript"></script>
     <script src="{{ asset('backend/assets/template/global/plugins/jquery-file-upload/js/vendor/canvas-to-blob.min.js') }}" type="text/javascript"></script>

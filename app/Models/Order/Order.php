@@ -25,6 +25,7 @@ class Order extends Model implements AuthorSignatureInterface
     const STATUS_CART = 'cart';
     const STATUS_PENDING = 'pending';
     const STATUS_PROCESSING = 'processing';
+    const STATUS_SHIPPED = 'shipped';
     const STATUS_COMPLETED = 'completed';
 
     public static $processedStatus = [self::STATUS_PENDING, self::STATUS_PROCESSING];
@@ -413,13 +414,17 @@ class Order extends Model implements AuthorSignatureInterface
         return $this->subtotal;
     }
 
-    public function calculateShippingTotal()
+    public function calculateShippingTotal($total = false)
     {
         $this->shipping_total = 0;
 
         foreach($this->lineItems as $lineItem){
             if($lineItem->isShipping){
-                $this->shipping_total += $lineItem->calculateTotal();
+                if($total){
+                    $this->shipping_total += $lineItem->calculateTotal();
+                }else{
+                    $this->shipping_total += $lineItem->calculateSubtotal();
+                }
             }
         }
 
@@ -440,7 +445,7 @@ class Order extends Model implements AuthorSignatureInterface
             $this->discount_total += $couponLineItem->calculateTotal();
         }
 
-        $this->discount_total = PriceFormatter::round($this->discount_total, 1);
+        $this->discount_total = PriceFormatter::round($this->discount_total);
 
         return $this->discount_total;
     }
@@ -449,10 +454,8 @@ class Order extends Model implements AuthorSignatureInterface
     {
         $this->tax_total = 0;
 
-        foreach($this->lineItems as $lineItem){
-            if($lineItem->isTax){
-                $this->tax_total += $lineItem->calculateTotal();
-            }
+        foreach($this->getTaxLineItems() as $taxLineItem){
+            $this->tax_total += $taxLineItem->calculateTotal();
         }
 
         $this->tax_total = PriceFormatter::round($this->tax_total);
@@ -460,13 +463,17 @@ class Order extends Model implements AuthorSignatureInterface
         return $this->tax_total;
     }
 
-    public function calculateAdditionalTotal()
+    public function calculateAdditionalTotal($total = false)
     {
         $this->additional_total = 0;
 
         foreach($this->lineItems as $lineItem){
             if($lineItem->isFee){
-                $this->additional_total += $lineItem->calculateTotal();
+                if($total){
+                    $this->additional_total += $lineItem->calculateTotal();
+                }else{
+                    $this->additional_total += $lineItem->calculateSubtotal();
+                }
             }
         }
 
@@ -493,13 +500,17 @@ class Order extends Model implements AuthorSignatureInterface
         return $this->total;
     }
 
-    public function calculateProductTotal()
+    public function calculateProductTotal($total = false)
     {
         $productTotal = 0;
 
         foreach($this->lineItems as $lineItem){
             if($lineItem->isProduct){
-                $productTotal += $lineItem->calculateTotal();
+                if($total){
+                    $productTotal += $lineItem->calculateTotal();
+                }else{
+                    $productTotal += $lineItem->calculateSubtotal();
+                }
             }
         }
 
@@ -682,7 +693,7 @@ class Order extends Model implements AuthorSignatureInterface
 
     public function scopeUsageCounted($query)
     {
-        $query->whereIn('status', [self::STATUS_PENDING, self::STATUS_PROCESSING, self::STATUS_COMPLETED]);
+        $query->whereIn('status', [self::STATUS_PENDING, self::STATUS_PROCESSING, self::STATUS_SHIPPED, self::STATUS_COMPLETED]);
     }
 
     public function scopeProcessed($query)
@@ -713,6 +724,26 @@ class Order extends Model implements AuthorSignatureInterface
         }
 
         return $count;
+    }
+
+    public function getIsCancellableAttribute()
+    {
+        return in_array($this->status, [self::STATUS_PENDING, self::STATUS_PROCESSING]);
+    }
+
+    public function getIsCompleteableAttribute()
+    {
+        return in_array($this->status, [self::STATUS_PENDING, self::STATUS_PROCESSING, self::STATUS_SHIPPED]);
+    }
+
+    public function getIsShippableAttribute()
+    {
+        return in_array($this->status, [self::STATUS_PENDING, self::STATUS_PROCESSING]);
+    }
+
+    public function getIsProcessableAttribute()
+    {
+        return in_array($this->status, [self::STATUS_PENDING]);
     }
 
     public function getIsEditableAttribute()
@@ -760,6 +791,7 @@ class Order extends Model implements AuthorSignatureInterface
             self::STATUS_CANCELLED => 'Cancelled',
             self::STATUS_PENDING => 'Pending',
             self::STATUS_PROCESSING => 'Processing',
+            self::STATUS_SHIPPED => 'Shipped',
             self::STATUS_COMPLETED => 'Completed',
         ];
 

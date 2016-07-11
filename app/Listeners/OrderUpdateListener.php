@@ -44,6 +44,16 @@ class OrderUpdateListener
         }
     }
 
+    public function onShippedOrder(OrderUpdate $event)
+    {
+        OrderHelper::saveOrderComment('Order is shipped.', 'shipped', $event->order, $this->request->user());
+
+        if($event->notify_customer){
+            $subject = 'Your order #'.$event->order->reference.' is shipped';
+            EmailHelper::sendMail($event->order->billingProfile->email, $subject, 'order.shipped', ['order' => $event->order], 'order');
+        }
+    }
+
     public function onCompletedOrder(OrderUpdate $event)
     {
         OrderHelper::saveOrderComment('Order is completed.', 'completed', $event->order, $this->request->user());
@@ -56,7 +66,7 @@ class OrderUpdateListener
 
     public function onCancelledOrder(OrderUpdate $event)
     {
-        OrderHelper::saveOrderComment('Order is cancelled.', 'cancelled', $event->order, $this->request->user());
+        OrderHelper::saveOrderComment('Order is cancelled. Reason: '.$this->request->input('notes'), 'cancelled', $event->order, $this->request->user());
 
         if($event->notify_customer){
             $subject = 'Your order #'.$event->order->reference.' is cancelled';
@@ -83,6 +93,8 @@ class OrderUpdateListener
                 $this->onPlacedOrder($event);
             }elseif($order->status == Order::STATUS_PROCESSING){
                 $this->onProcessingOrder($event);
+            }elseif($order->status == Order::STATUS_SHIPPED){
+                $this->onShippedOrder($event);
             }elseif($order->status == Order::STATUS_COMPLETED){
                 $this->onCompletedOrder($event);
             }elseif($order->status == Order::STATUS_CANCELLED){

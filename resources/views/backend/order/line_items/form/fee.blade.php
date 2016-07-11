@@ -17,27 +17,12 @@
     </td>
     <td>
         @include('backend.master.form.fields.number', [
-            'name' => 'line_items['.$key.'][base_price]',
-            'label' => FALSE,
-            'key' => 'line_items.'.$key.'.base_price',
-            'attr' => [
-                'class' => 'form-control input-sm base-price-field',
-                'id' => 'line_items['.$key.'][base_price]',
-            ],
-            'required' => TRUE,
-            'unitPosition' => 'front',
-            'unit' => CurrencyHelper::getCurrentCurrency()['symbol'],
-        ])
-    </td>
-    <td>
-        @include('backend.master.form.fields.number', [
             'name' => 'line_items['.$key.'][net_price]',
             'label' => FALSE,
             'key' => 'line_items.'.$key.'.net_price',
             'attr' => [
                 'class' => 'form-control input-sm net-price-field',
                 'id' => 'line_items['.$key.'][net_price]',
-                'readonly' => TRUE
             ],
             'required' => TRUE,
             'unitPosition' => 'front',

@@ -14,7 +14,7 @@ class LineItem extends Model
 {
     use HasDataColumn;
 
-    protected $fillable = ['line_item_id', 'line_item_type', 'name', 'base_price', 'quantity', 'taxable', 'net_price', 'total', 'sort_order', 'data'];
+    protected $fillable = ['line_item_id', 'line_item_type', 'name', 'base_price', 'quantity', 'taxable', 'net_price', 'discount_total', 'tax_total', 'total', 'sort_order', 'data'];
     protected $casts = [
         'taxable' => 'boolean'
     ];
@@ -31,9 +31,14 @@ class LineItem extends Model
         return $name;
     }
 
+    public function calculateNet()
+    {
+        return round($this->net_price + $this->discount_total + $this->tax_total, config('project.line_item_total_precision'));
+    }
+
     public function calculateTotal()
     {
-        $this->total = round($this->net_price * $this->quantity, config('project.line_item_total_precision'));
+        $this->total = round($this->calculateNet() * $this->quantity, config('project.line_item_total_precision'));
 
         return $this->total;
     }
@@ -58,16 +63,16 @@ class LineItem extends Model
         }elseif($data['line_item_type'] == 'fee'){
             $this->name = $data['name'];
             $this->line_item_type = 'fee';
-            $this->base_price = $data['lineitem_total_amount'];
-            $this->net_price = $data['lineitem_total_amount'];
+            $this->base_price = $data['net_price'];
+            $this->net_price = $data['net_price'];
             $this->total = $data['lineitem_total_amount'];
             $this->quantity = 1;
         }elseif($data['line_item_type'] == 'shipping'){
             $this->name = $data['name'];
             $this->line_item_id = $data['line_item_id'];
             $this->line_item_type = 'shipping';
-            $this->base_price = $data['base_price'];
-            $this->net_price = $data['lineitem_total_amount'];
+            $this->base_price = $data['net_price'];
+            $this->net_price = $data['net_price'];
             $this->total = $data['lineitem_total_amount'];
             $this->taxable = $data['taxable'];
             $this->quantity = 1;

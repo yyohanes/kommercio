@@ -24,21 +24,27 @@
                     <span class="caption-subject sbold uppercase">Order #{{ $order->reference }}</span>
                 </div>
                 <div class="actions">
-                    @if(Gate::allows('access', ['edit_order']) && (!$order->status || in_array($order->status, [\Kommercio\Models\Order\Order::STATUS_ADMIN_CART]))))
+                    @if(Gate::allows('access', ['edit_order']) && (!$order->status || in_array($order->status, [\Kommercio\Models\Order\Order::STATUS_ADMIN_CART])))
                         <a href="{{ route('backend.sales.order.edit', ['id' => $order->id, 'backUrl' => Request::fullUrl()]) }}" class="btn btn-info"><i class="fa fa-pencil"></i> Edit </a>
                     @endif
 
-                    @if(Gate::allows('access', ['process_order']) && in_array($order->status, [\Kommercio\Models\Order\Order::STATUS_PENDING]))
+                    @if(Gate::allows('access', ['process_order']) && $order->isProcessable)
                         <a class="btn {{ OrderHelper::getOrderStatusLabelClass(\Kommercio\Models\Order\Order::STATUS_PROCESSING) }} modal-ajax" href="{{ route('backend.sales.order.process', ['action' => 'processing', 'id' => $order->id, 'backUrl' => Request::fullUrl()]) }}"><i class="fa fa-toggle-right"></i> Process Order</a>
                     @endif
 
-                    @if(Gate::allows('access', [['cancel_order', 'complete_order']]) && in_array($order->status, [\Kommercio\Models\Order\Order::STATUS_PENDING, \Kommercio\Models\Order\Order::STATUS_PROCESSING]))
-                        @if(Gate::allows('access', ['complete_order']))
+                    @if(Gate::allows('access', ['ship_order']) && $order->isShippable)
+                        <a class="btn {{ OrderHelper::getOrderStatusLabelClass(\Kommercio\Models\Order\Order::STATUS_SHIPPED) }} modal-ajax" href="{{ route('backend.sales.order.process', ['action' => 'shipped', 'id' => $order->id, 'backUrl' => Request::fullUrl()]) }}"><i class="fa fa-truck"></i> Ship Order</a>
+                    @endif
+
+                    @if(Gate::allows('access', ['complete_order']) && $order->isCompleteable)
                         <a class="btn {{ OrderHelper::getOrderStatusLabelClass(\Kommercio\Models\Order\Order::STATUS_COMPLETED) }} modal-ajax" href="{{ route('backend.sales.order.process', ['action' => 'completed', 'id' => $order->id, 'backUrl' => Request::fullUrl()]) }}"><i class="fa fa-check-circle"></i> Complete Order</a>
-                        @endif
-                        @if(Gate::allows('access', ['cancel_order']))
+                    @endif
+
+                    @if(Gate::allows('access', ['cancel_order']) && $order->isCancellable)
                         <a class="btn {{ OrderHelper::getOrderStatusLabelClass(\Kommercio\Models\Order\Order::STATUS_CANCELLED) }} modal-ajax" href="{{ route('backend.sales.order.process', ['action' => 'cancelled', 'id' => $order->id, 'backUrl' => Request::fullUrl()]) }}"><i class="fa fa-remove"></i> Cancel Order</a>
-                        @endif
+                    @endif
+
+                    @if($order->isCheckout)
                         <a class="btn btn-info" href="{{ route('backend.sales.order.print', ['id' => $order->id]) }}" target="_blank"><i class="fa fa-print"></i> Print Order</a>
                     @endif
                 </div>
@@ -90,6 +96,13 @@
                                                     <div class="col-md-5 name"> Status: </div>
                                                     <div class="col-md-7 value"> <span class="label bg-{{ OrderHelper::getOrderStatusLabelClass($order->status) }} bg-font-{{ OrderHelper::getOrderStatusLabelClass($order->status) }}">{{ \Kommercio\Models\Order\Order::getStatusOptions($order->status, true) }}</span> </div>
                                                 </div>
+
+                                                @if(!empty($order->getData('tracking_number', null)))
+                                                <div class="row static-info">
+                                                    <div class="col-md-5 name"> Tracking Number: </div>
+                                                    <div class="col-md-7 value"> {{ $order->getData('tracking_number') }} </div>
+                                                </div>
+                                                @endif
 
                                                 <div class="row static-info">
                                                     <div class="col-md-5 name"> Grand Total: </div>
@@ -202,7 +215,9 @@
                                                     <thead>
                                                     <tr>
                                                         <th> Item </th>
+                                                        <!--
                                                         <th style="width: 20%;"> Original Price </th>
+                                                        -->
                                                         <th style="width: 20%;"> Net Price </th>
                                                         <th style="width: 5%;"> Quantity </th>
                                                         <th style="width: 20%;"> Total </th>

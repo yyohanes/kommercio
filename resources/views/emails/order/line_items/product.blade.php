@@ -6,7 +6,7 @@
         {{ $lineItem->name }}
     </td>
     <td>
-        {{ PriceFormatter::formatNumber($lineItem->net_price, $lineItem->order->currency) }}
+        {{ PriceFormatter::formatNumber($lineItem->calculateNet(), $lineItem->order->currency) }}
     </td>
     <td>
         {{ $lineItem->quantity }}

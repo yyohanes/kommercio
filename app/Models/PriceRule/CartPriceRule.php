@@ -29,8 +29,9 @@ class CartPriceRule extends Model
         'active' => 'boolean',
     ];
 
-    //To store calculated total
+    //To store calculation
     public $total = 0;
+    public $appliedLineItems = [];
 
     //Relations
     public function store()
@@ -77,6 +78,19 @@ class CartPriceRule extends Model
             $calculatedAmount += $this->modification;
         }elseif($this->modification_type == self::MODIFICATION_TYPE_PERCENT && !is_null($this->modification)){
             $calculatedAmount += ($calculatedAmount * $this->modification/100);
+        }
+
+        return PriceFormatter::round($calculatedAmount);
+    }
+
+    public function getNetValue($price = null)
+    {
+        $calculatedAmount = $price;
+
+        if($this->modification_type == self::MODIFICATION_TYPE_AMOUNT && !is_null($this->modification)){
+            $calculatedAmount = $this->modification;
+        }elseif($this->modification_type == self::MODIFICATION_TYPE_PERCENT && !is_null($this->modification)){
+            $calculatedAmount = ($calculatedAmount * $this->modification/100);
         }
 
         return PriceFormatter::round($calculatedAmount);

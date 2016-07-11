@@ -24,6 +24,7 @@ class OrderHelper
             Order::STATUS_CANCELLED => 'grey-steel',
             Order::STATUS_PENDING => 'yellow-lemon',
             Order::STATUS_PROCESSING => 'blue',
+            Order::STATUS_SHIPPED => 'green',
             Order::STATUS_COMPLETED => 'green-jungle',
         ];
 
@@ -86,8 +87,6 @@ class OrderHelper
         $dummyOrderSubtotal = $dummyOrder->calculateSubtotal() + $dummyOrder->calculateAdditionalTotal();
 
         $cartPriceRules = $this->getCartRules($request, $order);
-        $productCartPriceRules = [];
-        $orderCartPriceRules = [];
         $taxes = Tax::getTaxes([
             'country_id' => $request->input('profile.country_id', null),
             'state_id' => $request->input('profile.state_id', null),
@@ -95,14 +94,6 @@ class OrderHelper
             'district_id' => $request->input('profile.district_id', null),
             'area_id' => $request->input('profile.area_id', null),
         ]);
-
-        foreach($cartPriceRules as $cartPriceRule){
-            if($cartPriceRule->offer_type == CartPriceRule::OFFER_TYPE_ORDER_DISCOUNT){
-                $orderCartPriceRules[] = $cartPriceRule;
-            }elseif($cartPriceRule->offer_type == CartPriceRule::OFFER_TYPE_PRODUCT_DISCOUNT){
-                $productCartPriceRules[] = $cartPriceRule;
-            }
-        }
 
         $count = 0;
 
@@ -134,7 +125,7 @@ class OrderHelper
             }
         }
 
-        foreach($lineItems as $lineItem){
+        foreach($lineItems as $idx => $lineItem){
             if($lineItem->isProduct && empty($lineItem->quantity)){
                 $lineItem->delete();
                 continue;
@@ -142,16 +133,29 @@ class OrderHelper
 
             $lineItemAmount = $lineItem->net_price;
 
-            if($lineItem->isProduct){
-                foreach($productCartPriceRules as $productCartPriceRule){
-                    $productCartPriceRuleProducts = $productCartPriceRule->getProducts();
+            $priceRuleValue = 0;
 
-                    if(empty($productCartPriceRuleProducts) || isset($productCartPriceRuleProducts[$lineItem->line_item_id])){
-                        $lineItemAmount = $productCartPriceRule->getValue($lineItemAmount);
-                        $productCartPriceRule->total += ($lineItemAmount - $lineItem->net_price) * $lineItem->quantity;
+            foreach($cartPriceRules as $cartPriceRule){
+                if($cartPriceRule->offer_type == CartPriceRule::OFFER_TYPE_PRODUCT_DISCOUNT){
+                    $productCartPriceRuleProducts = $cartPriceRule->getProducts();
+
+                    if(!empty($productCartPriceRuleProducts) && !isset($productCartPriceRuleProducts[$lineItem->line_item_id])){
+                        continue;
                     }
+                }elseif($cartPriceRule->modification_type == CartPriceRule::MODIFICATION_TYPE_PERCENT){
+
+                }elseif($cartPriceRule->modification_type == CartPriceRule::MODIFICATION_TYPE_AMOUNT && count($cartPriceRule->appliedLineItems) < 1){
+
+                }else{
+                    continue;
                 }
+
+                $priceRuleValue += $cartPriceRule->getNetValue($lineItemAmount);
+
+                $cartPriceRule->total += $priceRuleValue * $lineItem->quantity;
+                $lineItemAmount += $priceRuleValue;
             }
+            $lineItem->discount_total = $priceRuleValue;
 
             if($lineItem->taxable){
                 foreach($taxes as $tax){
@@ -163,10 +167,10 @@ class OrderHelper
                     $taxValue['gross'] = PriceFormatterFacade::round($tax->calculateTax($lineItemAmount));
                     $taxValue['net'] = PriceFormatterFacade::round($taxValue['gross']);
 
-                    $order->rounding_total = PriceFormatterFacade::calculateRounding($taxValue['gross'], $taxValue['net']) * $lineItem->quantity;
-
                     $tax->total += $taxValue['net'] * $lineItem->quantity;
                 }
+
+                $lineItem->tax_total = $taxValue['net'];
             }
 
             $lineItem->calculateTotal();
@@ -175,30 +179,11 @@ class OrderHelper
             $count += 1;
         }
 
-        foreach($productCartPriceRules as $productCartPriceRule){
+        foreach($cartPriceRules as $cartPriceRule){
             $priceRuleLineItemDatum = [
-                'cart_price_rule_id' => $productCartPriceRule->id,
+                'cart_price_rule_id' => $cartPriceRule->id,
                 'line_item_type' => 'cart_price_rule',
-                'lineitem_total_amount' => $productCartPriceRule->total,
-            ];
-
-            $lineItem = $this->reuseOrCreateLineItem($order, $existingLineItems, $count);
-
-            $lineItem->processData($priceRuleLineItemDatum, $count);
-            $lineItem->save();
-            $lineItems[] = $lineItem;
-
-            $count += 1;
-        }
-
-        foreach($orderCartPriceRules as $orderCartPriceRule){
-            $value = $orderCartPriceRule->getValue($dummyOrderSubtotal);
-            $orderCartPriceRule->total = $value - $dummyOrderSubtotal;
-
-            $priceRuleLineItemDatum = [
-                'cart_price_rule_id' => $orderCartPriceRule->id,
-                'line_item_type' => 'cart_price_rule',
-                'lineitem_total_amount' => $orderCartPriceRule->total,
+                'lineitem_total_amount' => $cartPriceRule->total,
             ];
 
             $lineItem = $this->reuseOrCreateLineItem($order, $existingLineItems, $count);
