@@ -313,10 +313,14 @@ var OrderForm = function () {
         });
     }
 
-    var handleBillingEmail = function()
+    var handleBillingEmail = function(context)
     {
+        if(typeof context === 'undefined'){
+            context = document;
+        }
+
         //If one country
-        $('.country-select').each(function(idx, obj) {
+        $('.country-select', context).each(function(idx, obj) {
             if ($(obj).find('option').length <= 2 && $(obj).find(':selected').index() == 0) {
                 $(obj).val($(obj).find('option:eq(1)').val());
                 $(obj).select2();
@@ -325,7 +329,7 @@ var OrderForm = function () {
             }
         });
 
-        $('#profile\\[email\\]').bind('typeahead:select', function(e, suggestion){
+        $('#profile\\[email\\]', context).bind('typeahead:select', function(e, suggestion){
             if(suggestion.profile_id){
                 App.blockUI({
                     target: '#billing-information-wrapper',
@@ -341,6 +345,7 @@ var OrderForm = function () {
                         $('#billing-information-wrapper').html($information);
 
                         formBehaviors.init($information);
+                        handleBillingEmail($information);
 
                         App.unblockUI('#billing-information-wrapper');
 
@@ -350,7 +355,7 @@ var OrderForm = function () {
             }
         });
 
-        $('#shipping-copy-btn').click(function(e){
+        $('#shipping-copy-btn', context).click(function(e){
             e.preventDefault();
 
             App.blockUI({
