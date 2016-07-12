@@ -38,6 +38,9 @@ var OrderForm = function () {
 
     var totalOrderSummary = function()
     {
+        $orderSubtotal = $orderProductSubtotal + $orderFeeTotal;
+        $orderSubtotal = formHelper.roundNumber($orderSubtotal);
+
         for(var i in $lineItems){
             //Calculate Cart Price Rules
             for(var j in $lineItems[i].cartPriceRules){
