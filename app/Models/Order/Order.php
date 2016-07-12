@@ -490,8 +490,8 @@ class Order extends Model implements AuthorSignatureInterface
         $additionalTotal = $this->calculateAdditionalTotal();
         $taxTotal = $this->calculateTaxTotal();
 
-        $this->total = $subtotal + $shippingTotal + $discountTotal + $additionalTotal + $taxTotal;
-        $beforeRoundingTotal = PriceFormatter::round($this->total);
+        $this->total = PriceFormatter::round($subtotal + $shippingTotal + $discountTotal + $additionalTotal + $taxTotal);
+        $beforeRoundingTotal = $this->total;
 
         $this->total = PriceFormatter::round($this->total, config('project.total_precision'), config('project.total_rounding'));
 

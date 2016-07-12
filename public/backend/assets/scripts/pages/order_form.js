@@ -38,13 +38,6 @@ var OrderForm = function () {
 
     var totalOrderSummary = function()
     {
-        //Round tax & price rules to prevent weird long decimal
-        $orderProductSubtotal = formHelper.roundNumber($orderProductSubtotal);
-        $orderFeeTotal = formHelper.roundNumber($orderFeeTotal);
-        $orderShippingTotal = formHelper.roundNumber($orderShippingTotal);
-
-        $orderSubtotal = $orderProductSubtotal + $orderFeeTotal;
-
         for(var i in $lineItems){
             //Calculate Cart Price Rules
             for(var j in $lineItems[i].cartPriceRules){
@@ -53,7 +46,7 @@ var OrderForm = function () {
                 }else{
                     $cartPriceRules[j].total += formHelper.roundNumber($lineItems[i].cartPriceRules[j]);
                     $cartPriceRules[j].total = formHelper.roundNumber($cartPriceRules[j].total);
-                    $orderPriceRuleTotal += formHelper.roundNumber($lineItems[i].cartPriceRules[j]);
+                    $orderPriceRuleTotal += $lineItems[i].cartPriceRules[j];
                 }
             }
 
@@ -66,6 +59,7 @@ var OrderForm = function () {
         }
 
         $orderTotalBeforeRounding = $orderProductSubtotal + $orderFeeTotal + $orderShippingTotal + $orderPriceRuleTotal + $orderTaxTotal;
+        $orderTotalBeforeRounding = formHelper.roundNumber($orderTotalBeforeRounding);
         $orderTotal = formHelper.roundNumber($orderTotalBeforeRounding, global_vars.total_precision, 'floor');
 
         $orderTotalRounding += formHelper.calculateRounding($orderTotalBeforeRounding, $orderTotal);
