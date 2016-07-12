@@ -170,7 +170,9 @@ class OrderHelper
                     $tax->total += $taxValue['net'] * $lineItem->quantity;
                 }
 
-                $lineItem->tax_total = $taxValue['net'];
+                if(isset($taxValue)){
+                    $lineItem->tax_total = $taxValue['net'];
+                }
             }
 
             $lineItem->calculateTotal();

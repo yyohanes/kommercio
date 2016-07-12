@@ -67,6 +67,7 @@ return [
         'cancel_order' => 'Cancel Order',
         'view_order_internal_memo' => 'View Internal Memo',
         'create_order_internal_memo' => 'Create Internal Memo',
+        'print_invoice' => 'Print Invoice'
     ],
     'Payments' => [
         'view_payment' => 'View Payment',

@@ -59,7 +59,7 @@
                     <span class="caption-subject sbold uppercase">{{ $shippingMethod }} on {{ $deliveryDate->format('l, j M Y') }}</span>
                 </div>
                 <div class="actions">
-                    @can('access', ['view_order'])
+                    @can('access', ['print_invoice'])
                     <a target="_blank" href="{{ $printAllInvoicesUrl }}" class="btn btn-sm btn-info">
                         <i class="fa fa-print"></i> All Invoices</a>
                     @endcan

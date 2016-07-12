@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Kommercio\Facades\ProjectHelper;
 use Kommercio\Http\Requests;
 use Kommercio\Http\Controllers\Controller;
@@ -181,7 +182,7 @@ class ReportController extends Controller
 
         $orders = $qb->get();
 
-        if($request->input('print_invoices', false)){
+        if($request->input('print_invoices', false) && Gate::allows('access', ['print_invoice'])){
             return view('backend.report.delivery_print_invoices', [
                 'orders' => $orders,
                 'print_template' => ProjectHelper::getViewTemplate('print.order.invoice_content')
