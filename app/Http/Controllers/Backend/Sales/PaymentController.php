@@ -4,7 +4,9 @@ namespace Kommercio\Http\Controllers\Backend\Sales;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Validator;
+use Kommercio\Events\OrderUpdate;
 use Kommercio\Facades\CurrencyHelper;
 use Kommercio\Facades\OrderHelper;
 use Kommercio\Facades\PriceFormatter;
@@ -126,7 +128,16 @@ class PaymentController extends Controller{
                     break;
                 case 'accept':
                     $status = Payment::STATUS_SUCCESS;
-                    //$rules['reason'] = 'required';
+
+                    if($request->input('process_order', 0)){
+                        $originalStatus = $payment->order->status;
+
+                        $payment->order->status = Order::STATUS_PROCESSING;
+                        $payment->order->save();
+
+                        Event::fire(new OrderUpdate($payment->order, $originalStatus, $request->input('send_notification')));
+                    }
+
                     $message = 'Payment has been set to <span class="label bg-' . OrderHelper::getPaymentStatusLabelClass($payment->status) . ' bg-font-' . OrderHelper::getPaymentStatusLabelClass($payment->status) . '">Success.</span>';
                     break;
                 default:

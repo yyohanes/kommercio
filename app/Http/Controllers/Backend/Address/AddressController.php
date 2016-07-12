@@ -161,4 +161,37 @@ class AddressController extends Controller{
     {
         return count($address->getChildren()) < 1;
     }
+
+    public function import(Request $request, $type, $id)
+    {
+        if($request->isMethod('GET')){
+            $model = $this->addressClass;
+            $address = call_user_func([$model, 'findOrFail'], $id);
+
+            $parentOptions = [];
+
+            if($type == 'state'){
+                $parentOptions = call_user_func(array($this->parentClass, 'all'))->pluck('name', 'id')->all();
+            }elseif($type != 'country'){
+                $parentOptions = call_user_func(array($this->parentClass, 'where'), $address->getParent()->parentType.'_id', $address->getParent()->getParent()->id)->get()->pluck('name', 'id')->all();
+            }
+
+            $address->parent_id = $address->getParent()?$address->getParent()->id:null;
+
+            return view('backend.address.import', [
+                'address' => $address,
+                'type' => $type,
+                'parentOptions' => $parentOptions,
+                'parentObj' => $this->parentObj,
+            ]);
+        }elseif($request->isMethod('POST')){
+            $rules = [
+                'file' => 'required|file|mimes:zip'
+            ];
+
+            $this->validate($request, $rules);
+
+
+        }
+    }
 }

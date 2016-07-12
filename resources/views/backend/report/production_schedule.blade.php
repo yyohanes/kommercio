@@ -61,6 +61,47 @@
             </div>
 
             <div class="portlet-body">
+                @foreach($orders as $idx=>$order)
+                    <table class="table-cell-valign-middle table table-bordered margin-bottom-15">
+                        <tbody>
+                        <tr>
+                            <td class="text-center" rowspan="100" style="width: 50px;">
+                                {{ $idx + 1 }}
+                            </td>
+                            <td style="width: 40%;"><strong>Order Number</strong></td>
+                            <td colspan="2"><strong>{{ $order->reference }}</strong></td>
+                        </tr>
+                        <tr>
+                            <td>Product</td>
+                            <td>Quantity</td>
+                            <td style="width: 30%;">Notes</td>
+                        </tr>
+                        @foreach($order->getProductLineItems() as $idy=>$productLineItem)
+                            <tr>
+                                <td>
+                                    {!! $productLineItem->product->hasThumbnail()?'<img style="width: 80px; height: auto;" src="'.asset($productLineItem->product->thumbnail->getImagePath('backend_thumbnail')).'" />':'' !!}
+                                    {{ $productLineItem->product->name }}
+                                </td>
+                                <td>{{ $productLineItem->quantity + 0 }}</td>
+                                @if($idy == 0)
+                                    <td rowspan="100">{!! nl2br($order->notes) !!}</td>
+                                @endif
+                            </tr>
+                        @endforeach
+                        </tbody>
+                    </table>
+                @endforeach
+            </div>
+        </div>
+
+        <div class="portlet light portlet-fit bordered">
+            <div class="portlet-title">
+                <div class="caption">
+                    <span class="caption-subject sbold uppercase">Total</span>
+                </div>
+            </div>
+
+            <div class="portlet-body">
                 <div class="table-scrollable">
                     <table class="table table-striped table-hover">
                         <thead>

@@ -11,7 +11,8 @@ var OrderIndex = function () {
             {"name": "billing", "targets": 4, "orderable": false},
             {"name": "shipping", "targets": 5, "orderable": false},
             {"name": "total", "targets": 6+additional_columns},
-            {"name": "status", "targets": 7+additional_columns, "orderable": false}
+            {"name": "outstanding", "targets": 7+additional_columns},
+            {"name": "status", "targets": 8+additional_columns, "orderable": false}
         ];
         for(var i=0; i<additional_columns;i+=1){
             columnDefs.push({"name": "sticky_product"+i, "targets": 6+i, "orderable": false});

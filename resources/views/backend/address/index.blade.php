@@ -76,12 +76,18 @@
                                     @endif
 
                                     @can('access', ['edit_address'])
-                                    <a class="btn btn-default" href="{{ route('backend.configuration.address.edit', ['id' => $address->id, 'type' => $type, 'backUrl' => Request::fullUrl()]) }}"><i class="fa fa-pencil"></i> Edit</a>
+                                    <a class="btn btn-default" href="{{ route('backend.configuration.address.edit', ['id' => $address->id, 'type' => $type, 'backUrl' => Request::getRequestUri()]) }}"><i class="fa fa-pencil"></i> Edit</a>
                                     @endcan
 
                                     @can('access', ['delete_address'])
                                     <button class="btn btn-default" data-toggle="confirmation" data-original-title="Are you sure?" title=""><i class="fa fa-trash-o"></i> Delete</button>
                                     @endcan
+
+                                    @if($type == 'country')
+                                        @can('access', ['edit_address'])
+                                        <a class="btn btn-default" href="{{ route('backend.configuration.address.import', ['id' => $address->id, 'type' => $type, 'backUrl' => Request::getRequestUri()]) }}"><i class="fa fa-toggle-down"></i> Import</a>
+                                        @endcan
+                                    @endif
                                 </div>
                                 {!! Form::close() !!}
                             </td>

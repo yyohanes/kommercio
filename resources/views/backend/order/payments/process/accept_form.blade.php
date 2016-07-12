@@ -12,7 +12,20 @@
                 <div class="col-md-9">
                     <div class="checkbox-list">
                         <label class="checkbox-inline">
-                            {!! Form::checkbox('process_order', 1, true) !!} Yes
+                            {!! Form::checkbox('process_order', 1, true, ['id' => 'process-order-checkbox']) !!} Yes
+                        </label>
+                    </div>
+                </div>
+
+                <div class="clearfix"></div>
+            </div>
+
+            <div data-enabled-dependent="process-order-checkbox" class="form-group" style="margin-bottom: 1em;">
+                <label class="control-label col-md-3"></label>
+                <div class="col-md-9">
+                    <div class="checkbox-list">
+                        <label class="checkbox-inline">
+                            {!! Form::checkbox('send_notification', 1, true) !!} Send email notification to customer
                         </label>
                     </div>
                 </div>

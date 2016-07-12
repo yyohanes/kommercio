@@ -278,17 +278,15 @@ class ReportController extends Controller
             ->orderBy('PD.sort_order', 'ASC');
 
         $orderedProducts = [];
-        foreach($orders as $order){
-            foreach($orderedProductsQb->get() as $lineItem){
-                if(!isset($orderedProducts[$lineItem->line_item_id])){
-                    $orderedProducts[$lineItem->line_item_id] = [
-                        'quantity' => 0,
-                        'product' => $lineItem->product
-                    ];
-                }
-
-                $orderedProducts[$lineItem->line_item_id]['quantity'] += $lineItem->quantity;
+        foreach($orderedProductsQb->get() as $lineItem){
+            if(!isset($orderedProducts[$lineItem->line_item_id])){
+                $orderedProducts[$lineItem->line_item_id] = [
+                    'quantity' => 0,
+                    'product' => $lineItem->product
+                ];
             }
+
+            $orderedProducts[$lineItem->line_item_id]['quantity'] += $lineItem->quantity;
         }
 
         return view('backend.report.production_schedule', [

@@ -37,6 +37,7 @@ class OrderController extends Controller{
 
         $qb = Order::joinBillingProfile()
             ->joinShippingProfile()
+            ->joinOutstanding()
             ->belongsToStore($userManagedStores->pluck('id')->all());
 
         if($request->ajax() || $request->wantsJson()){
@@ -182,6 +183,12 @@ class OrderController extends Controller{
                         if(!empty($search['to'])){
                             $qb->whereRaw('DATE_FORMAT(delivery_date, \'%Y-%m-%d\') <= ?', [$search['to']]);
                         }
+                    }elseif($searchKey == 'outstanding') {
+                        if($search == 'settled'){
+                            $qb->whereRaw('(total - COALESCE(P.paid_amount, 0)) <= ?', [0]);
+                        }else{
+                            $qb->whereRaw('(total - COALESCE(P.paid_amount, 0)) > ?', [0]);
+                        }
                     }else{
                         $qb->where($searchKey, $search);
                     }
@@ -296,10 +303,15 @@ class OrderController extends Controller{
                 $rowMeat[] = $order->getProductQuantity($stickyProduct->id);
             }
 
-            $rowMeat = array_merge($rowMeat, [
-                PriceFormatter::formatNumber($order->total, $order->currency),
-                '<label class="label label-sm bg-'.OrderHelper::getOrderStatusLabelClass($order->status).' bg-font-'.OrderHelper::getOrderStatusLabelClass($order->status).'">'.Order::getStatusOptions($order->status, TRUE).'</label>',
-            ]);
+            $rowMeat = array_merge($rowMeat, [PriceFormatter::formatNumber($order->total, $order->currency)]);
+
+            if(Gate::allows('access', ['view_payment'])):
+                $rowMeat = array_merge($rowMeat, [
+                    '<label class="label label-sm label-'.($order->outstanding > 0?'warning':'success').'">'.PriceFormatter::formatNumber($order->outstanding).'</label>',
+                ]);
+            endif;
+
+            $rowMeat = array_merge($rowMeat, ['<label class="label label-sm bg-'.OrderHelper::getOrderStatusLabelClass($order->status).' bg-font-'.OrderHelper::getOrderStatusLabelClass($order->status).'">'.Order::getStatusOptions($order->status, TRUE).'</label>']);
 
             if(Auth::user()->manageMultipleStores){
                 $rowMeat = array_merge($rowMeat, [$order->store->name]);

@@ -15,6 +15,7 @@ use Kommercio\Models\ShippingMethod\ShippingMethod;
 use Kommercio\Models\Tax;
 use Kommercio\Traits\Model\AuthorSignature;
 use Kommercio\Traits\Model\HasDataColumn;
+use Kommercio\Models\Order\Payment;
 
 class Order extends Model implements AuthorSignatureInterface
 {
@@ -684,6 +685,19 @@ class Order extends Model implements AuthorSignatureInterface
         });
 
         $query->addSelect(DB::raw($this->getTable().'.*, CONCAT_WS(" ", SFNAME.value, SLNAME.value) AS shipping_full_name'));
+    }
+
+    public function scopeJoinOutstanding($query)
+    {
+        $paymentQueryQuery = Payment::selectRaw('order_id, SUM(amount) AS paid_amount')
+            ->groupBy('order_id')
+            ->whereIn('status', [Payment::STATUS_SUCCESS]);
+
+        $query
+            ->leftJoin(DB::raw('('.$paymentQueryQuery->toSql().') AS P'), 'P.order_id', '=', $this->getTable().'.id')
+            ->mergeBindings($paymentQueryQuery->getQuery());
+
+        $query->addSelect(DB::raw($this->getTable().'.*, P.*, (total - COALESCE(P.paid_amount, 0)) AS outstanding'));
     }
 
     public function scopeCheckout($query)

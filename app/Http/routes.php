@@ -924,6 +924,12 @@ Route::group(['middleware' => ['web']], function () {
                         'uses' => 'AddressController@reorder',
                         'permissions' => ['edit_address']
                     ]);
+
+                    Route::any('import/{type}/{id}', [
+                        'as' => 'backend.configuration.address.import',
+                        'uses' => 'AddressController@import',
+                        'permissions' => ['edit_address']
+                    ]);
                 });
 
                 //Taxes

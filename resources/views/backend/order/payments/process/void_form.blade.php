@@ -3,7 +3,7 @@
     <h4 class="modal-title">Void Payment</h4>
 </div>
 
-{!! Form::open(['route' => ['backend.sales.order.payment.process', 'process' => 'void', 'id' => $payment->id]]) !!}
+{!! Form::open(['route' => ['backend.sales.order.payment.process', 'process' => 'void', 'id' => $payment->id], 'class' => 'form-client-validation']) !!}
 <div class="modal-body">
     <div class="form-body">
         <div class="form-group">
@@ -14,7 +14,8 @@
             'attr' => [
                 'class' => 'form-control',
                 'id' => 'reason',
-                'rows' => 3
+                'rows' => 3,
+                'data-rule-required' => 'true'
             ],
             'required' => true
         ])

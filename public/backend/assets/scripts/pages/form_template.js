@@ -207,7 +207,7 @@ var formBehaviors = function(){
 
                 $('#' + $(obj).data('enabled-dependent')).trigger('switchChange.bootstrapSwitch');
             }else{
-                $('#' + $(obj).data('enabled-dependent')).on('change', function(){
+                $('#' + $(obj).data('enabled-dependent')).on('change', function(event){
                     if($(obj).data('enabled-dependent-effect') == 'disabled'){
                         if(this.checked) {
                             $(obj).removeAttr('disabled');
@@ -223,7 +223,7 @@ var formBehaviors = function(){
                     }
                 });
 
-                $('#' + $(obj).data('enabled-dependent')).change();
+                $('#' + $(obj).data('enabled-dependent')).trigger('change');
             }
         })
     }

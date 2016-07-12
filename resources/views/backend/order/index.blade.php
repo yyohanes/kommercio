@@ -64,6 +64,9 @@
                             <th>{{ $stickyProduct->name }}</th>
                         @endforeach
                         <th>Total</th>
+                        @can('access', ['view_payment'])
+                        <th>Outstanding</th>
+                        @endcan
                         <th>Status</th>
                         @if(Auth::user()->manageMultipleStores)
                         <th>Store</th>
@@ -89,6 +92,9 @@
                             <td></td>
                         @endforeach
                         <td></td>
+                        @can('access', ['view_payment'])
+                        <td>{!! Form::select('filter[outstanding]', ['' => 'All', 'settled' => 'Settled', 'unsettled' => 'Unsettled'], null, ['class' => 'form-control form-filter input-sm']) !!}</td>
+                        @endcan
                         <td>{!! Form::select('filter[status]', ['' => 'All'] + \Kommercio\Models\Order\Order::getStatusOptions(), null, ['class' => 'form-control form-filter input-sm']) !!}</td>
                         @if(Auth::user()->manageMultipleStores)
                             <td>{!! Form::select('filter[store_id]', ['' => 'All'] + \Kommercio\Models\Store::getStoreOptions(), null, ['class' => 'form-control form-filter input-sm']) !!}</td>

@@ -37,18 +37,23 @@
   margin-right: 0;
 }
 
-/* line 50, sass/app.scss */
+/* line 51, sass/app.scss */
+.table.table-cell-valign-middle th, .table.table-cell-valign-middle td {
+  vertical-align: middle;
+}
+
+/* line 56, sass/app.scss */
 .form-in-btn-group {
   display: inline-block;
 }
 
-/* line 55, sass/app.scss */
+/* line 61, sass/app.scss */
 .sortable-placeholder {
   border: 2px dashed #ccc;
   height: 150px;
 }
 
-/* line 63, sass/app.scss */
+/* line 69, sass/app.scss */
 .datepicker.loading:after {
   content: 'Loading calendar...';
   position: absolute;
@@ -61,23 +66,23 @@
   right: 0;
   text-align: center;
 }
-/* line 77, sass/app.scss */
+/* line 83, sass/app.scss */
 .datepicker .day.disabled-date {
   text-decoration: line-through;
   color: #ccc !important;
 }
 
-/* line 85, sass/app.scss */
+/* line 91, sass/app.scss */
 #products-dataset .product-image {
   width: 40px;
 }
 
-/* line 92, sass/app.scss */
+/* line 98, sass/app.scss */
 #line-items-table .availability div {
   display: none;
 }
 
-/* line 98, sass/app.scss */
+/* line 104, sass/app.scss */
 .permissions-check-all, .permissions-uncheck-all {
   font-size: 12px;
 }
