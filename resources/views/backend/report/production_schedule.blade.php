@@ -84,7 +84,17 @@
                                 </td>
                                 <td>{{ $productLineItem->quantity + 0 }}</td>
                                 @if($idy == 0)
-                                    <td rowspan="100">{!! nl2br($order->notes) !!}</td>
+                                    <td rowspan="100">
+                                        @if($order->notes)
+                                        <p>{!! nl2br($order->notes) !!}</p>
+                                        @endif
+
+                                        @foreach($order->additional_fields as $additionalFieldKey => $additionalField)
+                                            <div>
+                                                <strong>{{ trans(LanguageHelper::getTranslationKey('order.additional_fields.'.$additionalFieldKey)) }}:</strong> {!! nl2br($additionalField) !!}
+                                            </div>
+                                        @endforeach
+                                    </td>
                                 @endif
                             </tr>
                         @endforeach

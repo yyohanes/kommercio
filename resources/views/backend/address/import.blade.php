@@ -26,16 +26,15 @@
 
             <div class="portlet-body">
                 <div class="form-body">
-                    @include('backend.master.form.fields.file', [
-                        'name' => 'file',
-                        'label' => 'File',
-                        'key' => 'file',
+                    @include('backend.master.form.fields.text', [
+                        'name' => 'import_url',
+                        'label' => 'Import URL',
+                        'key' => 'import_url',
                         'attr' => [
                             'class' => 'form-control',
-                            'id' => 'file',
+                            'id' => 'import_url',
                         ],
                         'required' => true,
-                        'help_text' => 'Only upload Zip package by our developer'
                     ])
                 </div>
 

@@ -160,9 +160,7 @@ class OrderController extends Controller
 
         $view_name = ProjectHelper::getViewTemplate('frontend.order.checkout');
 
-        $shippingMethods = ShippingMethod::getShippingMethods([
-            'order' => $order
-        ]);
+        $shippingMethods = ShippingMethod::getAvailableMethods();
         $shippingMethodOptions = [];
 
         $paymentMethods = PaymentMethod::getPaymentMethods();
@@ -177,13 +175,13 @@ class OrderController extends Controller
         }
 
         $profileCountryOptions = AddressHelper::getCountryOptions();
-        $profileStateOptions = AddressHelper::getStateOptions($request->old('profile.country_id'));
+        $profileStateOptions = AddressHelper::getStateOptions($request->old('profile.country_id', count($profileCountryOptions) < 2?key($profileCountryOptions):null));
         $profileCityOptions = AddressHelper::getCityOptions($request->old('profile.state_id'));
         $profileDistrictOptions = AddressHelper::getDistrictOptions($request->old('profile.city_id'));
         $profileAreaOptions = AddressHelper::getAreaOptions($request->old('profile.district_id'));
 
         $shippingCountryOptions = AddressHelper::getCountryOptions();
-        $shippingStateOptions = AddressHelper::getStateOptions($request->old('shipping_profile.country_id'));
+        $shippingStateOptions = AddressHelper::getStateOptions($request->old('shipping_profile.country_id', count($shippingCountryOptions) < 2?key($shippingCountryOptions):null));
         $shippingCityOptions = AddressHelper::getCityOptions($request->old('shipping_profile.state_id'));
         $shippingDistrictOptions = AddressHelper::getDistrictOptions($request->old('shipping_profile.city_id'));
         $shippingAreaOptions = AddressHelper::getAreaOptions($request->old('shipping_profile.district_id'));
@@ -195,6 +193,8 @@ class OrderController extends Controller
             $oldValues['shipping_profile'] = $order->shippingProfile?$order->shippingProfile->getDetails():[];
             $oldValues['shipping_method'] = $order->getSelectedShippingMethod();
             $oldValues['payment_method'] = $order->payment_method_id;
+            $oldValues['delivery_date'] = $order->delivery_date?$order->delivery_date->format('Y-m-d'):null;
+            $oldValues['additional_fields'] = $order->additional_fields;
 
             Session::flashInput($oldValues);
         }
@@ -225,6 +225,9 @@ class OrderController extends Controller
         $order->payment_method_id = $request->input('payment_method', null);
         $order->currency = $request->input('currency');
         $order->conversion_rate = 1;
+        if($request->has('additional_fields')){
+            $order->additional_fields = $request->input('additional_fields');
+        }
         $order->store()->associate(ProjectHelper::getActiveStore());
         $order->save();
 
@@ -240,6 +243,8 @@ class OrderController extends Controller
 
         $order->load('lineItems');
         $order->calculateTotal();
+
+        Event::fire(new OrderEvent('before_update_order', $order));
 
         if($request->has('place_order')){
             $rules = [

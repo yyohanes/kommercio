@@ -138,7 +138,7 @@ class ReportController extends Controller
         $orderStatusOptions = Order::getStatusOptions();
         $storeOptions = Store::getStoreOptions(false, true);
 
-        $shippingMethods = ShippingMethod::getShippingMethods();
+        $shippingMethods = ShippingMethod::getAvailableMethods();
         //$shippingMethodOptions = ['all' => 'All'];
         foreach($shippingMethods as $shippingMethodIdx=>$shippingMethod)
         {
@@ -231,7 +231,7 @@ class ReportController extends Controller
         $orderStatusOptions = Order::getStatusOptions();
         $storeOptions = Store::getStoreOptions(false, true);
 
-        $shippingMethods = ShippingMethod::getShippingMethods();
+        $shippingMethods = ShippingMethod::getAvailableMethods();
 
         foreach($shippingMethods as $shippingMethodIdx=>$shippingMethod)
         {

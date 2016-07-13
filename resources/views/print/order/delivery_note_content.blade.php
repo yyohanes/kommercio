@@ -6,7 +6,7 @@
             </h4>
         </td>
 
-        <td class="text-right" style="vertical-align: middle;">INVOICE</td>
+        <td class="text-right" style="vertical-align: middle;">DELIVERY NOTE</td>
     </tr>
 </table>
 

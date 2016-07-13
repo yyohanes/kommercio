@@ -96,11 +96,6 @@
             <tbody><tr>
                 <td>
                     @include('emails.order.order_table', ['lineItems' => $order->lineItems])
-
-                    @if(!empty($order->notes))
-                        <strong>Notes:</strong><br/>
-                        {!! nl2br($order->notes) !!}
-                    @endif
                 </td>
             </tr>
             </tbody></table>

@@ -13,7 +13,18 @@
             'attr' => [
                 'class' => 'form-control',
                 'id' => 'tracking_number',
-                'data-rule-required' => 'true'
+            ]
+        ])
+
+        <div class="clearfix"></div>
+
+        @include('backend.master.form.fields.text', [
+            'name' => 'delivered_by',
+            'label' => 'Delivered by (if any)',
+            'key' => 'delivered_by',
+            'attr' => [
+                'class' => 'form-control',
+                'id' => 'delivered_by',
             ]
         ])
 

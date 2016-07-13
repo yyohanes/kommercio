@@ -272,11 +272,13 @@ class Order extends Model implements AuthorSignatureInterface
             'order' => $this
         ]);
 
-        foreach($shippingOptions as $selectedMethod => $shippingOption){
-            if($selectedMethod == $selected_method){
-                $shipping_method = ShippingMethod::findOrFail($shippingOption['shipping_method_id']);
-                $price = CurrencyHelper::convert($shippingOption['price']['amount'], $shippingOption['price']['currency']);
-                break;
+        if(!empty($shippingOptions)){
+            foreach($shippingOptions as $selectedMethod => $shippingOption){
+                if($selectedMethod == $selected_method){
+                    $shipping_method = ShippingMethod::findOrFail($shippingOption['shipping_method_id']);
+                    $price = CurrencyHelper::convert($shippingOption['price']['amount'], $shippingOption['price']['currency']);
+                    break;
+                }
             }
         }
 
@@ -288,6 +290,7 @@ class Order extends Model implements AuthorSignatureInterface
                 'taxable' => $shipping_method->taxable,
                 'shipping_method' => $selected_method,
                 'base_price' => $price,
+                'net_price' => $price,
                 'lineitem_total_amount' => $price, //This is purposely set to default because it's not possible to calculate now. Calculation will be done later at Controller level
             ]);
             $lineItem->calculateTotal();
@@ -794,6 +797,19 @@ class Order extends Model implements AuthorSignatureInterface
         $this->billingProfile->fillDetails();
 
         return $this->billingProfile;
+    }
+
+    public function getAdditionalFieldsAttribute()
+    {
+        $additionalFields = $this->getData('additional_fields', []);
+
+        return $additionalFields;
+    }
+
+    //Mutators
+    public function setAdditionalFieldsAttribute($additionalFields)
+    {
+        $this->saveData(['additional_fields' => $additionalFields]);
     }
 
     //Static

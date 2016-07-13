@@ -161,6 +161,10 @@
                 'placeholder' => 'Notes'
             ],
         ])
+
+        @if(view()->exists('project::backend.order.additional_fields'))
+            @include('project::backend.order.additional_fields')
+        @endif
     </div>
 
     <div class="col-md-4">

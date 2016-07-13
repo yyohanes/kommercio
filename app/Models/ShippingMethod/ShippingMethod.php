@@ -43,12 +43,28 @@ class ShippingMethod extends Model
 
     public function getSelectedMethod($key)
     {
-        $methods = $this->getProcessor()->getMethods();
+        $methods = $this->getProcessor()->getAvailableMethods();
 
         return isset($methods[$key])?$methods[$key]:null;
     }
 
     //Statics
+    public static function getAvailableMethods()
+    {
+        $shippingMethods = self::orderBy('sort_order', 'ASC')->get();
+
+        $return = [];
+        foreach($shippingMethods as $shippingMethod){
+            $shippingReturnedMethods = $shippingMethod->getProcessor()->getAvailableMethods();
+
+            if($shippingReturnedMethods){
+                $return = array_merge($return, $shippingReturnedMethods);
+            }
+        }
+
+        return $return;
+    }
+
     public static function getShippingMethodObjects()
     {
         $qb = self::orderBy('sort_order', 'ASC');
@@ -63,7 +79,7 @@ class ShippingMethod extends Model
         $return = [];
         foreach($shippingMethods as $shippingMethod){
             if($shippingMethod->getProcessor() && $shippingMethod->getProcessor()->validate($options)){
-                $shippingReturnedMethods = $shippingMethod->getProcessor()->getMethods($options);
+                $shippingReturnedMethods = $shippingMethod->getProcessor()->getPrices($options);
 
                 if($shippingReturnedMethods){
                     $return = array_merge($return, $shippingReturnedMethods);

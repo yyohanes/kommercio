@@ -245,6 +245,13 @@
                                             {!! nl2br($order->notes) !!}
                                         </div>
                                         @endif
+
+                                        @foreach($order->additional_fields as $additionalFieldKey => $additionalField)
+                                            <div class="row static-info">
+                                                <div class="col-md-5 name"> {{ trans(LanguageHelper::getTranslationKey('order.additional_fields.'.$additionalFieldKey)) }}: </div>
+                                                <div class="col-md-7 value"> {!! nl2br($additionalField) !!} </div>
+                                            </div>
+                                        @endforeach
                                     </div>
 
                                     <div class="col-md-6">

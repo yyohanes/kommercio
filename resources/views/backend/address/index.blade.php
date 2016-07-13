@@ -83,6 +83,10 @@
                                     <button class="btn btn-default" data-toggle="confirmation" data-original-title="Are you sure?" title=""><i class="fa fa-trash-o"></i> Delete</button>
                                     @endcan
 
+                                    @can('access', ['edit_address'])
+                                    <a class="btn btn-default" href="{{ route('backend.configuration.address.rates', ['id' => $address->id, 'type' => $type, 'backUrl' => Request::getRequestUri()]) }}"><i class="fa fa-truck"></i> Pricing</a>
+                                    @endcan
+
                                     @if($type == 'country')
                                         @can('access', ['edit_address'])
                                         <a class="btn btn-default" href="{{ route('backend.configuration.address.import', ['id' => $address->id, 'type' => $type, 'backUrl' => Request::getRequestUri()]) }}"><i class="fa fa-toggle-down"></i> Import</a>

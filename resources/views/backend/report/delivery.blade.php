@@ -116,7 +116,17 @@
                                 @endforeach
                                 <td>{{ PriceFormatter::formatNumber($order->total, $order->currency) }}</td>
                                 <td>{{ $order->paymentMethod->name }}</td>
-                                <td>{!! nl2br($order->notes) !!}</td>
+                                <td>
+                                    @if($order->notes)
+                                        <p>{!! nl2br($order->notes) !!}</p>
+                                    @endif
+
+                                    @foreach($order->additional_fields as $additionalFieldKey => $additionalField)
+                                        <div>
+                                            <strong>{{ trans(LanguageHelper::getTranslationKey('order.additional_fields.'.$additionalFieldKey)) }}:</strong> {!! nl2br($additionalField) !!}
+                                        </div>
+                                    @endforeach
+                                </td>
                                 @if($filter['shipping_method'] == 'all')
                                     <td>{{ $order->getShippingLineItem()->getSelectedMethod('name') }}</td>
                                 @endif

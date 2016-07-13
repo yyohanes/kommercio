@@ -65,3 +65,16 @@
     @endforeach
     </tfoot>
 </table>
+
+@if(!empty($order->notes))
+    <p class="text">
+    <strong>Notes:</strong><br/>
+    {!! nl2br($order->notes) !!}
+    </p>
+@endif
+
+@foreach($order->additional_fields as $additionalFieldKey => $additionalField)
+    <p class="text">
+        <strong>{{ trans(LanguageHelper::getTranslationKey('order.additional_fields.'.$additionalFieldKey)) }}:</strong> {!! nl2br($additionalField) !!}
+    </p>
+@endforeach

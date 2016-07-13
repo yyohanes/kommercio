@@ -581,7 +581,8 @@ var OrderForm = function () {
                 if($(obj).find('.line-item-id').val() != ''){
                     //Get availability
                     $.ajax(global_vars.get_product_availability + '/' + $(obj).find('.line-item-id').val(), {
-                        data: 'store_id=' + $('input[name="store_id"]', '#order-form').val() + '&delivery_date=' + $('#delivery_date').val(),
+                        method: 'POST',
+                        data: $('#order-form').serialize(),
                         success: function(data){
                             handleLoadedAvailability(data.data.ordered_total, data.data.order_limit, data.data.stock, $(obj));
                         }
@@ -789,7 +790,8 @@ var OrderForm = function () {
 
                         //Get availability
                         $.ajax(global_vars.get_product_availability + '/' + suggestion.id, {
-                            data: 'store_id=' + $('input[name="store_id"]', '#order-form').val() + '&delivery_date=' + $('#delivery_date').val(),
+                            method: 'POST',
+                            data: $('#order-form').serialize(),
                             success: function(data){
                                 handleLoadedAvailability(data.data.ordered_total, data.data.order_limit, data.data.stock, $row);
                             }

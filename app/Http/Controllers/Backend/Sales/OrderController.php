@@ -38,7 +38,8 @@ class OrderController extends Controller{
         $qb = Order::joinBillingProfile()
             ->joinShippingProfile()
             ->joinOutstanding()
-            ->belongsToStore($userManagedStores->pluck('id')->all());
+            ->belongsToStore($userManagedStores->pluck('id')->all())
+            ->where('status', '<>', Order::STATUS_CART);
 
         if($request->ajax() || $request->wantsJson()){
             $totalRecords = $qb->count();
@@ -242,16 +243,28 @@ class OrderController extends Controller{
         foreach($orders as $idx=>$order){
             $orderAction = '';
 
-            $orderAction .= '<div class="btn-group btn-group-xs dropup">';
+            $orderAction .= FormFacade::open(['route' => ['backend.sales.order.delete', 'id' => $order->id], 'class' => 'form-in-btn-group']);
+            $orderAction .= '<div class="btn-group btn-group-xs">';
+
             $orderAction .= '<a class="btn btn-default" href="'.route('backend.sales.order.view', ['id' => $order->id, 'backUrl' => RequestFacade::fullUrl()]).'"><i class="fa fa-search"></i></a>';
 
-            if($order->isCheckout) {
-                $orderAction .= '<a class="btn btn-default" href="' . route('backend.sales.order.print', ['id' => $order->id]) . '" target="_blank"><i class="fa fa-print"></i></a>';
+            if($order->isEditable) {
+                if (Gate::allows('access', ['edit_order'])):
+                    $orderAction .= '<a class="btn btn-default" href="' . route('backend.sales.order.edit', ['id' => $order->id, 'backUrl' => RequestFacade::fullUrl()]) . '"><i class="fa fa-pencil"></i></a>';
+                endif;
+
+                if ($order->isDeleteable) {
+                    if (Gate::allows('access', ['delete_order'])):
+                        $orderAction .= '<button class="btn btn-default" data-toggle="confirmation" data-original-title="Are you sure?" title="" class="btn-link"><i class="fa fa-trash-o"></i></button></div>';
+                    endif;
+                }
             }
+
+            $orderAction .= FormFacade::close().'</div>';
 
             if(Gate::allows('access', [['process_order', 'complete_order', 'cancel_order']])):
                 if(in_array($order->status, [Order::STATUS_PENDING, Order::STATUS_PROCESSING])) {
-                    $orderAction .= '<button type="button" class="btn btn-default hold-on-click dropdown-toggle" data-toggle="dropdown" data-hover="dropdown" data-close-others="true" aria-expanded="true"><i class="fa fa-flag-o"></i></button><ul class="dropdown-menu" role="menu">';
+                    $orderAction .= '<div class="btn-group btn-group-xs dropup"><button type="button" class="btn btn-default hold-on-click dropdown-toggle" data-toggle="dropdown" data-hover="dropdown" data-close-others="true" aria-expanded="true"><i class="fa fa-flag-o"></i></button><ul class="dropdown-menu pull-right" role="menu">';
                     if (in_array($order->status, [Order::STATUS_PENDING])) {
                         if(Gate::allows('access', ['process_order'])):
                         $orderAction .= '<li><a class="modal-ajax" href="' . route('backend.sales.order.process', ['action' => 'processing', 'id' => $order->id, 'backUrl' => RequestFacade::fullUrl()]) . '"><i class="fa fa-toggle-right"></i> Process</a></li>';
@@ -267,27 +280,19 @@ class OrderController extends Controller{
                     if(Gate::allows('access', ['cancel_order']) && $order->isCancellable):
                         $orderAction .= '<li><a class="modal-ajax" href="' . route('backend.sales.order.process', ['action' => 'cancelled', 'id' => $order->id, 'backUrl' => RequestFacade::fullUrl()]) . '"><i class="fa fa-remove"></i> Cancel</a></li>';
                     endif;
-                    $orderAction .= '</ul>';
+                    $orderAction .= '</ul></div>';
                 }
             endif;
 
-            $orderAction .= '</div>';
-
-            if($order->isEditable){
-                $orderAction .= FormFacade::open(['route' => ['backend.sales.order.delete', 'id' => $order->id], 'class' => 'form-in-btn-group']);
-                $orderAction .= '<div class="btn-group btn-group-xs">';
-
-                if(Gate::allows('access', ['edit_order'])):
-                    $orderAction .= '<a class="btn btn-default" href="'.route('backend.sales.order.edit', ['id' => $order->id, 'backUrl' => RequestFacade::fullUrl()]).'"><i class="fa fa-pencil"></i></a>';
+            if($order->isCheckout && Gate::allows('access', [['print_invoice', 'print_delivery_note']])) {
+                $orderAction .= '<div class="btn-group btn-group-xs dropup"><button type="button" class="btn btn-default hold-on-click dropdown-toggle" data-toggle="dropdown" data-hover="dropdown" data-close-others="true" aria-expanded="true"><i class="fa fa-print"></i></button><ul class="dropdown-menu pull-right" role="menu">';
+                if(Gate::allows('access', ['print_invoice'])):
+                    $orderAction .= '<li><a href="' . route('backend.sales.order.print', ['id' => $order->id]) . '" target="_blank">Invoice</a></li>';
                 endif;
-
-                if($order->isDeleteable) {
-                    if (Gate::allows('access', ['delete_order'])):
-                        $orderAction .= '<button class="btn btn-default" data-toggle="confirmation" data-original-title="Are you sure?" title="" class="btn-link"><i class="fa fa-trash-o"></i></button></div>';
-                    endif;
-                }
-
-                $orderAction .= FormFacade::close().'</div>';
+                if(Gate::allows('access', ['print_delivery_note']) && config('project.enable_delivery_note', false)):
+                    $orderAction .= '<li><a href="' . route('backend.sales.order.print', ['id' => $order->id, 'type' => 'delivery_note']) . '" target="_blank">Delivery Note</a></li>';
+                endif;
+                $orderAction .= '</ul></div>';
             }
 
             $rowMeat = [
@@ -358,8 +363,6 @@ class OrderController extends Controller{
             Session::flashInput(['line_items' => $lineItems]);
         }
 
-        $shippingMethods = ShippingMethod::getShippingMethods();
-
         foreach(old('cartPriceRules', []) as $oldCartPriceRule){
             $cartPriceRules[] = CartPriceRule::findOrFail($oldCartPriceRule);
         }
@@ -371,10 +374,9 @@ class OrderController extends Controller{
         return view('backend.order.create', [
             'order' => $order,
             'lineItems' => $lineItems,
-            'shippingMethods' => $shippingMethods,
             'taxes' => isset($taxes)?$taxes:[],
             'cartPriceRules' => isset($cartPriceRules)?$cartPriceRules:[],
-            'paymentMethodOptions' => $paymentMethodOptions
+            'paymentMethodOptions' => $paymentMethodOptions,
         ]);
     }
 
@@ -387,10 +389,16 @@ class OrderController extends Controller{
 
         $order->notes = $request->input('notes');
         $order->delivery_date = $request->input('delivery_date', null);
-        $order->store_id = $request->input('store_id');
         $order->payment_method_id = $request->input('payment_method', null);
         $order->currency = $request->input('currency');
         $order->conversion_rate = 1;
+        if($request->has('additional_fields')){
+            $order->additional_fields = $request->input('additional_fields');
+        }
+
+        $store = ProjectHelper::getStoreByRequest($request);
+        $order->store()->associate($store);
+
         $order->save();
 
         $order->saveProfile('billing', $request->input('profile'));
@@ -401,6 +409,8 @@ class OrderController extends Controller{
         $order->load('lineItems');
         $order->processStocks();
         $order->calculateTotal();
+
+        Event::fire(new OrderEvent('before_update_order', $order));
 
         if($request->input('action') == 'place_order'){
             $this->placeOrder($order);
@@ -439,10 +449,19 @@ class OrderController extends Controller{
         ]);
     }
 
-    public function printOrder($id)
+    public function printOrder(Request $request, $id, $type='invoice')
     {
+        $user = $request->user();
         $order = Order::findOrFail($id);
 
+        if($type == 'delivery_note'){
+            OrderHelper::saveOrderComment('Print Delivery Note.', 'print_delivery_note', $order, $user);
+            return view(ProjectHelper::getViewTemplate('print.order.delivery_note'), [
+                'order' => $order
+            ]);
+        }
+
+        OrderHelper::saveOrderComment('Print Invoice.', 'print_invoice', $order, $user);
         return view(ProjectHelper::getViewTemplate('print.order.invoice'), [
             'order' => $order
         ]);
@@ -529,9 +548,15 @@ class OrderController extends Controller{
 
         $order->delivery_date = $request->input('delivery_date', null);
         $order->notes = $request->input('notes');
-        $order->store_id = $request->input('store_id');
         $order->payment_method_id = $request->input('payment_method', null);
         $order->currency = $request->input('currency');
+
+        $store = ProjectHelper::getStoreByRequest($request);
+        $order->store()->associate($store);
+
+        if($request->has('additional_fields')){
+            $order->additional_fields = $request->input('additional_fields');
+        }
         $order->conversion_rate = 1;
 
         $order->saveProfile('billing', $request->input('profile'));
@@ -547,6 +572,8 @@ class OrderController extends Controller{
         $order->load('lineItems');
         $order->processStocks();
         $order->calculateTotal();
+
+        Event::fire(new OrderEvent('before_update_order', $order));
 
         if($request->input('action') == 'place_order'){
             $this->placeOrder($order);
@@ -591,6 +618,7 @@ class OrderController extends Controller{
 
     public function process(Request $request, $process, $id=null)
     {
+        $user = $request->user();
         $order = Order::find($id);
 
         if($request->isMethod('GET')){
@@ -643,7 +671,16 @@ class OrderController extends Controller{
                         ]);
                     }
 
+                    if(!empty($request->input('delivered_by'))){
+                        $order->saveData([
+                            'delivered_by' => $request->input('delivered_by')
+                        ]);
+
+                        OrderHelper::saveOrderComment('Order was delivered by '.$request->input('delivered_by'), 'delivered_by', $order, $user);
+                    }
+
                     $order->status = Order::STATUS_SHIPPED;
+
                     $message = 'Order has been set to <span class="label bg-'.OrderHelper::getOrderStatusLabelClass($order->status).' bg-font-'.OrderHelper::getOrderStatusLabelClass($order->status).'">Shipped.</span>';
                     break;
                 case 'completed':
@@ -725,7 +762,8 @@ class OrderController extends Controller{
         $order = OrderHelper::createDummyOrderFromRequest($request);
 
         $shippingOptions = ShippingMethod::getShippingMethods([
-            'order' => $order
+            'order' => $order,
+            'request' => $request
         ]);
 
         foreach($shippingOptions as $idx=>$shippingOption){

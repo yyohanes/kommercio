@@ -7,7 +7,6 @@ var DatasetReorder = function () {
             var $rowValue = $(obj).data('row_value');
             var $dataset = $table.DataTable({
                 ordering: false,
-                dom: "<'row'<'col-sm-12'f>r><'table-scrollable't><'row'<'col-sm-12'i>>", // horizobtal scrollable datatable
                 rowReorder: {
                     selector: '.fa-reorder',
                     update: false,
@@ -52,8 +51,7 @@ var DatasetReorder = function () {
         $('.dataset-table').each(function(idx, obj){
             var $table = $(obj);
             var $dataset = $table.DataTable({
-                ordering: false,
-                dom: "<'row'<'col-sm-12'f>r><'table-scrollable't><'row'<'col-sm-12'i>>"
+                ordering: false
             });
         });
     }

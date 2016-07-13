@@ -646,8 +646,11 @@ class ProductController extends Controller{
     {
         $product = Product::findOrFail($id);
 
+        $store = ProjectHelper::getStoreByRequest($request);
+        $store_id = $store->id;
+
         $options = [
-            'store' => $request->input('store_id'),
+            'store' => $store_id,
             'date' => Carbon::now()->format('Y-m-d'),
             'delivery_date' => $request->input('delivery_date', null)
         ];
@@ -729,11 +732,14 @@ class ProductController extends Controller{
             }
         }
 
+        $store = ProjectHelper::getStoreByRequest($request);
+        $store_id = $store->id;
+
         foreach($products as $idx=>$product){
             $orderedQuantity = $orderedQuantities[$idx];
 
             $options = [
-                'store' => $request->input('store_id'),
+                'store' => $store_id,
                 'quantity' => $orderedQuantity,
                 'months' => $months,
                 'format' => 'Y-n-j',

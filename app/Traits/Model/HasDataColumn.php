@@ -23,7 +23,7 @@ trait HasDataColumn
         $data = unserialize($this->data);
 
         if($attribute){
-            return isset($data[$attribute])?$data[$attribute]:$default;
+            return array_get($data, $attribute, $default);
         }
 
         return $data;

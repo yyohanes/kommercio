@@ -225,6 +225,7 @@ return [
         'OrderHelper' => \Kommercio\Facades\OrderHelper::class,
         'EmailHelper' => \Kommercio\Facades\EmailHelper::class,
         'FrontendHelper' => \Kommercio\Facades\FrontendHelper::class,
+        'LanguageHelper' => \Kommercio\Facades\LanguageHelper::class,
     ],
 
 ];

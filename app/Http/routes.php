@@ -244,7 +244,7 @@ Route::group(['middleware' => ['web']], function () {
                         'permissions' => ['view_product']
                     ]);
 
-                    Route::get('availability/{id}', [
+                    Route::post('availability/{id}', [
                         'as' => 'backend.catalog.product.availability',
                         'uses' => 'ProductController@availability',
                         'permissions' => ['view_product']
@@ -588,7 +588,7 @@ Route::group(['middleware' => ['web']], function () {
                         'permissions' => ['view_order']
                     ]);
 
-                    Route::get('print/{id}', [
+                    Route::get('print/{id}/{type?}', [
                         'as' => 'backend.sales.order.print',
                         'uses' => 'OrderController@printOrder',
                         'permissions' => ['view_order']
@@ -928,6 +928,12 @@ Route::group(['middleware' => ['web']], function () {
                     Route::any('import/{type}/{id}', [
                         'as' => 'backend.configuration.address.import',
                         'uses' => 'AddressController@import',
+                        'permissions' => ['edit_address']
+                    ]);
+
+                    Route::any('rates/{type}/{id}', [
+                        'as' => 'backend.configuration.address.rates',
+                        'uses' => 'AddressController@rates',
                         'permissions' => ['edit_address']
                     ]);
                 });

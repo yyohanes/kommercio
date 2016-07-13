@@ -2,7 +2,10 @@
 
 namespace Kommercio\Helpers;
 
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Event;
+use Kommercio\Events\StoreEvent;
 use Kommercio\Models\ConfigVariable;
 use Kommercio\Models\File;
 use Kommercio\Models\Store;
@@ -24,6 +27,23 @@ class ProjectHelper
     public function getMaxUploadSize()
     {
         return intval(File::MAXIMUM_SIZE);
+    }
+
+    public function getStoreByRequest(Request $request)
+    {
+        $returnedStore = Event::fire(new StoreEvent('determine_store_by_request', $request));
+
+        if(!isset($returnedStore[0]) || empty($returnedStore[0])){
+            if($request->has('store_id')){
+                $store = Store::findOrFail($request->input('store_id'));
+            }else{
+                $store = $this->getActiveStore();
+            }
+        }else{
+            $store = $returnedStore[0];
+        }
+
+        return $store;
     }
 
     public function getDefaultStore()
