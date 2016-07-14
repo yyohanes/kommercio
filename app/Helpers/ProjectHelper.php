@@ -5,6 +5,7 @@ namespace Kommercio\Helpers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Session;
 use Kommercio\Events\StoreEvent;
 use Kommercio\Models\ConfigVariable;
 use Kommercio\Models\File;
@@ -56,18 +57,30 @@ class ProjectHelper
     public function getActiveStore()
     {
         if(!Auth::check()){
-            $defaultStore = Store::where('default', 1)->first();
+            $activeStore = Store::where('default', 1)->first();
         }else{
             $user = Auth::user();
 
-            if($user->isCustomer || $user->isSuperAdmin){
-                $defaultStore = Store::where('default', 1)->first();
+            if($user->isCustomer){
+                $activeStore = Store::where('default', 1)->first();
             }else{
-                $defaultStore = $user->stores->first();
+                $activeStoreId = Session::get('active_store', function() use ($user){
+                    if($user->isSuperAdmin){
+                        $activeStore = $this->getDefaultStore();
+                    }else{
+                        $activeStore = $user->stores->first();
+                    }
+
+                    Session::put('active_store', $activeStore->id);
+
+                    return $activeStore->id;
+                });
+
+                $activeStore = Store::find($activeStoreId);
             }
         }
 
-        return $defaultStore;
+        return $activeStore?:$this->getDefaultStore();
     }
 
     public function findViewTemplate($templates = [])

@@ -106,6 +106,11 @@ Route::group(['middleware' => ['web']], function () {
                 'uses' => 'ChamberController@dashboard'
             ]);
 
+            Route::get('change-store/{id}', [
+                'as' => 'backend.change_store',
+                'uses' => 'ChamberController@changeStore'
+            ]);
+
             Route::group(['prefix' => 'account'], function(){
                 Route::any('settings/credentials', [
                     'as' => 'backend.account.credentials',

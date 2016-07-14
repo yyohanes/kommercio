@@ -227,7 +227,8 @@ class OrderController extends Controller{
             return response()->json($data);
         }
 
-        $stickyProducts = Product::joinDetail()->selectSelf()->where('sticky_line_item', 1)->orderBy('sort_order', 'ASC')->get();
+        //Temporarily use default sticky products
+        $stickyProducts = Product::joinDetail(ProjectHelper::getDefaultStore()->id)->selectSelf()->where('sticky_line_item', 1)->orderBy('sort_order', 'ASC')->get();
 
         return view('backend.order.index', [
             'stickyProducts' => $stickyProducts
@@ -238,7 +239,8 @@ class OrderController extends Controller{
     {
         $meat= [];
 
-        $stickyProducts = Product::joinDetail()->selectSelf()->where('sticky_line_item', 1)->orderBy('sort_order', 'ASC')->get();
+        //Temporarily use default sticky products
+        $stickyProducts = Product::joinDetail(ProjectHelper::getDefaultStore()->id)->selectSelf()->where('sticky_line_item', 1)->orderBy('sort_order', 'ASC')->get();
 
         foreach($orders as $idx=>$order){
             $orderAction = '';
@@ -345,7 +347,8 @@ class OrderController extends Controller{
         $productLineItems = array_pluck($lineItems, 'sku');
 
         if(!$lineItems){
-            $stickyLineItems = Product::joinDetail()->selectSelf()->where('sticky_line_item', 1)->orderBy('sort_order', 'ASC')->get();
+            //Temporarily use default sticky products
+            $stickyLineItems = Product::joinDetail(ProjectHelper::getDefaultStore()->id)->selectSelf()->where('sticky_line_item', 1)->orderBy('sort_order', 'ASC')->get();
             foreach($stickyLineItems as $stickyLineItem){
                 if(!in_array($stickyLineItem->sku, $productLineItems)){
                     $lineItems[] = [

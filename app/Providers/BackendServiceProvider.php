@@ -2,7 +2,9 @@
 
 namespace Kommercio\Providers;
 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\ServiceProvider;
+use Kommercio\Facades\ProjectHelper;
 use Kommercio\Models\File;
 use Kommercio\Models\Interfaces\AuthorSignatureInterface;
 use Illuminate\Support\Facades\Storage;
@@ -53,6 +55,22 @@ class BackendServiceProvider extends ServiceProvider
                     Storage::disk($storage)->delete($folder.$model->filename);
                 }
             }
+        });
+
+        view()->composer(['project::backend.*', 'backend.*'], function ($view) {
+            $activeStore = ProjectHelper::getActiveStore();
+            $managedStores = Auth::check()?Auth::user()->getManagedStores():[];
+            $otherStores = [];
+
+            foreach($managedStores as $managedStore){
+                if($activeStore->id != $managedStore->id){
+                    $otherStores[] = $managedStore;
+                }
+            }
+
+            $view->with('activeStore', $activeStore);
+            $view->with('managedStores', $managedStores);
+            $view->with('otherStores', $otherStores);
         });
     }
 
