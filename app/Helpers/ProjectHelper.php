@@ -64,6 +64,7 @@ class ProjectHelper
             if($user->isCustomer){
                 $activeStore = Store::where('default', 1)->first();
             }else{
+                /*
                 $activeStoreId = Session::get('active_store', function() use ($user){
                     if($user->isSuperAdmin){
                         $activeStore = $this->getDefaultStore();
@@ -77,6 +78,8 @@ class ProjectHelper
                 });
 
                 $activeStore = Store::find($activeStoreId);
+                */
+                $activeStore = $this->getDefaultStore();
             }
         }
 

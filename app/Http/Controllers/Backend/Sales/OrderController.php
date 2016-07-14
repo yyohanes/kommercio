@@ -490,6 +490,7 @@ class OrderController extends Controller{
             $oldValues['profile'] = $order->billingProfile?$order->billingProfile->getDetails():[];
             $oldValues['shipping_profile'] = $order->shippingProfile?$order->shippingProfile->getDetails():[];
             $oldValues['payment_method'] = $order->payment_method_id;
+            $oldValues['store_id'] = $order->store_id;
 
             foreach($lineItems as $lineItem){
                 $lineItemData = $lineItem->toArray();
