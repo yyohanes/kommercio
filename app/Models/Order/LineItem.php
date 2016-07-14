@@ -36,6 +36,11 @@ class LineItem extends Model
         return round($this->net_price + $this->discount_total + $this->tax_total, config('project.line_item_total_precision'));
     }
 
+    public function calculateSubNet()
+    {
+        return round($this->base_price + round($this->base_price * $this->tax_rate/100), config('project.line_item_total_precision'));
+    }
+
     public function calculateTotal()
     {
         $this->total = round($this->calculateNet() * $this->quantity, config('project.line_item_total_precision'));
@@ -46,6 +51,11 @@ class LineItem extends Model
     public function calculateSubtotal()
     {
         return round($this->base_price * $this->quantity, config('project.line_item_total_precision'));
+    }
+
+    public function calculateSubtotalWithTax()
+    {
+        return round($this->calculateSubNet() * $this->quantity, config('project.line_item_total_precision'));
     }
 
     public function processData($data, $sort_order = 0)

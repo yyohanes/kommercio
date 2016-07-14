@@ -161,17 +161,20 @@ class OrderHelper
                 foreach($taxes as $tax){
                     $taxValue = [
                         'net' => 0,
-                        'gross' => 0
+                        'gross' => 0,
+                        'rate_total' => 0
                     ];
 
                     $taxValue['gross'] = PriceFormatterFacade::round($tax->calculateTax($lineItemAmount));
                     $taxValue['net'] = PriceFormatterFacade::round($taxValue['gross']);
+                    $taxValue['rate_total'] += $tax->rate;
 
                     $tax->total += $taxValue['net'] * $lineItem->quantity;
                 }
 
                 if(isset($taxValue)){
                     $lineItem->tax_total = $taxValue['net'];
+                    $lineItem->tax_rate = $taxValue['rate_total'];
                 }
             }
 

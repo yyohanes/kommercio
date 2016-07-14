@@ -24,14 +24,38 @@
     <tr>
         <td class="no-border" colspan="2"></td>
         <td class="no-border" colspan="2" align="right"><strong>Subtotal</strong></td>
-        <td class="no-border">{{ PriceFormatter::formatNumber($order->calculateProductTotal(true) + $order->calculateAdditionalTotal(true), $order->currency) }}</td>
+        <td class="no-border">{{ PriceFormatter::formatNumber($order->subtotal + $order->additional_total, $order->currency) }}</td>
     </tr>
+
+    @foreach($order->getCartPriceRuleLineItems() as $cartPriceRuleLineItem)
+        <tr>
+            <td class="no-border" colspan="2"></td>
+            <td class="no-border" colspan="2" align="right">{{ $cartPriceRuleLineItem->getPrintName() }}</td>
+            <td class="no-border">{{ PriceFormatter::formatNumber($cartPriceRuleLineItem->total, $order->currency) }}</td>
+        </tr>
+    @endforeach
+
+    @foreach($order->getCouponLineItems() as $couponLineItem)
+        <tr>
+            <td class="no-border" colspan="2"></td>
+            <td class="no-border" colspan="2" align="right">{{ $couponLineItem->getPrintName() }}</td>
+            <td class="no-border">{{ PriceFormatter::formatNumber($couponLineItem->total, $order->currency) }}</td>
+        </tr>
+    @endforeach
 
     <tr>
         <td class="no-border" colspan="2"></td>
         <td class="no-border" colspan="2" align="right"><strong>Shipping</strong></td>
-        <td class="no-border">{{ PriceFormatter::formatNumber($order->calculateShippingTotal(true), $order->currency) }}</td>
+        <td class="no-border">{{ PriceFormatter::formatNumber($order->shipping_total, $order->currency) }}</td>
     </tr>
+
+    @foreach($order->getTaxLineItems() as $taxLineItem)
+        <tr>
+            <td class="no-border" colspan="2"></td>
+            <td class="no-border" colspan="2" align="right">{{ $taxLineItem->name }}</td>
+            <td class="no-border">{{ PriceFormatter::formatNumber($taxLineItem->total, $order->currency) }}</td>
+        </tr>
+    @endforeach
 
     @if($order->rounding_total > 0 || $order->rounding_total < 0)
         <tr>
@@ -45,24 +69,6 @@
         <td class="no-border" colspan="2" align="right"><strong>Grand Total</strong></td>
         <td class="no-border">{{ PriceFormatter::formatNumber($order->total, $order->currency) }}</td>
     </tr>
-
-    <hr/>
-
-    @foreach($order->getCartPriceRuleLineItems() as $cartPriceRuleLineItem)
-        <tr>
-            <td class="no-border" colspan="2"></td>
-            <td class="no-border" colspan="2" align="right"><strong>{{ $cartPriceRuleLineItem->getPrintName() }}</strong></td>
-            <td class="no-border">{{ PriceFormatter::formatNumber($cartPriceRuleLineItem->total, $order->currency) }}</td>
-        </tr>
-    @endforeach
-
-    @foreach($order->getTaxLineItems() as $taxLineItem)
-        <tr>
-            <td class="no-border" colspan="2"></td>
-            <td class="no-border" colspan="2" align="right"><strong>Incl. {{ $taxLineItem->getPrintName() }}</strong></td>
-            <td class="no-border">{{ PriceFormatter::formatNumber($taxLineItem->total, $order->currency) }}</td>
-        </tr>
-    @endforeach
     </tfoot>
 </table>
 
