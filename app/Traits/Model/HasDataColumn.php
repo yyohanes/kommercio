@@ -21,6 +21,9 @@ trait HasDataColumn
     public function getData($attribute=null, $default=null)
     {
         $data = unserialize($this->data);
+        if(is_bool($data)){
+            $data = [];
+        }
 
         if($attribute){
             return array_get($data, $attribute, $default);
