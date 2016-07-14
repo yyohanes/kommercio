@@ -38,7 +38,7 @@ class LineItem extends Model
 
     public function calculateSubNet()
     {
-        return round($this->base_price + round($this->base_price * $this->tax_rate/100), config('project.line_item_total_precision'));
+        return round($this->net_price + $this->net_price * $this->tax_rate/100, config('project.line_item_total_precision'));
     }
 
     public function calculateTotal()

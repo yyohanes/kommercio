@@ -418,7 +418,7 @@ class Order extends Model implements AuthorSignatureInterface
         return $this->subtotal;
     }
 
-    public function calculateShippingTotal($total = false)
+    public function calculateShippingTotal($total = false, $withTax = false)
     {
         $this->shipping_total = 0;
 
@@ -427,7 +427,11 @@ class Order extends Model implements AuthorSignatureInterface
                 if($total){
                     $this->shipping_total += $lineItem->calculateTotal();
                 }else{
-                    $this->shipping_total += $lineItem->calculateSubtotal();
+                    if($withTax){
+                        $this->shipping_total += $lineItem->calculateSubtotalWithTax();
+                    }else{
+                        $this->shipping_total += $lineItem->calculateSubtotal();
+                    }
                 }
             }
         }
@@ -467,7 +471,7 @@ class Order extends Model implements AuthorSignatureInterface
         return $this->tax_total;
     }
 
-    public function calculateAdditionalTotal($total = false)
+    public function calculateAdditionalTotal($total = false, $withTax = false)
     {
         $this->additional_total = 0;
 
@@ -476,7 +480,11 @@ class Order extends Model implements AuthorSignatureInterface
                 if($total){
                     $this->additional_total += $lineItem->calculateTotal();
                 }else{
-                    $this->additional_total += $lineItem->calculateSubtotal();
+                    if($withTax){
+                        $this->additional_total += $lineItem->calculateSubtotalWithTax();
+                    }else{
+                        $this->additional_total += $lineItem->calculateSubtotal();
+                    }
                 }
             }
         }
@@ -504,7 +512,7 @@ class Order extends Model implements AuthorSignatureInterface
         return $this->total;
     }
 
-    public function calculateProductTotal($total = false)
+    public function calculateProductTotal($total = false, $withTax = false)
     {
         $productTotal = 0;
 
@@ -513,7 +521,11 @@ class Order extends Model implements AuthorSignatureInterface
                 if($total){
                     $productTotal += $lineItem->calculateTotal();
                 }else{
-                    $productTotal += $lineItem->calculateSubtotal();
+                    if($withTax){
+                        $productTotal += $lineItem->calculateSubtotalWithTax();
+                    }else{
+                        $productTotal += $lineItem->calculateSubtotal();
+                    }
                 }
             }
         }
@@ -534,6 +546,11 @@ class Order extends Model implements AuthorSignatureInterface
         }
 
         return $quantityTotal;
+    }
+
+    public function calculateSimpleDiscount()
+    {
+        return round($this->total - $this->calculateAdditionalTotal(false, true) - $this->calculateProductTotal(false, true) - $this->calculateShippingTotal(false, true), config('project.line_item_total_precision'));
     }
 
     public function getPaidAmount()
