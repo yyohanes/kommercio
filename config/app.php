@@ -157,6 +157,8 @@ return [
         \Collective\Html\HtmlServiceProvider::class,
         \Spatie\Glide\GlideServiceProvider::class,
         \Fedeisas\LaravelMailCssInliner\LaravelMailCssInlinerServiceProvider::class,
+        \Collective\Bus\BusServiceProvider::class,
+        \Maatwebsite\Excel\ExcelServiceProvider::class,
 
         /*
          * Application Service Providers...
@@ -216,6 +218,7 @@ return [
         'Debugbar' => \Barryvdh\Debugbar\Facade::class,
         'Form' => \Collective\Html\FormFacade::class,
         'HTML' => \Collective\Html\HtmlFacade::class,
+        'Excel' => \Maatwebsite\Excel\Facades\Excel::class,
         'NavigationHelper' => \Kommercio\Facades\NavigationHelper::class,
         'ProjectHelper' => \Kommercio\Facades\ProjectHelper::class,
         'CurrencyHelper' => \Kommercio\Facades\CurrencyHelper::class,
