@@ -658,14 +658,14 @@ class OrderController extends Controller{
 
             switch($process){
                 case 'processing':
-                    if(!Gate::allows(['process_order'])){
+                    if(!Gate::allows('access', ['process_order'])){
                         abort(403);
                     }
                     $order->status = Order::STATUS_PROCESSING;
                     $message = 'Order has been set to <span class="label bg-'.OrderHelper::getOrderStatusLabelClass($order->status).' bg-font-'.OrderHelper::getOrderStatusLabelClass($order->status).'">Processing.</span>';
                     break;
                 case 'shipped':
-                    if(!Gate::allows(['ship_order'])){
+                    if(!Gate::allows('access', ['ship_order'])){
                         abort(403);
                     }
 
@@ -688,14 +688,14 @@ class OrderController extends Controller{
                     $message = 'Order has been set to <span class="label bg-'.OrderHelper::getOrderStatusLabelClass($order->status).' bg-font-'.OrderHelper::getOrderStatusLabelClass($order->status).'">Shipped.</span>';
                     break;
                 case 'completed':
-                    if(!Gate::allows(['complete_order'])){
+                    if(!Gate::allows('access', ['complete_order'])){
                         abort(403);
                     }
                     $order->status = Order::STATUS_COMPLETED;
                     $message = 'Order has been <span class="label bg-'.OrderHelper::getOrderStatusLabelClass($order->status).' bg-font-'.OrderHelper::getOrderStatusLabelClass($order->status).'">Completed.</span>';
                     break;
                 case 'cancelled':
-                    if(!Gate::allows(['cancel_order'])){
+                    if(!Gate::allows('access', ['cancel_order'])){
                         abort(403);
                     }
 

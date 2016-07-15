@@ -81,6 +81,8 @@ class BackendServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        //
+        $this->mergeConfigFrom(
+            __DIR__.'/../backend_menu.php', 'backend_menu'
+        );
     }
 }

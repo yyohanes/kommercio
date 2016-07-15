@@ -1,6 +1,6 @@
 <?php
 
-return [
+$permissions = [
     'User' => [
         'view_user' => 'View User',
         'create_user' => 'Create User',
@@ -160,3 +160,9 @@ return [
         'delete_menu_item' => 'Delete Menu Item',
     ],
 ];
+
+if(file_exists(base_path('packages/project/src/Project/config/permissions.php'))){
+    include_once(base_path('packages/project/src/Project/config/permissions.php'));
+}
+
+return $permissions;
