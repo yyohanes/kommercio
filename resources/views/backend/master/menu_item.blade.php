@@ -2,9 +2,9 @@
 $newMenu = $menu;
 $newDepth = $depth;
 $count += 1;
-$childPermissions = array_pluck($newMenu, 'children.permissions');
+$childPermissions = isset($newMenu['children'])?array_pluck($newMenu['children'], 'permissions'):[];
 ?>
-@if(!isset($newMenu['permissions']) || (isset($newMenu['permissions']) && Gate::allows('access', [$newMenu['permissions']])) || ($childPermissions && Gate::allows('access', [$childPermissions])))
+@if((isset($newMenu['permissions']) && Gate::allows('access', [$newMenu['permissions']])) || ($childPermissions && Gate::allows('access', [$childPermissions])) || (!isset($newMenu['permissions']) && !isset($newMenu['children'])))
 <li class="nav-item {{ $count==0?'start':'' }} {{ $newDepth == 0?'open':'' }} {{ isset($newMenu['active_path'])?(NavigationHelper::activeClass($newMenu['active_path'])?'active':''):'' }}">
     @if(isset($newMenu['children']))
         <a href="javascript:;" class="nav-link nav-toggle">

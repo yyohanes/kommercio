@@ -153,6 +153,7 @@ $menus['configuration'] = [
 ];
 
 $menus['warehouse'] = [
+    'prepend' => '<i class="fa fa-truck"></i>',
     'active_path' => 'warehouse',
     'name' => 'Warehouse',
     'route' => 'backend.warehouse.index',

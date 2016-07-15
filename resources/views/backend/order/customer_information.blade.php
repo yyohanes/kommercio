@@ -47,6 +47,5 @@
     @include('backend.master.form.fields.address.address', [
         'name' => $type,
         'label' => 'Address',
-        'required' => TRUE,
     ])
 </div>
