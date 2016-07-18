@@ -115,7 +115,7 @@
                                 @foreach($orderedProducts as $orderedProductIdx=>$orderedProduct)
                                     <td>{{ $order->getProductQuantity($orderedProductIdx) + 0 }}</td>
                                 @endforeach
-                                <td>{{ '<label class="label label-sm label-'.($order->outstanding > 0?'warning':'success').'">'.PriceFormatter::formatNumber($order->outstanding).'</label>' }}</td>
+                                <td>{!! '<label class="label label-sm label-'.($order->outstanding > 0?'warning':'success').'">'.PriceFormatter::formatNumber($order->outstanding).'</label>' !!}</td>
                                 <td>{{ PriceFormatter::formatNumber($order->total, $order->currency) }}</td>
                                 <td>{{ $order->paymentMethod->name }}</td>
                                 <td>
