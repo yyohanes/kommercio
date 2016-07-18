@@ -59,6 +59,8 @@
                     <span class="caption-subject sbold uppercase">{{ $shippingMethod }} on {{ $deliveryDate->format('l, j M Y') }}</span>
                 </div>
                 <div class="actions">
+                    <a target="_blank" href="{{ $exportUrl }}" class="btn btn-sm btn-info">
+                        <i class="fa fa-file-excel-o"></i> Export to XLS</a>
                     @can('access', ['print_invoice'])
                     <a target="_blank" href="{{ $printAllInvoicesUrl }}" class="btn btn-sm btn-info">
                         <i class="fa fa-print"></i> All Invoices</a>

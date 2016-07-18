@@ -14,6 +14,7 @@ use Kommercio\Models\Order\LineItem;
 use Kommercio\Models\Order\Order;
 use Kommercio\Models\ShippingMethod\ShippingMethod;
 use Kommercio\Models\Store;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ReportController extends Controller
 {
@@ -209,7 +210,23 @@ class ReportController extends Controller
             }
         }
 
+        if($request->input('export_to_xls', false)){
+            Excel::create('Delivery Report '.$filter['date'], function($excel) use ($filter, $orders, $orderedProducts, $shippingMethod, $deliveryDate) {
+                $excel->setDescription('Delivery Report '.$filter['date']);
+                $excel->sheet('Sheet 1', function($sheet) use ($filter, $orders, $orderedProducts, $shippingMethod, $deliveryDate){
+                    $sheet->loadView('backend.report.export.xls.delivery', [
+                        'filter' => $filter,
+                        'orders' => $orders,
+                        'shippingMethod' => $shippingMethod,
+                        'deliveryDate' => $deliveryDate,
+                        'orderedProducts' => $orderedProducts
+                    ]);
+                });
+            })->download('xls');
+        }
+
         $printAllInvoicesUrl = $request->url().'?'.http_build_query(array_merge($request->query(), ['print_invoices' => TRUE]));
+        $exportUrl = $request->url().'?'.http_build_query(array_merge($request->query(), ['export_to_xls' => TRUE]));
 
         return view('backend.report.delivery', [
             'filter' => $filter,
@@ -220,7 +237,8 @@ class ReportController extends Controller
             'orderedProducts' => $orderedProducts,
             'shippingMethodOptions' => $shippingMethodOptions,
             'shippingMethod' => $shippingMethod,
-            'printAllInvoicesUrl' => $printAllInvoicesUrl
+            'printAllInvoicesUrl' => $printAllInvoicesUrl,
+            'exportUrl' => $exportUrl
         ]);
     }
 
