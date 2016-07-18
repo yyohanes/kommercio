@@ -320,6 +320,11 @@ hr{
    ========================================================================== */
 
 @media print {
+  html, body{
+    font-family: 'Calibri';
+    font-size: 11pt;
+  }
+
   *,
   *:before,
   *:after {
