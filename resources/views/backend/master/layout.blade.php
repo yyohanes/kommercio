@@ -89,6 +89,25 @@ License: You must have a valid license purchased only from themeforest(the above
         <div class="top-menu">
             @if(Auth::check())
             <ul class="nav navbar-nav pull-right">
+                @if(config('project.enable_store_selector', false))
+                    <li class="dropdown dropdown-user">
+                        <a href="javascript:;" class="dropdown-toggle" data-toggle="dropdown" data-hover="dropdown" data-close-others="true">
+                            <i class="fa fa-home"></i>
+                            <span class="username"> {{ $activeStore->name }} </span>
+                            <i class="fa fa-angle-down"></i>
+                        </a>
+                        @if($otherStores)
+                        <ul class="dropdown-menu dropdown-menu-default">
+                            @foreach($otherStores as $otherStore)
+                            <li>
+                                <a href="{{ route('backend.change_store', ['id' => $otherStore->id, 'backUrl' => Request::getRequestUri()]) }}">{{ $otherStore->name }}</a>
+                            </li>
+                            @endforeach
+                        </ul>
+                        @endif
+                    </li>
+                @endif
+
                 <!-- BEGIN USER LOGIN DROPDOWN -->
                 <!-- DOC: Apply "dropdown-dark" class after below "dropdown-extended" to change the dropdown styte -->
                 <li class="dropdown dropdown-user">

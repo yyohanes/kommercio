@@ -81,7 +81,7 @@ Route::group(['middleware' => ['web']], function () {
 
         Route::get('logout', [
             'as' => 'backend.logout',
-            'uses' => 'Auth\AuthController@logout'
+            'uses' => 'Auth\AuthController@getLogout'
         ]);
 
         // Password Reset Routes...

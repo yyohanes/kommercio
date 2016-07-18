@@ -65,6 +65,7 @@ $permissions = [
         'ship_order' => 'Ship Order',
         'complete_order' => 'Complete Order',
         'cancel_order' => 'Cancel Order',
+        'add_unavailable_product' => 'Add Unavailable Product',
         'view_order_internal_memo' => 'View Internal Memo',
         'create_order_internal_memo' => 'Create Internal Memo',
         'print_invoice' => 'Print Invoice',

@@ -618,6 +618,10 @@ class ProductController extends Controller{
         if(!empty($search)){
             $qb = Product::productSelection()->joinTranslation()->joinDetail()->selectSelf();
 
+            if(!$request->user()->can('access', ['add_unavailable_product'])){
+                $qb->where('D.available', 1)->where('D.active', 1);
+            }
+
             $qb->where(function($query) use ($search){
                 $query->where('name', 'LIKE', '%'.$search.'%')
                     ->orWhere('sku', 'LIKE', '%'.$search.'%');

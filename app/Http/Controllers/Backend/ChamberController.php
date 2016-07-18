@@ -2,6 +2,7 @@
 
 namespace Kommercio\Http\Controllers\Backend;
 
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 use Kommercio\Http\Controllers\Controller;
@@ -13,7 +14,7 @@ class ChamberController extends Controller{
         return view('backend.dashboard');
     }
 
-    public function changeStore($id)
+    public function changeStore(Request $request, $id)
     {
         $user = Auth::user();
         $managedStores = $user->getManagedStores()->pluck('id')->all();
@@ -25,6 +26,6 @@ class ChamberController extends Controller{
 
         Session::put('active_store', $store->id);
 
-        return redirect()->route('backend.dashboard');
+        return redirect($request->input('backUrl', route('backend.dashboard')));
     }
 }

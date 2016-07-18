@@ -635,10 +635,6 @@ class Product extends Model implements UrlAliasInterface
             $this->_productDetail = $this->productDetails()->where('store_id', $this->store->id)->first();
         }
 
-        if(!$this->_productDetail){
-            $this->_productDetail = $this->productDetails()->where('store_id', ProjectHelper::getDefaultStore()->id)->first();
-        }
-
         return $this->_productDetail;
     }
 
@@ -689,10 +685,10 @@ class Product extends Model implements UrlAliasInterface
     //Scopes
     public function scopeActive($query)
     {
-        $store = ProjectHelper::getActiveStore()->id;
+        $store = ProjectHelper::getActiveStore();
 
-        $query->whereHas('productDetail', function($query){
-            $query->where('active', true);
+        $query->whereHas('productDetails', function($query) use ($store){
+            $query->where('active', true)->where('store_id', $store->id);
         });
     }
 

@@ -2,6 +2,7 @@
 
 namespace Kommercio\Http\Controllers\Backend\Auth;
 
+use Illuminate\Support\Facades\Session;
 use Kommercio\User;
 use Validator;
 use Kommercio\Http\Controllers\Controller;
@@ -39,7 +40,7 @@ class AuthController extends Controller
      */
     public function __construct()
     {
-        $this->middleware('backend.guest', ['except' => 'logout']);
+        $this->middleware('backend.guest', ['except' => 'getLogout']);
 
         $this->redirectAfterLogout = route('backend.login_form');
         $this->redirectTo = route('backend.dashboard');
@@ -73,5 +74,12 @@ class AuthController extends Controller
             'email' => $data['email'],
             'password' => bcrypt($data['password']),
         ]);
+    }
+
+    public function getLogout()
+    {
+        Session::forget('active_store');
+
+        return $this->logout();
     }
 }

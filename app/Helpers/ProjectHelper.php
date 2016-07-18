@@ -64,22 +64,23 @@ class ProjectHelper
             if($user->isCustomer){
                 $activeStore = Store::where('default', 1)->first();
             }else{
-                /*
-                $activeStoreId = Session::get('active_store', function() use ($user){
-                    if($user->isSuperAdmin){
-                        $activeStore = $this->getDefaultStore();
-                    }else{
-                        $activeStore = $user->stores->first();
-                    }
+                if(config('project.enable_store_selector', FALSE)){
+                    $activeStoreId = Session::get('active_store', function() use ($user){
+                        if($user->isSuperAdmin){
+                            $activeStore = $this->getDefaultStore();
+                        }else{
+                            $activeStore = $user->stores->first();
+                        }
 
-                    Session::put('active_store', $activeStore->id);
+                        Session::put('active_store', $activeStore->id);
 
-                    return $activeStore->id;
-                });
+                        return $activeStore->id;
+                    });
 
-                $activeStore = Store::find($activeStoreId);
-                */
-                $activeStore = $this->getDefaultStore();
+                    $activeStore = Store::find($activeStoreId);
+                }else{
+                    $activeStore = $this->getDefaultStore();
+                }
             }
         }
 

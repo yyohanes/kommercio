@@ -226,9 +226,13 @@ class OrderController extends Controller{
 
             return response()->json($data);
         }
-
-        //Temporarily use default sticky products
-        $stickyProducts = Product::joinDetail(ProjectHelper::getDefaultStore()->id)->selectSelf()->where('sticky_line_item', 1)->orderBy('sort_order', 'ASC')->get();
+        
+        if(config('project.enable_store_selector', false)){
+            $store_id = ProjectHelper::getActiveStore()->id;
+        }else{
+            $store_id = ProjectHelper::getDefaultStore()->id;
+        }
+        $stickyProducts = Product::joinDetail($store_id)->selectSelf()->active()->where('sticky_line_item', 1)->orderBy('sort_order', 'ASC')->get();
 
         return view('backend.order.index', [
             'stickyProducts' => $stickyProducts
@@ -239,8 +243,12 @@ class OrderController extends Controller{
     {
         $meat= [];
 
-        //Temporarily use default sticky products
-        $stickyProducts = Product::joinDetail(ProjectHelper::getDefaultStore()->id)->selectSelf()->where('sticky_line_item', 1)->orderBy('sort_order', 'ASC')->get();
+        if(config('project.enable_store_selector', false)){
+            $store_id = ProjectHelper::getActiveStore()->id;
+        }else{
+            $store_id = ProjectHelper::getDefaultStore()->id;
+        }
+        $stickyProducts = Product::joinDetail($store_id)->selectSelf()->active()->where('sticky_line_item', 1)->orderBy('sort_order', 'ASC')->get();
 
         foreach($orders as $idx=>$order){
             $orderAction = '';
@@ -347,8 +355,13 @@ class OrderController extends Controller{
         $productLineItems = array_pluck($lineItems, 'sku');
 
         if(!$lineItems){
-            //Temporarily use default sticky products
-            $stickyLineItems = Product::joinDetail(ProjectHelper::getDefaultStore()->id)->selectSelf()->where('sticky_line_item', 1)->orderBy('sort_order', 'ASC')->get();
+            if(config('project.enable_store_selector', false)){
+                $store_id = ProjectHelper::getActiveStore()->id;
+            }else{
+                $store_id = ProjectHelper::getDefaultStore()->id;
+            }
+
+            $stickyLineItems = Product::joinDetail($store_id)->selectSelf()->active()->where('sticky_line_item', 1)->orderBy('sort_order', 'ASC')->get();
             foreach($stickyLineItems as $stickyLineItem){
                 if(!in_array($stickyLineItem->sku, $productLineItems)){
                     $lineItems[] = [
