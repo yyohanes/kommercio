@@ -77,6 +77,26 @@ $menus['sales'] = [
     ]
 ];
 
+$menus['price_rule'] = [
+    'prepend' => '<i class="fa fa-tags"></i>',
+    'active_path' => 'price-rule',
+    'name' => 'Price Rule',
+    'children' => [
+        'cart_price_rule' => [
+            'active_path' => 'price-rule/cart/index',
+            'name' => 'Cart Price Rule',
+            'route' => 'backend.price_rule.cart.index',
+            'permissions' => 'view_cart_price_rule'
+        ],
+        'product_price_rule' => [
+            'active_path' => 'price-rule/product/index',
+            'name' => 'Product Price Rule',
+            'route' => 'backend.price_rule.product.index',
+            'permissions' => 'view_product_price_rule'
+        ],
+    ]
+];
+
 $menus['customer'] = [
     'prepend' => '<i class="fa fa-users"></i>',
     'active_path' => 'customer',
