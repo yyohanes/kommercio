@@ -272,25 +272,24 @@ class OrderController extends Controller{
 
             $orderAction .= FormFacade::close().'</div>';
 
-            if(Gate::allows('access', [['process_order', 'complete_order', 'cancel_order']])):
-                if(in_array($order->status, [Order::STATUS_PENDING, Order::STATUS_PROCESSING])) {
-                    $orderAction .= '<div class="btn-group btn-group-xs dropup"><button type="button" class="btn btn-default hold-on-click dropdown-toggle" data-toggle="dropdown" data-hover="dropdown" data-close-others="true" aria-expanded="true"><i class="fa fa-flag-o"></i></button><ul class="dropdown-menu pull-right" role="menu">';
-                    if (in_array($order->status, [Order::STATUS_PENDING])) {
-                        if(Gate::allows('access', ['process_order'])):
-                        $orderAction .= '<li><a class="modal-ajax" href="' . route('backend.sales.order.process', ['action' => 'processing', 'id' => $order->id, 'backUrl' => RequestFacade::fullUrl()]) . '"><i class="fa fa-toggle-right"></i> Process</a></li>';
-                        endif;
-                    }
+            if(Gate::allows('access', [['process_order', 'ship_order', 'complete_order', 'cancel_order']])):
+                $processActions = '';
+                if (Gate::allows('access', ['process_order']) && $order->isProcessable) {
+                    $processActions .= '<li><a class="modal-ajax" href="' . route('backend.sales.order.process', ['action' => 'processing', 'id' => $order->id, 'backUrl' => RequestFacade::fullUrl()]) . '"><i class="fa fa-toggle-right"></i> Process</a></li>';
+                }
 
-                    if(Gate::allows('access', ['ship_order']) && $order->isShippable):
-                        $orderAction .= '<li><a class="modal-ajax" href="' . route('backend.sales.order.process', ['action' => 'shipped', 'id' => $order->id, 'backUrl' => RequestFacade::fullUrl()]) . '"><i class="fa fa-truck"></i> Ship</a></li>';
-                    endif;
-                    if(Gate::allows('access', ['complete_order']) && $order->isCompleteable):
-                        $orderAction .= '<li><a class="modal-ajax" href="' . route('backend.sales.order.process', ['action' => 'completed', 'id' => $order->id, 'backUrl' => RequestFacade::fullUrl()]) . '"><i class="fa fa-check-circle"></i> Complete</a></li>';
-                    endif;
-                    if(Gate::allows('access', ['cancel_order']) && $order->isCancellable):
-                        $orderAction .= '<li><a class="modal-ajax" href="' . route('backend.sales.order.process', ['action' => 'cancelled', 'id' => $order->id, 'backUrl' => RequestFacade::fullUrl()]) . '"><i class="fa fa-remove"></i> Cancel</a></li>';
-                    endif;
-                    $orderAction .= '</ul></div>';
+                if(Gate::allows('access', ['ship_order']) && $order->isShippable):
+                    $processActions .= '<li><a class="modal-ajax" href="' . route('backend.sales.order.process', ['action' => 'shipped', 'id' => $order->id, 'backUrl' => RequestFacade::fullUrl()]) . '"><i class="fa fa-truck"></i> Ship</a></li>';
+                endif;
+                if(Gate::allows('access', ['complete_order']) && $order->isCompleteable):
+                    $processActions .= '<li><a class="modal-ajax" href="' . route('backend.sales.order.process', ['action' => 'completed', 'id' => $order->id, 'backUrl' => RequestFacade::fullUrl()]) . '"><i class="fa fa-check-circle"></i> Complete</a></li>';
+                endif;
+                if(Gate::allows('access', ['cancel_order']) && $order->isCancellable):
+                    $processActions .= '<li><a class="modal-ajax" href="' . route('backend.sales.order.process', ['action' => 'cancelled', 'id' => $order->id, 'backUrl' => RequestFacade::fullUrl()]) . '"><i class="fa fa-remove"></i> Cancel</a></li>';
+                endif;
+
+                if(!empty($processActions)){
+                    $orderAction .= '<div class="btn-group btn-group-xs dropup"><button type="button" class="btn btn-default hold-on-click dropdown-toggle" data-toggle="dropdown" data-hover="dropdown" data-close-others="true" aria-expanded="true"><i class="fa fa-flag-o"></i></button><ul class="dropdown-menu pull-right" role="menu">'.$processActions.'</ul></div>';
                 }
             endif;
 

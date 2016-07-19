@@ -1,6 +1,6 @@
 <?php
 
-namespace Kommercio\Models\Blocks;
+namespace Kommercio\Models\CMS;
 
 use Dimsav\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Model;

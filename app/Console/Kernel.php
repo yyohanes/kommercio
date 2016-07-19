@@ -4,6 +4,8 @@ namespace Kommercio\Console;
 
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
+use Illuminate\Support\Facades\Event;
+use Kommercio\Events\Cron as CronEvent;
 
 class Kernel extends ConsoleKernel
 {
@@ -24,7 +26,17 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        // $schedule->command('inspire')
-        //          ->hourly();
+        //Run queue every minute
+        $schedule->command('queue:work')->everyMinute()->withoutOverlapping();
+
+        //Run minute task
+        $schedule->call(function(){
+            Event::fire(new CronEvent('fifteen_minutes'));
+        })->name('fifteen-minutes-task')->cron('*/15 * * * * *')->withoutOverlapping();
+
+        //Run daily start of day
+        $schedule->call(function(){
+            Event::fire(new CronEvent('start_of_day'));
+        })->name('start-of-day-task')->dailyAt('08:00')->withoutOverlapping();
     }
 }
