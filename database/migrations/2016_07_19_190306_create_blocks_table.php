@@ -15,7 +15,7 @@ class CreateBlocksTable extends Migration
         Schema::create('blocks', function(Blueprint $table){
             $table->increments('id');
             $table->string('machine_name');
-            $table->string('type', 100)->default(\Kommercio\Models\Blocks\Block::TYPE_STATIC);
+            $table->string('type', 100)->default(\Kommercio\Models\CMS\Block::TYPE_STATIC);
             $table->timestamps();
         });
 
