@@ -1247,7 +1247,7 @@ Route::group(['middleware' => ['web']], function () {
 
                     Route::post('delete/{id}', [
                         'as' => 'backend.cms.block.delete',
-                        'uses' => 'PageController@delete',
+                        'uses' => 'BlockController@delete',
                         'permissions' => ['delete_block']
                     ]);
                 });

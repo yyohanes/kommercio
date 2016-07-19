@@ -16,7 +16,7 @@ class Block extends Model
 
     const TYPE_STATIC = 'static';
 
-    protected $guarded = [];
+    protected $fillable = ['name', 'body', 'machine_name', 'type', 'active'];
     public $translatedAttributes = ['name', 'body'];
     protected $toggleFields = ['active'];
 
