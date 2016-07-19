@@ -20,6 +20,16 @@
     ],
 ])
 
+@include('backend.master.form.fields.text', [
+    'name' => 'menu_class',
+    'label' => 'Class',
+    'key' => 'menu_class',
+    'attr' => [
+        'class' => 'form-control',
+        'id' => 'menu_class'
+    ],
+])
+
 @include('backend.master.form.fields.checkbox', [
     'name' => 'active',
     'label' => 'Active',

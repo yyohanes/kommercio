@@ -156,12 +156,6 @@ $menus['configuration'] = [
             'route' => 'backend.shipping_method.index',
             'permissions' => 'view_shipping_method'
         ],
-        'store' => [
-            'active_path' => 'configuration/store',
-            'name' => 'Store',
-            'route' => 'backend.store.index',
-            'permissions' => 'view_store'
-        ],
         'address' => [
             'active_path' => 'configuration/address/country',
             'name' => 'Address',
@@ -172,13 +166,22 @@ $menus['configuration'] = [
     ]
 ];
 
-$menus['warehouse'] = [
-    'prepend' => '<i class="fa fa-truck"></i>',
-    'active_path' => 'warehouse',
-    'name' => 'Warehouse',
-    'route' => 'backend.warehouse.index',
-    'permissions' => 'view_warehouse'
-];
+if(config('project.enable_store_selector', false)) {
+    $menus['configuration']['children']['store'] = [
+        'active_path' => 'configuration/store',
+        'name' => 'Store',
+        'route' => 'backend.store.index',
+        'permissions' => 'view_store'
+    ];
+
+    $menus['warehouse'] = [
+        'prepend' => '<i class="fa fa-truck"></i>',
+        'active_path' => 'warehouse',
+        'name' => 'Warehouse',
+        'route' => 'backend.warehouse.index',
+        'permissions' => 'view_warehouse'
+    ];
+}
 
 $menus['cms'] = [
     'prepend' => '<i class="fa fa-book"></i>',
@@ -192,16 +195,22 @@ $menus['cms'] = [
             'permissions' => 'view_menu'
         ],
         'page' => [
-            'active_path' => 'page',
+            'active_path' => 'cms/page',
             'name' => 'Pages',
             'route' => 'backend.cms.page.index',
             'permissions' => 'view_page'
         ],
         'banner' => [
-            'active_path' => 'banner',
+            'active_path' => 'cms/banner',
             'name' => 'Banners',
             'route' => 'backend.cms.banner_group.index',
             'permissions' => 'view_banner'
+        ],
+        'block' => [
+            'active_path' => 'cms/block/index',
+            'name' => 'Blocks',
+            'route' => 'backend.cms.block.index',
+            'permissions' => 'view_block'
         ],
     ]
 ];

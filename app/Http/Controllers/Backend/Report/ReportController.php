@@ -157,6 +157,7 @@ class ReportController extends Controller
         $qb = Order::with('shippingProfile', 'lineItems')
             ->whereIn('status', $filter['status'])
             ->orderBy('checkout_at', 'ASC')
+            ->joinOutstanding()
             ->joinShippingProfile();
 
         if($filter['store'] != 'all'){

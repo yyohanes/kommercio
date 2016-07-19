@@ -19,12 +19,6 @@ class CreateMenusTable extends Migration
             $table->timestamps();
         });
 
-        //Create first menu
-        $menu = \Kommercio\Models\CMS\Menu::create([
-            'name' => 'Main Menu',
-            'description' => 'Menu responsible for Main navigation.'
-        ]);
-
         Schema::create('menu_items', function(Blueprint $table){
             $table->increments('id');
             $table->integer('menu_id')->unsigned();

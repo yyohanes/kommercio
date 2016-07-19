@@ -1091,7 +1091,7 @@ Route::group(['middleware' => ['web']], function () {
             });
 
             //CMS
-            Route::group(['namespace' => 'CMS'], function(){
+            Route::group(['namespace' => 'CMS', 'prefix' => 'cms'], function(){
                 //Banner
                 Route::group(['prefix' => 'banner'], function() {
                     Route::get('group/index', [
@@ -1210,6 +1210,45 @@ Route::group(['middleware' => ['web']], function () {
                         'as' => 'backend.cms.page.delete',
                         'uses' => 'PageController@delete',
                         'permissions' => ['delete_page']
+                    ]);
+                });
+
+                //Block
+                Route::group(['prefix' => 'block'], function(){
+                    Route::get('index', [
+                        'as' => 'backend.cms.block.index',
+                        'uses' => 'BlockController@index',
+                        'permissions' => ['delete_block']
+                    ]);
+
+                    Route::get('create', [
+                        'as' => 'backend.cms.block.create',
+                        'uses' => 'BlockController@create',
+                        'permissions' => ['delete_block']
+                    ]);
+
+                    Route::post('store', [
+                        'as' => 'backend.cms.block.store',
+                        'uses' => 'BlockController@store',
+                        'permissions' => ['delete_block']
+                    ]);
+
+                    Route::get('edit/{id}', [
+                        'as' => 'backend.cms.block.edit',
+                        'uses' => 'BlockController@edit',
+                        'permissions' => ['delete_block']
+                    ]);
+
+                    Route::post('update/{id}', [
+                        'as' => 'backend.cms.block.update',
+                        'uses' => 'BlockController@update',
+                        'permissions' => ['delete_block']
+                    ]);
+
+                    Route::post('delete/{id}', [
+                        'as' => 'backend.cms.block.delete',
+                        'uses' => 'PageController@delete',
+                        'permissions' => ['delete_block']
                     ]);
                 });
 

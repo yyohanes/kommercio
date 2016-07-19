@@ -16,10 +16,11 @@ class AddSlugToMenuTable extends Migration
             $table->string('slug')->after('name');
         });
 
-        $menus = \Kommercio\Models\CMS\Menu::all();
-        foreach($menus as $menu){
-            $menu->save();
-        }
+        //Create first menu
+        $menu = \Kommercio\Models\CMS\Menu::create([
+            'name' => 'Main Menu',
+            'description' => 'Menu responsible for Main navigation.'
+        ]);
     }
 
     /**

@@ -18,7 +18,7 @@
         'class' => 'form-control select2',
         'id' => 'banner_group_id'
     ],
-    'defaultValue' => old('banner_group_id', $bannerGroup->id)
+    'defaultOptions' => old('banner_group_id', $bannerGroup->id)
 ])
 
 @include('backend.master.form.fields.textarea', [
