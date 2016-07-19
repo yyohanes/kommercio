@@ -710,12 +710,11 @@ class Order extends Model implements AuthorSignatureInterface
     public function scopeJoinOutstanding($query)
     {
         $paymentQueryQuery = Payment::selectRaw('order_id, SUM(amount) AS paid_amount')
-            ->groupBy('order_id')
-            ->whereIn('status', [Payment::STATUS_SUCCESS]);
+            ->whereRaw('status = \''.Payment::STATUS_SUCCESS.'\'')
+            ->groupBy('order_id');
 
         $query
-            ->leftJoin(DB::raw('('.$paymentQueryQuery->toSql().') AS P'), 'P.order_id', '=', $this->getTable().'.id')
-            ->mergeBindings($paymentQueryQuery->getQuery());
+            ->leftJoin(DB::raw('('.$paymentQueryQuery->toSql().') AS P'), 'P.order_id', '=', $this->getTable().'.id');
 
         $query->addSelect(DB::raw($this->getTable().'.*, P.*, (total - COALESCE(P.paid_amount, 0)) AS outstanding'));
     }

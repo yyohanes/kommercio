@@ -140,7 +140,6 @@ class ReportController extends Controller
         $storeOptions = Store::getStoreOptions(false, true);
 
         $shippingMethods = ShippingMethod::getAvailableMethods();
-        //$shippingMethodOptions = ['all' => 'All'];
         foreach($shippingMethods as $shippingMethodIdx=>$shippingMethod)
         {
             $shippingMethodOptions[$shippingMethodIdx] = $shippingMethod['name'];
@@ -155,7 +154,7 @@ class ReportController extends Controller
         ];
 
         $qb = Order::with('shippingProfile', 'lineItems')
-            ->whereIn('status', $filter['status'])
+            ->whereIn('orders.status', $filter['status'])
             ->orderBy('checkout_at', 'ASC')
             ->joinOutstanding()
             ->joinShippingProfile();
@@ -198,17 +197,15 @@ class ReportController extends Controller
             ->orderBy('PD.sort_order', 'ASC');
 
         $orderedProducts = [];
-        foreach($orders as $order){
-            foreach($orderedProductsQb->get() as $lineItem){
-                if(!isset($orderedProducts[$lineItem->line_item_id])){
-                    $orderedProducts[$lineItem->line_item_id] = [
-                        'quantity' => 0,
-                        'product' => $lineItem->product
-                    ];
-                }
-
-                $orderedProducts[$lineItem->line_item_id]['quantity'] += $lineItem->quantity;
+        foreach($orderedProductsQb->get() as $lineItem){
+            if(!isset($orderedProducts[$lineItem->line_item_id])){
+                $orderedProducts[$lineItem->line_item_id] = [
+                    'quantity' => 0,
+                    'product' => $lineItem->product
+                ];
             }
+
+            $orderedProducts[$lineItem->line_item_id]['quantity'] += $lineItem->quantity;
         }
 
         if($request->input('export_to_xls', false)){
