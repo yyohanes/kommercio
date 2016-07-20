@@ -711,16 +711,12 @@ var OrderForm = function () {
         return problems;
     }
 
-    var lastTimestamp;
+    var lastRunningIndex = 0;
 
-    var getUniqueTimestamp = function() {
+    var generateUUID = function() {
+        lastRunningIndex += 1;
         var $timestamp = new Date().getTime();
-
-        if($timestamp == lastTimestamp){
-            $timestamp = $timestamp + 1;
-        }
-
-        lastTimestamp = $timestamp;
+        $timestamp = $timestamp + String(lastRunningIndex);
 
         return $timestamp;
     }
@@ -752,8 +748,7 @@ var OrderForm = function () {
         {
             var $lineItem = lineItem;
             var $lineItemType = $lineItem.data('line_item');
-            var $timestamp = getUniqueTimestamp();
-            $lineItem.attr('data-uid', $timestamp);
+            var $timestamp = generateUUID();
             $lineItem.attr('data-uid', $timestamp);
             $lineItems[$timestamp] = {
                 uid: $timestamp,
