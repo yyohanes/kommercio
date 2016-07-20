@@ -70,7 +70,7 @@ class CategoryController extends Controller{
             $category->getTranslation()->attachMedia($thumbnail, 'thumbnail');
         }
 
-        return redirect()->route('backend.catalog.category.index', ['parent' => $category->parent_id])->with('success', [$category->name.' has successfully been created.']);
+        return redirect($request->get('backUrl', route('backend.catalog.category.index', ['parent' => $category->parent_id])))->with('success', [$category->name.' has successfully been created.']);
     }
 
     public function edit($id)
@@ -111,7 +111,7 @@ class CategoryController extends Controller{
         }
         $category->getTranslation()->syncMedia($thumbnail, 'thumbnail');
 
-        return redirect()->back()->with('success', [$category->name.' has successfully been updated.']);
+        return redirect($request->get('backUrl', route('backend.catalog.category.index', ['parent' => $category->parent_id])))->with('success', [$category->name.' has successfully been updated.']);
     }
 
     public function delete($id)
