@@ -8,7 +8,7 @@
             <td align="center">
                 <h1>THANK YOU FOR YOUR ORDER #{{ $order->reference }}</h1>
 
-                <p class="text">Dear {{ $order->billingProfile->full_name}},</p>
+                <p class="text">Dear {{ $order->billingInformation->full_name}},</p>
                 <p class="text">
                     Your ORDER # {{ $order->reference }} has been placed on {{ $order->checkout_at->format('d M Y') }}</p>
 
@@ -64,9 +64,9 @@
                 <td>
                     <p class="text">
                         <strong>Billing Information</strong><br/>
-                        {{ $order->billingProfile->full_name }}<br/>
-                        {{ $order->billingProfile->phone_number }}<br/>
-                        {!! AddressHelper::printAddress($order->billingProfile->getDetails()) !!}
+                        {{ $order->billingInformation->full_name }}<br/>
+                        {{ $order->billingInformation->phone_number }}<br/>
+                        {!! AddressHelper::printAddress($order->billingInformation->getDetails()) !!}
                     </p>
                 </td>
             </tr>
@@ -81,9 +81,9 @@
                 <td>
                     <p class="text">
                         <strong>Shipping Information</strong><br/>
-                        {{ $order->shippingProfile->full_name }}<br/>
-                        {{ $order->shippingProfile->phone_number }}<br/>
-                        {!! AddressHelper::printAddress($order->shippingProfile->getDetails()) !!}
+                        {{ $order->shippingInformation->full_name }}<br/>
+                        {{ $order->shippingInformation->phone_number }}<br/>
+                        {!! AddressHelper::printAddress($order->shippingInformation->getDetails()) !!}
                     </p>
                 </td>
             </tr>

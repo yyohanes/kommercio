@@ -8,7 +8,7 @@
             <td>
                 <h1>YOUR ORDER #{{ $order->reference }} IS SHIPPED</h1>
 
-                <p class="text">Dear {{ $order->billingProfile->full_name}},</p>
+                <p class="text">Dear {{ $order->billingInformation->full_name}},</p>
                 <p class="text">
                     Your ORDER # {{ $order->reference }} is shipped!
                     @if(!empty($order->getData('tracking_number', null)))
@@ -41,7 +41,7 @@
             <td align="center" valign="middle">
                 <tr>
                     <td height="0" border="5px" cellspacing="0" cellpadding="0">
-                        <h7>ORDER DETAILS</h6>
+                        <h6>ORDER DETAILS</h6>
                     </td>
                 </tr>
             </td>
@@ -67,9 +67,9 @@
                 <td>
                     <p class="text">
                         <strong>Billing Information</strong><br/>
-                        {{ $order->billingProfile->full_name }}<br/>
-                        {{ $order->billingProfile->phone_number }}<br/>
-                        {!! AddressHelper::printAddress($order->billingProfile->getDetails()) !!}
+                        {{ $order->billingInformation->full_name }}<br/>
+                        {{ $order->billingInformation->phone_number }}<br/>
+                        {!! AddressHelper::printAddress($order->billingInformation->getDetails()) !!}
                     </p>
                 </td>
             </tr>
@@ -84,9 +84,9 @@
                 <td>
                     <p class="text">
                         <strong>Shipping Information</strong><br/>
-                        {{ $order->shippingProfile->full_name }}<br/>
-                        {{ $order->shippingProfile->phone_number }}<br/>
-                        {!! AddressHelper::printAddress($order->shippingProfile->getDetails()) !!}
+                        {{ $order->shippingInformation->full_name }}<br/>
+                        {{ $order->shippingInformation->phone_number }}<br/>
+                        {!! AddressHelper::printAddress($order->shippingInformation->getDetails()) !!}
                     </p>
                 </td>
             </tr>
