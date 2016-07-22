@@ -43,4 +43,21 @@ return [
         'backend/assets/images/login/bg2.jpg'
     ],
     'kommercio_api_token' => 'dGgzzOB5vbWOQXAJmvCjky3qmVY7LzpqX29DxWqLb6gmKyqfwJL7J2TveCeQ',
+    'order_process_condition' => [
+        'processing' => [
+            'status' => ['pending'],
+        ],
+        'print' => [
+            'status' => ['processing', 'shipped', 'completed'],
+        ],
+        'shipped' => [
+            'status' => ['processing'],
+            'printed' => TRUE,
+        ],
+        'completed' => [
+            'status' => ['shipped', 'processing'],
+            'outstanding' => 0,
+        ]
+    ],
+    'print_format' => 'default'
 ];

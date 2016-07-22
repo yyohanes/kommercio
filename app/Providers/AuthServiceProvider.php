@@ -26,7 +26,7 @@ class AuthServiceProvider extends ServiceProvider
     {
         $this->registerPolicies($gate);
 
-        $gate->define('access', function ($user, $permission, $model = null) {
+        $gate->define('access', function ($user, $permission) {
             if(empty($permission)){
                 return TRUE;
             }
@@ -34,8 +34,53 @@ class AuthServiceProvider extends ServiceProvider
             return $user->role->hasPermission($permission);
         });
 
+        $gate->define('process_order', function ($user, $order, $process_type) {
+            $orderProcessConditions = config('project.order_process_condition', config('kommercio.order_process_condition'));
+
+            if(!isset($orderProcessConditions[$process_type])){
+                return FALSE;
+            }
+
+            $valid = FALSE;
+
+            foreach($orderProcessConditions[$process_type] as $type => $condition){
+                switch($type){
+                    case 'status':
+                        $valid = in_array($order->status, $condition);
+                        break;
+                    case 'printed':
+                        $internalMemos = $order->internalMemos;
+
+                        foreach($internalMemos as $internalMemo){
+                            if(in_array($internalMemo->getData('key', ''), ['print_invoice', 'print_delivery_note'])){
+                                $valid = true;
+                                break;
+                            }
+                        }
+
+                        if(!$condition){
+                            $valid = !$valid;
+                        }
+
+                        break;
+                    case 'outstanding':
+                        $valid = $order->getOutstandingAmount() <= $condition;
+                        break;
+                    default:
+                        $valid = false;
+                        break;
+                }
+
+                if(!$valid){
+                    break;
+                }
+            }
+
+            return $valid;
+        });
+
         $gate->before(function ($user, $ability) {
-            if ($user->isSuperAdmin) {
+            if ($ability == 'access' && $user->isSuperAdmin) {
                 return true;
             }
         });

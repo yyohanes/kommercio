@@ -6,7 +6,7 @@
 {!! Form::open(['route' => ['backend.sales.order.payment.process', 'process' => 'accept', 'id' => $payment->id]]) !!}
 <div class="modal-body">
     <div class="form-body">
-        @if($payment->amount == $payment->order->total)
+        @if($payment->amount == $payment->order->total && $payment->order->isProcessable)
             <div class="form-group" style="margin-bottom: 1em;">
                 <label class="control-label col-md-3">Process Order</label>
                 <div class="col-md-9">

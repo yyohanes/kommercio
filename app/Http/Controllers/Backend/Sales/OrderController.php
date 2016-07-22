@@ -29,6 +29,7 @@ use Kommercio\Models\Profile\Profile;
 use Kommercio\Facades\PriceFormatter;
 use Kommercio\Models\ShippingMethod\ShippingMethod;
 use Kommercio\Models\Tax;
+use Maatwebsite\Excel\Facades\Excel;
 
 class OrderController extends Controller{
     public function index(Request $request)
@@ -272,36 +273,35 @@ class OrderController extends Controller{
 
             $orderAction .= FormFacade::close().'</div>';
 
-            if(Gate::allows('access', [['process_order', 'ship_order', 'complete_order', 'cancel_order']])):
-                $processActions = '';
-                if (Gate::allows('access', ['process_order']) && $order->isProcessable) {
-                    $processActions .= '<li><a class="modal-ajax" href="' . route('backend.sales.order.process', ['action' => 'processing', 'id' => $order->id, 'backUrl' => RequestFacade::fullUrl()]) . '"><i class="fa fa-toggle-right"></i> Process</a></li>';
-                }
+            $processActions = '';
+            if (Gate::allows('access', ['process_order']) && $order->isProcessable) {
+                $processActions .= '<li><a class="modal-ajax" href="' . route('backend.sales.order.process', ['action' => 'processing', 'id' => $order->id, 'backUrl' => RequestFacade::fullUrl()]) . '"><i class="fa fa-toggle-right"></i> Process</a></li>';
+            }
 
-                if(Gate::allows('access', ['ship_order']) && $order->isShippable):
-                    $processActions .= '<li><a class="modal-ajax" href="' . route('backend.sales.order.process', ['action' => 'shipped', 'id' => $order->id, 'backUrl' => RequestFacade::fullUrl()]) . '"><i class="fa fa-truck"></i> Ship</a></li>';
-                endif;
-                if(Gate::allows('access', ['complete_order']) && $order->isCompleteable):
-                    $processActions .= '<li><a class="modal-ajax" href="' . route('backend.sales.order.process', ['action' => 'completed', 'id' => $order->id, 'backUrl' => RequestFacade::fullUrl()]) . '"><i class="fa fa-check-circle"></i> Complete</a></li>';
-                endif;
-                if(Gate::allows('access', ['cancel_order']) && $order->isCancellable):
-                    $processActions .= '<li><a class="modal-ajax" href="' . route('backend.sales.order.process', ['action' => 'cancelled', 'id' => $order->id, 'backUrl' => RequestFacade::fullUrl()]) . '"><i class="fa fa-remove"></i> Cancel</a></li>';
-                endif;
-
-                if(!empty($processActions)){
-                    $orderAction .= '<div class="btn-group btn-group-xs dropup"><button type="button" class="btn btn-default hold-on-click dropdown-toggle" data-toggle="dropdown" data-hover="dropdown" data-close-others="true" aria-expanded="true"><i class="fa fa-flag-o"></i></button><ul class="dropdown-menu pull-right" role="menu">'.$processActions.'</ul></div>';
-                }
+            if(Gate::allows('access', ['ship_order']) && $order->isShippable):
+                $processActions .= '<li><a class="modal-ajax" href="' . route('backend.sales.order.process', ['action' => 'shipped', 'id' => $order->id, 'backUrl' => RequestFacade::fullUrl()]) . '"><i class="fa fa-truck"></i> Ship</a></li>';
+            endif;
+            if(Gate::allows('access', ['complete_order']) && $order->isCompleteable):
+                $processActions .= '<li><a class="modal-ajax" href="' . route('backend.sales.order.process', ['action' => 'completed', 'id' => $order->id, 'backUrl' => RequestFacade::fullUrl()]) . '"><i class="fa fa-check-circle"></i> Complete</a></li>';
+            endif;
+            if(Gate::allows('access', ['cancel_order']) && $order->isCancellable):
+                $processActions .= '<li><a class="modal-ajax" href="' . route('backend.sales.order.process', ['action' => 'cancelled', 'id' => $order->id, 'backUrl' => RequestFacade::fullUrl()]) . '"><i class="fa fa-remove"></i> Cancel</a></li>';
             endif;
 
-            if($order->isCheckout && Gate::allows('access', [['print_invoice', 'print_delivery_note']])) {
-                $orderAction .= '<div class="btn-group btn-group-xs dropup"><button type="button" class="btn btn-default hold-on-click dropdown-toggle" data-toggle="dropdown" data-hover="dropdown" data-close-others="true" aria-expanded="true"><i class="fa fa-print"></i></button><ul class="dropdown-menu pull-right" role="menu">';
-                if(Gate::allows('access', ['print_invoice'])):
-                    $orderAction .= '<li><a href="' . route('backend.sales.order.print', ['id' => $order->id]) . '" target="_blank">Invoice</a></li>';
-                endif;
-                if(Gate::allows('access', ['print_delivery_note']) && config('project.enable_delivery_note', false)):
-                    $orderAction .= '<li><a href="' . route('backend.sales.order.print', ['id' => $order->id, 'type' => 'delivery_note']) . '" target="_blank">Delivery Note</a></li>';
-                endif;
-                $orderAction .= '</ul></div>';
+            if(!empty($processActions)){
+                $orderAction .= '<div class="btn-group btn-group-xs dropup"><button type="button" class="btn btn-default hold-on-click dropdown-toggle" data-toggle="dropdown" data-hover="dropdown" data-close-others="true" aria-expanded="true"><i class="fa fa-flag-o"></i></button><ul class="dropdown-menu pull-right" role="menu">'.$processActions.'</ul></div>';
+            }
+
+            $printActions = '';
+            if(Gate::allows('access', ['print_invoice']) && $order->isPrintable):
+                $printActions .= '<li><a href="' . route('backend.sales.order.print', ['id' => $order->id]) . '" target="_blank">Invoice</a></li>';
+            endif;
+            if(Gate::allows('access', ['print_delivery_note']) && $order->isPrintable && config('project.enable_delivery_note', false)):
+                $printActions .= '<li><a href="' . route('backend.sales.order.print', ['id' => $order->id, 'type' => 'delivery_note']) . '" target="_blank">Delivery Note</a></li>';
+            endif;
+
+            if(!empty($printActions)){
+                $orderAction .= '<div class="btn-group btn-group-xs dropup"><button type="button" class="btn btn-default hold-on-click dropdown-toggle" data-toggle="dropdown" data-hover="dropdown" data-close-others="true" aria-expanded="true"><i class="fa fa-print"></i></button><ul class="dropdown-menu pull-right" role="menu">'.$printActions.'</ul></div>';
             }
 
             $rowMeat = [
@@ -310,14 +310,15 @@ class OrderController extends Controller{
                 $order->checkout_at?$order->checkout_at->format('d M Y, H:i'):'',
                 $order->delivery_date?$order->delivery_date->format('d M Y'):'',
                 $order->billing_full_name.'<div class="expanded-detail">'.$order->billingInformation->email.'<br/>'.$order->billingInformation->phone_number.'<br/>'.AddressHelper::printAddress($order->billingInformation->getDetails()).'</div>',
-                $order->shipping_full_name.'<div class="expanded-detail">'.$order->shippingInformation->email.'<br/>'.$order->shippingInformation->phone_number.'<br/>'.AddressHelper::printAddress($order->billingInformation->getDetails()).'</div>'
+                $order->shipping_full_name.'<div class="expanded-detail">'.$order->shippingInformation->email.'<br/>'.$order->shippingInformation->phone_number.'<br/>'.AddressHelper::printAddress($order->billingInformation->getDetails()).'</div>',
             ];
 
             foreach($stickyProducts as $stickyProduct){
                 $rowMeat[] = $order->getProductQuantity($stickyProduct->id);
             }
 
-            $rowMeat = array_merge($rowMeat, [PriceFormatter::formatNumber($order->total, $order->currency)]);
+            $orderTotal = PriceFormatter::formatNumber($order->total, $order->currency).'<div class="expanded-detail" data-ajax_load="'.route('backend.sales.order.quick_content_view', ['id' => $order->id]).'"></div>';
+            $rowMeat = array_merge($rowMeat, [$orderTotal]);
 
             if(Gate::allows('access', ['view_payment'])):
                 $rowMeat = array_merge($rowMeat, [
@@ -464,6 +465,17 @@ class OrderController extends Controller{
         ]);
     }
 
+    public function quickContentView($id)
+    {
+        $order = Order::findOrFail($id);
+        $lineItems = $order->lineItems;
+
+        return view('backend.order.quick_content_view', [
+            'order' => $order,
+            'lineItems' => $lineItems,
+        ]);
+    }
+
     public function printOrder(Request $request, $id, $type='invoice')
     {
         $user = $request->user();
@@ -471,12 +483,36 @@ class OrderController extends Controller{
 
         if($type == 'delivery_note'){
             OrderHelper::saveOrderComment('Print Delivery Note.', 'print_delivery_note', $order, $user);
+
+            if(config('project.print_format', config('kommercio.print_format')) == 'xls'){
+                Excel::create('Delivery Note #'.$order->reference, function($excel) use ($order) {
+                    $excel->setDescription('Delivery Note #'.$order->reference);
+                    $excel->sheet('Sheet 1', function($sheet) use ($order){
+                        $sheet->loadView(ProjectHelper::getViewTemplate('print.order.delivery_note'), [
+                            'order' => $order
+                        ]);
+                    });
+                })->download('xls');
+            }
+
             return view(ProjectHelper::getViewTemplate('print.order.delivery_note'), [
                 'order' => $order
             ]);
         }
 
         OrderHelper::saveOrderComment('Print Invoice.', 'print_invoice', $order, $user);
+
+        if(config('project.print_format', config('kommercio.print_format')) == 'xls'){
+            Excel::create('Invoice #'.$order->reference, function($excel) use ($order) {
+                $excel->setDescription('Invoice #'.$order->reference);
+                $excel->sheet('Sheet 1', function($sheet) use ($order){
+                    $sheet->loadView(ProjectHelper::getViewTemplate('print.order.invoice'), [
+                        'order' => $order
+                    ]);
+                });
+            })->download('xls');
+        }
+
         return view(ProjectHelper::getViewTemplate('print.order.invoice'), [
             'order' => $order
         ]);

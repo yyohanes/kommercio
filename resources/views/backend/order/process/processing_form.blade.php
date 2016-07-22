@@ -15,6 +15,7 @@
         </div>
     </div>
 </div>
+
 <div class="modal-footer text-center">
     <button class="btn btn-primary"><i class="fa fa-check"></i> Confirm </button>
     <button type="button" class="btn btn-default" data-dismiss="modal"><i class="fa fa-remove"></i> Cancel</button>

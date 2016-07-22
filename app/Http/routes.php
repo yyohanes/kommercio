@@ -603,6 +603,12 @@ Route::group(['middleware' => ['web']], function () {
                         'permissions' => ['view_order']
                     ]);
 
+                    Route::get('quick_content_view/{id}', [
+                        'as' => 'backend.sales.order.quick_content_view',
+                        'uses' => 'OrderController@quickContentView',
+                        'permissions' => ['view_order']
+                    ]);
+
                     Route::get('print/{id}/{type?}', [
                         'as' => 'backend.sales.order.print',
                         'uses' => 'OrderController@printOrder',

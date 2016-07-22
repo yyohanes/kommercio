@@ -384,6 +384,12 @@ hr {
    ========================================================================== */
 @media print {
   /* line 323, sass/print.scss */
+  html, body {
+    font-family: 'Calibri';
+    font-size: 11pt;
+  }
+
+  /* line 328, sass/print.scss */
   *,
   *:before,
   *:after {
@@ -393,52 +399,52 @@ hr {
     text-shadow: none !important;
   }
 
-  /* line 332, sass/print.scss */
+  /* line 337, sass/print.scss */
   a,
   a:visited {
     text-decoration: underline;
   }
 
-  /* line 337, sass/print.scss */
+  /* line 342, sass/print.scss */
   a[href]:after {
     content: " (" attr(href) ")";
   }
 
-  /* line 341, sass/print.scss */
+  /* line 346, sass/print.scss */
   abbr[title]:after {
     content: " (" attr(title) ")";
   }
 
-  /* line 345, sass/print.scss */
+  /* line 350, sass/print.scss */
   a[href^="#"]:after,
   a[href^="javascript:"]:after {
     content: "";
   }
 
-  /* line 350, sass/print.scss */
+  /* line 355, sass/print.scss */
   pre,
   blockquote {
     border: 1px solid #999;
     page-break-inside: avoid;
   }
 
-  /* line 356, sass/print.scss */
+  /* line 361, sass/print.scss */
   thead {
     display: table-header-group;
   }
 
-  /* line 360, sass/print.scss */
+  /* line 365, sass/print.scss */
   tr,
   img {
     page-break-inside: avoid;
   }
 
-  /* line 365, sass/print.scss */
+  /* line 370, sass/print.scss */
   img {
     max-width: 100% !important;
   }
 
-  /* line 369, sass/print.scss */
+  /* line 374, sass/print.scss */
   p,
   h2,
   h3 {
@@ -446,13 +452,13 @@ hr {
     widows: 3;
   }
 
-  /* line 376, sass/print.scss */
+  /* line 381, sass/print.scss */
   h2,
   h3 {
     page-break-after: avoid;
   }
 
-  /* line 381, sass/print.scss */
+  /* line 386, sass/print.scss */
   footer {
     page-break-after: always;
   }

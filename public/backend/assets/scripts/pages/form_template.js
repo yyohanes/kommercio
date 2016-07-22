@@ -669,16 +669,39 @@ var formBehaviors = function(){
             $(obj).addClass('note note-info');
             $(obj).hide();
 
-            $(expandToggle).click(function(e){
-                e.preventDefault();
-                $(obj).toggle(0, function(){
-                    if($(this).is(':visible')){
-                        expandToggle.text('Hide Detail');
-                    }else{
-                        expandToggle.text('Show Detail');
-                    }
+            if($(obj).data('ajax_load')){
+                $(expandToggle).click(function(e){
+                    e.preventDefault();
+
+                    $(obj).toggle(0, function(){
+                        if($(this).is(':visible')){
+                            $(obj).html('Loading...');
+
+                            $.ajax($(obj).data('ajax_load'), {
+                                success: function(data){
+                                    $(obj).html(data);
+                                }
+                            });
+                            expandToggle.text('Hide Detail');
+                        }else{
+                            $(obj).html('');
+                            expandToggle.text('Show Detail');
+                        }
+                    });
                 });
-            });
+            }else{
+                $(expandToggle).click(function(e){
+                    e.preventDefault();
+
+                    $(obj).toggle(0, function(){
+                        if($(this).is(':visible')){
+                            expandToggle.text('Hide Detail');
+                        }else{
+                            expandToggle.text('Show Detail');
+                        }
+                    });
+                });
+            }
         });
     }
 

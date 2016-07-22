@@ -5,6 +5,7 @@ namespace Kommercio\Models\Order;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Kommercio\Facades\CurrencyHelper;
 use Kommercio\Facades\PriceFormatter;
 use Kommercio\Models\Interfaces\AuthorSignatureInterface;
@@ -766,17 +767,22 @@ class Order extends Model implements AuthorSignatureInterface
 
     public function getIsCompleteableAttribute()
     {
-        return in_array($this->status, [self::STATUS_PENDING, self::STATUS_PROCESSING, self::STATUS_SHIPPED]);
+        return Gate::allows('process_order', [$this, self::STATUS_COMPLETED]);
     }
 
     public function getIsShippableAttribute()
     {
-        return in_array($this->status, [self::STATUS_PENDING, self::STATUS_PROCESSING]);
+        return Gate::allows('process_order', [$this, self::STATUS_SHIPPED]);
+    }
+
+    public function getIsPrintableAttribute()
+    {
+        return Gate::allows('process_order', [$this, 'print']);
     }
 
     public function getIsProcessableAttribute()
     {
-        return in_array($this->status, [self::STATUS_PENDING]);
+        return Gate::allows('process_order', [$this, self::STATUS_PROCESSING]);
     }
 
     public function getIsEditableAttribute()

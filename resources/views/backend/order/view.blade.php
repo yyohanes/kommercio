@@ -44,8 +44,28 @@
                         <a class="btn {{ OrderHelper::getOrderStatusLabelClass(\Kommercio\Models\Order\Order::STATUS_CANCELLED) }} modal-ajax" href="{{ route('backend.sales.order.process', ['action' => 'cancelled', 'id' => $order->id, 'backUrl' => Request::fullUrl()]) }}"><i class="fa fa-remove"></i> Cancel Order</a>
                     @endif
 
-                    @if($order->isCheckout)
-                        <a class="btn btn-info" href="{{ route('backend.sales.order.print', ['id' => $order->id]) }}" target="_blank"><i class="fa fa-print"></i> Print Order</a>
+                    <?php
+                        $printActions = '';
+
+                        if(Gate::allows('access', ['print_invoice']) && $order->isPrintable){
+                            $printActions .= '<li><a href="'.route('backend.sales.order.print', ['id' => $order->id]).'" target="_blank">Print Invoice</a></li>';
+                        }
+
+                        if(Gate::allows('access', ['print_delivery_note']) && $order->isPrintable && config('project.enable_delivery_note', false)){
+                            $printActions .= '<li><a href="'.route('backend.sales.order.print', ['id' => $order->id]).'" target="_blank">Print Delivery Note</a></li>';
+                        }
+                    ?>
+
+                    @if(!empty($printActions))
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-default dropdown-toggle" data-hover="dropdown" data-toggle="dropdown">
+                            <i class="fa fa-print"></i> Print
+                            <i class="fa fa-angle-down"></i>
+                        </button>
+                        <ul class="dropdown-menu pull-right">
+                            {!! $printActions !!}
+                        </ul>
+                    </div>
                     @endif
                 </div>
             </div>

@@ -86,3 +86,18 @@
 .permissions-check-all, .permissions-uncheck-all {
   font-size: 12px;
 }
+
+/* line 108, sass/app.scss */
+.expanded-detail {
+  font-size: 12px !important;
+  line-height: 1.25em;
+}
+/* line 109, sass/app.scss */
+.expanded-detail .product-image {
+  width: 60px !important;
+}
+/* line 116, sass/app.scss */
+.expanded-detail th, .expanded-detail td, .expanded-detail div, .expanded-detail p {
+  font-size: 12px !important;
+  line-height: 1.25em;
+}
