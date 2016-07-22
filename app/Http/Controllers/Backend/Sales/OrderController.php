@@ -659,13 +659,17 @@ class OrderController extends Controller{
 
     public function deleteAll()
     {
-        $orders = Order::all();
+        if(config('app.env') != 'production'){
+            $orders = Order::all();
 
-        foreach($orders as $order){
-            $order->forceDelete();
+            foreach($orders as $order){
+                $order->forceDelete();
+            }
+
+            return redirect()->route('backend.sales.order.index')->with('success', ['All orders have been deleted.']);
+        }else{
+            return redirect()->route('backend.sales.order.index')->withErrors(['What the heck!!']);
         }
-
-        return redirect()->route('backend.sales.order.index')->with('success', ['All orders have been deleted.']);
     }
 
     public function process(Request $request, $process, $id=null)
