@@ -41,7 +41,7 @@ class AuthServiceProvider extends ServiceProvider
                 return FALSE;
             }
 
-            $valid = FALSE;
+            $valid = TRUE;
 
             foreach($orderProcessConditions[$process_type] as $type => $condition){
                 switch($type){
