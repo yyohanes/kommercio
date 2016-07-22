@@ -229,6 +229,7 @@ return [
         'EmailHelper' => \Kommercio\Facades\EmailHelper::class,
         'FrontendHelper' => \Kommercio\Facades\FrontendHelper::class,
         'LanguageHelper' => \Kommercio\Facades\LanguageHelper::class,
+        'KommercioAPIHelper' => \Kommercio\Facades\KommercioAPIHelper::class,
     ],
 
 ];

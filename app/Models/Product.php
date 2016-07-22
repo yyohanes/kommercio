@@ -36,6 +36,8 @@ class Product extends Model implements UrlAliasInterface
     private $_warehouse;
     private $_store;
     private $_productDetail;
+    private $_retailPrice;
+    private $_netPrice;
 
     public $translatedAttributes = ['name', 'description_short', 'description', 'slug', 'meta_title', 'meta_description', 'locale', 'thumbnail', 'thumbnails', 'images'];
 
@@ -146,6 +148,15 @@ class Product extends Model implements UrlAliasInterface
         return 'product';
     }
 
+    public function getBreadcrumbTrails()
+    {
+        $defaultCategory = $this->defaultCategory;
+
+        $breadcrumbs = $defaultCategory->getBreadcrumbTrails();
+
+        return $breadcrumbs;
+    }
+
     public function getName()
     {
         return $this->name;
@@ -158,44 +169,61 @@ class Product extends Model implements UrlAliasInterface
 
     public function getRetailPrice()
     {
-        if($this->combination_type == self::COMBINATION_TYPE_VARIATION){
-            $price = $this->productDetail->retail_price?$this->productDetail->retail_price:$this->parent->productDetail->retail_price;
-        }else{
-            $price = isset($this->productDetail)?$this->productDetail->retail_price:null;
-        }
-
-        $priceRules = $this->getSpecificPriceRules(FALSE);
-
-        foreach($priceRules as $priceRule){
-            if($priceRule->validateProduct($this)){
-                $price = $priceRule->getValue($price);
+        if(!isset($this->_retailPrice)){
+            if($this->combination_type == self::COMBINATION_TYPE_VARIATION){
+                $price = $this->productDetail->retail_price?$this->productDetail->retail_price:$this->parent->productDetail->retail_price;
+            }else{
+                $price = isset($this->productDetail)?$this->productDetail->retail_price:null;
             }
+
+            $priceRules = $this->getSpecificPriceRules(FALSE);
+
+            foreach($priceRules as $priceRule){
+                if($priceRule->validateProduct($this)){
+                    $price = $priceRule->getValue($price);
+                }
+            }
+
+            $this->_retailPrice = $price;
         }
 
-        return $price;
+        return $this->_retailPrice;
     }
 
-    public function getNetPrice($options=[])
+    public function getNetPrice()
     {
-        $catalogPriceRules = $this->getCatalogPriceRules();
+        if(!isset($this->_netPrice)){
+            $catalogPriceRules = $this->getCatalogPriceRules();
 
-        $price = $this->getRetailPrice();
+            $price = $this->getRetailPrice();
 
-        $specificDiscountPriceRules = $this->getSpecificPriceRules(TRUE);
+            $specificDiscountPriceRules = $this->getSpecificPriceRules(TRUE);
 
-        foreach($specificDiscountPriceRules as $specificDiscountPriceRule){
-            if($specificDiscountPriceRule->validateProduct($this)){
-                $price = $specificDiscountPriceRule->getValue($price);
+            foreach($specificDiscountPriceRules as $specificDiscountPriceRule){
+                if($specificDiscountPriceRule->validateProduct($this)){
+                    $price = $specificDiscountPriceRule->getValue($price);
+                }
             }
+
+            foreach($catalogPriceRules as $catalogPriceRule){
+                if($catalogPriceRule->validateProduct($this)){
+                    $price = $catalogPriceRule->getValue($price);
+                }
+            }
+
+            $this->_netPrice = $price;
         }
 
-        foreach($catalogPriceRules as $catalogPriceRule){
-            if($catalogPriceRule->validateProduct($this)){
-                $price = $catalogPriceRule->getValue($price);
-            }
+        return $this->_netPrice;
+    }
+
+    public function getOldPrice()
+    {
+        if($this->getRetailPrice() - $this->getNetPrice() == 0){
+            return FALSE;
         }
 
-        return $price;
+        return $this->getRetailPrice() - $this->getNetPrice();
     }
 
     public function getProductAttributeWithValues()

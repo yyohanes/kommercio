@@ -56,7 +56,7 @@
                                 @can('edit_product_category')
                                 <i class="fa fa-reorder"></i>
                                 @endcan
-                                <a class="category-name btn btn-sm blue-madison" data-category_id="{{ $category->id }}" href="{{ route('backend.catalog.category.index', ['parent' => $category->id]) }}">{{ $category->name }}</a></td>
+                                <a class="category-name btn btn-sm blue-madison" data-category_id="{{ $category->id }}" href="{{ route('backend.catalog.category.index', ['parent' => $category->id]) }}">{{ $category->name }} (ID: {{ $category->id }})</a></td>
                             <td>{!! $category->description !!}</td>
                             <td>{{ $category->childrenCount }}</td>
                             <td><i class="fa fa-{{ $category->active?'check text-success':'remove text-danger' }}"></i></td>

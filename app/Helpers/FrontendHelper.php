@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Request as RequestFacade;
 use Illuminate\Http\Request;
 use Kommercio\Models\CMS\BannerGroup;
+use Kommercio\Models\CMS\Block;
 use Kommercio\Models\CMS\Menu;
 use Kommercio\Models\Order\Order;
 use Kommercio\Models\UrlAlias;
@@ -72,6 +73,14 @@ class FrontendHelper
         $banners = $bannerGroup?$bannerGroup->banners:[];
 
         return $banners;
+    }
+
+    //Block
+    public function getBlock($machine_name)
+    {
+        $block = Block::where('machine_name', $machine_name)->first();
+
+        return $block;
     }
 
     //Cart

@@ -3,6 +3,7 @@
 namespace Kommercio\Http\Controllers\Backend\Address;
 
 use Illuminate\Http\Request;
+use Kommercio\Facades\ProjectHelper;
 use Kommercio\Http\Controllers\Controller;
 use Kommercio\Http\Requests\Backend\Address\AddressFormRequest;
 use Kommercio\Models\Address\Address;
@@ -199,7 +200,7 @@ class AddressController extends Controller{
             $this->validate($request, $rules);
 
             $client = new Client();
-            $res = $client->get($request->input('import_url'), ['query' =>  ['api_token' => 'dGgzzOB5vbWOQXAJmvCjky3qmVY7LzpqX29DxWqLb6gmKyqfwJL7J2TveCeQ']]);
+            $res = $client->get($request->input('import_url'), ['query' =>  ['api_token' => KommercioAPIHelper::getAPIToken()]]);
 
             if($res->getStatusCode() == 200){
                 $model = $this->addressClass;

@@ -19,6 +19,9 @@ return [
             'w' => 200,
             'h' => 200
         ],
+        'original' => [
+
+        ]
     ],
     'contacts' => [
         'order' => [
@@ -38,5 +41,6 @@ return [
     'login_images' => [
         'backend/assets/images/login/bg1.jpg',
         'backend/assets/images/login/bg2.jpg'
-    ]
+    ],
+    'kommercio_api_token' => 'dGgzzOB5vbWOQXAJmvCjky3qmVY7LzpqX29DxWqLb6gmKyqfwJL7J2TveCeQ',
 ];

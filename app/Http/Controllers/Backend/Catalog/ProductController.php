@@ -108,7 +108,7 @@ class ProductController extends Controller{
             $meat[] = [
                 $idx + 1 + $orderingStart,
                 $product->hasThumbnail()?'<img class="img-responsive" src="'.asset($product->thumbnail->getImagePath('backend_thumbnail')).'" />':'',
-                $product->name,
+                $product->name.($product->productDetail->new?' <span class="label label-sm label-success circle">New</span>':''),
                 $product->sku,
                 $product->defaultCategory?$product->defaultCategory->name:'',
                 $product->manufacturer?$product->manufacturer->name:'',
@@ -381,7 +381,7 @@ class ProductController extends Controller{
         $variation = null;
 
         if($variation_id){
-            $variation = Product::with('productAttributes', 'productDetail')->findOrFail($variation_id);
+            $variation = Product::with('productAttributes')->findOrFail($variation_id);
 
             $variationAttributes = $variation->getProductAttributeWithValues();
         }

@@ -4,6 +4,7 @@ namespace Kommercio\Models;
 
 use Dimsav\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Model;
+use Kommercio\Facades\FrontendHelper;
 use Kommercio\Models\Interfaces\UrlAliasInterface;
 use Kommercio\Traits\AuthorSignature;
 use Kommercio\Traits\Model\SeoTrait;
@@ -17,6 +18,8 @@ class ProductCategory extends Model implements UrlAliasInterface
         'active' => 'boolean'
     ];
     public $translatedAttributes = ['name', 'slug', 'description', 'meta_title', 'meta_description', 'thumbnail', 'images'];
+
+    private $_rootCategory;
 
     //Methods
     public function getName()
@@ -40,9 +43,32 @@ class ProductCategory extends Model implements UrlAliasInterface
         return implode('/', $paths);
     }
 
+    public function getExternalPath()
+    {
+        $path = $this->getInternalPathSlug().'/'.$this->id;
+
+        return FrontendHelper::get_url($path);
+    }
+
     public function getInternalPathSlug()
     {
         return 'product-category';
+    }
+
+    public function getBreadcrumbTrails()
+    {
+        $parent = $this->parent;
+
+        $breadcrumbs = [];
+
+        while($parent){
+            $breadcrumbs[] = $parent;
+            $parent = $parent->parent;
+        }
+
+        $breadcrumbs = array_reverse($breadcrumbs);
+
+        return $breadcrumbs;
     }
 
     //Relations
@@ -74,7 +100,7 @@ class ProductCategory extends Model implements UrlAliasInterface
         $viewSuggestions[] = 'frontend.catalog.product_category.view_'.$this->id;
 
         if($this->parent){
-            $viewSuggestions[] = 'frontend.catalog.product_category.view_'.$this->parent->id;
+            $viewSuggestions[] = 'frontend.catalog.product_category.view_inherit_'.$this->parent->id;
         }
 
         $viewSuggestions[] = 'frontend.catalog.product_category.view';
@@ -90,6 +116,20 @@ class ProductCategory extends Model implements UrlAliasInterface
         }
 
         return $this->children->count();
+    }
+
+    public function getRootAttribute()
+    {
+        if(!isset($this->_rootCategory)){
+            if($this->parent){
+                $breadcrumbs = $this->getBreadcrumbTrails();
+                $this->_rootCategory = $breadcrumbs[0];
+            }else{
+                $this->_rootCategory = $this;
+            }
+        }
+
+        return $this->_rootCategory;
     }
 
     //Scopes

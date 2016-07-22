@@ -153,6 +153,53 @@
                 ])
 
                 @include('backend.master.form.fields.checkbox', [
+                    'name' => 'productDetail[new]',
+                    'label' => 'New',
+                    'key' => 'productDetail.new',
+                    'value' => 1,
+                    'checked' => $product->productDetail?$product->productDetail->new:false,
+                    'attr' => [
+                        'class' => 'make-switch',
+                        'id' => 'productDetail[new]',
+                        'data-on-color' => 'warning'
+                    ],
+                    'appends' => '<a class="btn btn-default" href="#new-schedule-modal" data-toggle="modal"><i class="fa fa-calendar"></i></a>'
+                ])
+
+                <div id="new-schedule-modal" class="modal fade" role="dialog" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true"></button>
+                                <h4 class="modal-title">New Period</h4>
+                            </div>
+                            <div class="modal-body">
+                                @include('backend.master.form.fields.datetime', [
+                                    'name' => 'productDetail[new_date_from]',
+                                    'label' => 'New From',
+                                    'key' => 'productDetail.new_date_from',
+                                    'attr' => [
+                                        'id' => 'productDetail[new_date_from]'
+                                    ],
+                                ])
+
+                                @include('backend.master.form.fields.datetime', [
+                                    'name' => 'productDetail[new_date_to]',
+                                    'label' => 'New Until',
+                                    'key' => 'productDetail.new_date_to',
+                                    'attr' => [
+                                        'id' => 'productDetail[new_date_to]'
+                                    ],
+                                ])
+                            </div>
+                            <div class="modal-footer">
+                                <button class="btn green" data-dismiss="modal" aria-hidden="true">Done</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                @include('backend.master.form.fields.checkbox', [
                     'name' => 'productDetail[available]',
                     'label' => 'Available for Order',
                     'key' => 'productDetail.available',

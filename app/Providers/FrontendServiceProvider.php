@@ -18,13 +18,20 @@ class FrontendServiceProvider extends ServiceProvider
             $viewsData = $view->getData();
 
             $view->with('currentOrder', FrontendHelper::getCurrentOrder());
-            $view->with('isHomepage', FrontendHelper::isHomepage());
+
+            $isHomepage = FrontendHelper::isHomepage();
+            $view->with('isHomepage', $isHomepage);
 
             $meta_title = config('project.client_name');
             $meta_description = config('project.client_subtitle');
 
             if(isset($viewsData['seoModel'])){
-                $meta_title = $viewsData['seoModel']->getMetaTitle().' - '.$meta_title;
+                if($isHomepage){
+                    $meta_title = $viewsData['seoModel']->getMetaTitle();
+                }else{
+                    $meta_title = $viewsData['seoModel']->getMetaTitle().' - '.$meta_title;
+                }
+
                 $meta_description = $viewsData['seoModel']->getMetaDescription();
             }
 

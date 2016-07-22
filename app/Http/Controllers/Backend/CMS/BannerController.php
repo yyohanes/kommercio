@@ -86,7 +86,7 @@ class BannerController extends Controller{
         }
         $banner->getTranslation()->syncMedia($images, 'image');
 
-        return redirect($request->get('backUrl', route('backend.cms.banner.index')))->with('success', [$banner->name.' has successfully been updated.']);
+        return redirect($request->get('backUrl', route('backend.cms.banner.index', ['banner_group_id' => $banner->bannerGroup->id])))->with('success', [$banner->name.' has successfully been updated.']);
     }
 
     public function delete($id)

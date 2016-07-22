@@ -35,6 +35,16 @@ Route::group(['middleware' => ['web']], function () {
             'uses' => 'CatalogController@viewProduct'
         ]);
 
+        Route::get('sale', [
+            'as' => 'frontend.catalog.sale',
+            'uses' => 'CatalogController@sale'
+        ]);
+
+        Route::get('search', [
+            'as' => 'frontend.catalog.search',
+            'uses' => 'CatalogController@search'
+        ]);
+
         //Order
         Route::get('cart', [
             'as' => 'frontend.order.cart',

@@ -18,7 +18,7 @@ class MenuItem extends Model
         'active' => 'boolean',
     ];
 
-    protected $fillable = ['name', 'menu_id', 'parent_id', 'active', 'sort_order', 'url'];
+    protected $fillable = ['name', 'menu_id', 'parent_id', 'active', 'menu_class', 'sort_order', 'url'];
     protected $toggleFields = ['active'];
     public $translatedAttributes = ['name', 'url', 'data'];
 

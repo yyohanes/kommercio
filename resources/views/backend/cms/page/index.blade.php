@@ -49,7 +49,7 @@
                     <tbody>
                     @foreach($pages as $page)
                         <tr>
-                            <td>{{ $page->name }}</td>
+                            <td>{{ $page->name }} (ID: {{ $page->id }})</td>
                             <td>{{ $page->slug }}</td>
                             <td><i class="fa fa-{{ $page->active?'check text-success':'remove text-danger' }}"></i></td>
                             <td class="text-center">

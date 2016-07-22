@@ -9,6 +9,7 @@
         line_item_total_precision: {{ config('project.line_item_total_precision') }},
         total_precision: {{ config('project.total_precision') }},
         total_rounding: '{{ config('project.total_rounding') }}',
-        csrf_token: '{{ csrf_token() }}'
+        csrf_token: '{{ csrf_token() }}',
+        kommercio_api_url: '{{ KommercioAPIHelper::getAPIUrl() }}'
     };
 </script>

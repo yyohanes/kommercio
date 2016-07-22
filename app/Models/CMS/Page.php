@@ -4,6 +4,7 @@ namespace Kommercio\Models\CMS;
 
 use Dimsav\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Model;
+use Kommercio\Facades\FrontendHelper;
 use Kommercio\Models\Interfaces\UrlAliasInterface;
 use Kommercio\Traits\Model\SeoTrait;
 use Kommercio\Traits\Model\ToggleDate;
@@ -38,6 +39,13 @@ class Page extends Model implements UrlAliasInterface
     }
 
     //Methods
+    public function getExternalPath()
+    {
+        $path = $this->getInternalPathSlug().'/'.$this->id;
+
+        return FrontendHelper::get_url($path);
+    }
+
     public function getUrlAlias()
     {
         $paths = [];
@@ -57,6 +65,22 @@ class Page extends Model implements UrlAliasInterface
     public function getInternalPathSlug()
     {
         return 'page';
+    }
+
+    public function getBreadcrumbTrails()
+    {
+        $parent = $this->parent;
+
+        $breadcrumbs = [];
+
+        while($parent){
+            $breadcrumbs[] = $parent;
+            $parent = $parent->parent;
+        }
+
+        $breadcrumbs = array_reverse($breadcrumbs);
+
+        return $breadcrumbs;
     }
 
     //Accessors
