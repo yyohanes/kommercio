@@ -29,7 +29,7 @@
                     <span class="caption-subject sbold uppercase"> Block </span>
                 </div>
                 <div class="actions">
-                    @can('create_block')
+                    @can('access', ['create_block'])
                     <a href="{{ route('backend.cms.block.create', ['backUrl' => Request::getRequestUri()]) }}" class="btn btn-sm btn-info">
                         <i class="fa fa-plus"></i> Add </a>
                     @endcan
@@ -57,10 +57,10 @@
                             <td class="text-center">
                                 {!! Form::open(['route' => ['backend.cms.block.delete', 'id' => $block->id]]) !!}
                                 <div class="btn-group btn-group-sm">
-                                    @can('edit_block')
+                                    @can('access', ['edit_block'])
                                     <a class="btn btn-default" href="{{ route('backend.cms.block.edit', ['id' => $block->id, 'backUrl' => Request::fullUrl()]) }}"><i class="fa fa-pencil"></i> Edit</a>
                                     @endcan
-                                    @can('delete_block')
+                                    @can('access', ['delete_block'])
                                     <button class="btn btn-default" data-toggle="confirmation" data-original-title="Are you sure?" title=""><i class="fa fa-trash-o"></i> Delete</button>
                                     @endcan
                                 </div>

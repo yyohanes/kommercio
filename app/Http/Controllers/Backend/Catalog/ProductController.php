@@ -639,8 +639,12 @@ class ProductController extends Controller{
                 $qb->where('products.id', '<>', $request->input('exclude'));
             }
 
+            if(!$request->user()->can('access', ['add_inactive_product'])){
+                $qb->where('D.active', 1);
+            }
+
             if(!$request->user()->can('access', ['add_unavailable_product'])){
-                $qb->where('D.available', 1)->where('D.active', 1);
+                $qb->where('D.available', 1);
             }
 
             $qb->where(function($query) use ($search){
