@@ -1,6 +1,10 @@
 @section('bottom_page_scripts')
     @parent
 
+    <script>
+        global_vars.get_related_product = '{{ route('backend.catalog.product.get_related') }}';
+    </script>
+
     <script src="{{ asset('backend/assets/scripts/pages/product_form.js') }}" type="text/javascript"></script>
     <script src="{{ asset('backend/assets/scripts/pages/product_form_price.js') }}" type="text/javascript"></script>
     <script src="{{ asset('backend/assets/scripts/pages/product_form_features.js') }}" type="text/javascript"></script>
@@ -39,6 +43,9 @@
         </li>
         <li role="presentation">
             <a href="#tab_meta" data-toggle="tab"> Meta </a>
+        </li>
+        <li role="presentation">
+            <a href="#tab_related" data-toggle="tab"> Related </a>
         </li>
         <li role="presentation">
             <a href="#tab_misc" data-toggle="tab"> Misc </a>
@@ -655,6 +662,39 @@
                         'id' => 'meta_description'
                     ]
                 ])
+            </div>
+        </div>
+
+        <div class="tab-pane" role="tabpanel" id="tab_related">
+            <div class="form-body">
+                <div class="form-group">
+                    <label for="thumbnails" class="control-label col-md-3">Cross-sell Products</label>
+                    <div class="col-md-9">
+                        @include('backend.master.form.fields.text', [
+                            'name' => 'find_cross_sell_product',
+                            'label' => false,
+                            'key' => 'find_cross_sell_product',
+                            'attr' => [
+                                'class' => 'form-control product-relation-finder',
+                                'id' => 'find_cross_sell_product',
+                                'placeholder' => 'Find product name...',
+                                'data-product_relation_type' => 'cross_sell',
+                                'data-typeahead_remote' => route('backend.catalog.product.autocomplete'),
+                                'data-typeahead_display' => 'sku',
+                                'data-typeahead_label' => 'name',
+                                'data-typeahead_additional_query' => '&entity_only=1&exclude='.$product->id
+                            ],
+                            'valueColumnClass' => 'col-md-6'
+                        ])
+
+                        <div id="cross_sell-products">
+                            @foreach(old('cross_sell_product', $product->crossSellTo->pluck('id')) as $crossSell)
+                                <?php $crossSellObj = \Kommercio\Models\Product::findOrFail($crossSell); ?>
+                                @include('backend.catalog.product.product_relation_result', ['product' => $crossSellObj, 'relation' => 'cross_sell'])
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 

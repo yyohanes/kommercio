@@ -121,7 +121,7 @@ class OrderController extends Controller
     public function addToCart(Request $request)
     {
         $rules = [
-            'product_id' => 'required|exists:products,id,deleted_at,NULL|is_available|is_active|is_purchaseable',
+            'product_id' => 'required|exists:products,id,deleted_at,NULL|is_available|is_active|is_in_stock|is_purchaseable',
             'quantity' => 'required|integer|min:0'
         ];
 

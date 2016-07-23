@@ -2,8 +2,10 @@
 
 namespace Kommercio\Http\Controllers\Frontend;
 
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Event;
 use Kommercio\Events\CatalogQueryBuilder as CatalogQueryBuilderEvent;
+use Kommercio\Facades\FrontendHelper;
 use Kommercio\Facades\LanguageHelper;
 use Kommercio\Http\Controllers\Controller;
 use Kommercio\Facades\ProjectHelper;
@@ -64,7 +66,7 @@ class CatalogController extends Controller
         ]);
     }
 
-    public function viewCategory($id)
+    public function viewCategory(Request $request, $id)
     {
         $productCategory = ProductCategory::findOrFail($id);
 
@@ -72,9 +74,15 @@ class CatalogController extends Controller
             return redirect()->back()->withErrors([trans(LanguageHelper::getTranslationKey('frontend.product_category.not_active'))]);
         }
 
+        $options = [
+            'limit' => $request->input('limit', ProjectHelper::getConfig('catalog.limit')),
+            'sort_by' => $request->input('sort_by', ProjectHelper::getConfig('catalog.sort_by')),
+            'sort_dir' => $request->input('sort_dir', ProjectHelper::getConfig('catalog.sort_dir'))
+        ];
+
         $qb = $productCategory->products();
 
-        $event_results = Event::fire(new CatalogQueryBuilderEvent('product_category_products', $qb));
+        $event_results = Event::fire(new CatalogQueryBuilderEvent('product_category_products', $qb, $request, $options));
 
         //If not processed, build default query here
         if(!isset($event_results[0]) || empty($event_results[0])){
@@ -82,16 +90,26 @@ class CatalogController extends Controller
                 ->where('active', true)
                 ->whereIn('visibility', [ProductDetail::VISIBILITY_EVERYWHERE, ProductDetail::VISIBILITY_CATALOG])
                 ->orderBy('sort_order', 'ASC');
-            $products = $qb->get();
+            $products = $qb->paginate($options['limit']);
         }else{
             $products = $event_results[0];
         }
+
+        $appendedOptions = $options;
+        foreach($appendedOptions as $key => $appendedOption){
+            if(!$request->has($key)){
+                unset($appendedOptions[$key]);
+            }
+        }
+
+        $products->setPath(FrontendHelper::get_url($request->path()))->appends($appendedOptions);
 
         $view_name = ProjectHelper::findViewTemplate($productCategory->getViewSuggestions());
 
         return view($view_name, [
             'productCategory' => $productCategory,
             'products' => $products,
+            'options' => $options,
             'seoModel' => $productCategory
         ]);
     }

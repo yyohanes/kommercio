@@ -163,13 +163,13 @@ return [
         /*
          * Application Service Providers...
          */
-        Project\ProjectServiceProvider::class,
         Kommercio\Providers\AppServiceProvider::class,
         Kommercio\Providers\AuthServiceProvider::class,
         Kommercio\Providers\EventServiceProvider::class,
         Kommercio\Providers\RouteServiceProvider::class,
         Kommercio\Providers\BackendServiceProvider::class,
         Kommercio\Providers\FrontendServiceProvider::class,
+        Project\ProjectServiceProvider::class,
     ],
 
     /*
@@ -220,6 +220,7 @@ return [
         'HTML' => \Collective\Html\HtmlFacade::class,
         'Excel' => \Maatwebsite\Excel\Facades\Excel::class,
         'NavigationHelper' => \Kommercio\Facades\NavigationHelper::class,
+        'Shortcode' => \Kommercio\Facades\Shortcode::class,
         'ProjectHelper' => \Kommercio\Facades\ProjectHelper::class,
         'CurrencyHelper' => \Kommercio\Facades\CurrencyHelper::class,
         'GlideImage' => Spatie\Glide\GlideImageFacade::class,

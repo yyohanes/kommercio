@@ -78,6 +78,10 @@ return [
     'url'                  => 'The :attribute format is invalid.',
 
     'product_attributes' => 'Attributes combination already exist.',
+    'is_available' => ':product is not available.',
+    'is_active' => ':product is not available.',
+    'is_in_stock' => ':product is out of stock.',
+    'is_purchaseable' => ':product is not available for purchase.',
 
     /*
     |--------------------------------------------------------------------------

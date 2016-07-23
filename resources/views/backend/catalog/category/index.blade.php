@@ -31,7 +31,7 @@
                     <span class="caption-subject sbold uppercase"> {{ $parentCategory?$parentCategory->name:'Categories' }} </span>
                 </div>
                 <div class="actions">
-                    @can('create_product_category')
+                    @can('access', ['create_product_category'])
                     <a href="{{ route('backend.catalog.category.create', ['parent_id' => $parentCategory?$parentCategory->id:null, 'backUrl' => Request::fullUrl()]) }}" class="btn btn-sm btn-info">
                         <i class="fa fa-plus"></i> Add </a>
                     @endcan
@@ -53,7 +53,7 @@
                     @foreach($categories as $category)
                         <tr>
                             <td>
-                                @can('edit_product_category')
+                                @can('access', ['edit_product_category'])
                                 <i class="fa fa-reorder"></i>
                                 @endcan
                                 <a class="category-name btn btn-sm blue-madison" data-category_id="{{ $category->id }}" href="{{ route('backend.catalog.category.index', ['parent' => $category->id]) }}">{{ $category->name }} (ID: {{ $category->id }})</a></td>

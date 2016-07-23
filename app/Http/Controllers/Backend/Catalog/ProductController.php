@@ -176,6 +176,11 @@ class ProductController extends Controller{
 
         $message = 'New product '.$product->name.' is successfully created.';
 
+        //Cross Sell
+        foreach($request->input('cross_sell_product', []) as $idx=>$crossSellProduct){
+            $product->crossSellTo()->attach($crossSellProduct, ['type' => 'cross_sell', 'sort_order' => $idx]);
+        }
+
         if($request->get('action') == 'save_stay'){
             return redirect()->route('backend.catalog.product.edit', ['id' => $product->id])->with('success', [$message]);
         }else{
@@ -291,6 +296,12 @@ class ProductController extends Controller{
             }
         }
         $product->productFeatureValues()->sync($syncFeatures);
+
+        //Cross Sell
+        $product->crossSellTo()->detach();
+        foreach($request->input('cross_sell_product', []) as $idx=>$crossSellProduct){
+            $product->crossSellTo()->attach($crossSellProduct, ['type' => 'cross_sell', 'sort_order' => $idx]);
+        }
 
         //Inventory
         if($product->variations->count() > 0){
@@ -616,7 +627,17 @@ class ProductController extends Controller{
         $search = $request->get('query', '');
 
         if(!empty($search)){
-            $qb = Product::productSelection()->joinTranslation()->joinDetail()->selectSelf();
+            $qb = Product::selectSelf()->joinTranslation()->joinDetail();
+
+            if($request->input('entity_only') == '1'){
+                $qb->productEntity();
+            }else{
+                $qb->productSelection();
+            }
+
+            if($request->input('exclude', null)){
+                $qb->where('products.id', '<>', $request->input('exclude'));
+            }
 
             if(!$request->user()->can('access', ['add_unavailable_product'])){
                 $qb->where('D.available', 1)->where('D.active', 1);
@@ -644,6 +665,21 @@ class ProductController extends Controller{
         }
 
         return response()->json(['data' => $return, '_token' => csrf_token()]);
+    }
+
+    public function getRelatedProduct($id, $type)
+    {
+        $product = Product::findOrFail($id);
+
+        $return = view('backend.catalog.product.product_relation_result', [
+            'product' => $product,
+            'relation' => $type
+        ])->render();
+
+        return new JsonResponse([
+            'data' => $return,
+            '_token' => csrf_token()
+        ]);
     }
 
     public function availability(Request $request, $id)

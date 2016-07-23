@@ -4,6 +4,7 @@ namespace Kommercio\Validator;
 
 use Illuminate\Validation\Validator;
 use Kommercio\Models\Product;
+use Symfony\Component\Translation\TranslatorInterface;
 
 class CustomValidator extends Validator
 {
@@ -42,6 +43,11 @@ class CustomValidator extends Validator
         return $product->productDetail->active;
     }
 
+    public function replaceIsActive($message, $attribute, $rule, $parameters)
+    {
+        return $this->replaceProductAttribute($message, $attribute, $rule, $parameters);
+    }
+
     public function validateIsAvailable($attribute, $value, $parameters)
     {
         $product_id = $value;
@@ -51,6 +57,11 @@ class CustomValidator extends Validator
         return $product->productDetail->available;
     }
 
+    public function replaceIsAvailable($message, $attribute, $rule, $parameters)
+    {
+        return $this->replaceProductAttribute($message, $attribute, $rule, $parameters);
+    }
+
     public function validateIsPurchaseable($attribute, $value, $parameters)
     {
         $product_id = $value;
@@ -58,5 +69,33 @@ class CustomValidator extends Validator
         $product = Product::findOrFail($product_id);
 
         return $product->isPurchaseable;
+    }
+
+    public function replaceIsPurchaseable($message, $attribute, $rule, $parameters)
+    {
+        return $this->replaceProductAttribute($message, $attribute, $rule, $parameters);
+    }
+
+    public function validateIsInStock($attribute, $value, $parameters)
+    {
+        $product_id = $value;
+        $amount = $parameters[0];
+
+        $product = Product::findOrFail($product_id);
+
+        return $product->checkStock($amount);
+    }
+
+    public function replaceIsInStock($message, $attribute, $rule, $parameters)
+    {
+        return $this->replaceProductAttribute($message, $attribute, $rule, $parameters);
+    }
+
+    protected function replaceProductAttribute($message, $attribute, $rule, $parameters)
+    {
+        $product_id = $this->getValue($attribute);
+        $product = Product::findOrFail($product_id);
+
+        return str_replace(':product', $product->name, $message);
     }
 }

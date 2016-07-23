@@ -26,6 +26,42 @@ var ProductForm = function () {
         $currentCheckbox = $(this).val();
     });
 
+    var handleProductRelation = function(){
+        $('.product-relation-finder', '#tab_related').each(function(idx, obj){
+            var $productRelationZone = $('#' + $(obj).data('product_relation_type') + '-products');
+            $productRelationZone.sortable({
+                placeholder: '<div class="col-md-3 product-item"></div>'
+            });
+
+            $(obj).bind('typeahead:select', function(e, suggestion){
+                $(obj).typeahead('val','');
+
+                $.ajax(global_vars.get_related_product + '/' + suggestion.id + '/' + $(obj).data('product_relation_type'), {
+                    method: 'GET',
+                    success: function(data){
+                        if($('#' + $(obj).data('product_relation_type') + '-products').find('[data-product_id="'+suggestion.id+'"]').length < 1){
+                            var $loaded = $(data.data);
+                            $('#' + $(obj).data('product_relation_type') + '-products').append($loaded);
+
+                            handleLoadedProductRelation($loaded);
+                            $productRelationZone.sortable('reload');
+                        }
+                    }
+                });
+            });
+
+            handleLoadedProductRelation($('#' + $(obj).data('product_relation_type') + '-products'));
+        });
+    }
+
+    var handleLoadedProductRelation = function(context){
+        $('.product-item-remove', context).on('click', function(e){
+            e.preventDefault();
+
+            $(this).parent().remove();
+        });
+    }
+
     return {
 
         //main function to initiate the module
@@ -50,6 +86,8 @@ var ProductForm = function () {
             refreshDefaultCategory();
 
             categoriesCheckbox();
+
+            handleProductRelation();
 
             variationFormBehaviors.init();
         }

@@ -118,7 +118,7 @@ class ProjectHelper
     }
 
     //Configs
-    public function saveConfig($key, $value)
+    public function saveSiteConfig($key, $value)
     {
         $configVariable = ConfigVariable::find($key);
 
@@ -134,7 +134,7 @@ class ProjectHelper
         return $configVariable;
     }
 
-    public function getConfig($key)
+    public function getSiteConfig($key)
     {
         $configVariable = ConfigVariable::find($key);
 
@@ -143,5 +143,10 @@ class ProjectHelper
         }
 
         return $configVariable->value;
+    }
+
+    public function getConfig($key, $default = null)
+    {
+        return config('project.'.$key, config('kommercio.'.$key, $default));
     }
 }

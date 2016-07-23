@@ -43,6 +43,11 @@ return [
         'backend/assets/images/login/bg2.jpg'
     ],
     'kommercio_api_token' => 'dGgzzOB5vbWOQXAJmvCjky3qmVY7LzpqX29DxWqLb6gmKyqfwJL7J2TveCeQ',
+    'catalog' => [
+        'limit' => 20,
+        'sort_by' => 'order',
+        'sort_dir' => 'ASC',
+    ],
     'order_process_condition' => [
         'processing' => [
             'status' => ['pending'],

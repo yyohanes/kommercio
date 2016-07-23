@@ -54,6 +54,11 @@ class EventServiceProvider extends ServiceProvider
         if(file_exists(base_path('packages/project/src/Project/Listeners/CatalogQueryBuilderListener.php'))){
             $this->listen['Kommercio\Events\CatalogQueryBuilder'][] = 'Project\Project\Listeners\CatalogQueryBuilderListener';
         }
+
+        //Reverse listeners so Project goes first
+        foreach($this->listen as $eventName => $listener){
+            $this->listen[$eventName] = array_reverse($this->listen[$eventName]);
+        }
     }
 
     /**

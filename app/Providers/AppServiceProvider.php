@@ -15,6 +15,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+        $this->app->singleton('shortcode_manager', '\Maiorano\Shortcodes\Manager\ShortcodeManager');
         $this->app->singleton('project_helper', 'Kommercio\Helpers\ProjectHelper');
         $this->app->singleton('currency_helper', 'Kommercio\Helpers\CurrencyHelper');
         $this->app->singleton('price_formatter', 'Kommercio\Helpers\PriceFormatter');

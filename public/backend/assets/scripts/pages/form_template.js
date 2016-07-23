@@ -491,7 +491,7 @@ var formBehaviors = function(){
                 datumTokenizer: Bloodhound.tokenizers.whitespace($(obj).data('typeahead_label')),
                 queryTokenizer: Bloodhound.tokenizers.whitespace,
                 remote: {
-                    url: $(obj).data('typeahead_remote') + '?query=%QUERY',
+                    url: $(obj).data('typeahead_remote') + '?query=%QUERY' + ($(obj).data('typeahead_additional_query')?$(obj).data('typeahead_additional_query'):''),
                     wildcard: '%QUERY',
                     transform: function(response){
                         return response.data;

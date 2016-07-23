@@ -259,6 +259,12 @@ Route::group(['middleware' => ['web']], function () {
                         'permissions' => ['view_product']
                     ]);
 
+                    Route::get('get-related-product/{id?}/{type?}', [
+                        'as' => 'backend.catalog.product.get_related',
+                        'uses' => 'ProductController@getRelatedProduct',
+                        'permissions' => ['view_product']
+                    ]);
+
                     Route::post('availability/{id}', [
                         'as' => 'backend.catalog.product.availability',
                         'uses' => 'ProductController@availability',

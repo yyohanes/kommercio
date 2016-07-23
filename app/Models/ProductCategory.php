@@ -27,6 +27,17 @@ class ProductCategory extends Model implements UrlAliasInterface
         return $this->name.($this->parent?' ('.$this->parent->name.')':'');
     }
 
+    public function hasProduct($product)
+    {
+        if(!is_int($product)){
+            $product_id = $product;
+        }
+
+        $product_id = $product->id;
+
+        return $this->products()->where('id', $product_id)->count() > 0;
+    }
+
     public function getUrlAlias()
     {
         $paths = [];

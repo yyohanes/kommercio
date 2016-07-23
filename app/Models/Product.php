@@ -116,6 +116,16 @@ class Product extends Model implements UrlAliasInterface
         return $this->morphToMany('Kommercio\Models\Order\OrderLimit', 'order_limitable');
     }
 
+    public function crossSellTo()
+    {
+        return $this->belongsToMany('Kommercio\Models\Product', 'related_products', 'product_id', 'target_id')->withPivot(['sort_order', 'type'])->orderBy('sort_order', 'ASC')->wherePivot('type', 'cross_sell');
+    }
+
+    public function crossSellBy()
+    {
+        return $this->belongsToMany('Kommercio\Models\Product', 'related_products', 'target_id', 'product_id')->withPivot(['sort_order', 'type'])->orderBy('sort_order', 'ASC')->wherePivot('type', 'cross_sell');
+    }
+
     //Methods
     public function getExternalPath()
     {
@@ -153,6 +163,7 @@ class Product extends Model implements UrlAliasInterface
         $defaultCategory = $this->defaultCategory;
 
         $breadcrumbs = $defaultCategory->getBreadcrumbTrails();
+        $breadcrumbs[] = $defaultCategory;
 
         return $breadcrumbs;
     }
@@ -165,6 +176,31 @@ class Product extends Model implements UrlAliasInterface
     public function hasThumbnail()
     {
         return $this->thumbnails->count() > 0;
+    }
+
+    public function hasCategory($category)
+    {
+        if(is_int($category)){
+            foreach($this->categories as $categoryObj){
+                if($categoryObj->id == $category){
+                    return true;
+                }
+            }
+        }elseif(is_string($category)){
+            foreach($this->categories as $categoryObj){
+                if($categoryObj->slug == $category){
+                    return true;
+                }
+            }
+        }else{
+            foreach($this->categories as $categoryObj){
+                if($categoryObj->id == $category->id){
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     public function getRetailPrice()
@@ -223,7 +259,7 @@ class Product extends Model implements UrlAliasInterface
             return FALSE;
         }
 
-        return $this->getRetailPrice() - $this->getNetPrice();
+        return $this->getRetailPrice();
     }
 
     public function getProductAttributeWithValues()
@@ -305,10 +341,6 @@ class Product extends Model implements UrlAliasInterface
     {
         $productDetail = $this->productDetail;
 
-        if(!$productDetail->manage_stock){
-            return TRUE;
-        }
-
         if(!$warehouse_id){
             $defaultWarehouse = $this->store->getDefaultWarehouse();
             $warehouse_id = $defaultWarehouse?$defaultWarehouse->id:null;
@@ -317,8 +349,10 @@ class Product extends Model implements UrlAliasInterface
         if($productDetail->manage_stock && $warehouse_id){
             $existingStock = $this->getStock($warehouse_id);
 
-            return $existingStock - $amount + 0;
+            return $existingStock - $amount >= 0;
         }
+
+        return TRUE;
     }
 
     public function increaseStock($amount, $warehouse_id=null)

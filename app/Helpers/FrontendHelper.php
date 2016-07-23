@@ -34,6 +34,15 @@ class FrontendHelper
         return url($path, $params, $secure);
     }
 
+    public function getCurrentUrlWithQuery($query = [])
+    {
+        $path = RequestFacade::path();
+
+        $query = array_merge(RequestFacade::query(), $query);
+
+        return $this->get_url($path).(!empty($query)?'?'.http_build_query($query):'');
+    }
+
     public function get_home_url()
     {
         //$homePath = config('project.home_uri');
