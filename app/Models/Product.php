@@ -15,6 +15,7 @@ use Kommercio\Models\Order\Order;
 use Kommercio\Models\Order\OrderLimit;
 use Kommercio\Models\ProductAttribute\ProductAttributeValue;
 use Kommercio\Traits\Model\SeoTrait;
+use Kommercio\Facades\PriceFormatter;
 
 class Product extends Model implements UrlAliasInterface
 {
@@ -37,7 +38,9 @@ class Product extends Model implements UrlAliasInterface
     private $_store;
     private $_productDetail;
     private $_retailPrice;
+    private $_retailPriceWithTax;
     private $_netPrice;
+    private $_netPriceWithTax;
 
     public $translatedAttributes = ['name', 'description_short', 'description', 'slug', 'meta_title', 'meta_description', 'locale', 'thumbnail', 'thumbnails', 'images'];
 
@@ -203,7 +206,7 @@ class Product extends Model implements UrlAliasInterface
         return false;
     }
 
-    public function getRetailPrice()
+    public function getRetailPrice($tax = false)
     {
         if(!isset($this->_retailPrice)){
             if($this->combination_type == self::COMBINATION_TYPE_VARIATION){
@@ -223,10 +226,18 @@ class Product extends Model implements UrlAliasInterface
             $this->_retailPrice = $price;
         }
 
-        return $this->_retailPrice;
+        if(!isset($this->_retailPriceWithTax)){
+            if($this->productDetail->taxable){
+                $this->_retailPriceWithTax = $this->_retailPrice + $this->calculateTax($this->_retailPrice);
+            }else{
+                $this->_retailPriceWithTax = $this->_retailPrice;
+            }
+        }
+
+        return $tax?$this->_retailPriceWithTax:$this->_retailPrice;
     }
 
-    public function getNetPrice()
+    public function getNetPrice($tax = false)
     {
         if(!isset($this->_netPrice)){
             $catalogPriceRules = $this->getCatalogPriceRules();
@@ -250,16 +261,24 @@ class Product extends Model implements UrlAliasInterface
             $this->_netPrice = $price;
         }
 
-        return $this->_netPrice;
+        if(!isset($this->_netPriceWithTax)){
+            if($this->productDetail->taxable){
+                $this->_netPriceWithTax = $this->_netPrice + $this->calculateTax($this->_netPrice);
+            }else{
+                $this->_netPriceWithTax = $this->_netPrice;
+            }
+        }
+
+        return $tax?$this->_netPriceWithTax:$this->_netPrice;
     }
 
-    public function getOldPrice()
+    public function getOldPrice($tax = false)
     {
-        if($this->getRetailPrice() - $this->getNetPrice() == 0){
+        if($this->getRetailPrice($tax) - $this->getNetPrice($tax) == 0){
             return FALSE;
         }
 
-        return $this->getRetailPrice();
+        return $this->getRetailPrice($tax);
     }
 
     public function getProductAttributeWithValues()
@@ -318,6 +337,28 @@ class Product extends Model implements UrlAliasInterface
         }
 
         return $array;
+    }
+
+    protected function calculateTax($price)
+    {
+        $taxTotal = 0;
+        $taxes = $this->store->getTaxes();
+
+        foreach($taxes as $tax){
+            $taxValue = [
+                'net' => 0,
+                'gross' => 0,
+                'rate_total' => 0
+            ];
+
+            $taxValue['gross'] = PriceFormatter::round($tax->calculateTax($price));
+            $taxValue['net'] = PriceFormatter::round($taxValue['gross']);
+            $taxValue['rate_total'] += $tax->rate;
+
+            $taxTotal += $taxValue['net'];
+        }
+
+        return $taxTotal;
     }
 
     public function getStock($warehouse_id=null)

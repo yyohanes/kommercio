@@ -42,7 +42,6 @@
                     <tr>
                         <th>Name</th>
                         <th>Machine Name</th>
-                        <th>Body</th>
                         <th style="width: 10%;">Active</th>
                         <th style="width: 20%;">Action</th>
                     </tr>
@@ -52,7 +51,6 @@
                         <tr>
                             <td>{{ $block->name }}</td>
                             <td>{{ $block->machine_name }}</td>
-                            <td>{!! $block->body !!}</td>
                             <td><i class="fa fa-{{ $block->active?'check text-success':'remove text-danger' }}"></i></td>
                             <td class="text-center">
                                 {!! Form::open(['route' => ['backend.cms.block.delete', 'id' => $block->id]]) !!}

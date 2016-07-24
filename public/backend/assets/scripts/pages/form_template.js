@@ -23,6 +23,11 @@ var formBehaviors = function(){
                         //the function is called before the text is really pasted.
                         updatePastedText($(obj));
                     }, 100);
+                },
+                onImageUpload: function(files, editor, welEditable) {
+                    for (var i = files.length - 1; i >= 0; i--) {
+                        sendFile(files[i], this);
+                    }
                 }
             });
 
@@ -59,6 +64,29 @@ var formBehaviors = function(){
 
             return output;
         }
+    }
+
+    //create record for attachment
+    function sendFile(file, el) {
+        data = new FormData();
+        data.append("image", file);
+        $.ajax({
+            type: "POST",
+            url: global_vars.summernote_image_upload_path,
+            data: data,
+            cache: false,
+            contentType: false,
+            processData: false,
+            dataType: 'json',
+            success: function(response) {
+                $(el).summernote('editor.insertImage', response.image_url, response.filename);
+            },
+            error : function(error) {
+                alert('error upload image');
+            },
+            complete : function(response) {
+            }
+        });
     }
 
     var handleSelects = function(context){

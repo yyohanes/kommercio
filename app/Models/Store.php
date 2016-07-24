@@ -26,6 +26,15 @@ class Store extends Model
         return $warehouse;
     }
 
+    public function getTaxes()
+    {
+        $taxes = Tax::getTaxes([
+            'store_id' => $this->id,
+        ]);
+
+        return $taxes;
+    }
+
     //Static
     public static function getTypeOptions($option=null)
     {

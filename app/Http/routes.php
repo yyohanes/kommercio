@@ -138,6 +138,11 @@ Route::group(['middleware' => ['web']], function () {
                     'as' => 'backend.file.upload',
                     'uses' => 'FileController@upload'
                 ]);
+
+                Route::post('summernote-image-upload', [
+                    'as' => 'backend.file.summernote_image_upload',
+                    'uses' => 'FileController@summernoteImageUpload'
+                ]);
             });
 
             //Catalog

@@ -2,9 +2,11 @@
 
 namespace Kommercio\Http\Controllers\Backend;
 
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Kommercio\Http\Controllers\Controller;
 use Kommercio\Models\File;
+use Kommercio\Models\Media;
 
 class FileController extends Controller{
     public function upload(Request $request)
@@ -32,6 +34,30 @@ class FileController extends Controller{
         return response()->json([
             'files' => $uploadedFiles
         ]);
+    }
+
+    public function summernoteImageUpload(Request $request)
+    {
+        $rules = [
+            'image' => 'required|image|max:'.File::MAXIMUM_SIZE
+        ];
+
+        $this->validate($request, $rules);
+
+        $file = $request->file('image');
+        $uploadFile = new Media();
+
+        if($uploadFile->saveFile($file, TRUE, 'editor')){
+            $baseUrl = $request->getBaseUrl();
+
+            return new JsonResponse([
+                'image_url' => (empty($baseUrl)?'/':$baseUrl).$uploadFile->getImagePath('original'),
+                'filename' => $uploadFile->filename,
+                'id' => $uploadFile->id
+            ]);
+        }else{
+            return response('Image uploade failed.', 422);
+        }
     }
 
     public function getRules(Request $request, $type)

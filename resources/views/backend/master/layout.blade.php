@@ -232,6 +232,7 @@ License: You must have a valid license purchased only from themeforest(the above
         base_path: '{{ url('/') }}',
         images_path: '{{ config('kommercio.images_path') }}',
         asset_path: '{{ asset('/backend/assets') }}',
+        summernote_image_upload_path: '{{ route('backend.file.summernote_image_upload') }}',
         max_upload_size: {{ ProjectHelper::getMaxUploadSize() }},
         default_currency: '{{ CurrencyHelper::getCurrentCurrency()['code'] }}',
         currencies: {!! json_encode(CurrencyHelper::getActiveCurrencies()) !!},
