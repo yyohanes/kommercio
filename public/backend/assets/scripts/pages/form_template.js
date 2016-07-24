@@ -11,22 +11,27 @@ var formBehaviors = function(){
         $('.summernote-editor', context).each(function(idx, obj){
             $(obj).summernote({
                 height: ($(obj).data('height') === undefined)?200:$(obj).data('height'),
-                disableDragAndDrop: true,
-                onPaste: function(e){
-                    var updatePastedText = function(someNote){
-                        var original = someNote.code();
-                        var cleaned = CleanPastedHTML(original); //this is where to call whatever clean function you want. I have mine in a different file, called CleanPastedHTML.
-                        someNote.code(cleaned); //this sets the displayed content editor to the cleaned pasted code.
-                    };
-                    setTimeout(function () {
-                        //this kinda sucks, but if you don't do a setTimeout,
-                        //the function is called before the text is really pasted.
-                        updatePastedText($(obj));
-                    }, 100);
-                },
-                onImageUpload: function(files, editor, welEditable) {
-                    for (var i = files.length - 1; i >= 0; i--) {
-                        sendFile(files[i], this);
+                callbacks: {
+                    onInit: function(e){
+                        //Remove annoying uniform checkbox on link popup
+                        e.editor.find('input[type="checkbox"]').addClass('toggle').parent().wrap('<div class="form-group"/>');
+                    },
+                    onPaste: function(e){
+                        var updatePastedText = function(someNote){
+                            var original = someNote.code();
+                            var cleaned = CleanPastedHTML(original); //this is where to call whatever clean function you want. I have mine in a different file, called CleanPastedHTML.
+                            someNote.code(cleaned); //this sets the displayed content editor to the cleaned pasted code.
+                        };
+                        setTimeout(function () {
+                            //this kinda sucks, but if you don't do a setTimeout,
+                            //the function is called before the text is really pasted.
+                            updatePastedText($(obj));
+                        }, 100);
+                    },
+                    onImageUpload: function(files) {
+                        for (var i = files.length - 1; i >= 0; i--) {
+                            sendFile(files[i], this);
+                        }
                     }
                 }
             });

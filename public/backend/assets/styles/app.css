@@ -1,10 +1,10 @@
 /* line 2, sass/app.scss */
-.side-margin-0 {
+.side-margin-0, .note-editor {
   margin-left: 0 !important;
   margin-right: 0 !important;
 }
 /* line 6, sass/app.scss */
-.side-margin-0 .form-group {
+.side-margin-0 .form-group, .note-editor .form-group {
   margin-left: 0 !important;
   margin-right: 0 !important;
 }
