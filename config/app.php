@@ -167,9 +167,9 @@ return [
         Kommercio\Providers\AuthServiceProvider::class,
         Kommercio\Providers\EventServiceProvider::class,
         Kommercio\Providers\RouteServiceProvider::class,
+        Project\ProjectServiceProvider::class,
         Kommercio\Providers\BackendServiceProvider::class,
         Kommercio\Providers\FrontendServiceProvider::class,
-        Project\ProjectServiceProvider::class,
     ],
 
     /*

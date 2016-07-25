@@ -124,12 +124,14 @@ if(config('project.enable_delivery_date', false)){
         'name' => 'Delivery',
         'route' => 'backend.report.delivery',
         'permissions' => 'view_delivery_report',
+        'active_path' => 'report/delivery',
     ];
 
     $menus['report']['children']['production_schedule'] = [
         'name' => 'Production Schedule',
         'route' => 'backend.report.production_schedule',
         'permissions' => 'view_production_schedule',
+        'active_path' => 'report/production-schedule',
     ];
 }
 
