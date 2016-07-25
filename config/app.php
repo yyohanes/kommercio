@@ -52,7 +52,7 @@ return [
     |
     */
 
-    'timezone' => env('timezone', 'Asia/Jakarta'),
+    'timezone' => env('TIMEZONE', 'Asia/Jakarta'),
 
     /*
     |--------------------------------------------------------------------------
