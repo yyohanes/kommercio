@@ -50,7 +50,7 @@ class LineItem extends Model
 
     public function calculateSubtotal()
     {
-        return round($this->base_price * $this->quantity, config('project.line_item_total_precision'));
+        return round($this->net_price * $this->quantity, config('project.line_item_total_precision'));
     }
 
     public function calculateSubtotalWithTax()
