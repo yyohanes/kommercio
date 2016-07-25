@@ -54,6 +54,12 @@ class CatalogController extends Controller
     {
         $product = Product::findOrFail($id);
 
+        $defaultVariation = null;
+        //If variable, select first $variation
+        if($product->combination_type = Product::COMBINATION_TYPE_VARIABLE){
+            $defaultVariation = $product->getDefaultVariation();
+        }
+
         if(!$product->productDetail->active){
             return redirect()->back()->withErrors([trans(LanguageHelper::getTranslationKey('frontend.product.not_active'))]);
         }
@@ -62,6 +68,7 @@ class CatalogController extends Controller
 
         return view($view_name, [
             'product' => $product,
+            'defaultVariation' => $defaultVariation,
             'seoModel' => $product
         ]);
     }

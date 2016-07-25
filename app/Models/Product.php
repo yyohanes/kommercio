@@ -14,12 +14,13 @@ use Kommercio\Models\Order\LineItem;
 use Kommercio\Models\Order\Order;
 use Kommercio\Models\Order\OrderLimit;
 use Kommercio\Models\ProductAttribute\ProductAttributeValue;
+use Kommercio\Traits\Frontend\ProductHelper as FrontendProductHelper;
 use Kommercio\Traits\Model\SeoTrait;
 use Kommercio\Facades\PriceFormatter;
 
 class Product extends Model implements UrlAliasInterface
 {
-    use SoftDeletes, Translatable, SeoTrait;
+    use SoftDeletes, Translatable, SeoTrait, FrontendProductHelper;
 
     const TYPE_DEFAULT = 'default';
 
@@ -446,6 +447,19 @@ class Product extends Model implements UrlAliasInterface
 
     public function getSpecificPriceRules($is_discount = NULL)
     {
+        //Get parent all attributes price rules if variation
+        if($this->combination_type == self::COMBINATION_TYPE_VARIATION){
+            $qb = $this->parent->priceRules()->whereNull('variation_id')->active();
+
+            if($is_discount === TRUE){
+                $qb->isDiscount();
+            }elseif($is_discount === FALSE){
+                $qb->isNotDiscount();
+            }
+
+            $parentPriceRules = $qb->get();
+        }
+
         $qb = $this->priceRules()->active();
 
         if($is_discount === TRUE){
@@ -454,7 +468,13 @@ class Product extends Model implements UrlAliasInterface
             $qb->isNotDiscount();
         }
 
-        return $qb->get();
+        $priceRules = $qb->get();
+
+        if(isset($parentPriceRules)){
+            $priceRules = $priceRules->merge($parentPriceRules);
+        }
+
+        return $priceRules;
     }
 
     public function getCatalogPriceRules()

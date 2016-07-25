@@ -3,7 +3,6 @@
 namespace Project;
 
 use Illuminate\Support\ServiceProvider;
-use Project\Project\ServiceProviderBridge;
 
 class ProjectServiceProvider extends ServiceProvider
 {
@@ -17,7 +16,9 @@ class ProjectServiceProvider extends ServiceProvider
         $this->loadViewsFrom(__DIR__.'/Project/views', 'project');
         $this->loadTranslationsFrom(__DIR__.'/Project/translations', 'project');
 
-        ServiceProviderBridge::onBoot($this->app);
+        if(file_exists(base_path('packages/project/src/Project/ServiceProviderBridge.php'))){
+            \Project\Project\ServiceProviderBridge::onBoot($this->app);
+        }
     }
 
     /**
@@ -35,7 +36,9 @@ class ProjectServiceProvider extends ServiceProvider
             __DIR__.'/Project/config/currency.php', 'project'
         );
 
-        ServiceProviderBridge::onRegister($this->app);
+        if(file_exists(base_path('packages/project/src/Project/ServiceProviderBridge.php'))) {
+            \Project\Project\ServiceProviderBridge::onRegister($this->app);
+        }
 
         include_once __DIR__.'/Project/routes.php';
     }

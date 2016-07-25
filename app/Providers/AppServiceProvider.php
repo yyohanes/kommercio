@@ -4,6 +4,7 @@ namespace Kommercio\Providers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\ServiceProvider;
+use Kommercio\Shortcode\VariableShortcode;
 use Kommercio\Validator\CustomValidator;
 
 class AppServiceProvider extends ServiceProvider
@@ -30,6 +31,9 @@ class AppServiceProvider extends ServiceProvider
         {
             return new CustomValidator($translator, $data, $rules, $messages);
         });
+
+        //Register shortcode
+        $this->app['shortcode_manager']->register(new VariableShortcode());
     }
 
     /**
