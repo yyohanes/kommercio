@@ -487,9 +487,10 @@ class OrderController extends Controller{
             if(config('project.print_format', config('kommercio.print_format')) == 'xls'){
                 Excel::create('Delivery Note #'.$order->reference, function($excel) use ($order) {
                     $excel->setDescription('Delivery Note #'.$order->reference);
-                    $excel->sheet('Sheet 1', function($sheet) use ($order){
-                        $sheet->loadView(ProjectHelper::getViewTemplate('print.order.delivery_note'), [
-                            'order' => $order
+                    $excel->sheet('Sheet 1', function($sheet) use ($order, $excel){
+                        $sheet->loadView(ProjectHelper::getViewTemplate('print.excel.order.delivery_note'), [
+                            'order' => $order,
+                            'excel' => $excel
                         ]);
                     });
                 })->download('xls');
@@ -505,9 +506,10 @@ class OrderController extends Controller{
         if(config('project.print_format', config('kommercio.print_format')) == 'xls'){
             Excel::create('Invoice #'.$order->reference, function($excel) use ($order) {
                 $excel->setDescription('Invoice #'.$order->reference);
-                $excel->sheet('Sheet 1', function($sheet) use ($order){
-                    $sheet->loadView(ProjectHelper::getViewTemplate('print.order.invoice'), [
-                        'order' => $order
+                $excel->sheet('Sheet 1', function($sheet) use ($order, $excel){
+                    $sheet->loadView(ProjectHelper::getViewTemplate('print.excel.order.invoice'), [
+                        'order' => $order,
+                        'excel' => $excel
                     ]);
                 });
             })->download('xls');

@@ -31,6 +31,11 @@ class Kernel extends ConsoleKernel
 
         //Run minute task
         $schedule->call(function(){
+            Event::fire(new CronEvent('minute'));
+        })->name('every-minute-task')->cron('* * * * * *')->withoutOverlapping();
+
+        //Run 15 mins task
+        $schedule->call(function(){
             Event::fire(new CronEvent('fifteen_minutes'));
         })->name('fifteen-minutes-task')->cron('*/15 * * * * *')->withoutOverlapping();
 
