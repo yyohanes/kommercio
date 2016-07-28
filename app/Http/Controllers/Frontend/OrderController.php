@@ -59,9 +59,13 @@ class OrderController extends Controller
         if(!$immediateJump){
             if($request->input('update_cart', 0) == 1){
                 $rules = [
-                    'products.*.id' => 'required|exists:products',
+                    'products.*.id' => 'required|exists:products,id,deleted_at,NULL|is_available|is_active|is_purchaseable',
                     'products.*.quantity' => 'required|integer|min:0'
                 ];
+
+                foreach($request->input('products', []) as $idx => $productLineItem){
+                    $rules['products.'.$idx.'.id'] = 'is_in_stock:'.$productLineItem['quantity'];
+                }
 
                 $this->validate($request, $rules);
 
@@ -121,7 +125,7 @@ class OrderController extends Controller
     public function addToCart(Request $request)
     {
         $rules = [
-            'product_id' => 'required|exists:products,id,deleted_at,NULL|is_available|is_active|is_in_stock|is_purchaseable',
+            'product_id' => 'required|exists:products,id,deleted_at,NULL|is_available|is_active|is_in_stock:'.$request->input('quantity').'|is_purchaseable',
             'quantity' => 'required|integer|min:0'
         ];
 
@@ -174,17 +178,17 @@ class OrderController extends Controller
             $shippingMethodOptions[$idx] = $shippingMethod['name'];
         }
 
-        $profileCountryOptions = AddressHelper::getCountryOptions();
-        $profileStateOptions = AddressHelper::getStateOptions($request->old('profile.country_id', count($profileCountryOptions) < 2?key($profileCountryOptions):null));
-        $profileCityOptions = AddressHelper::getCityOptions($request->old('profile.state_id'));
-        $profileDistrictOptions = AddressHelper::getDistrictOptions($request->old('profile.city_id'));
-        $profileAreaOptions = AddressHelper::getAreaOptions($request->old('profile.district_id'));
+        $profileCountryOptions = ['' => trans(LanguageHelper::getTranslationKey('order.address.select_country'))] + AddressHelper::getCountryOptions();
+        $profileStateOptions = ['' => trans(LanguageHelper::getTranslationKey('order.address.select_state'))] + AddressHelper::getStateOptions($request->old('profile.country_id', count($profileCountryOptions) < 3?key($profileCountryOptions):null));
+        $profileCityOptions = ['' => trans(LanguageHelper::getTranslationKey('order.address.select_city'))] + AddressHelper::getCityOptions($request->old('profile.state_id'));
+        $profileDistrictOptions = ['' => trans(LanguageHelper::getTranslationKey('order.address.select_district'))] + AddressHelper::getDistrictOptions($request->old('profile.city_id'));
+        $profileAreaOptions = ['' => trans(LanguageHelper::getTranslationKey('order.address.select_area'))] + AddressHelper::getAreaOptions($request->old('profile.district_id'));
 
-        $shippingCountryOptions = AddressHelper::getCountryOptions();
-        $shippingStateOptions = AddressHelper::getStateOptions($request->old('shipping_profile.country_id', count($shippingCountryOptions) < 2?key($shippingCountryOptions):null));
-        $shippingCityOptions = AddressHelper::getCityOptions($request->old('shipping_profile.state_id'));
-        $shippingDistrictOptions = AddressHelper::getDistrictOptions($request->old('shipping_profile.city_id'));
-        $shippingAreaOptions = AddressHelper::getAreaOptions($request->old('shipping_profile.district_id'));
+        $shippingCountryOptions = ['' => trans(LanguageHelper::getTranslationKey('order.address.select_country'))] + AddressHelper::getCountryOptions();
+        $shippingStateOptions = ['' => trans(LanguageHelper::getTranslationKey('order.address.select_state'))] + AddressHelper::getStateOptions($request->old('shipping_profile.country_id', count($shippingCountryOptions) < 3?key($shippingCountryOptions):null));
+        $shippingCityOptions = ['' => trans(LanguageHelper::getTranslationKey('order.address.select_city'))] + AddressHelper::getCityOptions($request->old('shipping_profile.state_id'));
+        $shippingDistrictOptions = ['' => trans(LanguageHelper::getTranslationKey('order.address.select_district'))] + AddressHelper::getDistrictOptions($request->old('shipping_profile.city_id'));
+        $shippingAreaOptions = ['' => trans(LanguageHelper::getTranslationKey('order.address.select_area'))] + AddressHelper::getAreaOptions($request->old('shipping_profile.district_id'));
 
         $oldValues = old();
 
@@ -201,7 +205,9 @@ class OrderController extends Controller
 
         return view($view_name, [
             'order' => $order,
+            'shippingMethods' => $shippingMethods,
             'shippingMethodOptions' => $shippingMethodOptions,
+            'paymentMethods' => $paymentMethods,
             'paymentMethodOptions' => $paymentMethodOptions,
             'profileCountryOptions' => $profileCountryOptions,
             'profileStateOptions' => $profileStateOptions,
@@ -334,8 +340,187 @@ class OrderController extends Controller
 
         if($request->input('order_update', 0) == 1){
             if($request->ajax()){
+                $renderData = view(ProjectHelper::getViewTemplate('frontend.order.checkout_summary'), ['order' => $order])->render();
+
                 return new JsonResponse([
-                    'data' => view(ProjectHelper::getViewTemplate('frontend.order.checkout_summary'), ['order' => $order])->render(),
+                    'data' => $renderData,
+                    '_token' => csrf_token()
+                ]);
+            }
+        }
+
+        return redirect()
+            ->back()
+            ->with('success', [isset($message)?$message:'']);
+    }
+
+    public function onePageCheckoutProcess(Request $request)
+    {
+        $ruleBook = [
+            'account' => [
+                'profile.email' => 'required|email'
+            ]
+        ];
+
+        $order = FrontendHelper::getCurrentOrder();
+
+        switch($request->input('process_type')){
+            case 'account':
+                $this->validate($request, $ruleBook['account']);
+
+                $customer = Customer::getByEmail($request->input('profile.email'));
+                if($customer->user){
+
+                }else{
+
+                }
+
+                break;
+            case 'billing_information':
+                break;
+            case 'shipping_information':
+                break;
+            case 'payment_method':
+                break;
+            case 'shipping_method':
+                break;
+            default:
+                return redirect()->back()->withErrors(['What?']);
+                break;
+        }
+
+        $order->notes = $request->input('notes');
+        $order->delivery_date = $request->input('delivery_date', null);
+        $order->payment_method_id = $request->input('payment_method', null);
+        $order->currency = $request->input('currency');
+        $order->conversion_rate = 1;
+        if($request->has('additional_fields')){
+            $order->additional_fields = $request->input('additional_fields');
+        }
+        $order->store()->associate(ProjectHelper::getActiveStore());
+        $order->save();
+
+        $order->saveProfile('billing', $request->input('profile'));
+        $order->saveProfile('shipping', $request->input('shipping_profile'));
+
+        //Process shipping
+        if($request->has('shipping_method')){
+            $order->updateShippingMethod($request->input('shipping_method'));
+        }
+
+        OrderHelper::processLineItems($request, $order, FALSE);
+
+        $order->load('lineItems');
+        $order->calculateTotal();
+
+        Event::fire(new OrderEvent('before_update_order', $order));
+
+        if($request->has('place_order')){
+            $rules = [
+                'profile.email' => 'required|email',
+                'profile.full_name' => 'required',
+                'profile.phone_number' => 'required',
+                'profile.address_1' => 'required',
+                'shipping_profile.email' => 'required|email',
+                'shipping_profile.full_name' => 'required',
+                'shipping_profile.phone_number' => 'required',
+                'shipping_profile.address_1' => 'required',
+                'shipping_method' => 'required',
+                'payment_method' => 'required'
+            ];
+
+            if(config('project.enable_delivery_date', FALSE)){
+                $rules['delivery_date'] = 'required|date_format:Y-m-d';
+            }
+
+            $originalStatus = $order->status;
+
+            Event::fire(new OrderEvent('built_frontend_rules', $order, ['rules' => &$rules]));
+
+            $this->validate($request, $rules);
+
+            $order->processStocks();
+
+            $this->placeOrder($order);
+
+            $profileData = $request->input('profile');
+
+            $customer = Customer::saveCustomer($profileData);
+
+            if($customer){
+                $order->customer()->associate($customer);
+            }
+
+            $order->save();
+
+            Event::fire(new OrderUpdate($order, $originalStatus, true));
+            Event::fire(new OrderEvent('customer_place_order', $order));
+
+            return redirect()
+                ->route('frontend.order.checkout.complete')
+                ->with('order_id', $order->id)
+                ->with('success', [trans(LanguageHelper::getTranslationKey('frontend.checkout.checkout_complete'))]);
+        }elseif($request->input('add_coupon', 0) == 1){
+            $rules = [
+                'coupon_code' => 'required'
+            ];
+
+            $this->validate($request, $rules);
+
+            $couponCode = $request->input('coupon_code', 'ERRORCOUPON');
+
+            $couponPriceRules = CartPriceRule::addCoupon($couponCode, $request, $order);
+
+            //If above method returns string, it is returning error message
+            if(is_string($couponPriceRules)){
+                return redirect()->back()->withErrors([
+                    'coupon_code' => [$couponPriceRules]
+                ]);
+            }
+
+            $coupon = CartPriceRule::getCouponByCode($couponCode);
+            $order->addCoupon($coupon);
+
+            $message = trans(LanguageHelper::getTranslationKey('frontend.order.coupon_added'));
+        }elseif($request->has('coupon_remove')){
+            $rules = [
+                'coupon_remove' => 'required|exists:cart_price_rules,id'
+            ];
+
+            $this->validate($request, $rules);
+
+            $coupon = CartPriceRule::findOrFail($request->input('coupon_remove'));
+            $order->removeCoupon($coupon);
+
+            $message = trans(LanguageHelper::getTranslationKey('frontend.order.coupon_removed'));
+        }
+
+        OrderHelper::processLineItems($request, $order, false);
+
+        $order->load('lineItems');
+        $order->calculateTotal();
+        $order->save();
+
+        if($request->input('order_update', 0) == 1){
+            if($request->ajax()){
+                switch($request->input('order_update_type')){
+                    case 'account':
+                        break;
+                    case 'billing_information':
+                        break;
+                    case 'shipping_information':
+                        break;
+                    case 'payment_method':
+                        break;
+                    case 'shipping_method':
+                        break;
+                    default:
+                        $renderData = view(ProjectHelper::getViewTemplate('frontend.order.checkout_summary'), ['order' => $order])->render();
+                        break;
+                }
+
+                return new JsonResponse([
+                    'data' => $renderData,
                     '_token' => csrf_token()
                 ]);
             }

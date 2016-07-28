@@ -50,14 +50,18 @@ class CatalogController extends Controller
         ]);
     }
 
-    public function viewProduct($id)
+    public function viewProduct(Request $request, $id)
     {
         $product = Product::findOrFail($id);
 
         $defaultVariation = null;
         //If variable, select first $variation
-        if($product->combination_type = Product::COMBINATION_TYPE_VARIABLE){
-            $defaultVariation = $product->getDefaultVariation();
+        if($product->combination_type == Product::COMBINATION_TYPE_VARIABLE){
+            if($request->has('variation')){
+                $defaultVariation = Product::findOrFail($request->get('variation'));
+            }else{
+                $defaultVariation = $product->getDefaultVariation();
+            }
         }
 
         if(!$product->productDetail->active){

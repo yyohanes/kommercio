@@ -8,8 +8,8 @@ return [
         'not_active' => 'This item is not accessible.'
     ],
     'order' => [
-        'added_to_cart' => ':product has been added to cart.',
-        'removed_from_cart' => ':product has been removed from cart.',
+        'added_to_cart' => '<span class="product-name">:product</span> has been added to cart.',
+        'removed_from_cart' => '<span class="product-name">:product</span> has been removed from cart.',
         'updated_cart' => 'Cart has been updated.',
         'coupon_added' => 'Coupon is successfully added.',
         'coupon_removed' => 'Coupon is successfully removed.',

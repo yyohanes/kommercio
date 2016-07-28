@@ -83,7 +83,9 @@ class Product extends Model implements UrlAliasInterface
 
     public function productAttributeValues()
     {
-        return $this->belongsToMany('Kommercio\Models\ProductAttribute\ProductAttributeValue', 'product_product_attribute')->withPivot(['product_attribute_id'])->orderBy('sort_order', 'ASC');
+        return $this->belongsToMany('Kommercio\Models\ProductAttribute\ProductAttributeValue', 'product_product_attribute')
+            ->withPivot(['product_attribute_id'])
+            ->orderBy('sort_order', 'ASC');
     }
 
     public function productFeatures()
@@ -172,11 +174,6 @@ class Product extends Model implements UrlAliasInterface
         return $breadcrumbs;
     }
 
-    public function getName()
-    {
-        return $this->name;
-    }
-
     public function hasThumbnail()
     {
         return $this->thumbnails->count() > 0;
@@ -199,6 +196,31 @@ class Product extends Model implements UrlAliasInterface
         }else{
             foreach($this->categories as $categoryObj){
                 if($categoryObj->id == $category->id){
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    public function hasProductAttribute($productAttribute)
+    {
+        if(is_int($productAttribute)){
+            foreach($this->productAttributes as $productAttributeObj){
+                if($productAttributeObj->id == $productAttribute){
+                    return true;
+                }
+            }
+        }elseif(is_string($productAttribute)){
+            foreach($this->productAttributes as $productAttributeObj){
+                if($productAttributeObj->slug == $productAttribute){
+                    return true;
+                }
+            }
+        }else{
+            foreach($this->productAttributes as $productAttributeObj){
+                if($productAttributeObj->id == $productAttribute->id){
                     return true;
                 }
             }
@@ -280,6 +302,51 @@ class Product extends Model implements UrlAliasInterface
         }
 
         return $this->getRetailPrice($tax);
+    }
+
+    public function getProductAttributeValue($attribute)
+    {
+        $productAttributeValue = null;
+
+        foreach($this->productAttributeValues as $productAttributeValue){
+            if($attribute == $productAttributeValue->product_attribute_id){
+                return $productAttributeValue;
+            }
+        }
+
+        return $productAttributeValue;
+    }
+
+    public function getSiblingByAttribute($attribute, $attributeValue)
+    {
+        if($this->combination_type == self::COMBINATION_TYPE_VARIATION){
+            $variations = $this->parent->variations;
+        }else{
+            $variations = $this->variations;
+        }
+
+        $sibling = null;
+
+        $compareableValues = [];
+
+        foreach($this->productAttributeValues as $productAttributeValue){
+            if($productAttributeValue->pivot->product_attribute_id != $attribute){
+                $compareableValues[] = $productAttributeValue->id;
+            }else{
+                $compareableValues[] = $attributeValue;
+            }
+        }
+
+        $compareableValuesCount = count($compareableValues);
+
+        foreach($variations as $variation){
+            if($variation->productDetail->active && count(array_intersect($compareableValues, $variation->productAttributeValues->pluck('id')->all())) == $compareableValuesCount){
+                $sibling = $variation;
+                break;
+            }
+        }
+
+        return $sibling;
     }
 
     public function getProductAttributeWithValues()

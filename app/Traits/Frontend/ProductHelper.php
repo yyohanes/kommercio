@@ -7,7 +7,17 @@ use Kommercio\Models\Product;
 
 trait ProductHelper
 {
-    //'width', 'length', 'depth', 'weight', 'thumbnail', 'images', 'thumbnails';
+    //'name', 'width', 'length', 'depth', 'weight', 'thumbnail', 'images', 'thumbnails';
+    public function getName()
+    {
+        $name = $this->name;
+
+        if($this->combination_type == Product::COMBINATION_TYPE_VARIATION){
+            $name = $this->parent->name;
+        }
+
+        return $name;
+    }
 
     public function getShortDescription()
     {
@@ -30,6 +40,32 @@ trait ProductHelper
         }
 
         return $variations;
+    }
+
+    public function getInStockVariations()
+    {
+        $return = [];
+
+        foreach($this->variations as $variation){
+            if($variation->checkStock(1)){
+                $return[] = $variation;
+            }
+        }
+
+        return $return;
+    }
+
+    public function isInStock()
+    {
+        $return = true;
+
+        if($this->combination_type == Product::COMBINATION_TYPE_VARIABLE){
+            return count($this->getInStockVariations()) > 0;
+        }else{
+            $return = $this->checkStock(1);
+        }
+
+        return $return;
     }
 
     public function getDefaultVariation()
@@ -114,5 +150,19 @@ trait ProductHelper
         }
 
         return $array;
+    }
+
+    public function getProductAttributeForPrint()
+    {
+        $return = [];
+
+        foreach($this->productAttributes as $productAttribute){
+            $return[] = [
+                'label' => $productAttribute->name,
+                'value' => $this->productAttributeValues->where('product_attribute_id', $productAttribute->id)->first()->name
+            ];
+        }
+
+        return $return;
     }
 }

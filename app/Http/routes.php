@@ -71,6 +71,11 @@ Route::group(['middleware' => ['web']], function () {
             'uses' => 'OrderController@checkoutProcess'
         ]);
 
+        Route::get('one-page-checkout/process', [
+            'as' => 'frontend.order.onepage_checkout.process',
+            'uses' => 'OrderController@onePageCheckoutProcess'
+        ]);
+
         Route::get('checkout/complete', [
             'as' => 'frontend.order.checkout.complete',
             'uses' => 'OrderController@checkoutComplete'
