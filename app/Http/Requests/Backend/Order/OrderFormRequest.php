@@ -28,11 +28,11 @@ class OrderFormRequest extends Request
             'profile.email' => 'required|email',
             'profile.full_name' => 'required',
             'profile.phone_number' => 'required',
-            'profile.address_1' => 'required',
+            //'profile.address_1' => 'required',
             'shipping_profile.email' => 'required|email',
             'shipping_profile.full_name' => 'required',
             'shipping_profile.phone_number' => 'required',
-            'shipping_profile.address_1' => 'required',
+            //'shipping_profile.address_1' => 'required',
             'line_items' => 'required',
             'shipping' => 'required',
             'payment_method' => 'required'
