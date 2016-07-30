@@ -48,6 +48,12 @@ class ShippingMethod extends Model
         return isset($methods[$key])?$methods[$key]:null;
     }
 
+    //Accessors
+    public function getRequireAddressAttribute()
+    {
+        return $this->getProcessor()->requireAddress();
+    }
+
     //Statics
     public static function getAvailableMethods()
     {

@@ -1,29 +1,41 @@
 var OrderIndex = function () {
-
+    var runtimeAdditonalColumns = 0;
     var initTable = function () {
         var $dataTable = new Datatable();
 
         var columnDefs = [
             {"name": "no", "targets": 0, "orderable": false},
             {"name": "reference", "targets": 1},
-            {"name": "checkout_at", "targets": 2},
-            {"name": "delivery_date", "targets": 3},
-            {"name": "billing", "targets": 4, "orderable": false},
-            {"name": "shipping", "targets": 5, "orderable": false},
-            {"name": "total", "targets": 6+additional_columns},
-            {"name": "outstanding", "targets": 7+additional_columns},
-            {"name": "status", "targets": 8+additional_columns, "orderable": false}
+            {"name": "checkout_at", "targets": 2}
         ];
-        for(var i=0; i<additional_columns;i+=1){
-            columnDefs.push({"name": "sticky_product"+i, "targets": 6+i, "orderable": false});
+
+        if(enable_delivery_date){
+            columnDefs.push({"name": "delivery_date", "targets": 3});
+            runtimeAdditonalColumns += 1;
         }
+
+        columnDefs = columnDefs.concat([
+            {"name": "billing", "targets": 3+runtimeAdditonalColumns, "orderable": false},
+            {"name": "shipping", "targets": 4+runtimeAdditonalColumns, "orderable": false}
+        ]);
+
+        for(var i=0; i<additional_columns;i+=1){
+            columnDefs.push({"name": "sticky_product"+i, "targets": 5+i+runtimeAdditonalColumns, "orderable": false});
+        }
+        runtimeAdditonalColumns += additional_columns;
+
+        columnDefs = columnDefs.concat([
+            {"name": "total", "targets": 5+runtimeAdditonalColumns},
+            {"name": "outstanding", "targets": 6+runtimeAdditonalColumns},
+            {"name": "status", "targets": 7+runtimeAdditonalColumns, "orderable": false}
+        ]);
 
         if(show_store_column){
-            columnDefs.push({"name": "store_id", "orderable" : false, "targets": 8+additional_columns});
-            additional_columns += 1;
+            columnDefs.push({"name": "store_id", "orderable" : false, "targets": 8+runtimeAdditonalColumns});
+            runtimeAdditonalColumns += 1;
         }
 
-        columnDefs.push({"name": "action", "orderable" : false, "targets": 8+additional_columns});
+        columnDefs.push({"name": "action", "orderable" : false, "targets": 8+runtimeAdditonalColumns});
 
         $dataTable.init({
             token: $('#orders-dataset').data('form_token'),

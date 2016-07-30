@@ -4,11 +4,15 @@ namespace Kommercio\Validator;
 
 use Illuminate\Validation\Validator;
 use Kommercio\Models\Address\Address;
+use Kommercio\Models\Order\Order;
+use Kommercio\Models\PriceRule\CartPriceRule;
 use Kommercio\Models\Product;
 use Symfony\Component\Translation\TranslatorInterface;
 
 class CustomValidator extends Validator
 {
+    private static $_storage;
+
     public function __construct(TranslatorInterface $translator, array $data, array $rules, array $messages = [], array $customAttributes = [])
     {
         parent::__construct( $translator, $data, $rules, $messages, $customAttributes );
@@ -116,6 +120,26 @@ class CustomValidator extends Validator
         }
 
         return true;
+    }
+
+    public function validateValidCoupon($attribute, $value, $parameters)
+    {
+        $order = Order::findOrFail($parameters[0]);
+
+        $couponCode = empty($value)?'ERRORCODE':$value;
+
+        static::$_storage[$couponCode] = CartPriceRule::getCoupon($couponCode, $order);
+
+        //If above method returns string, it is returning error message
+        return !is_string(static::$_storage[$couponCode]);
+    }
+
+    public function replaceValidCoupon($message, $attribute, $rule, $parameters)
+    {
+        $couponCode = $this->getValue($attribute);
+        $message = is_string(static::$_storage[$couponCode])?static::$_storage[$couponCode]:'';
+
+        return $message;
     }
 
     protected function replaceProductAttribute($message, $attribute, $rule, $parameters)

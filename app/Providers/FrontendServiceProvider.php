@@ -2,6 +2,7 @@
 
 namespace Kommercio\Providers;
 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\ServiceProvider;
 use Kommercio\Facades\FrontendHelper;
 
@@ -15,6 +16,9 @@ class FrontendServiceProvider extends ServiceProvider
     public function boot()
     {
         view()->composer(['project::frontend.*', 'frontend.*'], function ($view) {
+            $user = Auth::user();
+            $view->with('loggedInUser', $user);
+
             $viewsData = $view->getData();
 
             $view->with('currentOrder', FrontendHelper::getCurrentOrder());

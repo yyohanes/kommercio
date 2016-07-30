@@ -65,5 +65,5 @@ return [
         ]
     ],
     'print_format' => 'default',
-    'require_billing_information' => false
+    'require_billing_information' => true
 ];

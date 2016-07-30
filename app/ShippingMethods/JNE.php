@@ -4,6 +4,7 @@ namespace Kommercio\ShippingMethods;
 
 use GuzzleHttp\Client;
 use Kommercio\Facades\LanguageHelper;
+use Kommercio\Facades\ProjectHelper;
 use Kommercio\Models\Address\City;
 use Kommercio\Models\Address\District;
 use Kommercio\Models\Order\Order;
@@ -64,6 +65,11 @@ class JNE implements ShippingMethodInterface
         return $valid;
     }
 
+    public function requireAddress()
+    {
+        return TRUE;
+    }
+
     public function setShippingMethod(ShippingMethod $shippingMethod)
     {
         $this->shippingMethod = $shippingMethod;
@@ -74,12 +80,24 @@ class JNE implements ShippingMethodInterface
         $return = [];
         $methods = $this->getAvailableMethods();
 
-        $order = $options['order']?:null;
+        $order = isset($options['order'])?$options['order']:null;
 
-        if($order && $order->store){
+        //From request (if from backend)
+        $request = isset($options['request'])?$options['request']:null;
+        if($request){
+            $origin = City::findOrFail(ProjectHelper::getStoreByRequest($request)->getDefaultWarehouse()->city_id);
+            $destination = $request->has('shipping_profile.district_id')?District::findOrFail($request->input('shipping_profile.district_id')):City::findOrFail($request->input('shipping_profile.city_id'));
+            $destinationType = $request->has('shipping_profile.district_id')?'subdistrict':'city';
+        }
+
+        //From saved order
+        if($order && $order->store && $order->shippingInformation){
             $origin = City::findOrFail($order->store->getDefaultWarehouse()->city_id);
             $destination = $order->shippingInformation->district_id?District::findOrFail($order->shippingInformation->district_id):City::findOrFail($order->shippingInformation->city_id);
+            $destinationType = $order->shippingInformation->district_id?'subdistrict':'city';
+        }
 
+        if($origin && $destination){
             //Call Raja Ongkir API
             $client = new Client();
             $res = $client->post('http://pro.rajaongkir.com/api/cost', [
@@ -89,7 +107,7 @@ class JNE implements ShippingMethodInterface
                     'origin' => $origin->master_id,
                     'originType' => 'city',
                     'destination' => $destination->master_id,
-                    'destinationType' => $order->shippingInformation->district_id?'subdistrict':'city',
+                    'destinationType' => $destinationType,
                     'weight' => $order->getTotalWeight(),
                     'courier' => 'jne',
                 ]

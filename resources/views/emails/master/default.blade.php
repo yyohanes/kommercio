@@ -326,7 +326,11 @@
                 <table bgcolor="#f5f5f5" class="">
                     <tr>
                         <td>
-                            <h3 class="collapse">{{ config('project.client_name', config('kommercio.default_name')) }}</h3>
+                            @if(file_exists(public_path('project/assets/images/email-logo.png')))
+                                <img alt="{{ config('project.client_name', config('kommercio.default_name')) }}" src="{{ asset('project/assets/images/email-logo.png') }}" />
+                            @else
+                                <h3 class="collapse">{{ config('project.client_name', config('kommercio.default_name')) }}</h3>
+                            @endif
                         </td>
                         <td align="right">
                             <h6 class="collapse">{{ config('project.client_subtitle', config('kommercio.default_subtitle')) }}</h6>

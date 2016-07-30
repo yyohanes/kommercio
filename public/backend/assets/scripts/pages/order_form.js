@@ -442,6 +442,9 @@ var OrderForm = function () {
                     }
 
                     App.unblockUI('#order-content-wrapper');
+                },
+                complete: function(){
+                    App.unblockUI('#order-content-wrapper');
                 }
             });
         });

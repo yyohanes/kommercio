@@ -17,7 +17,8 @@ class Customer extends Model
 
     protected $guarded = ['profile', 'user'];
     protected $casts = [
-        'is_guest' => 'boolean'
+        'is_guest' => 'boolean',
+        'is_virgin' => 'boolean'
     ];
     protected $dates = ['last_active'];
     protected $profileKeys = ['profile', 'shippingProfile'];
@@ -80,6 +81,7 @@ class Customer extends Model
         $customer = self::whereField('email', $profileData['email'])->first();
         if(!$customer){
             $customer = new self();
+            $customer->is_virgin = TRUE;
         }
 
         if(!empty($accountData)){
@@ -115,7 +117,9 @@ class Customer extends Model
 
         $customer->save();
 
-        $customer->saveProfile($profileData);
+        if($customer->is_virgin){
+            $customer->saveProfile($profileData);
+        }
 
         return $customer;
     }

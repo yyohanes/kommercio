@@ -56,6 +56,7 @@
         </table>
     </div>
 
+    @if(ProjectHelper::getConfig('require_billing_information'))
     <div class="column">
         <table bgcolor="" class="social" width="100%">
             <tbody>
@@ -71,6 +72,7 @@
             </tr>
             </tbody></table>
     </div>
+    @endif
 
     <div class="column">
         <table bgcolor="" class="social" width="100%">
@@ -141,7 +143,7 @@
         <table>
             <tbody><tr>
                 <td class="text">
-                    {!! $order->paymentMethod->message !!}
+                    {!! $order->paymentMethod->name !!}
                 </td>
             </tr>
             </tbody></table>

@@ -1,6 +1,6 @@
 <tr class="line-item">
     <td>
-        {!! $lineItem->product->hasThumbnail()?'<img style="width: 80px; height: auto;" src="'.asset($lineItem->product->thumbnail->getImagePath('backend_thumbnail')).'" />':'' !!}
+        {!! $lineItem->product->getThumbnail()?'<img style="width: 80px; height: auto;" src="'.asset($lineItem->product->getThumbnail()->getImagePath('backend_thumbnail')).'" />':'' !!}
     </td>
     <td>
         {{ $lineItem->name }}
@@ -12,6 +12,6 @@
         {{ $lineItem->quantity }}
     </td>
     <td>
-        {{ PriceFormatter::formatNumber($lineItem->calculateSubtotal(), $lineItem->order->currency) }}
+        {{ PriceFormatter::formatNumber($lineItem->calculateSubtotalWithTax(), $lineItem->order->currency) }}
     </td>
 </tr>

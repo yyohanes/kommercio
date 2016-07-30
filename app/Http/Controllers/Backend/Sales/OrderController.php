@@ -307,11 +307,17 @@ class OrderController extends Controller{
             $rowMeat = [
                 $idx + 1 + $orderingStart,
                 $order->reference,
-                $order->checkout_at?$order->checkout_at->format('d M Y, H:i'):'',
-                $order->delivery_date?$order->delivery_date->format('d M Y'):'',
+                $order->checkout_at?$order->checkout_at->format('d M Y, H:i'):''
+            ];
+
+            if(config('project.enable_delivery_date', false)){
+                $rowMeat[] = $order->delivery_date?$order->delivery_date->format('d M Y'):'';
+            }
+
+            $rowMeat = array_merge($rowMeat, [
                 $order->billing_full_name.'<div class="expanded-detail">'.$order->billingInformation->email.'<br/>'.$order->billingInformation->phone_number.'<br/>'.AddressHelper::printAddress($order->billingInformation->getDetails()).'</div>',
                 $order->shipping_full_name.'<div class="expanded-detail">'.$order->shippingInformation->email.'<br/>'.$order->shippingInformation->phone_number.'<br/>'.AddressHelper::printAddress($order->billingInformation->getDetails()).'</div>',
-            ];
+            ]);
 
             foreach($stickyProducts as $stickyProduct){
                 $rowMeat[] = $order->getProductQuantity($stickyProduct->id);
@@ -860,7 +866,7 @@ class OrderController extends Controller{
     {
         $couponCode = $request->input('coupon_code', 'ERRORCOUPON');
 
-        $couponPriceRules = CartPriceRule::addCoupon($couponCode, $request);
+        $couponPriceRules = CartPriceRule::getCoupon($couponCode, $request);
 
         if(is_string($couponPriceRules)){
             return new JsonResponse([

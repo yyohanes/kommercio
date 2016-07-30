@@ -11,5 +11,5 @@ interface ShippingMethodInterface
     public function setShippingMethod(ShippingMethod $shippingMethod);
     public function validate($options = null);
     public function getPrices($options = null);
-    public function beforePlaceOrder(Order $order);
+    public function requireAddress();
 }

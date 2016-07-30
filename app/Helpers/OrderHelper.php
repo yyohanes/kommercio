@@ -4,6 +4,7 @@ namespace Kommercio\Helpers;
 
 use Illuminate\Http\Request;
 use Kommercio\Facades\PriceFormatter as PriceFormatterFacade;
+use Kommercio\Facades\ProjectHelper as ProjectHelperFacade;
 use Kommercio\Models\Customer;
 use Kommercio\Models\Order\LineItem;
 use Kommercio\Models\Order\Order;
@@ -50,8 +51,8 @@ class OrderHelper
         $order = new Order();
 
         $customer_email = null;
-        if($request->has('profile.email')){
-            $customer_email = $request->input('profile.email');
+        if($request->has('profile.email') || $request->has('billingProfile.email')){
+            $customer_email = $request->input('profile.email', $request->has('billingProfile.email'));
             $customer = Customer::getByEmail($customer_email);
 
             if($customer){
@@ -83,17 +84,9 @@ class OrderHelper
 
     public function processLineItems(Request $request, $order, $freeEdit = true)
     {
-        $dummyOrder = $this->createDummyOrderFromRequest($request);
-        $dummyOrderSubtotal = $dummyOrder->calculateSubtotal() + $dummyOrder->calculateAdditionalTotal();
+        $cartPriceRules = $this->getCartRules($request, $order, $freeEdit);
 
-        $cartPriceRules = $this->getCartRules($request, $order);
-        $taxes = Tax::getTaxes([
-            'country_id' => $request->input('profile.country_id', null),
-            'state_id' => $request->input('profile.state_id', null),
-            'city_id' => $request->input('profile.city_id', null),
-            'district_id' => $request->input('profile.district_id', null),
-            'area_id' => $request->input('profile.area_id', null),
-        ]);
+        $taxes = ProjectHelperFacade::getActiveStore()->getTaxes();
 
         $count = 0;
 
@@ -126,6 +119,10 @@ class OrderHelper
         }
 
         foreach($lineItems as $idx => $lineItem){
+            if(!$lineItem->discountApplicable){
+                continue;
+            }
+
             if($lineItem->isProduct && empty($lineItem->quantity)){
                 $lineItem->delete();
                 continue;
@@ -238,9 +235,9 @@ class OrderHelper
         return $lineItem;
     }
 
-    public function getCartRules(Request $request, $referencedOrder = null)
+    public function getCartRules(Request $request, $referencedOrder = null, $freeEdit = true)
     {
-        $order = $this->createDummyOrderFromRequest($request);
+        $order = ($freeEdit || !$referencedOrder)?$this->createDummyOrderFromRequest($request):$referencedOrder;
 
         $subtotal = $order->calculateProductTotal() + $order->calculateAdditionalTotal();
 

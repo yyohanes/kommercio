@@ -151,7 +151,13 @@ class LineItem extends Model
         $priceRule = CartPriceRule::findOrFail($price_rule_id);
         $this->name = $priceRule->name;
         $this->line_item_id = $priceRule->id;
-        $this->line_item_type = $priceRule->isCoupon?'coupon':'cart_price_rule';
+        $this->line_item_type = 'cart_price_rule';
+
+        if($priceRule->isCoupon){
+            $this->line_item_type = 'coupon';
+        }elseif($priceRule->isFreeShipping){
+            $this->line_item_type = 'free_shipping';
+        }
 
         if($priceRule->isCoupon){
             $this->saveData(['coupon_code' => $priceRule->coupon_code]);
@@ -159,6 +165,11 @@ class LineItem extends Model
     }
 
     //Accessors
+    public function getDiscountApplicableAttribute()
+    {
+        return $this->isProduct || $this->isFee || $this->isShipping;
+    }
+
     public function getIsProductAttribute()
     {
         return $this->line_item_type == 'product';
@@ -192,6 +203,11 @@ class LineItem extends Model
     public function getIsCouponAttribute()
     {
         return $this->line_item_type == 'coupon';
+    }
+
+    public function getIsFreeShippingAttribute()
+    {
+        return $this->line_item_type == 'free_shipping';
     }
 
     public function getQuantityAttribute()

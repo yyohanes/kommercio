@@ -1,6 +1,6 @@
 <tr class="line-item" data-taxable="{{ $lineItem->taxable }}" data-line_item="product" data-line_item_key="{{ $key }}">
     <td>
-        {!! $lineItem->product->hasThumbnail()?'<img style="width: 80px; height: auto;" class="product-image" src="'.asset($lineItem->product->thumbnail->getImagePath('backend_thumbnail')).'" />':'' !!}
+        {!! $lineItem->product->getThumbnail()?'<img style="width: 80px; height: auto;" class="product-image" src="'.asset($lineItem->product->getThumbnail()->getImagePath('backend_thumbnail')).'" />':'' !!}
         {{ $lineItem->name }}
     </td>
     <!--

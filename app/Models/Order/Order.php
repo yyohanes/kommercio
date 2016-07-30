@@ -223,9 +223,9 @@ class Order extends Model implements AuthorSignatureInterface
                 'lineitem_total_amount' => 0, //This is purposely set to 0 because it's not possible to calculate now. Calculation will be done later at Controller level
             ]);
             $lineItem->save();
-        }
 
-        $this->load('lineItems');
+            $this->load('lineItems');
+        }
 
         return $this;
     }
@@ -234,8 +234,6 @@ class Order extends Model implements AuthorSignatureInterface
     {
         $existingLineItems = $this->getCouponLineItems();
 
-        //if already exists
-        $alreadyExist = FALSE;
         foreach($existingLineItems as $existingLineItem){
             if($existingLineItem->line_item_id == $coupon->id){
                 $existingLineItem->delete();
@@ -269,9 +267,6 @@ class Order extends Model implements AuthorSignatureInterface
             $lineItem->order()->associate($this);
         }
 
-        $shipping_method = ShippingMethod::findOrFail($shippingOption['shipping_method_id']);
-        $price = CurrencyHelper::convert($shippingOption['price']['amount'], $shippingOption['price']['currency']);
-
         //If $selected_method_data empty, then calculate
         if(!$selected_method_data){
             //Get all methods first than filter
@@ -289,6 +284,7 @@ class Order extends Model implements AuthorSignatureInterface
                 }
             }
         }else{
+            $shippingOption = $selected_method_data;
             $shipping_method = ShippingMethod::findOrFail($selected_method_data['shipping_method_id']);
             $price = CurrencyHelper::convert($selected_method_data['price']['amount'], $selected_method_data['price']['currency']);
         }
@@ -688,10 +684,24 @@ class Order extends Model implements AuthorSignatureInterface
         $weight = 0;
 
         foreach($this->getProductLineItems() as $productLineItem){
-            $weight += abs($productLineItem->getShippingInformation()['weight'] * $productLineItem);
+            $weight += abs($productLineItem->product->getShippingInformation()['weight'] * $productLineItem->quantity);
         }
 
         return $weight?:1000;
+    }
+
+    public function eligibleForFreeShipping()
+    {
+        $eligible = false;
+
+        foreach($this->lineItems as $lineItem){
+            if($lineItem->isFreeShipping){
+                $eligible = true;
+                break;
+            }
+        }
+
+        return $eligible;
     }
 
     //Scopes

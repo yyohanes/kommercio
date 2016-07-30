@@ -11,8 +11,6 @@
                 <p class="text">Dear {{ $order->billingInformation->full_name}},</p>
                 <p class="text">
                     Your ORDER # {{ $order->reference }} has been placed on {{ $order->checkout_at->format('d M Y') }}</p>
-
-                <p class="text">{{ $order->getShippingLineItem()->name }}.</p>
             </td>
         </tr>
     </table>
@@ -57,6 +55,7 @@
         </table>
     </div>
 
+    @if(ProjectHelper::getConfig('require_billing_information'))
     <div class="column">
         <table bgcolor="" class="social" width="100%">
             <tbody>
@@ -72,8 +71,8 @@
             </tr>
             </tbody></table>
     </div>
+    @endif
 
-    @if($order->getShippingMethod()->class != 'PickUp')
     <div class="column">
         <table bgcolor="" class="social" width="100%">
             <tbody>
@@ -89,7 +88,6 @@
             </tr>
             </tbody></table>
     </div>
-    @endif
 
     <div class="content">
         <table>
@@ -100,6 +98,56 @@
             </tr>
             </tbody></table>
     </div>
+
+    @if($order->getShippingLineItem())
+        <div class="content">
+            <!-- Line -->
+            <table width="18" height="81">
+                <td>
+                    <table border="0" cellspacing="0" cellpadding="0">
+                        <tr>
+                            <td width="1150" style="border-bottom: 1px solid #e5e5e5;">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+                <!-- DIVIDER TITLE -->
+                <td align="center" valign="middle">
+                    <tr>
+                        <td height="0" border="5px" cellspacing="0" cellpadding="0">
+                            <h6>SHIPPING</h6>
+                        </td>
+                    </tr>
+                </td>
+                <td>
+                    <table border="0" cellspacing="0" cellpadding="0">
+                        <tr>
+                            <td width="1150" style="border-bottom: 1px solid #e5e5e5;">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </table>
+        </div>
+
+    <div class="content">
+        <table>
+            <tbody><tr>
+                <td>
+                    <p class="text"><strong>{{ $order->getShippingLineItem()->name }}</strong></p>
+                </td>
+            </tr>
+            </tbody></table>
+    </div>
+    @endif
 
     @if($order->paymentMethod)
         <div class="content">

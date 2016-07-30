@@ -186,6 +186,11 @@ class CartPriceRule extends Model
         return !empty($this->coupon_code);
     }
 
+    public function getIsFreeShippingAttribute()
+    {
+        return $this->offer_type == self::OFFER_TYPE_FREE_SHIPPING;
+    }
+
     //Statics
     public static function getModificationTypeOptions($option=null)
     {
@@ -204,7 +209,7 @@ class CartPriceRule extends Model
     public static function getOfferTypeOptions($option=null)
     {
         $array = [
-            //self::OFFER_TYPE_FREE_SHIPPING => 'Free Shipping',
+            self::OFFER_TYPE_FREE_SHIPPING => 'Free Shipping',
             self::OFFER_TYPE_ORDER_DISCOUNT => 'Order Discount',
             self::OFFER_TYPE_PRODUCT_DISCOUNT => 'Product Discount',
         ];
@@ -311,23 +316,28 @@ class CartPriceRule extends Model
         return $qb->first();
     }
 
-    public static function addCoupon($couponCode, $request, Order $order = null)
+    public static function getCoupon($couponCode, Order $currentOrder = null, $request = null)
     {
+        if(!$request && !$currentOrder){
+            throw new \Exception('You must supply either Request or Order.');
+        }
+
         $addedCoupons = [];
 
-        if($order){
-            foreach($order->getCouponLineItems() as $couponLineItem){
+        if($currentOrder){
+            foreach($currentOrder->getCouponLineItems() as $couponLineItem){
                 $addedCoupons[] = $couponLineItem->line_item_id;
             }
         }
 
-        $addedCoupons = array_unique(array_merge($addedCoupons, $request->input('added_coupons', [])));
+        $addedCoupons = array_unique(array_merge($addedCoupons, ($request?$request->input('added_coupons', []):[])));
 
-        if(!self::getCouponByCode($couponCode)){
-            return trans(LanguageHelper::getTranslationKey('order.coupons.not_exist'));
+        $coupon = self::getCouponByCode($couponCode);
+        if(!$coupon){
+            return trans(LanguageHelper::getTranslationKey('order.coupons.not_exist'), ['coupon_code' => $couponCode]);
         }
 
-        $order = OrderHelper::createDummyOrderFromRequest($request);
+        $order = $currentOrder?clone $currentOrder:OrderHelper::createDummyOrderFromRequest($request);
 
         $subtotal = $order->calculateProductTotal() + $order->calculateAdditionalTotal();
 
@@ -350,12 +360,12 @@ class CartPriceRule extends Model
         $couponPriceRules = self::getCartPriceRules($options);
 
         if($couponPriceRules->count() < 1){
-            return trans(LanguageHelper::getTranslationKey('order.coupons.invalid'));
+            return trans(LanguageHelper::getTranslationKey('order.coupons.invalid'), ['coupon_code' => $couponCode]);
         }else{
             foreach($couponPriceRules as $couponPriceRule){
                 $couponValidation = $couponPriceRule->validateUsage($options['customer_email']);
                 if(!$couponValidation['valid']){
-                    return trans(LanguageHelper::getTranslationKey($couponValidation['message']));
+                    return trans(LanguageHelper::getTranslationKey($couponValidation['message']), ['coupon_code' => $couponCode]);
                 }
             }
         }

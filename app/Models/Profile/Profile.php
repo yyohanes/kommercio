@@ -96,12 +96,14 @@ class Profile extends Model
         $flippedProfiles = array_flip($profileFieldsFromAttributes);
 
         foreach($this->details as $profile){
-            if(!isset($details[$profile->identifier])){
-                $profile->delete();
-            }else{
-                $profile->update([
-                    'value' => $details[$profile->identifier]
-                ]);
+            if(isset($details[$profile->identifier])){
+                if(trim($details[$profile->identifier]) == ''){
+                    $profile->delete();
+                }else{
+                    $profile->update([
+                        'value' => $details[$profile->identifier]
+                    ]);
+                }
             }
 
             //Remove updated field from attributes so it won't get processed in next process

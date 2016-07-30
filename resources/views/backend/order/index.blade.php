@@ -17,6 +17,7 @@
     <script type="text/javascript">
         var additional_columns = {{ $stickyProducts->count() }};
         var show_store_column = {{ Auth::user()->manageMultipleStores?1:0 }};
+        var enable_delivery_date = {{ config('project.enable_delivery_date', false)?1:0 }};
     </script>
 
     <script src="{{ asset('backend/assets/scripts/pages/order_index.js') }}" type="text/javascript"></script>

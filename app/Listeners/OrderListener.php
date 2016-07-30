@@ -3,6 +3,7 @@
 namespace Kommercio\Listeners;
 
 use Kommercio\Events\OrderEvent;
+use Kommercio\Facades\EmailHelper;
 use Kommercio\Facades\ProjectHelper;
 use Kommercio\Models\Order\Order;
 
@@ -30,19 +31,16 @@ class OrderListener
     {
         $order = $event->order;
 
-        if($event->type == 'before_place_order'){
-            $this->beforePlaceOrder($order);
+        if($event->type == 'before_order_placed'){
+            $this->beforeOrderPlaced($order);
         }elseif($event->type == 'customer_place_order'){
             $this->customerPlaceOrder($order);
         }
     }
 
-    protected function beforePlaceOrder(Order $order)
+    protected function beforeOrderPlaced(Order $order)
     {
-        //Call all shipping processing methods
-        foreach($order->getShippingLineItems() as $shippingLineItem){
-            $shippingLineItem->shippingMethod->getProcessor()->beforePlaceOrder($order);
-        }
+
     }
 
     protected function customerPlaceOrder(Order $order)

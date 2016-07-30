@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Request as RequestFacade;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Validator;
 use Kommercio\Events\OrderEvent;
 use Kommercio\Events\OrderUpdate;
 use Kommercio\Facades\AddressHelper;
@@ -40,8 +41,6 @@ class OrderController extends Controller
     {
         $order = FrontendHelper::getCurrentOrder();
 
-        $immediateJump = false;
-
         if($request->has('product_remove')){
             $rules = [
                 'product_remove' => 'required|exists:products,id'
@@ -52,71 +51,55 @@ class OrderController extends Controller
             $product = Product::findOrFail($request->input('product_remove'));
             $order->removeFromCart($product);
 
-            $immediateJump = true;
-
             $message = trans(LanguageHelper::getTranslationKey('frontend.order.removed_from_cart'), ['product' => $product->name]);
         }
 
-        if(!$immediateJump){
-            if($request->input('update_cart', 0) == 1){
-                $rules = [
-                    'products.*.id' => 'required|exists:products,id,deleted_at,NULL|is_available|is_active|is_purchaseable',
-                    'products.*.quantity' => 'required|integer|min:0'
-                ];
+        if($request->input('update_cart', 0) == 1){
+            $rules = [
+                'products.*.id' => 'required|exists:products,id,deleted_at,NULL|is_available|is_active|is_purchaseable',
+                'products.*.quantity' => 'required|integer|min:0'
+            ];
 
-                foreach($request->input('products', []) as $idx => $productLineItem){
-                    $rules['products.'.$idx.'.id'] = 'is_in_stock:'.$productLineItem['quantity'];
-                }
-
-                $this->validate($request, $rules);
-
-                foreach($request->input('products', []) as $idx => $productLineItem){
-                    $product = Product::findOrFail($productLineItem['id']);
-                    $order->updateQuantity($product, $productLineItem['quantity']);
-                }
-
-                $message = trans(LanguageHelper::getTranslationKey('frontend.order.updated_cart'));
-            }elseif($request->input('add_coupon', 0) == 1){
-                $rules = [
-                    'coupon_code' => 'required'
-                ];
-
-                $this->validate($request, $rules);
-
-                $couponCode = $request->input('coupon_code', 'ERRORCOUPON');
-
-                $couponPriceRules = CartPriceRule::addCoupon($couponCode, $request, $order);
-
-                //If above method returns string, it is returning error message
-                if(is_string($couponPriceRules)){
-                    return redirect()->back()->withErrors([
-                        'coupon_code' => [$couponPriceRules]
-                    ]);
-                }
-
-                $coupon = CartPriceRule::getCouponByCode($couponCode);
-                $order->addCoupon($coupon);
-
-                $message = trans(LanguageHelper::getTranslationKey('frontend.order.coupon_added'));
-            }elseif($request->has('coupon_remove')){
-                $rules = [
-                    'coupon_remove' => 'required|exists:cart_price_rules,id'
-                ];
-
-                $this->validate($request, $rules);
-
-                $coupon = CartPriceRule::findOrFail($request->input('coupon_remove'));
-                $order->removeCoupon($coupon);
-
-                $message = trans(LanguageHelper::getTranslationKey('frontend.order.coupon_removed'));
+            foreach($request->input('products', []) as $idx => $productLineItem){
+                $rules['products.'.$idx.'.id'] = 'is_in_stock:'.$productLineItem['quantity'];
             }
 
-            OrderHelper::processLineItems($request, $order, false);
+            $this->validate($request, $rules);
 
-            $order->load('lineItems');
-            $order->calculateTotal();
-            $order->save();
+            foreach($request->input('products', []) as $idx => $productLineItem){
+                $product = Product::findOrFail($productLineItem['id']);
+                $order->updateQuantity($product, $productLineItem['quantity']);
+            }
+
+            $message = trans(LanguageHelper::getTranslationKey('frontend.order.updated_cart'));
+        }elseif($request->input('add_coupon', 0) == 1){
+            $rules = [
+                'coupon_code' => 'required|valid_coupon:'.$order->id
+            ];
+
+            $this->validate($request, $rules);
+            $coupon = CartPriceRule::getCouponByCode($request->input('coupon_code'));
+            $order->addCoupon($coupon);
+
+            $message = trans(LanguageHelper::getTranslationKey('frontend.order.coupon_added'), ['coupon_code' => $coupon->coupon_code]);
+        }elseif($request->has('coupon_remove')){
+            $rules = [
+                'coupon_remove' => 'required|exists:cart_price_rules,id'
+            ];
+
+            $this->validate($request, $rules);
+
+            $coupon = CartPriceRule::findOrFail($request->input('coupon_remove'));
+            $order->removeCoupon($coupon);
+
+            $message = trans(LanguageHelper::getTranslationKey('frontend.order.coupon_removed'), ['coupon_code' => $coupon->coupon_code]);
         }
+
+        OrderHelper::processLineItems($request, $order, false);
+
+        $order->load('lineItems');
+        $order->calculateTotal();
+        $order->save();
 
         return redirect()
             ->back()
@@ -139,6 +122,10 @@ class OrderController extends Controller
         $order = FrontendHelper::getCurrentOrder('save');
 
         $order->addToCart($product, $request->input('quantity'));
+
+        OrderHelper::processLineItems($request, $order, false);
+        $order->calculateTotal();
+        $order->save();
 
         if($request->ajax()){
             return new JsonResponse([
@@ -266,26 +253,15 @@ class OrderController extends Controller
                 ->with('success', [trans(LanguageHelper::getTranslationKey('frontend.checkout.checkout_complete'))]);
         }elseif($request->input('add_coupon', 0) == 1){
             $rules = [
-                'coupon_code' => 'required'
+                'coupon_code' => 'required|valid_coupon:'.$order->id
             ];
 
             $this->validate($request, $rules);
 
-            $couponCode = $request->input('coupon_code', 'ERRORCOUPON');
-
-            $couponPriceRules = CartPriceRule::addCoupon($couponCode, $request, $order);
-
-            //If above method returns string, it is returning error message
-            if(is_string($couponPriceRules)){
-                return redirect()->back()->withErrors([
-                    'coupon_code' => [$couponPriceRules]
-                ]);
-            }
-
-            $coupon = CartPriceRule::getCouponByCode($couponCode);
+            $coupon = CartPriceRule::getCouponByCode($request->input('coupon_code'));
             $order->addCoupon($coupon);
 
-            $message = trans(LanguageHelper::getTranslationKey('frontend.order.coupon_added'));
+            $message = trans(LanguageHelper::getTranslationKey('frontend.order.coupon_added'), ['coupon_code' => $coupon->coupon_code]);
         }elseif($request->has('coupon_remove')){
             $rules = [
                 'coupon_remove' => 'required|exists:cart_price_rules,id'
@@ -296,7 +272,7 @@ class OrderController extends Controller
             $coupon = CartPriceRule::findOrFail($request->input('coupon_remove'));
             $order->removeCoupon($coupon);
 
-            $message = trans(LanguageHelper::getTranslationKey('frontend.order.coupon_removed'));
+            $message = trans(LanguageHelper::getTranslationKey('frontend.order.coupon_removed'), ['coupon_code' => $coupon->coupon_code]);
         }
 
         OrderHelper::processLineItems($request, $order, false);
@@ -333,20 +309,28 @@ class OrderController extends Controller
 
         $customer = $order->billingInformation?Customer::getByEmail($order->billingInformation->email):null;
         $canLogin = FALSE;
+        $canRegister = FALSE;
         $customerLoggedIn = FALSE;
 
         $step = $order->getData('checkout_step', 'account');
 
+        if(Auth::check() && (!$customer || Auth::user()->id != $customer->user_id)){
+            Auth::logout();
+        }
+
         if($customer){
-            if($customer->user && Auth::check() && Auth::user()->id == $customer->user->id){
+            if($customer->user && Auth::check() && Auth::user()->id == $customer->user_id){
                 $customerLoggedIn = TRUE;
             }elseif($customer->user){
                 $canLogin = TRUE;
             }
         }
 
-        $paymentMethodOptions = $this->getPaymentMethodOptions($request);
+        if($order->billingInformation && $order->billingInformation->email && !isset($customer->user)){
+            $canRegister = TRUE;
+        }
 
+        $paymentMethodOptions = $this->getPaymentMethodOptions($request);
         $shippingMethodOptions = $this->getShippingMethodOptions($request, $order);
 
         $oldValues = old();
@@ -370,6 +354,7 @@ class OrderController extends Controller
             'customer' => $customer,
             'customerLoggedIn' => $customerLoggedIn,
             'canLogin' => $canLogin,
+            'canRegister' => $canRegister
         ] + $addressOptions + $shippingMethodOptions + $paymentMethodOptions);
     }
 
@@ -384,20 +369,28 @@ class OrderController extends Controller
         Event::fire(new OrderEvent('before_onepage_checkout_process', $order, ['request' => $request]));
 
         $viewData = [
-            'order' => $order,
+            'order' => &$order,
             'customer' => Customer::getByEmail($request->input('billingProfile.email')),
             'canLogin' => FALSE,
             'customerLoggedIn' => FALSE,
+            'canRegister' => FALSE,
             'step' => $order->getData('checkout_step', 'account'),
             'previous_step' => $order->getData('checkout_step', 'account'),
             'success' => []
         ];
 
+        if($request->has('billingProfile.email') && !isset($viewData['customer']->user)){
+            $viewData['canRegister'] = TRUE;
+        }
+
         $process = $request->input('process');
 
-        //Save customer to order
+        if(Auth::check() && (!$viewData['customer'] || Auth::user()->id != $viewData['customer']->user_id)){
+            Auth::logout();
+        }
+
         if($viewData['customer']){
-            if($viewData['customer']->user && Auth::check() && Auth::user()->id == $viewData['customer']->user->id){
+            if($viewData['customer']->user && Auth::check() && Auth::user()->id == $viewData['customer']->user_id){
                 $viewData['customerLoggedIn'] = TRUE;
             }elseif($viewData['customer']->user){
                 $viewData['canLogin'] = TRUE;
@@ -408,6 +401,7 @@ class OrderController extends Controller
             case 'account':
                 if($process == 'change'){
                     $viewData['canLogin'] = false;
+                    $viewData['canRegister'] = false;
                     $viewData['customerLoggedIn'] = false;
 
                     if($viewData['previous_step'] == 'account'){
@@ -434,6 +428,17 @@ class OrderController extends Controller
                         $errors['password'] = [trans(LanguageHelper::getTranslationKey('frontend.login.invalid_password'))];
                         $errorCode = 401;
                     }
+                }elseif($process == 'register'){
+                    $this->validate($request, $this->getCheckoutRuleBook('register'));
+
+                    $renderData = [
+                        'account' => ProjectHelper::getViewTemplate('frontend.order.one_page.account'),
+                    ];
+
+                    $newCustomer = Customer::saveCustomer(['email' => $request->input('billingProfile.email')], ['email' => $request->input('billingProfile.email'), 'password' => $request->input('password')]);
+
+                    $viewData['step'] = 'customer_information';
+                    Auth::login($newCustomer->user);
                 }elseif($process == 'continue_as_guest'){
                     $this->validate($request, $this->getCheckoutRuleBook('continue_as_guest'));
 
@@ -508,6 +513,8 @@ class OrderController extends Controller
                 }else{
                     $this->validate($request, $this->getCheckoutRuleBook('payment_method'));
 
+                    $order->paymentMethod()->associate($request->input('payment_method'));
+
                     $viewData['step'] = 'checkout_summary';
 
                     $shippingMethodOptions = $this->getShippingMethodOptions($request, $order);
@@ -522,43 +529,49 @@ class OrderController extends Controller
             case 'checkout_summary':
                 if($process == 'add_coupon'){
                     $rules = [
-                        'coupon_code' => 'required'
+                        'coupon_code' => 'required|valid_coupon:'.$order->id
                     ];
 
                     $this->validate($request, $rules);
 
-                    $couponCode = $request->input('coupon_code', 'ERRORCOUPON');
+                    $coupon = CartPriceRule::getCouponByCode($request->input('coupon_code'));
 
-                    $couponPriceRules = CartPriceRule::addCoupon($couponCode, $request, $order);
-
-                    //If above method returns string, it is returning error message
-                    if(is_string($couponPriceRules)){
-                        $errors['coupon_code'] = [$couponPriceRules];
-                    }else{
-                        $coupon = CartPriceRule::getCouponByCode($couponCode);
-
-                        $viewData['order']->addCoupon($coupon);
-                        $viewData['success'][] = trans(LanguageHelper::getTranslationKey('frontend.order.coupon_added'));
-                    }
+                    $viewData['order']->addCoupon($coupon);
+                    $viewData['success'][] = trans(LanguageHelper::getTranslationKey('frontend.order.coupon_added'), ['coupon_code' => $coupon->coupon_code]);
                 }elseif(strpos($process, 'remove_coupon_') !== false){
                     $couponId = str_replace('remove_coupon_', '', $process);
                     $coupon = CartPriceRule::findOrFail($couponId);
                     $order->removeCoupon($coupon);
 
-                    $viewData['success'][] = trans(LanguageHelper::getTranslationKey('frontend.order.coupon_removed'));
+                    $viewData['success'][] = trans(LanguageHelper::getTranslationKey('frontend.order.coupon_removed'), ['coupon_code' => $coupon->coupon_code]);
+                }elseif($process == 'select_shipping_method'){
+
                 }
+
+                $renderData = [
+                    'order_table' => ProjectHelper::getViewTemplate('frontend.order.one_page.order_table')
+                ];
+
+                $order->currency = $request->input('currency');
+                $order->conversion_rate = 1;
 
                 //Process shipping
                 if($request->has('shipping_method')){
-                    $shippingMethodOptions = $this->getShippingMethodOptions($request, $order);
+                    $shippingMethodOptions = $this->getShippingMethodOptions($request, $order)['shippingMethodOptions'];
 
                     $rules = [
-                        'shipping_method' => 'in:'.implode(',', array_keys($shippingMethodOptions['shippingMethodOptions']))
+                        'shipping_method' => 'required|in:'.implode(',', array_keys($shippingMethodOptions))
                     ];
 
                     $this->validate($request, $rules);
 
-                    $order->updateShippingMethod($request->input('shipping_method'));
+                    foreach($shippingMethodOptions as $idx => $shippingMethodOption){
+                        if($request->input('shipping_method') == $idx){
+
+                            $order->updateShippingMethod($request->input('shipping_method'), $shippingMethodOption);
+                            break;
+                        }
+                    }
                 }
 
                 OrderHelper::processLineItems($request, $viewData['order'], false);
@@ -566,9 +579,79 @@ class OrderController extends Controller
                 $viewData['order']->load('lineItems');
                 $viewData['order']->calculateTotal();
 
-                $renderData = [
-                    'order_table' => ProjectHelper::getViewTemplate('frontend.order.one_page.order_table')
-                ];
+                if($process == 'place_order'){
+                    Event::fire(new OrderEvent('before_update_order', $viewData['order']));
+
+                    $placeOrderRules = [
+                        'billingProfile.email' => 'required|email',
+                        'shippingProfile.full_name' => 'required',
+                        'shippingProfile.phone_number' => 'required',
+                        'shipping_method' => 'required'.(isset($shippingMethodOptions)?'|in:'.implode(',', array_keys($shippingMethodOptions)):''),
+                        'payment_method' => 'required|exists:payment_methods,id'
+                    ];
+
+                    if($order->getShippingMethod() && $order->getShippingMethod()->requireAddress){
+                        $placeOrderRules += [
+                            'shippingProfile.address_1' => 'required',
+                            'shippingProfile.country_id' => 'required',
+                            'shippingProfile.state_id' => 'descendant_address:state',
+                            'shippingProfile.city_id' => 'descendant_address:city',
+                            'shippingProfile.district_id' => 'descendant_address:district',
+                            'shippingProfile.area_id' => 'descendant_address:area',
+                        ];
+                    }
+
+                    if(config('project.enable_delivery_date', FALSE)){
+                        $placeOrderRules['delivery_date'] = 'required|date_format:Y-m-d';
+                    }
+
+                    $products = [];
+                    foreach($order->getProductLineItems() as $idx=>$productLineItem){
+                        $placeOrderRules['product.'.$idx] = 'required|exists:products,id,deleted_at,NULL|is_available|is_active|is_in_stock:'.$productLineItem->quantity.'|is_purchaseable';
+                        $products[] = $productLineItem->line_item_id;
+                    }
+
+                    $coupons = [];
+                    foreach($order->getCouponLineItems() as $idx=>$couponLineItem){
+                        $placeOrderRules['coupon.'.$idx] = 'valid_coupon:'.$order->id;
+                        $coupons[] = $couponLineItem->cartPriceRule->coupon_code;
+                    }
+
+                    $validator = Validator::make([
+                        'billingProfile' => $order->billingProfile->getDetails(),
+                        'shippingProfile' => $order->shippingProfile->getDetails(),
+                        'delivery_date' => $order->delivery_date?$order->delivery_date->format('Y-m-d'):null,
+                        'shipping_method' => $order->getSelectedShippingMethod(),
+                        'payment_method' => $order->paymentMethod?$order->paymentMethod->id:null,
+                        'product' => $products,
+                        'coupon' => $coupons
+                    ], $placeOrderRules);
+
+                    if ($validator->fails()) {
+                        return redirect()
+                            ->back()
+                            ->withErrors($validator)
+                            ->withInput();
+                    }
+
+                    Event::fire(new OrderEvent('frontend_rules_built', $order, ['rules' => &$rules]));
+
+                    $this->validate($request, $rules);
+
+                    $order->processStocks();
+
+                    $this->placeOrder($order);
+
+                    if(!ProjectHelper::getConfig('require_billing_information')){
+                        //Copy Shipping info to Billing
+                        $order->saveProfile('billing', $order->shippingProfile->getDetails());
+                    }
+
+                    $profileData = $order->billingInformation->getDetails();
+                    Customer::saveCustomer($profileData);
+
+                    $viewData['step'] = 'complete';
+                }
                 break;
             default:
                 return redirect()->back()->withErrors(['What?']);
@@ -584,16 +667,19 @@ class OrderController extends Controller
                 $order->additional_fields = $request->input('additional_fields');
             }
 
-            $order->saveData(['checkout_step' => $viewData['step']]);
-            $order->save();
-
-            $order->billingProfile->fillDetails();
-            $order->shippingProfile->fillDetails();
+            $viewData['order']->saveData(['checkout_step' => $viewData['step']]);
+            $viewData['order']->save();
         }
 
-
         if($request->ajax()){
-            //Remove old input, because if we return AJAX, old input is still kept
+            //Pre-populate profile
+            if($viewData['order']->billingProfile){
+                $viewData['order']->billingProfile->fillDetails();
+            }
+
+            if($viewData['order']->shippingProfile){
+                $viewData['order']->shippingProfile->fillDetails();
+            }
 
             if($errors){
                 $response = new JsonResponse($errors, $errorCode);
@@ -609,155 +695,25 @@ class OrderController extends Controller
                 ]);
             }
         }else{
-            $response = redirect()->back();
+            //If complete
+            if($viewData['step'] == 'complete'){
+                Event::fire(new OrderUpdate($order, Order::STATUS_CART, true));
+                Event::fire(new OrderEvent('customer_place_order', $order));
 
-            if($errors){
-                $response->withErrors($errors);
+                $response = redirect()
+                    ->route('frontend.order.checkout.complete')
+                    ->with('order_id', $order->id)
+                    ->with('success', [trans(LanguageHelper::getTranslationKey('frontend.checkout.checkout_complete'))]);
+            }else{
+                $response = redirect()->back();
+
+                if($errors){
+                    $response->withErrors($errors);
+                }
             }
         }
 
         return $response;
-
-        $order->notes = $request->input('notes');
-        $order->delivery_date = $request->input('delivery_date', null);
-        $order->payment_method_id = $request->input('payment_method', null);
-        $order->currency = $request->input('currency');
-        $order->conversion_rate = 1;
-        if($request->has('additional_fields')){
-            $order->additional_fields = $request->input('additional_fields');
-        }
-        $order->store()->associate(ProjectHelper::getActiveStore());
-        $order->save();
-
-        $order->saveProfile('billing', $request->input('billingProfile'));
-        $order->saveProfile('shipping', $request->input('shippingProfile'));
-
-        //Process shipping
-        if($request->has('shipping_method')){
-            $order->updateShippingMethod($request->input('shipping_method'));
-        }
-
-        OrderHelper::processLineItems($request, $order, FALSE);
-
-        $order->load('lineItems');
-        $order->calculateTotal();
-
-        Event::fire(new OrderEvent('before_update_order', $order));
-
-        if($request->has('place_order')){
-            $rules = [
-                'billingProfile.email' => 'required|email',
-                'billingProfile.full_name' => 'required',
-                'billingProfile.phone_number' => 'required',
-                'billingProfile.address_1' => 'required',
-                'shippingProfile.email' => 'required|email',
-                'shippingProfile.full_name' => 'required',
-                'shippingProfile.phone_number' => 'required',
-                'shippingProfile.address_1' => 'required',
-                'shipping_method' => 'required',
-                'payment_method' => 'required'
-            ];
-
-            if(config('project.enable_delivery_date', FALSE)){
-                $rules['delivery_date'] = 'required|date_format:Y-m-d';
-            }
-
-            $originalStatus = $order->status;
-
-            Event::fire(new OrderEvent('built_frontend_rules', $order, ['rules' => &$rules]));
-
-            $this->validate($request, $rules);
-
-            $order->processStocks();
-
-            $this->placeOrder($order);
-
-            $profileData = $request->input('billingProfile');
-
-            $customer = Customer::saveCustomer($profileData);
-
-            if($customer){
-                $order->customer()->associate($customer);
-            }
-
-            $order->save();
-
-            Event::fire(new OrderUpdate($order, $originalStatus, true));
-            Event::fire(new OrderEvent('customer_place_order', $order));
-
-            return redirect()
-                ->route('frontend.order.checkout.complete')
-                ->with('order_id', $order->id)
-                ->with('success', [trans(LanguageHelper::getTranslationKey('frontend.checkout.checkout_complete'))]);
-        }elseif($request->input('add_coupon', 0) == 1){
-            $rules = [
-                'coupon_code' => 'required'
-            ];
-
-            $this->validate($request, $rules);
-
-            $couponCode = $request->input('coupon_code', 'ERRORCOUPON');
-
-            $couponPriceRules = CartPriceRule::addCoupon($couponCode, $request, $order);
-
-            //If above method returns string, it is returning error message
-            if(is_string($couponPriceRules)){
-                return redirect()->back()->withErrors([
-                    'coupon_code' => [$couponPriceRules]
-                ]);
-            }
-
-            $coupon = CartPriceRule::getCouponByCode($couponCode);
-            $order->addCoupon($coupon);
-
-            $message = trans(LanguageHelper::getTranslationKey('frontend.order.coupon_added'));
-        }elseif($request->has('coupon_remove')){
-            $rules = [
-                'coupon_remove' => 'required|exists:cart_price_rules,id'
-            ];
-
-            $this->validate($request, $rules);
-
-            $coupon = CartPriceRule::findOrFail($request->input('coupon_remove'));
-            $order->removeCoupon($coupon);
-
-            $message = trans(LanguageHelper::getTranslationKey('frontend.order.coupon_removed'));
-        }
-
-        OrderHelper::processLineItems($request, $order, false);
-
-        $order->load('lineItems');
-        $order->calculateTotal();
-        $order->save();
-
-        if($request->input('order_update', 0) == 1){
-            if($request->ajax()){
-                switch($request->input('order_update_type')){
-                    case 'account':
-                        break;
-                    case 'billing_information':
-                        break;
-                    case 'shipping_information':
-                        break;
-                    case 'payment_method':
-                        break;
-                    case 'shipping_method':
-                        break;
-                    default:
-                        $renderData = view(ProjectHelper::getViewTemplate('frontend.order.checkout_summary'), ['order' => $order])->render();
-                        break;
-                }
-
-                return new JsonResponse([
-                    'data' => $renderData,
-                    '_token' => csrf_token()
-                ]);
-            }
-        }
-
-        return redirect()
-            ->back()
-            ->with('success', [isset($message)?$message:'']);
     }
 
     public function checkoutComplete(Request $request)
@@ -781,7 +737,7 @@ class OrderController extends Controller
         $order->user_agent = RequestFacade::header('User-Agent');
         $order->generateReference();
 
-        Event::fire(new OrderEvent('before_place_order', $order));
+        Event::fire(new OrderEvent('before_order_placed', $order));
 
         return $order;
     }
@@ -789,16 +745,16 @@ class OrderController extends Controller
     protected function getAddressOptions(Request $request, $order)
     {
         $profileCountryOptions = ['' => trans(LanguageHelper::getTranslationKey('order.address.select_country'))] + AddressHelper::getCountryOptions();
-        $profileStateOptions = ['' => trans(LanguageHelper::getTranslationKey('order.address.select_state'))] + AddressHelper::getStateOptions($request->old('billingProfile.country_id', count($profileCountryOptions) < 3?key(array_slice($profileCountryOptions, 1, 1, true)):$order->billingInformation->country_id));
-        $profileCityOptions = ['' => trans(LanguageHelper::getTranslationKey('order.address.select_city'))] + AddressHelper::getCityOptions($request->old('billingProfile.state_id', $order->billingInformation->state_id));
-        $profileDistrictOptions = ['' => trans(LanguageHelper::getTranslationKey('order.address.select_district'))] + AddressHelper::getDistrictOptions($request->old('billingProfile.city_id', $order->billingInformation->city_id));
-        $profileAreaOptions = ['' => trans(LanguageHelper::getTranslationKey('order.address.select_area'))] + AddressHelper::getAreaOptions($request->old('billingProfile.district_id', $order->billingInformation->district_id));
+        $profileStateOptions = ['' => trans(LanguageHelper::getTranslationKey('order.address.select_state'))] + AddressHelper::getStateOptions($request->old('billingProfile.country_id', count($profileCountryOptions) < 3?key(array_slice($profileCountryOptions, 1, 1, true)):($order->billingInformation?$order->billingInformation->country_id:null)));
+        $profileCityOptions = ['' => trans(LanguageHelper::getTranslationKey('order.address.select_city'))] + AddressHelper::getCityOptions($request->old('billingProfile.state_id', $order->billingInformation?$order->billingInformation->state_id:null));
+        $profileDistrictOptions = ['' => trans(LanguageHelper::getTranslationKey('order.address.select_district'))] + AddressHelper::getDistrictOptions($request->old('billingProfile.city_id', $order->billingInformation?$order->billingInformation->city_id:null));
+        $profileAreaOptions = ['' => trans(LanguageHelper::getTranslationKey('order.address.select_area'))] + AddressHelper::getAreaOptions($request->old('billingProfile.district_id', $order->billingInformation?$order->billingInformation->district_id:null));
 
         $shippingCountryOptions = ['' => trans(LanguageHelper::getTranslationKey('order.address.select_country'))] + AddressHelper::getCountryOptions();
-        $shippingStateOptions = ['' => trans(LanguageHelper::getTranslationKey('order.address.select_state'))] + AddressHelper::getStateOptions($request->old('shippingProfile.country_id', count($shippingCountryOptions) < 3?key(array_slice($shippingCountryOptions, 1, 1, true)):$order->shippingInformation->country_id));
-        $shippingCityOptions = ['' => trans(LanguageHelper::getTranslationKey('order.address.select_city'))] + AddressHelper::getCityOptions($request->old('shippingProfile.state_id', $order->shippingInformation->state_id));
-        $shippingDistrictOptions = ['' => trans(LanguageHelper::getTranslationKey('order.address.select_district'))] + AddressHelper::getDistrictOptions($request->old('shippingProfile.city_id', $order->shippingInformation->city_id));
-        $shippingAreaOptions = ['' => trans(LanguageHelper::getTranslationKey('order.address.select_area'))] + AddressHelper::getAreaOptions($request->old('shippingProfile.district_id', $order->shippingInformation->district_id));
+        $shippingStateOptions = ['' => trans(LanguageHelper::getTranslationKey('order.address.select_state'))] + AddressHelper::getStateOptions($request->old('shippingProfile.country_id', count($shippingCountryOptions) < 3?key(array_slice($shippingCountryOptions, 1, 1, true)):($order->shippingInformation?$order->shippingInformation->country_id:null)));
+        $shippingCityOptions = ['' => trans(LanguageHelper::getTranslationKey('order.address.select_city'))] + AddressHelper::getCityOptions($request->old('shippingProfile.state_id', $order->shippingInformation?$order->shippingInformation->state_id:null));
+        $shippingDistrictOptions = ['' => trans(LanguageHelper::getTranslationKey('order.address.select_district'))] + AddressHelper::getDistrictOptions($request->old('shippingProfile.city_id', $order->shippingInformation?$order->shippingInformation->city_id:null));
+        $shippingAreaOptions = ['' => trans(LanguageHelper::getTranslationKey('order.address.select_area'))] + AddressHelper::getAreaOptions($request->old('shippingProfile.district_id', $order->shippingInformation?$order->shippingInformation->district_id:null));
 
         return [
             'profileCountryOptions' => $profileCountryOptions,
@@ -818,7 +774,6 @@ class OrderController extends Controller
     {
         $shippingMethodOptions = ShippingMethod::getShippingMethods([
             'order' => $order,
-            'request' => $request
         ]);
 
         return [
@@ -844,6 +799,10 @@ class OrderController extends Controller
     protected function getCheckoutRuleBook($type)
     {
         $ruleBook = [
+            'register' => [
+                'billingProfile.email' => 'required|email|unique:users,email',
+                'password' => 'required|confirmed'
+            ],
             'login' => [
                 'billingProfile.email' => 'required|email',
                 'password' => 'required'
@@ -874,7 +833,10 @@ class OrderController extends Controller
                 'billingProfile.full_name' => 'required',
                 'billingProfile.phone_number' => 'required',
                 'billingProfile.address_1' => 'required',
-                'shippingProfile.email' => 'required|email',
+                'billingProfile.state_id' => 'descendant_address:state',
+                'billingProfile.city_id' => 'descendant_address:city',
+                'billingProfile.district_id' => 'descendant_address:district',
+                'billingProfile.area_id' => 'descendant_address:area',
             ];
         }
 
