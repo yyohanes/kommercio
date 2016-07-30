@@ -82,6 +82,7 @@ return [
     'is_active' => ':product is not available.',
     'is_in_stock' => ':product is out of stock.',
     'is_purchaseable' => ':product is not available for purchase.',
+    'descendant_address' => 'The :attribute field is required.',
 
     /*
     |--------------------------------------------------------------------------

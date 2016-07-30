@@ -32,6 +32,20 @@ var KommercioFrontend = function(){
 
                 return $return;
             }
+        },
+        convertDotToSquareBracket: function(name, forSelector){
+            var parts = String(name).split('.');
+            var returnText = '';
+
+            for(var i in parts){
+                if(i != 0){
+                    returnText += (forSelector?'\\[':'[') + parts[i] + (forSelector?'\\]':']');
+                }else{
+                    returnText += parts[i];
+                }
+            }
+
+            return returnText;
         }
     }
 }();

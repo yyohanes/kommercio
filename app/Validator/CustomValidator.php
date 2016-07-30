@@ -3,11 +3,19 @@
 namespace Kommercio\Validator;
 
 use Illuminate\Validation\Validator;
+use Kommercio\Models\Address\Address;
 use Kommercio\Models\Product;
 use Symfony\Component\Translation\TranslatorInterface;
 
 class CustomValidator extends Validator
 {
+    public function __construct(TranslatorInterface $translator, array $data, array $rules, array $messages = [], array $customAttributes = [])
+    {
+        parent::__construct( $translator, $data, $rules, $messages, $customAttributes );
+
+        $this->implicitRules[] = studly_case('descendant_address');
+    }
+
     public function validateProductAttributes($attribute, $value, $parameters)
     {
         $data = $this->getValue($attribute);
@@ -89,6 +97,25 @@ class CustomValidator extends Validator
     public function replaceIsInStock($message, $attribute, $rule, $parameters)
     {
         return $this->replaceProductAttribute($message, $attribute, $rule, $parameters);
+    }
+
+    public function validateDescendantAddress($attribute, $value, $parameters)
+    {
+        $type = $parameters[0];
+
+        $prefix = str_replace($type.'_id', '', $attribute);
+
+        $parent = Address::getClassInfoByType($type)[1];
+
+        $parentId = $this->getValue($prefix.$parent.'_id');
+
+        $model = call_user_func(array(Address::getClassNameByType($parent), 'find'), $parentId);
+
+        if($model && $model->has_descendant){
+            return !empty($value);
+        }
+
+        return true;
     }
 
     protected function replaceProductAttribute($message, $attribute, $rule, $parameters)

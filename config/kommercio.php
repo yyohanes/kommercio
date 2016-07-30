@@ -64,5 +64,6 @@ return [
             'outstanding' => 0,
         ]
     ],
-    'print_format' => 'default'
+    'print_format' => 'default',
+    'require_billing_information' => false
 ];

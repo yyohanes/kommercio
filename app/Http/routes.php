@@ -66,12 +66,18 @@ Route::group(['middleware' => ['web']], function () {
             'uses' => 'OrderController@checkout'
         ]);
 
+
         Route::post('checkout/process', [
             'as' => 'frontend.order.checkout.process',
             'uses' => 'OrderController@checkoutProcess'
         ]);
 
-        Route::get('one-page-checkout/process', [
+        Route::get('one-page-checkout', [
+            'as' => 'frontend.order.onepage_checkout',
+            'uses' => 'OrderController@onePageCheckout'
+        ]);
+
+        Route::post('one-page-checkout/process/{type?}', [
             'as' => 'frontend.order.onepage_checkout.process',
             'uses' => 'OrderController@onePageCheckoutProcess'
         ]);
@@ -1031,45 +1037,45 @@ Route::group(['middleware' => ['web']], function () {
                         'permissions' => [['create_tax', 'edit_tax']]
                     ]);
                 });
-            });
 
-            //Warehouse
-            Route::group(['prefix' => 'warehouse', 'namespace' => 'Warehouse'], function(){
-                Route::get('index', [
-                    'as' => 'backend.warehouse.index',
-                    'uses' => 'WarehouseController@index',
-                    'permissions' => ['view_warehouse']
-                ]);
+                //Warehouse
+                Route::group(['prefix' => 'warehouse', 'namespace' => 'Warehouse'], function(){
+                    Route::get('index', [
+                        'as' => 'backend.warehouse.index',
+                        'uses' => 'WarehouseController@index',
+                        'permissions' => ['view_warehouse']
+                    ]);
 
-                Route::get('create', [
-                    'as' => 'backend.warehouse.create',
-                    'uses' => 'WarehouseController@create',
-                    'permissions' => ['create_warehouse']
-                ]);
+                    Route::get('create', [
+                        'as' => 'backend.warehouse.create',
+                        'uses' => 'WarehouseController@create',
+                        'permissions' => ['create_warehouse']
+                    ]);
 
-                Route::post('store', [
-                    'as' => 'backend.warehouse.store',
-                    'uses' => 'WarehouseController@store',
-                    'permissions' => ['create_warehouse']
-                ]);
+                    Route::post('store', [
+                        'as' => 'backend.warehouse.store',
+                        'uses' => 'WarehouseController@store',
+                        'permissions' => ['create_warehouse']
+                    ]);
 
-                Route::get('edit/{id}', [
-                    'as' => 'backend.warehouse.edit',
-                    'uses' => 'WarehouseController@edit',
-                    'permissions' => ['edit_warehouse']
-                ]);
+                    Route::get('edit/{id}', [
+                        'as' => 'backend.warehouse.edit',
+                        'uses' => 'WarehouseController@edit',
+                        'permissions' => ['edit_warehouse']
+                    ]);
 
-                Route::post('update/{id}', [
-                    'as' => 'backend.warehouse.update',
-                    'uses' => 'WarehouseController@update',
-                    'permissions' => ['edit_warehouse']
-                ]);
+                    Route::post('update/{id}', [
+                        'as' => 'backend.warehouse.update',
+                        'uses' => 'WarehouseController@update',
+                        'permissions' => ['edit_warehouse']
+                    ]);
 
-                Route::post('delete/{id}', [
-                    'as' => 'backend.warehouse.delete',
-                    'uses' => 'WarehouseController@delete',
-                    'permissions' => ['delete_warehouse']
-                ]);
+                    Route::post('delete/{id}', [
+                        'as' => 'backend.warehouse.delete',
+                        'uses' => 'WarehouseController@delete',
+                        'permissions' => ['delete_warehouse']
+                    ]);
+                });
             });
 
             //Customers

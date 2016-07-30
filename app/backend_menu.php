@@ -164,26 +164,21 @@ $menus['configuration'] = [
             'route' => 'backend.configuration.address.index',
             'route_params' => ['type' => 'country'],
             'permissions' => 'view_manufacturer'
+        ],
+        'store' => [
+            'active_path' => 'configuration/store',
+            'name' => 'Store',
+            'route' => 'backend.store.index',
+            'permissions' => 'view_store'
+        ],
+        'warehouse' => [
+            'active_path' => 'configuration/warehouse',
+            'name' => 'Warehouse',
+            'route' => 'backend.warehouse.index',
+            'permissions' => 'view_warehouse'
         ]
     ]
 ];
-
-if(config('project.enable_store_selector', false)) {
-    $menus['configuration']['children']['store'] = [
-        'active_path' => 'configuration/store',
-        'name' => 'Store',
-        'route' => 'backend.store.index',
-        'permissions' => 'view_store'
-    ];
-
-    $menus['warehouse'] = [
-        'prepend' => '<i class="fa fa-truck"></i>',
-        'active_path' => 'warehouse',
-        'name' => 'Warehouse',
-        'route' => 'backend.warehouse.index',
-        'permissions' => 'view_warehouse'
-    ];
-}
 
 $menus['cms'] = [
     'prepend' => '<i class="fa fa-book"></i>',

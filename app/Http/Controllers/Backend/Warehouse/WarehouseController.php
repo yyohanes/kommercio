@@ -30,7 +30,7 @@ class WarehouseController extends Controller{
     public function store(WarehouseFormRequest $request)
     {
         $warehouse = new Warehouse();
-        $warehouse->fill($request->all());
+        $warehouse->fill($request->input('location') + ['name' => $request->input('name')]);
         $warehouse->save();
 
         return redirect($request->get('backUrl', route('backend.warehouse.index')))->with('success', [$warehouse->name.' has successfully been created.']);
@@ -49,7 +49,7 @@ class WarehouseController extends Controller{
     {
         $warehouse = Warehouse::findOrFail($id);
 
-        $warehouse->fill($request->all());
+        $warehouse->fill($request->input('location') + ['name' => $request->input('name')]);
         $warehouse->save();
 
         return redirect($request->get('backUrl', route('backend.warehouse.index')))->with('success', [$warehouse->name.' has successfully been updated.']);

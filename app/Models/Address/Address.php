@@ -35,14 +35,14 @@ class Address extends Model
             $this->guarded[] = 'has_descendant';
         }
 
-        $relationBaseOptions = $this->getClassNameByType($this->addressType);
+        $relationBaseOptions = $this->getClassInfoByType($this->addressType);
         $this->parentType = $relationBaseOptions[1];
         $this->childType = $relationBaseOptions[2];
 
-        $parentRelationBaseOptions = $this->getClassNameByType($this->parentType);
+        $parentRelationBaseOptions = $this->getClassInfoByType($this->parentType);
         $this->parentClass = $parentRelationBaseOptions[0];
 
-        $childRelationBaseOptions = $this->getClassNameByType($this->parentClass);
+        $childRelationBaseOptions = $this->getClassInfoByType($this->parentClass);
         $this->childClass = $childRelationBaseOptions[0];
     }
 
@@ -94,7 +94,7 @@ class Address extends Model
     }
 
     //Statics
-    public static function getClassNameByType($type)
+    public static function getClassInfoByType($type)
     {
         $type = strtolower($type);
         $name = null;
@@ -128,5 +128,20 @@ class Address extends Model
         }
 
         return [$name, $parentType, $childType];
+    }
+
+    public static function getClassNameByType($type)
+    {
+        $type = self::getClassInfoByType($type)[0];
+
+        $fqn = self::class;
+
+        if ($pos = strrpos($fqn, '\\')){
+            $fqn = substr($fqn, 0, $pos);
+        }
+
+        $fqn = $fqn.'\\'.$type;
+
+        return $fqn;
     }
 }

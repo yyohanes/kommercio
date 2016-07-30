@@ -29,4 +29,19 @@ class WarehouseFormRequest extends Request
 
         return $rules;
     }
+
+    public function all()
+    {
+        $attributes = parent::all();
+
+        foreach($attributes['location'] as $idx => $location){
+            if(!$location){
+                unset($attributes['location'][$idx]);
+            }
+        }
+
+        $this->replace($attributes);
+
+        return parent::all();
+    }
 }

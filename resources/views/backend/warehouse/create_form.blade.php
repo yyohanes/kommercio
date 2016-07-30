@@ -9,12 +9,9 @@
     'required' => TRUE
 ])
 
-@include('backend.master.form.fields.textarea', [
-    'name' => 'address',
+@include('backend.master.form.fields.address.address', [
+    'name' => 'location',
     'label' => 'Address',
-    'key' => 'address',
-    'attr' => [
-        'class' => 'form-control',
-        'id' => 'address'
-    ],
+    'parent' => $warehouse,
+    'required' => TRUE
 ])

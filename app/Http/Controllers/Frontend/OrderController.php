@@ -4,6 +4,7 @@ namespace Kommercio\Http\Controllers\Frontend;
 
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Request as RequestFacade;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Session;
@@ -164,37 +165,15 @@ class OrderController extends Controller
 
         $view_name = ProjectHelper::getViewTemplate('frontend.order.checkout');
 
-        $shippingMethods = ShippingMethod::getAvailableMethods();
-        $shippingMethodOptions = [];
+        $paymentMethodOptions = $this->getPaymentMethodOptions($request);
 
-        $paymentMethods = PaymentMethod::getPaymentMethods();
-
-        $paymentMethodOptions = [];
-        foreach($paymentMethods as $paymentMethod){
-            $paymentMethodOptions[$paymentMethod->id] = $paymentMethod->name;
-        }
-
-        foreach($shippingMethods as $idx => $shippingMethod){
-            $shippingMethodOptions[$idx] = $shippingMethod['name'];
-        }
-
-        $profileCountryOptions = ['' => trans(LanguageHelper::getTranslationKey('order.address.select_country'))] + AddressHelper::getCountryOptions();
-        $profileStateOptions = ['' => trans(LanguageHelper::getTranslationKey('order.address.select_state'))] + AddressHelper::getStateOptions($request->old('profile.country_id', count($profileCountryOptions) < 3?key($profileCountryOptions):null));
-        $profileCityOptions = ['' => trans(LanguageHelper::getTranslationKey('order.address.select_city'))] + AddressHelper::getCityOptions($request->old('profile.state_id'));
-        $profileDistrictOptions = ['' => trans(LanguageHelper::getTranslationKey('order.address.select_district'))] + AddressHelper::getDistrictOptions($request->old('profile.city_id'));
-        $profileAreaOptions = ['' => trans(LanguageHelper::getTranslationKey('order.address.select_area'))] + AddressHelper::getAreaOptions($request->old('profile.district_id'));
-
-        $shippingCountryOptions = ['' => trans(LanguageHelper::getTranslationKey('order.address.select_country'))] + AddressHelper::getCountryOptions();
-        $shippingStateOptions = ['' => trans(LanguageHelper::getTranslationKey('order.address.select_state'))] + AddressHelper::getStateOptions($request->old('shipping_profile.country_id', count($shippingCountryOptions) < 3?key($shippingCountryOptions):null));
-        $shippingCityOptions = ['' => trans(LanguageHelper::getTranslationKey('order.address.select_city'))] + AddressHelper::getCityOptions($request->old('shipping_profile.state_id'));
-        $shippingDistrictOptions = ['' => trans(LanguageHelper::getTranslationKey('order.address.select_district'))] + AddressHelper::getDistrictOptions($request->old('shipping_profile.city_id'));
-        $shippingAreaOptions = ['' => trans(LanguageHelper::getTranslationKey('order.address.select_area'))] + AddressHelper::getAreaOptions($request->old('shipping_profile.district_id'));
+        $shippingMethodOptions = $this->getShippingMethodOptions($request, $order);
 
         $oldValues = old();
 
         if(!$oldValues){
-            $oldValues['profile'] = $order->billingProfile?$order->billingProfile->getDetails():[];
-            $oldValues['shipping_profile'] = $order->shippingProfile?$order->shippingProfile->getDetails():[];
+            $oldValues['billingProfile'] = $order->billingProfile?$order->billingProfile->getDetails():[];
+            $oldValues['shippingProfile'] = $order->shippingProfile?$order->shippingProfile->getDetails():[];
             $oldValues['shipping_method'] = $order->getSelectedShippingMethod();
             $oldValues['payment_method'] = $order->payment_method_id;
             $oldValues['delivery_date'] = $order->delivery_date?$order->delivery_date->format('Y-m-d'):null;
@@ -203,23 +182,11 @@ class OrderController extends Controller
             Session::flashInput($oldValues);
         }
 
+        $addressOptions = $this->getAddressOptions($request, $order);
+
         return view($view_name, [
             'order' => $order,
-            'shippingMethods' => $shippingMethods,
-            'shippingMethodOptions' => $shippingMethodOptions,
-            'paymentMethods' => $paymentMethods,
-            'paymentMethodOptions' => $paymentMethodOptions,
-            'profileCountryOptions' => $profileCountryOptions,
-            'profileStateOptions' => $profileStateOptions,
-            'profileCityOptions' => $profileCityOptions,
-            'profileDistrictOptions' => $profileDistrictOptions,
-            'profileAreaOptions' => $profileAreaOptions,
-            'shippingCountryOptions' => $shippingCountryOptions,
-            'shippingStateOptions' => $shippingStateOptions,
-            'shippingCityOptions' => $shippingCityOptions,
-            'shippingDistrictOptions' => $shippingDistrictOptions,
-            'shippingAreaOptions' => $shippingAreaOptions,
-        ]);
+        ] + $addressOptions + $shippingMethodOptions + $paymentMethodOptions);
     }
 
     public function checkoutProcess(Request $request)
@@ -237,8 +204,8 @@ class OrderController extends Controller
         $order->store()->associate(ProjectHelper::getActiveStore());
         $order->save();
 
-        $order->saveProfile('billing', $request->input('profile'));
-        $order->saveProfile('shipping', $request->input('shipping_profile'));
+        $order->saveProfile('billing', $request->input('billingProfile'));
+        $order->saveProfile('shipping', $request->input('shippingProfile'));
 
         //Process shipping
         if($request->has('shipping_method')){
@@ -254,14 +221,14 @@ class OrderController extends Controller
 
         if($request->has('place_order')){
             $rules = [
-                'profile.email' => 'required|email',
-                'profile.full_name' => 'required',
-                'profile.phone_number' => 'required',
-                'profile.address_1' => 'required',
-                'shipping_profile.email' => 'required|email',
-                'shipping_profile.full_name' => 'required',
-                'shipping_profile.phone_number' => 'required',
-                'shipping_profile.address_1' => 'required',
+                'billingProfile.email' => 'required|email',
+                'billingProfile.full_name' => 'required',
+                'billingProfile.phone_number' => 'required',
+                'billingProfile.address_1' => 'required',
+                'shippingProfile.email' => 'required|email',
+                'shippingProfile.full_name' => 'required',
+                'shippingProfile.phone_number' => 'required',
+                'shippingProfile.address_1' => 'required',
                 'shipping_method' => 'required',
                 'payment_method' => 'required'
             ];
@@ -280,7 +247,7 @@ class OrderController extends Controller
 
             $this->placeOrder($order);
 
-            $profileData = $request->input('profile');
+            $profileData = $request->input('billingProfile');
 
             $customer = Customer::saveCustomer($profileData);
 
@@ -354,40 +321,302 @@ class OrderController extends Controller
             ->with('success', [isset($message)?$message:'']);
     }
 
-    public function onePageCheckoutProcess(Request $request)
+    public function onePageCheckout(Request $request)
     {
-        $ruleBook = [
-            'account' => [
-                'profile.email' => 'required|email'
-            ]
-        ];
-
         $order = FrontendHelper::getCurrentOrder();
 
-        switch($request->input('process_type')){
+        if($order->itemsCount <= 0){
+            return redirect(FrontendHelper::get_url('cart'))->withErrors([trans(LanguageHelper::getTranslationKey('frontend.checkout.empty_order'))]);
+        }
+
+        $view_name = ProjectHelper::getViewTemplate('frontend.order.checkout');
+
+        $customer = $order->billingInformation?Customer::getByEmail($order->billingInformation->email):null;
+        $canLogin = FALSE;
+        $customerLoggedIn = FALSE;
+
+        $step = $order->getData('checkout_step', 'account');
+
+        if($customer){
+            if($customer->user && Auth::check() && Auth::user()->id == $customer->user->id){
+                $customerLoggedIn = TRUE;
+            }elseif($customer->user){
+                $canLogin = TRUE;
+            }
+        }
+
+        $paymentMethodOptions = $this->getPaymentMethodOptions($request);
+
+        $shippingMethodOptions = $this->getShippingMethodOptions($request, $order);
+
+        $oldValues = old();
+
+        if(!$oldValues){
+            $oldValues['billingProfile'] = $order->billingProfile?$order->billingProfile->getDetails():[];
+            $oldValues['shippingProfile'] = $order->shippingProfile?$order->shippingProfile->getDetails():[];
+            $oldValues['shipping_method'] = $order->getSelectedShippingMethod();
+            $oldValues['payment_method'] = $order->payment_method_id;
+            $oldValues['delivery_date'] = $order->delivery_date?$order->delivery_date->format('Y-m-d'):null;
+            $oldValues['additional_fields'] = $order->additional_fields;
+
+            Session::flashInput($oldValues);
+        }
+
+        $addressOptions = $this->getAddressOptions($request, $order);
+
+        return view($view_name, [
+            'order' => $order,
+            'step' => $step,
+            'customer' => $customer,
+            'customerLoggedIn' => $customerLoggedIn,
+            'canLogin' => $canLogin,
+        ] + $addressOptions + $shippingMethodOptions + $paymentMethodOptions);
+    }
+
+    public function onePageCheckoutProcess(Request $request, $type = 'account')
+    {
+        $order = FrontendHelper::getCurrentOrder();
+
+        $errorCode = 400;
+        $errors = [];
+        $renderData = null;
+
+        Event::fire(new OrderEvent('before_onepage_checkout_process', $order, ['request' => $request]));
+
+        $viewData = [
+            'order' => $order,
+            'customer' => Customer::getByEmail($request->input('billingProfile.email')),
+            'canLogin' => FALSE,
+            'customerLoggedIn' => FALSE,
+            'step' => $order->getData('checkout_step', 'account'),
+            'previous_step' => $order->getData('checkout_step', 'account'),
+            'success' => []
+        ];
+
+        $process = $request->input('process');
+
+        //Save customer to order
+        if($viewData['customer']){
+            if($viewData['customer']->user && Auth::check() && Auth::user()->id == $viewData['customer']->user->id){
+                $viewData['customerLoggedIn'] = TRUE;
+            }elseif($viewData['customer']->user){
+                $viewData['canLogin'] = TRUE;
+            }
+        }
+
+        switch($type){
             case 'account':
-                $this->validate($request, $ruleBook['account']);
+                if($process == 'change'){
+                    $viewData['canLogin'] = false;
+                    $viewData['customerLoggedIn'] = false;
 
-                $customer = Customer::getByEmail($request->input('profile.email'));
-                if($customer->user){
+                    if($viewData['previous_step'] == 'account'){
+                        //Reset email
+                        $order->saveProfile('billing', ['email' => null]);
+                    }
 
+                    $renderData = [
+                        'account' => ProjectHelper::getViewTemplate('frontend.order.one_page.account'),
+                    ];
+
+                    $viewData['step'] = 'account';
+                }elseif($process == 'login'){
+                    $this->validate($request, $this->getCheckoutRuleBook('login'));
+
+                    $renderData = [
+                        'account' => ProjectHelper::getViewTemplate('frontend.order.one_page.account'),
+                    ];
+
+                    if (Auth::attempt(['email' => $request->input('billingProfile.email'), 'password' => $request->input('password')])) {
+                        $viewData['step'] = 'customer_information';
+                    }else{
+                        $viewData['step'] = 'account';
+                        $errors['password'] = [trans(LanguageHelper::getTranslationKey('frontend.login.invalid_password'))];
+                        $errorCode = 401;
+                    }
+                }elseif($process == 'continue_as_guest'){
+                    $this->validate($request, $this->getCheckoutRuleBook('continue_as_guest'));
+
+                    $viewData['step'] = 'customer_information';
+
+                    $addressOptions = $this->getAddressOptions($request, $order);
+
+                    $viewData += $addressOptions;
+
+                    $renderData = [
+                        'customer_information' => ProjectHelper::getViewTemplate('frontend.order.one_page.customer_information')
+                    ];
                 }else{
+                    $this->validate($request, $this->getCheckoutRuleBook('account'));
 
+                    //Save customer to order
+                    if($viewData['customer']){
+                        $order->customer()->associate($viewData['customer']);
+                    }
+
+                    //Save email to order
+                    $order->saveProfile('billing', ['email' => $request->input('billingProfile.email')]);
+
+                    $viewData['step'] = 'account';
+
+                    $renderData = [
+                        'account' => ProjectHelper::getViewTemplate('frontend.order.one_page.account'),
+                    ];
                 }
 
                 break;
-            case 'billing_information':
-                break;
-            case 'shipping_information':
+            case 'customer_information':
+                if($process == 'change'){
+                    $viewData['step'] = 'customer_information';
+
+                    $addressOptions = $this->getAddressOptions($request, $order);
+
+                    $viewData += $addressOptions;
+
+                    $renderData = [
+                        'customer_information' => ProjectHelper::getViewTemplate('frontend.order.one_page.customer_information')
+                    ];
+                }else{
+                    $this->validate($request, $this->getCheckoutRuleBook('customer_information'));
+
+                    $viewData['step'] = 'payment_method';
+
+                    $order->saveProfile('shipping', $request->input('shippingProfile'));
+                    $order->store()->associate(ProjectHelper::getStoreByRequest($request));
+
+                    $paymentMethodOptions = $this->getPaymentMethodOptions($request);
+
+                    $viewData += $paymentMethodOptions;
+
+                    $renderData = [
+                        'payment_method' => ProjectHelper::getViewTemplate('frontend.order.one_page.payment_method')
+                    ];
+                }
+
                 break;
             case 'payment_method':
+                if($process == 'change'){
+                    $viewData['step'] = 'payment_method';
+
+                    $paymentMethodOptions = $this->getPaymentMethodOptions($request);
+
+                    $viewData += $paymentMethodOptions;
+
+                    $renderData = [
+                        'payment_method' => ProjectHelper::getViewTemplate('frontend.order.one_page.payment_method')
+                    ];
+                }else{
+                    $this->validate($request, $this->getCheckoutRuleBook('payment_method'));
+
+                    $viewData['step'] = 'checkout_summary';
+
+                    $shippingMethodOptions = $this->getShippingMethodOptions($request, $order);
+
+                    $viewData += $shippingMethodOptions;
+
+                    $renderData = [
+                        'checkout_summary' => ProjectHelper::getViewTemplate('frontend.order.one_page.checkout_summary')
+                    ];
+                }
                 break;
-            case 'shipping_method':
+            case 'checkout_summary':
+                if($process == 'add_coupon'){
+                    $rules = [
+                        'coupon_code' => 'required'
+                    ];
+
+                    $this->validate($request, $rules);
+
+                    $couponCode = $request->input('coupon_code', 'ERRORCOUPON');
+
+                    $couponPriceRules = CartPriceRule::addCoupon($couponCode, $request, $order);
+
+                    //If above method returns string, it is returning error message
+                    if(is_string($couponPriceRules)){
+                        $errors['coupon_code'] = [$couponPriceRules];
+                    }else{
+                        $coupon = CartPriceRule::getCouponByCode($couponCode);
+
+                        $viewData['order']->addCoupon($coupon);
+                        $viewData['success'][] = trans(LanguageHelper::getTranslationKey('frontend.order.coupon_added'));
+                    }
+                }elseif(strpos($process, 'remove_coupon_') !== false){
+                    $couponId = str_replace('remove_coupon_', '', $process);
+                    $coupon = CartPriceRule::findOrFail($couponId);
+                    $order->removeCoupon($coupon);
+
+                    $viewData['success'][] = trans(LanguageHelper::getTranslationKey('frontend.order.coupon_removed'));
+                }
+
+                //Process shipping
+                if($request->has('shipping_method')){
+                    $shippingMethodOptions = $this->getShippingMethodOptions($request, $order);
+
+                    $rules = [
+                        'shipping_method' => 'in:'.implode(',', array_keys($shippingMethodOptions['shippingMethodOptions']))
+                    ];
+
+                    $this->validate($request, $rules);
+
+                    $order->updateShippingMethod($request->input('shipping_method'));
+                }
+
+                OrderHelper::processLineItems($request, $viewData['order'], false);
+
+                $viewData['order']->load('lineItems');
+                $viewData['order']->calculateTotal();
+
+                $renderData = [
+                    'order_table' => ProjectHelper::getViewTemplate('frontend.order.one_page.order_table')
+                ];
                 break;
             default:
                 return redirect()->back()->withErrors(['What?']);
                 break;
         }
+
+        if($viewData['previous_step'] != $viewData['step']){
+            $renderData[$viewData['previous_step']] = ProjectHelper::getViewTemplate('frontend.order.one_page.'.$viewData['previous_step']);
+        }
+
+        if(!$errors){
+            if($request->has('additional_fields')){
+                $order->additional_fields = $request->input('additional_fields');
+            }
+
+            $order->saveData(['checkout_step' => $viewData['step']]);
+            $order->save();
+
+            $order->billingProfile->fillDetails();
+            $order->shippingProfile->fillDetails();
+        }
+
+
+        if($request->ajax()){
+            //Remove old input, because if we return AJAX, old input is still kept
+
+            if($errors){
+                $response = new JsonResponse($errors, $errorCode);
+            }else{
+                foreach($renderData as &$renderDatum){
+                    $renderDatum = view($renderDatum, $viewData)->render();
+                }
+
+                $response = new JsonResponse([
+                    'data' => $renderData,
+                    'step' => $viewData['step'],
+                    '_token' => csrf_token()
+                ]);
+            }
+        }else{
+            $response = redirect()->back();
+
+            if($errors){
+                $response->withErrors($errors);
+            }
+        }
+
+        return $response;
 
         $order->notes = $request->input('notes');
         $order->delivery_date = $request->input('delivery_date', null);
@@ -400,8 +629,8 @@ class OrderController extends Controller
         $order->store()->associate(ProjectHelper::getActiveStore());
         $order->save();
 
-        $order->saveProfile('billing', $request->input('profile'));
-        $order->saveProfile('shipping', $request->input('shipping_profile'));
+        $order->saveProfile('billing', $request->input('billingProfile'));
+        $order->saveProfile('shipping', $request->input('shippingProfile'));
 
         //Process shipping
         if($request->has('shipping_method')){
@@ -417,14 +646,14 @@ class OrderController extends Controller
 
         if($request->has('place_order')){
             $rules = [
-                'profile.email' => 'required|email',
-                'profile.full_name' => 'required',
-                'profile.phone_number' => 'required',
-                'profile.address_1' => 'required',
-                'shipping_profile.email' => 'required|email',
-                'shipping_profile.full_name' => 'required',
-                'shipping_profile.phone_number' => 'required',
-                'shipping_profile.address_1' => 'required',
+                'billingProfile.email' => 'required|email',
+                'billingProfile.full_name' => 'required',
+                'billingProfile.phone_number' => 'required',
+                'billingProfile.address_1' => 'required',
+                'shippingProfile.email' => 'required|email',
+                'shippingProfile.full_name' => 'required',
+                'shippingProfile.phone_number' => 'required',
+                'shippingProfile.address_1' => 'required',
                 'shipping_method' => 'required',
                 'payment_method' => 'required'
             ];
@@ -443,7 +672,7 @@ class OrderController extends Controller
 
             $this->placeOrder($order);
 
-            $profileData = $request->input('profile');
+            $profileData = $request->input('billingProfile');
 
             $customer = Customer::saveCustomer($profileData);
 
@@ -555,5 +784,100 @@ class OrderController extends Controller
         Event::fire(new OrderEvent('before_place_order', $order));
 
         return $order;
+    }
+
+    protected function getAddressOptions(Request $request, $order)
+    {
+        $profileCountryOptions = ['' => trans(LanguageHelper::getTranslationKey('order.address.select_country'))] + AddressHelper::getCountryOptions();
+        $profileStateOptions = ['' => trans(LanguageHelper::getTranslationKey('order.address.select_state'))] + AddressHelper::getStateOptions($request->old('billingProfile.country_id', count($profileCountryOptions) < 3?key(array_slice($profileCountryOptions, 1, 1, true)):$order->billingInformation->country_id));
+        $profileCityOptions = ['' => trans(LanguageHelper::getTranslationKey('order.address.select_city'))] + AddressHelper::getCityOptions($request->old('billingProfile.state_id', $order->billingInformation->state_id));
+        $profileDistrictOptions = ['' => trans(LanguageHelper::getTranslationKey('order.address.select_district'))] + AddressHelper::getDistrictOptions($request->old('billingProfile.city_id', $order->billingInformation->city_id));
+        $profileAreaOptions = ['' => trans(LanguageHelper::getTranslationKey('order.address.select_area'))] + AddressHelper::getAreaOptions($request->old('billingProfile.district_id', $order->billingInformation->district_id));
+
+        $shippingCountryOptions = ['' => trans(LanguageHelper::getTranslationKey('order.address.select_country'))] + AddressHelper::getCountryOptions();
+        $shippingStateOptions = ['' => trans(LanguageHelper::getTranslationKey('order.address.select_state'))] + AddressHelper::getStateOptions($request->old('shippingProfile.country_id', count($shippingCountryOptions) < 3?key(array_slice($shippingCountryOptions, 1, 1, true)):$order->shippingInformation->country_id));
+        $shippingCityOptions = ['' => trans(LanguageHelper::getTranslationKey('order.address.select_city'))] + AddressHelper::getCityOptions($request->old('shippingProfile.state_id', $order->shippingInformation->state_id));
+        $shippingDistrictOptions = ['' => trans(LanguageHelper::getTranslationKey('order.address.select_district'))] + AddressHelper::getDistrictOptions($request->old('shippingProfile.city_id', $order->shippingInformation->city_id));
+        $shippingAreaOptions = ['' => trans(LanguageHelper::getTranslationKey('order.address.select_area'))] + AddressHelper::getAreaOptions($request->old('shippingProfile.district_id', $order->shippingInformation->district_id));
+
+        return [
+            'profileCountryOptions' => $profileCountryOptions,
+            'profileStateOptions' => $profileStateOptions,
+            'profileCityOptions' => $profileCityOptions,
+            'profileDistrictOptions' => $profileDistrictOptions,
+            'profileAreaOptions' => $profileAreaOptions,
+            'shippingCountryOptions' => $shippingCountryOptions,
+            'shippingStateOptions' => $shippingStateOptions,
+            'shippingCityOptions' => $shippingCityOptions,
+            'shippingDistrictOptions' => $shippingDistrictOptions,
+            'shippingAreaOptions' => $shippingAreaOptions,
+        ];
+    }
+
+    protected function getShippingMethodOptions(Request $request, $order)
+    {
+        $shippingMethodOptions = ShippingMethod::getShippingMethods([
+            'order' => $order,
+            'request' => $request
+        ]);
+
+        return [
+            'shippingMethodOptions' => $shippingMethodOptions,
+        ];
+    }
+
+    protected function getPaymentMethodOptions(Request $request)
+    {
+        $paymentMethods = PaymentMethod::getPaymentMethods();
+
+        $paymentMethodOptions = [];
+        foreach($paymentMethods as $paymentMethod){
+            $paymentMethodOptions[$paymentMethod->id] = $paymentMethod->name;
+        }
+
+        return [
+            'paymentMethods' => $paymentMethods,
+            'paymentMethodOptions' => $paymentMethodOptions,
+        ];
+    }
+
+    protected function getCheckoutRuleBook($type)
+    {
+        $ruleBook = [
+            'login' => [
+                'billingProfile.email' => 'required|email',
+                'password' => 'required'
+            ],
+            'account' => [
+                'billingProfile.email' => 'required|email'
+            ],
+            'continue_as_guest' => [
+                'billingProfile.email' => 'required|email'
+            ],
+            'customer_information' => [
+                'shippingProfile.full_name' => 'required',
+                'shippingProfile.phone_number' => 'required',
+                'shippingProfile.country_id' => 'required',
+                'shippingProfile.state_id' => 'descendant_address:state',
+                'shippingProfile.city_id' => 'descendant_address:city',
+                'shippingProfile.district_id' => 'descendant_address:district',
+                'shippingProfile.area_id' => 'descendant_address:area',
+                'shippingProfile.address_1' => 'required',
+            ],
+            'payment_method' => [
+                'payment_method' => 'required|exists:payment_methods,id'
+            ]
+        ];
+
+        if(ProjectHelper::getConfig('require_billing_information')){
+            $ruleBook['customer_information'] += [
+                'billingProfile.full_name' => 'required',
+                'billingProfile.phone_number' => 'required',
+                'billingProfile.address_1' => 'required',
+                'shippingProfile.email' => 'required|email',
+            ];
+        }
+
+        return $ruleBook[$type];
     }
 }

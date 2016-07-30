@@ -63,10 +63,10 @@
                             <td class="text-center">
                                 {!! Form::open(['route' => ['backend.catalog.category.delete', 'id' => $category->id]]) !!}
                                 <div class="btn-group btn-group-sm">
-                                    @can('edit_product_category')
+                                    @can('access', ['edit_product_category'])
                                     <a class="btn btn-default" href="{{ route('backend.catalog.category.edit', ['id' => $category->id, 'backUrl' => Request::fullUrl()]) }}"><i class="fa fa-pencil"></i> Edit</a>
                                     @endcan
-                                    @can('delete_product_category')
+                                    @can('access', ['delete_product_category'])
                                     <button class="btn btn-default" data-toggle="confirmation" data-original-title="Are you sure?" title=""><i class="fa fa-trash-o"></i> Delete</button>
                                     @endcan
                                 </div>

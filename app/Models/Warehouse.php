@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Warehouse extends Model
 {
-    protected $guarded = [];
+    protected $guarded = ['location'];
 
     //Relations
     public function stores()

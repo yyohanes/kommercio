@@ -14,5 +14,8 @@ return [
         'select_city' => 'City',
         'select_district' => 'District',
         'select_area' => 'Area',
+    ],
+    'shipping' => [
+        'estimated_working_day' => 'Approximately :estimated working day|Approximately :estimated working days',
     ]
 ];

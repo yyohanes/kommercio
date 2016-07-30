@@ -104,6 +104,7 @@ class Order extends Model implements AuthorSignatureInterface
             $this->delivery_date = null;
             $this->store_id = null;
             $this->payment_method_id = null;
+            $this->unsetData('checkout_step');
 
             $time = $this->freshTimestamp();
             $this->setCreatedAt($time);
@@ -247,7 +248,7 @@ class Order extends Model implements AuthorSignatureInterface
         return $this;
     }
 
-    public function updateShippingMethod($selected_method)
+    public function updateShippingMethod($selected_method, $selected_method_data = null)
     {
         $existingLineItems = $this->getShippingLineItems();
 
@@ -268,19 +269,28 @@ class Order extends Model implements AuthorSignatureInterface
             $lineItem->order()->associate($this);
         }
 
-        //Get all methods first than filter
-        $shippingOptions = ShippingMethod::getShippingMethods([
-            'order' => $this
-        ]);
+        $shipping_method = ShippingMethod::findOrFail($shippingOption['shipping_method_id']);
+        $price = CurrencyHelper::convert($shippingOption['price']['amount'], $shippingOption['price']['currency']);
 
-        if(!empty($shippingOptions)){
-            foreach($shippingOptions as $selectedMethod => $shippingOption){
-                if($selectedMethod == $selected_method){
-                    $shipping_method = ShippingMethod::findOrFail($shippingOption['shipping_method_id']);
-                    $price = CurrencyHelper::convert($shippingOption['price']['amount'], $shippingOption['price']['currency']);
-                    break;
+        //If $selected_method_data empty, then calculate
+        if(!$selected_method_data){
+            //Get all methods first than filter
+            $shippingOptions = ShippingMethod::getShippingMethods([
+                'order' => $this
+            ]);
+
+            if(!empty($shippingOptions)){
+                foreach($shippingOptions as $selectedMethod => $shippingOption){
+                    if($selectedMethod == $selected_method){
+                        $shipping_method = ShippingMethod::findOrFail($shippingOption['shipping_method_id']);
+                        $price = CurrencyHelper::convert($shippingOption['price']['amount'], $shippingOption['price']['currency']);
+                        break;
+                    }
                 }
             }
+        }else{
+            $shipping_method = ShippingMethod::findOrFail($selected_method_data['shipping_method_id']);
+            $price = CurrencyHelper::convert($selected_method_data['price']['amount'], $selected_method_data['price']['currency']);
         }
 
         if(isset($shipping_method)){
@@ -673,6 +683,17 @@ class Order extends Model implements AuthorSignatureInterface
         return $taxLineItems;
     }
 
+    public function getTotalWeight()
+    {
+        $weight = 0;
+
+        foreach($this->getProductLineItems() as $productLineItem){
+            $weight += abs($productLineItem->getShippingInformation()['weight'] * $productLineItem);
+        }
+
+        return $weight?:1000;
+    }
+
     //Scopes
     public function scopeJoinBillingProfile($query)
     {
@@ -809,14 +830,18 @@ class Order extends Model implements AuthorSignatureInterface
 
     public function getShippingInformationAttribute()
     {
-        $this->shippingProfile->fillDetails();
+        if($this->shippingProfile){
+            $this->shippingProfile->fillDetails();
+        }
 
         return $this->shippingProfile;
     }
 
     public function getBillingInformationAttribute()
     {
-        $this->billingProfile->fillDetails();
+        if($this->billingProfile){
+            $this->billingProfile->fillDetails();
+        }
 
         return $this->billingProfile;
     }

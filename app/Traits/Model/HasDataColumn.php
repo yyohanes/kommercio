@@ -32,6 +32,23 @@ trait HasDataColumn
         return $data;
     }
 
+    public function unsetData($attribute=null, $immediateSave = false)
+    {
+        $data = $this->getData($attribute);
+
+        if($attribute){
+            array_pull($data, $attribute);
+        }else{
+            $data = null;
+        }
+
+        $this->data = serialize($data);
+
+        if($immediateSave){
+            $this->save();
+        }
+    }
+
     //Scopes
     public function scopeSearchData($query, $key, $value, $whereNot = false)
     {
