@@ -25,17 +25,24 @@ var OrderIndex = function () {
         runtimeAdditonalColumns += additional_columns;
 
         columnDefs = columnDefs.concat([
-            {"name": "total", "targets": 5+runtimeAdditonalColumns},
-            {"name": "outstanding", "targets": 6+runtimeAdditonalColumns},
-            {"name": "status", "targets": 7+runtimeAdditonalColumns, "orderable": false}
+            {"name": "total", "targets": 5+runtimeAdditonalColumns}
         ]);
 
-        if(show_store_column){
-            columnDefs.push({"name": "store_id", "orderable" : false, "targets": 8+runtimeAdditonalColumns});
+        if(view_payment){
+            columnDefs.push({"name": "outstanding", "targets": 6+runtimeAdditonalColumns});
             runtimeAdditonalColumns += 1;
         }
 
-        columnDefs.push({"name": "action", "orderable" : false, "targets": 8+runtimeAdditonalColumns});
+        columnDefs = columnDefs.concat([
+            {"name": "status", "targets": 6+runtimeAdditonalColumns, "orderable": false}
+        ]);
+
+        if(show_store_column){
+            columnDefs.push({"name": "store_id", "orderable" : false, "targets": 7+runtimeAdditonalColumns});
+            runtimeAdditonalColumns += 1;
+        }
+
+        columnDefs.push({"name": "action", "orderable" : false, "targets": 7+runtimeAdditonalColumns});
 
         $dataTable.init({
             token: $('#orders-dataset').data('form_token'),

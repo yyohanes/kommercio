@@ -24,7 +24,7 @@
                     <span class="caption-subject sbold uppercase">Order #{{ $order->reference }}</span>
                 </div>
                 <div class="actions">
-                    @if(Gate::allows('access', ['edit_order']) && (!$order->status || in_array($order->status, [\Kommercio\Models\Order\Order::STATUS_ADMIN_CART])))
+                    @if(Gate::allows('access', ['edit_order']))
                         <a href="{{ route('backend.sales.order.edit', ['id' => $order->id, 'backUrl' => Request::fullUrl()]) }}" class="btn btn-info"><i class="fa fa-pencil"></i> Edit </a>
                     @endif
 
@@ -52,7 +52,7 @@
                         }
 
                         if(Gate::allows('access', ['print_delivery_note']) && $order->isPrintable && config('project.enable_delivery_note', false)){
-                            $printActions .= '<li><a href="'.route('backend.sales.order.print', ['id' => $order->id]).'" target="_blank">Print Delivery Note</a></li>';
+                            $printActions .= '<li><a href="'.route('backend.sales.order.print', ['id' => $order->id, 'type' => 'delivery_note']).'" target="_blank">Print Delivery Note</a></li>';
                         }
                     ?>
 
