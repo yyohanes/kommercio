@@ -30,11 +30,7 @@ class FrontendServiceProvider extends ServiceProvider
             $meta_description = config('project.client_subtitle');
 
             if(isset($viewsData['seoModel'])){
-                if($isHomepage){
-                    $meta_title = $viewsData['seoModel']->getMetaTitle();
-                }else{
-                    $meta_title = $viewsData['seoModel']->getMetaTitle().' - '.$meta_title;
-                }
+                $meta_title = FrontendHelper::generatePageTitle($viewsData['seoModel']->getMetaTitle());
 
                 $meta_description = $viewsData['seoModel']->getMetaDescription();
             }

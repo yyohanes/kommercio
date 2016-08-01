@@ -43,11 +43,6 @@ return [
         'backend/assets/images/login/bg2.jpg'
     ],
     'kommercio_api_token' => 'dGgzzOB5vbWOQXAJmvCjky3qmVY7LzpqX29DxWqLb6gmKyqfwJL7J2TveCeQ',
-    'catalog' => [
-        'limit' => 20,
-        'sort_by' => 'order',
-        'sort_dir' => 'ASC',
-    ],
     'order_process_condition' => [
         'processing' => [
             'status' => ['pending'],
@@ -65,5 +60,15 @@ return [
         ]
     ],
     'print_format' => 'default',
-    'require_billing_information' => true
+    'require_billing_information' => true,
+    'catalog_options' => [
+        'limit' => 20,
+        'sort_by' => 'order',
+        'sort_dir' => 'ASC',
+    ],
+    'order_options' => [
+        'limit' => 20,
+        'sort_by' => 'checkout_at',
+        'sort_dir' => 'ASC',
+    ],
 ];

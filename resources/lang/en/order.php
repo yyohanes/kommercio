@@ -17,5 +17,5 @@ return [
     ],
     'shipping' => [
         'estimated_working_day' => 'Approximately :estimated working day|Approximately :estimated working days',
-    ]
+    ],
 ];

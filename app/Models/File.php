@@ -3,6 +3,7 @@
 namespace Kommercio\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Intervention\Image\ImageManagerStatic;
 use Kommercio\Models\Interfaces\AuthorSignatureInterface;
 use Kommercio\Traits\Model\AuthorSignature;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
@@ -19,7 +20,7 @@ class File extends Model implements AuthorSignatureInterface
         'temp' => 'boolean'
     ];
 
-    public function saveFile(UploadedFile $uploadedFile, $temporary=true, $uploadPath='default')
+    public function saveFile(UploadedFile $uploadedFile, $temporary=true, $uploadPath='default', $resizeTo = false)
     {
         $storage = config('filesystems.default');
         $filename = pathinfo($uploadedFile->getClientOriginalName(), PATHINFO_FILENAME);
@@ -36,7 +37,26 @@ class File extends Model implements AuthorSignatureInterface
             $duplicateCount += 1;
             $finalFileName = $filename.($duplicateCount+1).'.'.$extension;
         }
-        Storage::put($uploadPath.$finalFileName, file_get_contents($uploadedFile->getRealPath()));
+
+        if($resizeTo){
+            $img = ImageManagerStatic::make($uploadedFile->getRealPath())->widen($resizeTo, function ($constraint) {
+                $constraint->upsize();
+            });
+
+            $tempSavedPath = storage_path('tmp/tmp_'.$finalFileName);
+            $realPath = $tempSavedPath;
+
+            $img->save($tempSavedPath, 90);
+        }else{
+            $realPath = $uploadedFile->getRealPath();
+        }
+
+        Storage::put($uploadPath.$finalFileName, file_get_contents($realPath));
+
+        //Delete after resized image is moved
+        if($resizeTo){
+            unlink($tempSavedPath);
+        }
 
         $this->fill([
             'storage' => $storage,

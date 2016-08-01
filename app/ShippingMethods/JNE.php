@@ -97,7 +97,7 @@ class JNE implements ShippingMethodInterface
             $destinationType = $order->shippingInformation->district_id?'subdistrict':'city';
         }
 
-        if($origin && $destination){
+        if(!empty($origin) && !empty($destination)){
             //Call Raja Ongkir API
             $client = new Client();
             $res = $client->post('http://pro.rajaongkir.com/api/cost', [

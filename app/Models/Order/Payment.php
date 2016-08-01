@@ -20,6 +20,7 @@ class Payment extends Model implements AuthorSignatureInterface
     const STATUS_PENDING = 'pending';
 
     protected $guarded = [];
+    protected $dates = ['payment_date'];
 
     //Scope
     public function scopeSuccessful($query)

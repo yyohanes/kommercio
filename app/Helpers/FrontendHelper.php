@@ -17,19 +17,34 @@ class FrontendHelper
 {
     private $_currentOrder;
 
-    public function get_url($internal_path, $params = [], $secure = null)
+    private $_miniAliasCache;
+
+    public function getAlias($internal_path)
     {
         $locale = App::getLocale();
 
-        $urlAlias = UrlAlias::where('internal_path', $internal_path)
-            ->where('locale', $locale)
-            ->first();
-
-        if($urlAlias){
-            $path = $urlAlias->external_path;
+        if(isset($this->_miniAliasCache[$internal_path.':'.$locale])){
+            $path = $this->_miniAliasCache[$internal_path.':'.$locale];
         }else{
-            $path = $internal_path;
+            $urlAlias = UrlAlias::where('internal_path', $internal_path)
+                ->where('locale', $locale)
+                ->first();
+
+            if($urlAlias){
+                $path = $urlAlias->external_path;
+            }else{
+                $path = $internal_path;
+            }
+
+            $this->_miniAliasCache[$internal_path.':'.$locale] = $path;
         }
+
+        return $path;
+    }
+
+    public function get_url($internal_path, $params = [], $secure = null)
+    {
+        $path = $this->getAlias($internal_path);
 
         return url($path, $params, $secure);
     }
@@ -58,6 +73,13 @@ class FrontendHelper
         $homePath = config('project.home_uri');
 
         return $requestUri == $homePath;
+    }
+
+    public function pathIsHere($path)
+    {
+        $currentPath = substr(RequestFacade::getPathInfo(), 1);
+
+        return $currentPath == $path;
     }
 
     //Menus
@@ -140,5 +162,18 @@ class FrontendHelper
         }
 
         return $this->_currentOrder;
+    }
+
+    public function generatePageTitle($text)
+    {
+        $isHomepage = FrontendHelper::isHomepage();
+
+        if($isHomepage){
+            $title = $text;
+        }else{
+            $title = $text.' - '.config('project.client_name');
+        }
+
+        return $title;
     }
 }

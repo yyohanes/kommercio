@@ -37,7 +37,7 @@
                     <span class="caption-subject sbold uppercase"> {{ $menu->name }} </span>
                 </div>
                 <div class="actions">
-                    @can('create_menu_item')
+                    @can('access', ['create_menu_item'])
                     <a href="{{ route('backend.cms.menu_item.create', ['menu_id' => $menu->id, 'backUrl' => Request::getRequestUri()]) }}" class="btn btn-sm btn-info">
                         <i class="fa fa-plus"></i> Add </a>
                     @endcan

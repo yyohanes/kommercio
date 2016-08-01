@@ -49,6 +49,6 @@ class OrderListener
 
         $orderEmail = ProjectHelper::getConfig('contacts.order.email');
 
-        EmailHelper::sendMail($orderEmail, $subject, 'order.admin_new_order', ['order' => $order], 'order');
+        EmailHelper::sendMail($orderEmail, $subject, 'order.admin_new_order', ['order' => $order], 'general');
     }
 }

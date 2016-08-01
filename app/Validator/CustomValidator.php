@@ -2,6 +2,7 @@
 
 namespace Kommercio\Validator;
 
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Validator;
 use Kommercio\Models\Address\Address;
 use Kommercio\Models\Order\Order;
@@ -140,6 +141,11 @@ class CustomValidator extends Validator
         $message = is_string(static::$_storage[$couponCode])?static::$_storage[$couponCode]:'';
 
         return $message;
+    }
+
+    public function validateOldPassword($attribute, $value, $parameters)
+    {
+        return Hash::check($value, current($parameters));
     }
 
     protected function replaceProductAttribute($message, $attribute, $rule, $parameters)

@@ -23,6 +23,8 @@ class RedirectIfAuthenticated
             if(isset($routeAction['middleware']) && is_array($routeAction['middleware'])){
                 if(in_array('backend.guest', $routeAction['middleware'])){
                     return redirect()->guest(route('backend.dashboard'));
+                }elseif(in_array('guest', $routeAction['middleware'])){
+                    return redirect()->guest(route('frontend.member.account'));
                 }
             }
 

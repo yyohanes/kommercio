@@ -10,10 +10,10 @@
                         <td class="text-right">
                             {!! Form::open(['route' => ['backend.cms.menu_item.delete', 'id' => $menuItem->id], 'class' => 'form-in-btn-group']) !!}
                             <div class="btn-group btn-group-xs">
-                                @can('edit_menu_item')
+                                @can('access', ['edit_menu_item'])
                                 <a class="btn btn-default" href="{{ route('backend.cms.menu_item.edit', ['id' => $menuItem->id, 'backUrl' => Request::getRequestUri()]) }}"><i class="fa fa-pencil"></i> Edit</a>
                                 @endcan
-                                @can('delete_menu_item')
+                                @can('access', ['delete_menu_item'])
                                 <button class="btn btn-default" data-toggle="confirmation" data-original-title="Are you sure?" title=""><i class="fa fa-trash-o"></i> Delete</button>
                                 @endcan
                             </div>

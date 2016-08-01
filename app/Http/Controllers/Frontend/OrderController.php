@@ -12,13 +12,18 @@ use Illuminate\Support\Facades\Validator;
 use Kommercio\Events\OrderEvent;
 use Kommercio\Events\OrderUpdate;
 use Kommercio\Facades\AddressHelper;
+use Kommercio\Facades\CurrencyHelper;
+use Kommercio\Facades\EmailHelper;
 use Kommercio\Facades\FrontendHelper;
 use Kommercio\Facades\LanguageHelper;
+use Kommercio\Facades\NewsletterSubscriptionHelper;
 use Kommercio\Facades\OrderHelper;
 use Kommercio\Facades\ProjectHelper;
 use Kommercio\Http\Controllers\Controller;
 use Kommercio\Models\Customer;
+use Kommercio\Models\File;
 use Kommercio\Models\Order\Order;
+use Kommercio\Models\Order\Payment;
 use Kommercio\Models\PaymentMethod\PaymentMethod;
 use Kommercio\Models\PriceRule\CartPriceRule;
 use Kommercio\Models\Product;
@@ -300,12 +305,19 @@ class OrderController extends Controller
     public function onePageCheckout(Request $request)
     {
         $order = FrontendHelper::getCurrentOrder();
+        $user = Auth::user();
 
         if($order->itemsCount <= 0){
             return redirect(FrontendHelper::get_url('cart'))->withErrors([trans(LanguageHelper::getTranslationKey('frontend.checkout.empty_order'))]);
         }
 
         $view_name = ProjectHelper::getViewTemplate('frontend.order.checkout');
+
+        //If logged in, update owner to new user and skip Account step
+        if($user){
+            $order->billingProfile->saveDetails(['email' => $user->email]);
+            $order->saveData(['checkout_step' => 'customer_information']);
+        }
 
         $customer = $order->billingInformation?Customer::getByEmail($order->billingInformation->email):null;
         $canLogin = FALSE;
@@ -314,9 +326,6 @@ class OrderController extends Controller
 
         $step = $order->getData('checkout_step', 'account');
 
-        if(Auth::check() && (!$customer || Auth::user()->id != $customer->user_id)){
-            Auth::logout();
-        }
 
         if($customer){
             if($customer->user && Auth::check() && Auth::user()->id == $customer->user_id){
@@ -342,6 +351,7 @@ class OrderController extends Controller
             $oldValues['payment_method'] = $order->payment_method_id;
             $oldValues['delivery_date'] = $order->delivery_date?$order->delivery_date->format('Y-m-d'):null;
             $oldValues['additional_fields'] = $order->additional_fields;
+            $oldValues['signup_newsletter'] = true;
 
             Session::flashInput($oldValues);
         }
@@ -361,6 +371,7 @@ class OrderController extends Controller
     public function onePageCheckoutProcess(Request $request, $type = 'account')
     {
         $order = FrontendHelper::getCurrentOrder();
+        $user = Auth::user();
 
         $errorCode = 400;
         $errors = [];
@@ -384,10 +395,6 @@ class OrderController extends Controller
         }
 
         $process = $request->input('process');
-
-        if(Auth::check() && (!$viewData['customer'] || Auth::user()->id != $viewData['customer']->user_id)){
-            Auth::logout();
-        }
 
         if($viewData['customer']){
             if($viewData['customer']->user && Auth::check() && Auth::user()->id == $viewData['customer']->user_id){
@@ -417,16 +424,24 @@ class OrderController extends Controller
                 }elseif($process == 'login'){
                     $this->validate($request, $this->getCheckoutRuleBook('login'));
 
-                    $renderData = [
-                        'account' => ProjectHelper::getViewTemplate('frontend.order.one_page.account'),
-                    ];
-
                     if (Auth::attempt(['email' => $request->input('billingProfile.email'), 'password' => $request->input('password')])) {
                         $viewData['step'] = 'customer_information';
+
+                        $addressOptions = $this->getAddressOptions($request, $order);
+
+                        $viewData += $addressOptions;
+
+                        $renderData = [
+                            'customer_information' => ProjectHelper::getViewTemplate('frontend.order.one_page.customer_information')
+                        ];
                     }else{
                         $viewData['step'] = 'account';
                         $errors['password'] = [trans(LanguageHelper::getTranslationKey('frontend.login.invalid_password'))];
                         $errorCode = 401;
+
+                        $renderData = [
+                            'account' => ProjectHelper::getViewTemplate('frontend.order.one_page.account'),
+                        ];
                     }
                 }elseif($process == 'register'){
                     $this->validate($request, $this->getCheckoutRuleBook('register'));
@@ -435,7 +450,10 @@ class OrderController extends Controller
                         'account' => ProjectHelper::getViewTemplate('frontend.order.one_page.account'),
                     ];
 
-                    $newCustomer = Customer::saveCustomer(['email' => $request->input('billingProfile.email')], ['email' => $request->input('billingProfile.email'), 'password' => $request->input('password')]);
+                    $newCustomer = Customer::saveCustomer(['email' => $request->input('billingProfile.email'), 'full_name' => $request->input('name')], ['email' => $request->input('billingProfile.email'), 'password' => $request->input('password')]);
+                    if($request->input('signup_newsletter', null) == 1){
+                        NewsletterSubscriptionHelper::subscribe('default', $request->input('billingProfile.email'), $request->input('name'));
+                    }
 
                     $viewData['step'] = 'customer_information';
                     Auth::login($newCustomer->user);
@@ -454,6 +472,10 @@ class OrderController extends Controller
                 }else{
                     $this->validate($request, $this->getCheckoutRuleBook('account'));
 
+                    if($user && (!$viewData['customer'] || $user->id != $viewData['customer']->user_id)){
+                        Auth::logout();
+                    }
+
                     //Save customer to order
                     if($viewData['customer']){
                         $order->customer()->associate($viewData['customer']);
@@ -462,11 +484,22 @@ class OrderController extends Controller
                     //Save email to order
                     $order->saveProfile('billing', ['email' => $request->input('billingProfile.email')]);
 
-                    $viewData['step'] = 'account';
+                    //If already logged in, next
+                    if($user){
+                        $addressOptions = $this->getAddressOptions($request, $order);
 
-                    $renderData = [
-                        'account' => ProjectHelper::getViewTemplate('frontend.order.one_page.account'),
-                    ];
+                        $viewData += $addressOptions;
+
+                        $renderData = [
+                            'customer_information' => ProjectHelper::getViewTemplate('frontend.order.one_page.customer_information')
+                        ];
+                    }else{
+                        $viewData['step'] = 'account';
+
+                        $renderData = [
+                            'account' => ProjectHelper::getViewTemplate('frontend.order.one_page.account'),
+                        ];
+                    }
                 }
 
                 break;
@@ -636,8 +669,6 @@ class OrderController extends Controller
 
                     Event::fire(new OrderEvent('frontend_rules_built', $order, ['rules' => &$rules]));
 
-                    $this->validate($request, $rules);
-
                     $order->processStocks();
 
                     $this->placeOrder($order);
@@ -729,6 +760,99 @@ class OrderController extends Controller
         return view($view_name, ['order' => $order]);
     }
 
+    public function confirmPayment(Request $request)
+    {
+        if($request->isMethod('POST')){
+            $bankTransfer = PaymentMethod::where('class', 'BankTransfer')->firstOrFail();
+
+            $rules = [
+                'order_id' => 'required|exists:orders,reference',
+                'details.name' => 'required',
+                'details.email' => 'required',
+                'payment_date' => 'required|date_format:d/m/Y|before:'.Carbon::now()->modify('+1 day')->format('Y-m-d 00:00:00'),
+                'amount' => 'required|numeric',
+                'details.account_name' => 'required',
+                'details.account_bank' => 'required',
+                'attachment' => 'image|max:3000',
+            ];
+
+            Event::fire(new OrderEvent('before_validate_confirm_payment', null, ['request' => &$request]));
+
+            $this->validate($request, $rules);
+
+            $order = Order::where('reference', $request->input('order_id'))->first();
+
+            $paymentData = [
+                'payment_method_id' => $bankTransfer->id,
+                'amount' => $request->input('amount'),
+                'currency' => CurrencyHelper::getCurrentCurrency()['code'],
+                'status' => Payment::STATUS_PENDING,
+                'order_id' => $order->id,
+                'notes' => ''
+            ];
+
+            $labels = [
+                'name' => 'Name',
+                'email' => 'Email',
+                'phone' => 'Phone',
+                'account_name' => 'Account Holder',
+                'account_bank' => 'Bank Name',
+                'transfer_method' => 'Transfer Method'
+            ];
+
+            if($request->has('details')){
+                foreach($request->input('details') as $key => $detail){
+                    $paymentData['notes'] .= array_get($labels, $key, $key).": ".$detail."\r\n";
+                }
+            }
+
+            if($request->has('notes')){
+                $paymentData['notes'] .= "Notes: ".$request->input('notes');
+            }
+
+            $payment = new Payment();
+            $payment->fill($paymentData);
+            $payment->payment_date = Carbon::createFromFormat('d/m/Y', $request->input('payment_date'));
+
+            Event::fire(new OrderEvent('before_saving_confirm_payment', $order, ['request' => &$request, 'payment' => &$payment]));
+
+            $payment->save();
+
+            if($request->hasFile('attachment')){
+                $file = $request->file('attachment');
+                $uploadFile = new File();
+
+                if($uploadFile->saveFile($file, false, 'payment_confirmation', ['width' => 2000, 'height' => 2000, 'crop' => 'default'])){
+                    $uploadedFiles[] = [
+                        'id' => $uploadFile->id,
+                        'filename' => $uploadFile->filename,
+                        'path' => $uploadFile->folder.$uploadFile->filename
+                    ];
+                }
+
+                $images[$uploadFile->id] = [
+                    'type' => 'attachment',
+                ];
+                $payment->attachMedia($images, 'attachment');
+                $payment->load('attachments');
+            }
+
+            EmailHelper::sendMail(ProjectHelper::getConfig('contacts.order.email'), 'New payment confirmation for Order #'.$order->reference, 'payment_confirmation', ['payment' => $payment], 'general', function($message) use ($payment){
+                foreach($payment->attachments as $attachment){
+                    $message->attach(asset($attachment->getImagePath('original')), [
+                        'as' => $attachment->filename,
+                    ]);
+                }
+            });
+
+            return redirect()->back()->with('success', [trans(LanguageHelper::getTranslationKey('frontend.payment_confirmation.success_message'))]);
+        }else{
+            $view_name = ProjectHelper::getViewTemplate('frontend.order.confirm_payment');
+
+            return view($view_name);
+        }
+    }
+
     protected function placeOrder(Order $order)
     {
         $order->status = Order::STATUS_PENDING;
@@ -801,7 +925,8 @@ class OrderController extends Controller
         $ruleBook = [
             'register' => [
                 'billingProfile.email' => 'required|email|unique:users,email',
-                'password' => 'required|confirmed'
+                'name' => 'required',
+                'password' => 'required',
             ],
             'login' => [
                 'billingProfile.email' => 'required|email',

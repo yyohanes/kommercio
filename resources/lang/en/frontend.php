@@ -21,5 +21,19 @@ return [
     ],
     'login' => [
         'invalid_password' => 'Password is invalid.'
-    ]
+    ],
+    'payment_confirmation' => [
+        'success_message' => 'Thank you for confirming your Payment. We will check as process your order.'
+    ],
+    'member' => [
+        'profile_update' => [
+            'success_message' => 'Your profile is successfully updated.'
+        ],
+        'account_update' => [
+            'success_message' => 'Your account is successfully updated.'
+        ],
+        'newsletter' => [
+            'subscription_success_message' => 'You are successfully subscribed to our Mailing list.'
+        ]
+    ],
 ];

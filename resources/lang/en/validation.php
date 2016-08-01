@@ -83,6 +83,8 @@ return [
     'is_in_stock' => ':product is out of stock.',
     'is_purchaseable' => ':product is not available for purchase.',
     'descendant_address' => 'The :attribute field is required.',
+    'captcha' => 'Verification code is invalid. Please try again.',
+    'old_password' => 'Old password is invalid.',
 
     /*
     |--------------------------------------------------------------------------

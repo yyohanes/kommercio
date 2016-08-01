@@ -29,7 +29,7 @@
                     <span class="caption-subject sbold uppercase"> Menu </span>
                 </div>
                 <div class="actions">
-                    @can('create_page')
+                    @can('access', ['create_page'])
                     <a href="{{ route('backend.cms.menu.create', ['backUrl' => Request::getRequestUri()]) }}" class="btn btn-sm btn-info">
                         <i class="fa fa-plus"></i> Add </a>
                     @endcan
@@ -55,10 +55,10 @@
                             <td class="text-center">
                                 {!! Form::open(['route' => ['backend.cms.menu.delete', 'id' => $menu->id]]) !!}
                                 <div class="btn-group btn-group-sm">
-                                    @can('edit_menu')
+                                    @can('access', ['edit_menu'])
                                     <a class="btn btn-default" href="{{ route('backend.cms.menu.edit', ['id' => $menu->id, 'backUrl' => Request::fullUrl()]) }}"><i class="fa fa-pencil"></i> Edit</a>
                                     @endcan
-                                    @can('delete_menu')
+                                    @can('access', ['delete_menu'])
                                     <button class="btn btn-default" data-toggle="confirmation" data-original-title="Are you sure?" title=""><i class="fa fa-trash-o"></i> Delete</button>
                                     @endcan
                                 </div>

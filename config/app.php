@@ -159,6 +159,7 @@ return [
         \Fedeisas\LaravelMailCssInliner\LaravelMailCssInlinerServiceProvider::class,
         \Collective\Bus\BusServiceProvider::class,
         \Maatwebsite\Excel\ExcelServiceProvider::class,
+        \Mews\Captcha\CaptchaServiceProvider::class,
 
         /*
          * Application Service Providers...
@@ -221,6 +222,8 @@ return [
         'Excel' => \Maatwebsite\Excel\Facades\Excel::class,
         'NavigationHelper' => \Kommercio\Facades\NavigationHelper::class,
         'Shortcode' => \Kommercio\Facades\Shortcode::class,
+        'Captcha' => \Mews\Captcha\Facades\Captcha::class,
+        'NewsletterSubscriptionHelper' => \Kommercio\Facades\NewsletterSubscriptionHelper::class,
         'ProjectHelper' => \Kommercio\Facades\ProjectHelper::class,
         'CurrencyHelper' => \Kommercio\Facades\CurrencyHelper::class,
         'GlideImage' => Spatie\Glide\GlideImageFacade::class,

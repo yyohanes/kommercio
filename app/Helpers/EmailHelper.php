@@ -22,14 +22,18 @@ class EmailHelper
         return $viewPath;
     }
 
-    public function sendMail($to, $subject, $template, $data, $contact='general', $queue = true, $preview=FALSE)
+    public function sendMail($to, $subject, $template, $data, $contact='general', $callback = null, $queue = true, $preview=FALSE)
     {
         $contact = $this->getContact($contact);
         $template = $this->getTemplate($template);
 
         if(!$preview){
             $sendFunction = $queue?'queue':'send';
-            $result = Mail::$sendFunction($template, $data, function ($message) use ($contact, $data, $subject, $to) {
+            $result = Mail::$sendFunction($template, $data, function ($message) use ($contact, $data, $subject, $to, $callback) {
+                if ($callback && $callback instanceof \Closure) {
+                    call_user_func($callback, $message);
+                }
+
                 $message->from($contact['email'], $contact['name']);
                 $message->to($to);
                 $message->subject($subject);

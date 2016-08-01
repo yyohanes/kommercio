@@ -315,4 +315,28 @@ class OrderHelper
 
         $request->replace($attributes);
     }
+
+    public function addPendingPayment(Order $order, $data)
+    {
+        $payment = new Payment();
+        $payment->fill($data);
+        $payment->order()->associate($order);
+        $payment->status = Payment::STATUS_PENDING;
+
+        $payment->save();
+
+        if($request->has('attachments')){
+            foreach($request->input('attachments', []) as $idx=>$image){
+                $images[$image] = [
+                    'type' => 'attachment',
+                ];
+            }
+            $payment->attachMedia($images, 'attachment');
+        }
+
+        return response()->json([
+            'result' => 'success',
+            'message' => 'Payment with amount of '.PriceFormatter::formatNumber($payment->amount, $payment->currency).' is successfully entered.'
+        ]);
+    }
 }

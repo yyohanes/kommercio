@@ -77,6 +77,67 @@ class CatalogController extends Controller
         ]);
     }
 
+    public function search(Request $request)
+    {
+        $options = [
+            'limit' => $request->input('limit', ProjectHelper::getConfig('catalog_options.limit')),
+            'sort_by' => $request->input('sort_by', ProjectHelper::getConfig('catalog_options.sort_by')),
+            'sort_dir' => $request->input('sort_dir', ProjectHelper::getConfig('catalog_options.sort_dir')),
+            'keyword' => $request->input('keyword')
+        ];
+
+        $qb = Product::productEntity();
+
+        $event_results = Event::fire(new CatalogQueryBuilderEvent('products', $qb, $request, $options));
+
+        //If not processed, build default query here
+        if(!isset($event_results[0]) || empty($event_results[0])){
+            $qb->joinTranslation()->joinDetail()->selectSelf()
+                ->where('D.active', true)
+                ->whereIn('D.visibility', [ProductDetail::VISIBILITY_EVERYWHERE, ProductDetail::VISIBILITY_CATALOG])
+                ->orderBy('D.sort_order', 'ASC');
+
+            if(!empty($options['keyword'])){
+                $qb->where(function($qb) use ($options){
+                    $qb->where('T.name', 'LIKE', '%'.$options['keyword'].'%');
+
+                    $qb->orWhere('sku', 'LIKE', '%'.$options['keyword'].'%');
+
+                    $qb->orWhereHas('variations', function($query) use ($options){
+                        $query->where('name', 'LIKE', '%'.$options['keyword'].'%')->orWhere('sku', 'LIKE', '%'.$options['keyword'].'%');
+                    });
+
+                    $qb->orWhereHas('categories', function($query) use ($options){
+                        $query->whereTranslationLike('name', '%'.$options['keyword'].'%');
+                    });
+
+                    $qb->orWhereHas('manufacturer', function($query) use ($options){
+                        $query->where('name', 'LIKE', '%'.$options['keyword'].'%');
+                    });
+                });
+            }
+            $products = $qb->paginate($options['limit']);
+        }else{
+            $products = $event_results[0];
+        }
+
+        $appendedOptions = $options;
+        foreach($appendedOptions as $key => $appendedOption){
+            if(!$request->has($key)){
+                unset($appendedOptions[$key]);
+            }
+        }
+
+        $products->setPath(FrontendHelper::get_url($request->path()))->appends($appendedOptions);
+
+        $view_name = ProjectHelper::getViewTemplate('frontend.catalog.product.search');
+
+        return view($view_name, [
+            'products' => $products,
+            'options' => $options,
+        ]);
+    }
+
     public function viewCategory(Request $request, $id)
     {
         $productCategory = ProductCategory::findOrFail($id);
@@ -86,9 +147,9 @@ class CatalogController extends Controller
         }
 
         $options = [
-            'limit' => $request->input('limit', ProjectHelper::getConfig('catalog.limit')),
-            'sort_by' => $request->input('sort_by', ProjectHelper::getConfig('catalog.sort_by')),
-            'sort_dir' => $request->input('sort_dir', ProjectHelper::getConfig('catalog.sort_dir'))
+            'limit' => $request->input('limit', ProjectHelper::getConfig('catalog_options.limit')),
+            'sort_by' => $request->input('sort_by', ProjectHelper::getConfig('catalog_options.sort_by')),
+            'sort_dir' => $request->input('sort_dir', ProjectHelper::getConfig('catalog_options.sort_dir'))
         ];
 
         $qb = $productCategory->products();

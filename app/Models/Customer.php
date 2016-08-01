@@ -72,13 +72,18 @@ class Customer extends Model
     }
 
     //Statics
-    public static function saveCustomer($profileData=null, $accountData=null, $touchAccount = TRUE)
+    public static function saveCustomer($profileData=null, $accountData=null, $touchAccount = TRUE, $newRegistration = FALSE)
     {
         if(!isset($profileData['email']) || !filter_var($profileData['email'], FILTER_VALIDATE_EMAIL)){
             throw new \Exception('Email is required when saving customer.');
         }
 
         $customer = self::whereField('email', $profileData['email'])->first();
+
+        if($newRegistration && $customer){
+            $customer->is_virgin = TRUE;
+        }
+
         if(!$customer){
             $customer = new self();
             $customer->is_virgin = TRUE;

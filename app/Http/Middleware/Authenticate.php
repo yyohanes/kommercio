@@ -26,6 +26,8 @@ class Authenticate
                 if(isset($routeAction['middleware']) && is_array($routeAction['middleware'])){
                     if(in_array('backend.auth', $routeAction['middleware'])){
                         return redirect()->guest(route('backend.login_form'));
+                    }elseif(in_array('auth', $routeAction['middleware'])){
+                        return redirect()->guest(route('frontend.login_form'));
                     }
                 }
 

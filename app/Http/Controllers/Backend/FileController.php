@@ -47,7 +47,7 @@ class FileController extends Controller{
         $file = $request->file('image');
         $uploadFile = new Media();
 
-        if($uploadFile->saveFile($file, TRUE, 'editor')){
+        if($uploadFile->saveFile($file, FALSE, 'editor')){
             $baseUrl = $request->getBaseUrl();
 
             return new JsonResponse([

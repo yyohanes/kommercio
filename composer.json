@@ -18,7 +18,9 @@
         "fedeisas/laravel-mail-css-inliner": "~1.5",
         "laravelcollective/bus": "^5.2",
         "maatwebsite/excel": "~2.1.0",
-        "maiorano84/shortcodes": "~1.0"
+        "maiorano84/shortcodes": "~1.0",
+        "mews/captcha": "^2.1",
+        "mailerlite/mailerlite-api-v2-php-sdk": "^0.1.6"
     },
     "require-dev": {
         "fzaninotto/faker": "~1.4",

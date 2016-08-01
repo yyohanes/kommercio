@@ -20,7 +20,7 @@ class OrderEvent extends Event
      *
      * @return void
      */
-    public function __construct($type, Order $order, $params = [])
+    public function __construct($type, Order $order = null, $params = [])
     {
         $this->order = $order;
         $this->type = $type;

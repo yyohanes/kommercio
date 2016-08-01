@@ -13,6 +13,84 @@
 
 Route::group(['middleware' => ['web']], function () {
     Route::group(['namespace' => 'Frontend'], function(){
+        // Authentication Routes...
+        Route::get('login', [
+            'as' => 'frontend.login_form',
+            'uses' => 'Auth\AuthController@showLoginForm'
+        ]);
+
+        Route::post('login', [
+            'as' => 'frontend.login',
+            'uses' => 'Auth\AuthController@login'
+        ]);
+
+        Route::get('logout', [
+            'as' => 'frontend.logout',
+            'uses' => 'Auth\AuthController@getLogout'
+        ]);
+
+        // Password Reset Routes...
+        Route::get('password/reset/{token?}', [
+            'as' => 'frontend.password.form',
+            'uses' => 'Auth\PasswordController@showResetForm'
+        ]);
+
+        Route::post('password/email', [
+            'as' => 'frontend.password.email',
+            'uses' => 'Auth\PasswordController@sendResetLinkEmail'
+        ]);
+
+        Route::post('password/reset', [
+            'as' => 'frontend.password.reset',
+            'uses' => 'Auth\PasswordController@reset'
+        ]);
+
+        // Register Routes...
+        Route::post('register', [
+            'as' => 'frontend.register',
+            'uses' => 'Auth\AuthController@postRegister'
+        ]);
+
+        Route::post('password/reset', [
+            'as' => 'frontend.password.reset',
+            'uses' => 'Auth\PasswordController@reset'
+        ]);
+
+        Route::group(['middleware' => 'auth'], function(){
+            Route::group(['prefix' => 'member'], function(){
+                Route::get('account', [
+                    'as' => 'frontend.member.account',
+                    'uses' => 'AccountController@account'
+                ]);
+
+                Route::any('account/profile-update', [
+                    'as' => 'frontend.member.account.profile_update',
+                    'uses' => 'AccountController@profileUpdate'
+                ]);
+
+                Route::any('account/account-update', [
+                    'as' => 'frontend.member.account.account_update',
+                    'uses' => 'AccountController@accountUpdate'
+                ]);
+
+                Route::get('orders', [
+                    'as' => 'frontend.member.orders',
+                    'uses' => 'AccountController@orders'
+                ]);
+
+                Route::get('orders/{reference}/view', [
+                    'as' => 'frontend.member.orders.view',
+                    'uses' => 'AccountController@viewOrder'
+                ]);
+            });
+        });
+
+        //Newsletter widget
+        Route::post('member/newsletter_widget/subscribe', [
+            'as' => 'frontend.member.newsletter_widget.subscribe',
+            'uses' => 'AccountController@newsletterWidgetSubscribe'
+        ]);
+
         //Pages
         Route::get('page/{id}', [
             'as' => 'frontend.page.view',
@@ -80,6 +158,11 @@ Route::group(['middleware' => ['web']], function () {
         Route::post('one-page-checkout/process/{type?}', [
             'as' => 'frontend.order.onepage_checkout.process',
             'uses' => 'OrderController@onePageCheckoutProcess'
+        ]);
+
+        Route::any('confirm-payment', [
+            'as' => 'frontend.order.confirm_payment',
+            'uses' => 'OrderController@confirmPayment'
         ]);
 
         Route::get('checkout/complete', [
