@@ -70,7 +70,7 @@
             </div>
 
             <div class="portlet-body">
-                <div class="table-scrollable">
+                <div class="table-responsive">
                     <table class="table table-striped table-hover">
                         <thead>
                         <tr>
@@ -101,19 +101,41 @@
                             <tr>
                                 <td>{{ $idx+1 }}</td>
                                 <td>
-                                    @can('access', ['view_order'])
-                                    <a class="btn btn-default btn-xs" href="{{ route('backend.sales.order.view', ['id' => $order->id, 'backUrl' => Request::getRequestUri()]) }}"><i class="fa fa-search"></i></a>
-                                    @endcan
+                                    <?php
+                                    $orderAction = '';
 
-                                    <div class="btn-group btn-group-xs dropup">
-                                        <button type="button" class="btn btn-default hold-on-click dropdown-toggle hover-initialized" data-toggle="dropdown" data-hover="dropdown" data-close-others="true" aria-expanded="true"><i class="fa fa-print"></i></button>
+                                    $processActions = '';
+                                    if (Gate::allows('access', ['process_order']) && $order->isProcessable) {
+                                        $processActions .= '<li><a class="modal-ajax" href="' . route('backend.sales.order.process', ['action' => 'processing', 'id' => $order->id, 'backUrl' => Request::fullUrl()]) . '"><i class="fa fa-toggle-right"></i> Process</a></li>';
+                                    }
 
-                                        <ul class="dropdown-menu pull-right" role="menu">
-                                            <li><a href="{{ route('backend.sales.order.print', ['id' => $order->id]) }}" target="_blank">Invoice</a></li>
-                                            @if(Gate::allows('access', ['print_delivery_note']) && $order->isPrintable && config('project.enable_delivery_note', false))
-                                            <li><a href="{{ route('backend.sales.order.print', ['id' => $order->id, 'type' => 'delivery_note']) }}" target="_blank">Invoice</a></li>
-                                            @endif
-                                        </ul></div>
+                                    if(Gate::allows('access', ['ship_order']) && $order->isShippable):
+                                        $processActions .= '<li><a class="modal-ajax" href="' . route('backend.sales.order.process', ['action' => 'shipped', 'id' => $order->id, 'backUrl' => Request::fullUrl()]) . '"><i class="fa fa-truck"></i> Ship</a></li>';
+                                    endif;
+                                    if(Gate::allows('access', ['complete_order']) && $order->isCompleteable):
+                                        $processActions .= '<li><a class="modal-ajax" href="' . route('backend.sales.order.process', ['action' => 'completed', 'id' => $order->id, 'backUrl' => Request::fullUrl()]) . '"><i class="fa fa-check-circle"></i> Complete</a></li>';
+                                    endif;
+                                    if(Gate::allows('access', ['cancel_order']) && $order->isCancellable):
+                                        $processActions .= '<li><a class="modal-ajax" href="' . route('backend.sales.order.process', ['action' => 'cancelled', 'id' => $order->id, 'backUrl' => Request::fullUrl()]) . '"><i class="fa fa-remove"></i> Cancel</a></li>';
+                                    endif;
+
+                                    if(!empty($processActions)){
+                                        $orderAction .= '<div class="btn-group btn-group-xs dropup"><button type="button" class="btn btn-default hold-on-click dropdown-toggle" data-toggle="dropdown" data-hover="dropdown" data-close-others="true" aria-expanded="true"><i class="fa fa-flag-o"></i></button><ul class="dropdown-menu" role="menu">'.$processActions.'</ul></div>';
+                                    }
+
+                                    $printActions = '';
+                                    if(Gate::allows('access', ['print_invoice']) && $order->isPrintable):
+                                        $printActions .= '<li><a href="' . route('backend.sales.order.print', ['id' => $order->id]) . '" target="_blank">Invoice</a></li>';
+                                    endif;
+                                    if(Gate::allows('access', ['print_delivery_note']) && $order->isPrintable && config('project.enable_delivery_note', false)):
+                                        $printActions .= '<li><a href="' . route('backend.sales.order.print', ['id' => $order->id, 'type' => 'delivery_note']) . '" target="_blank">Delivery Note</a></li>';
+                                    endif;
+
+                                    if(!empty($printActions)){
+                                        $orderAction .= '<div class="btn-group btn-group-xs dropup"><button type="button" class="btn btn-default hold-on-click dropdown-toggle" data-toggle="dropdown" data-hover="dropdown" data-close-others="true" aria-expanded="true"><i class="fa fa-print"></i></button><ul class="dropdown-menu" role="menu">'.$printActions.'</ul></div>';
+                                    }
+                                    ?>
+                                    {!! $orderAction !!}
                                 </td>
                                 <td>{{ $order->reference }}</td>
                                 <td>{{ $order->checkout_at?$order->checkout_at->format('d M Y, H:i'):'' }}</td>
