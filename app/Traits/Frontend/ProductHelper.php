@@ -4,6 +4,7 @@ namespace Kommercio\Traits\Frontend;
 
 use Kommercio\Facades\Shortcode;
 use Kommercio\Models\Product;
+use Kommercio\Models\ProductAttribute\ProductAttributeValue;
 
 trait ProductHelper
 {
@@ -157,7 +158,7 @@ trait ProductHelper
         $return = [];
 
         foreach($this->productAttributes as $productAttribute){
-            $productAttributeValue = $this->productAttributeValues->where('product_attribute_id', $productAttribute->id)->first();
+            $productAttributeValue = ProductAttributeValue::find($productAttribute->pivot->product_attribute_value_id);
 
             $return[] = [
                 'label' => $productAttribute->name,
