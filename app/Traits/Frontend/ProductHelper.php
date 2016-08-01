@@ -157,9 +157,11 @@ trait ProductHelper
         $return = [];
 
         foreach($this->productAttributes as $productAttribute){
+            $productAttributeValue = $this->productAttributeValues->where('product_attribute_id', $productAttribute->id)->first();
+
             $return[] = [
                 'label' => $productAttribute->name,
-                'value' => $this->productAttributeValues->where('product_attribute_id', $productAttribute->id)->first()->name
+                'value' => $productAttributeValue?$productAttributeValue->name:''
             ];
         }
 
