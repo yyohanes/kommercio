@@ -59,6 +59,7 @@
                     <span class="caption-subject sbold uppercase">{{ $shippingMethod }} on {{ $deliveryDate->format('l, j M Y') }}</span>
                 </div>
                 <div class="actions">
+                    {!! Form::close() !!}
                     <a target="_blank" href="{{ $exportUrl }}" class="btn btn-sm btn-info">
                         <i class="fa fa-file-excel-o"></i> Export to XLS</a>
                     @can('access', ['print_invoice'])
@@ -101,11 +102,18 @@
                                 <td>{{ $idx+1 }}</td>
                                 <td>
                                     @can('access', ['view_order'])
-                                    <div class="btn-group btn-group-xs">
-                                        <a class="btn btn-default" href="{{ route('backend.sales.order.view', ['id' => $order->id, 'backUrl' => Request::getRequestUri()]) }}"><i class="fa fa-search"></i></a>
-                                        <a class="btn btn-default" href="{{ route('backend.sales.order.print', ['id' => $order->id]) }}" target="_blank"><i class="fa fa-print"></i></a>
-                                    </div>
+                                    <a class="btn btn-default btn-xs" href="{{ route('backend.sales.order.view', ['id' => $order->id, 'backUrl' => Request::getRequestUri()]) }}"><i class="fa fa-search"></i></a>
                                     @endcan
+
+                                    <div class="btn-group btn-group-xs dropup">
+                                        <button type="button" class="btn btn-default hold-on-click dropdown-toggle hover-initialized" data-toggle="dropdown" data-hover="dropdown" data-close-others="true" aria-expanded="true"><i class="fa fa-print"></i></button>
+
+                                        <ul class="dropdown-menu pull-right" role="menu">
+                                            <li><a href="{{ route('backend.sales.order.print', ['id' => $order->id]) }}" target="_blank">Invoice</a></li>
+                                            @if(Gate::allows('access', ['print_delivery_note']) && $order->isPrintable && config('project.enable_delivery_note', false))
+                                            <li><a href="{{ route('backend.sales.order.print', ['id' => $order->id, 'type' => 'delivery_note']) }}" target="_blank">Invoice</a></li>
+                                            @endif
+                                        </ul></div>
                                 </td>
                                 <td>{{ $order->reference }}</td>
                                 <td>{{ $order->checkout_at?$order->checkout_at->format('d M Y, H:i'):'' }}</td>
