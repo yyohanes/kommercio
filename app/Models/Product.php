@@ -176,7 +176,7 @@ class Product extends Model implements UrlAliasInterface
 
     public function hasThumbnail()
     {
-        return $this->getThumbnail()?true:false;
+        return $this->thumbnail?true:false;
     }
 
     public function hasCategory($category)
