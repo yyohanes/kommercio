@@ -254,7 +254,7 @@ class OrderController extends Controller{
         foreach($orders as $idx=>$order){
             $orderAction = '';
 
-            $orderAction .= FormFacade::open(['route' => ['backend.sales.order.delete', 'id' => $order->id], 'class' => 'form-in-btn-group']);
+            $orderAction .= FormFacade::open(['route' => ['backend.sales.order.delete', 'id' => $order->id, 'backUrl' => RequestFacade::fullUrl()], 'class' => 'form-in-btn-group']);
             $orderAction .= '<div class="btn-group btn-group-xs">';
 
             $orderAction .= '<a class="btn btn-default" href="'.route('backend.sales.order.view', ['id' => $order->id, 'backUrl' => RequestFacade::fullUrl()]).'"><i class="fa fa-search"></i></a>';
@@ -305,6 +305,7 @@ class OrderController extends Controller{
             }
 
             $rowMeat = [
+                '<input type="checkbox" name="id[]" value="'.$order->id.'" />',
                 $idx + 1 + $orderingStart,
                 $order->reference,
                 $order->checkout_at?$order->checkout_at->format('d M Y, H:i'):''
@@ -653,16 +654,16 @@ class OrderController extends Controller{
 
         Event::fire(new OrderUpdate($order, $originalStatus, $request->input('send_notification')));
 
-        return redirect()->route('backend.sales.order.index')->with('success', ['This '.Order::getStatusOptions($order->status, true).' order has successfully been updated.']);
+        return redirect($request->input('backUrl', route('backend.sales.order.index')))->with('success', ['This '.Order::getStatusOptions($order->status, true).' order has successfully been updated.']);
     }
 
-    public function delete($id)
+    public function delete(Request $request, $id)
     {
         $order = Order::findOrFail($id);
 
         $order->delete();
 
-        return redirect()->route('backend.sales.order.index')->with('success', ['This '.Order::getStatusOptions($order->status, true).' order has successfully been deleted.']);
+        return redirect($request->input('backUrl', route('backend.sales.order.index')))->with('success', ['This '.Order::getStatusOptions($order->status, true).' order has successfully been deleted.']);
     }
 
     public function deleteAll()
@@ -680,7 +681,7 @@ class OrderController extends Controller{
         }
     }
 
-    public function process(Request $request, $process, $id=null)
+    public function process(Request $request, $process, $id=null, $internal = FALSE)
     {
         $user = $request->user();
         $order = Order::find($id);
@@ -778,8 +779,147 @@ class OrderController extends Controller{
 
             Event::fire(new OrderUpdate($order, $originalStatus, $request->input('send_notification')));
 
-            return redirect($request->input('backUrl', route('backend.sales.order.index')))->with('success', [$message]);
+            if(!$internal){
+                return redirect($request->input('backUrl', route('backend.sales.order.index')))->with('success', [$message]);
+            }else{
+                return $order;
+            }
         }
+    }
+
+    public function bulkProcess(Request $request, $process)
+    {
+        $processedOrders = [];
+        $unprocessedOrders = [];
+        $message = '';
+        $selectedOrderCount = count($request->input('order_id', []));
+
+        switch($process){
+            case 'processing':
+                if($request->input('confirm') == '1'){
+                    $processedCount = 0;
+
+                    foreach($request->input('order_id', []) as $order_id){
+                        if($this->process($request, $process, $order_id, TRUE)){
+                            $processedCount += 1;
+                        }
+                    }
+
+                    $message = $processedCount.' '.str_plural('Order', $processedCount).' successfully set to <span class="label bg-'.OrderHelper::getOrderStatusLabelClass(Order::STATUS_PROCESSING).' bg-font-'.OrderHelper::getOrderStatusLabelClass(Order::STATUS_PROCESSING).'">'.Order::getStatusOptions(Order::STATUS_PROCESSING).'.</span>';
+                }else{
+                    foreach($request->input('id') as $order_id){
+                        $order = Order::findOrFail($order_id);
+                        if($order->isProcessable){
+                            $processedOrders[] = $order;
+                        }else{
+                            $unprocessedOrders[] = $order;
+                        }
+                    }
+                }
+
+                $processForm = 'processing_form';
+                break;
+            case 'shipped':
+                if($request->input('confirm') == '1'){
+                    $processedCount = 0;
+
+                    foreach($request->input('order_id', []) as $order_id){
+                        if($this->process($request, $process, $order_id, TRUE)){
+                            $processedCount += 1;
+                        }
+                    }
+
+                    $message = $processedCount.' '.str_plural('Order', $processedCount).' successfully set to <span class="label bg-'.OrderHelper::getOrderStatusLabelClass(Order::STATUS_SHIPPED).' bg-font-'.OrderHelper::getOrderStatusLabelClass(Order::STATUS_SHIPPED).'">'.Order::getStatusOptions(Order::STATUS_SHIPPED).'.</span>';
+                }else{
+                    foreach($request->input('id') as $order_id){
+                        $order = Order::findOrFail($order_id);
+                        if($order->isShippable){
+                            $processedOrders[] = $order;
+                        }else{
+                            $unprocessedOrders[] = $order;
+                        }
+                    }
+                }
+
+                $processForm = 'shipped_form';
+                break;
+            case 'completed':
+                if($request->input('confirm') == '1'){
+                    $processedCount = 0;
+
+                    foreach($request->input('order_id', []) as $order_id){
+                        if($this->process($request, $process, $order_id, TRUE)){
+                            $processedCount += 1;
+                        }
+                    }
+
+                    $message = $processedCount.' '.str_plural('Order', $processedCount).' successfully set to <span class="label bg-'.OrderHelper::getOrderStatusLabelClass(Order::STATUS_COMPLETED).' bg-font-'.OrderHelper::getOrderStatusLabelClass(Order::STATUS_COMPLETED).'">'.Order::getStatusOptions(Order::STATUS_COMPLETED).'.</span>';
+                }else{
+                    foreach($request->input('id') as $order_id){
+                        $order = Order::findOrFail($order_id);
+                        if($order->isCompleteable){
+                            $processedOrders[] = $order;
+                        }else{
+                            $unprocessedOrders[] = $order;
+                        }
+                    }
+                }
+
+                $processForm = 'completed_form';
+                break;
+            case 'cancelled':
+                if($request->input('confirm') == '1'){
+                    $processedCount = 0;
+
+                    foreach($request->input('order_id', []) as $order_id){
+                        if($this->process($request, $process, $order_id, TRUE)){
+                            $processedCount += 1;
+                        }
+                    }
+
+                    $message = $processedCount.' '.str_plural('Order', $processedCount).' successfully set to <span class="label bg-'.OrderHelper::getOrderStatusLabelClass(Order::STATUS_SHIPPED).' bg-font-'.OrderHelper::getOrderStatusLabelClass(Order::STATUS_CANCELLED).'">'.Order::getStatusOptions(Order::STATUS_CANCELLED).'.</span>';
+                }else{
+                    foreach($request->input('id') as $order_id){
+                        $order = Order::findOrFail($order_id);
+                        if($order->isCancellable){
+                            $processedOrders[] = $order;
+                        }else{
+                            $unprocessedOrders[] = $order;
+                        }
+                    }
+                }
+
+                $processForm = 'cancelled_form';
+                break;
+            default:
+                return response('No process is selected.');
+                break;
+        }
+
+        if($request->input('confirm') == '1'){
+            return redirect($request->input('backUrl', route('backend.sales.order.index')))->with('success', [$message]);
+        }else{
+            if(count($processedOrders) > 0){
+                return view('backend.order.process.bulk.'.$processForm, [
+                    'processedOrders' => $processedOrders,
+                    'unprocessedOrders' => $unprocessedOrders,
+                    'backUrl' => $request->input('backUrl', route('backend.sales.order.index'))
+                ]);
+            }else{
+                return response('Selected '.str_plural('Order', $selectedOrderCount).' can\'t be processed.', 422);
+            }
+        }
+    }
+
+    public function bulkAction(Request $request)
+    {
+        $arguments = explode(':', $request->input('action'));
+        $action = array_shift($arguments);
+
+        array_unshift($arguments, $request);
+
+        $function = camel_case('bulk_'.$action);
+        return call_user_func_array([$this, $function], $arguments);
     }
 
     public function copyCustomerInformation(Request $request, $type, $profile_id = null)

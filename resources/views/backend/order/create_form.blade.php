@@ -229,6 +229,7 @@
 
 {!! Form::hidden('store_id', $order->store_id?$order->store_id:ProjectHelper::getActiveStore()->id) !!}
 {!! Form::hidden('currency', CurrencyHelper::getCurrentCurrency()['code']) !!}
+{!! Form::hidden('backUrl', Request::input('backUrl')) !!}
 
 <div class="modal fade" id="place_order_modal" role="basic" aria-hidden="true">
     <div class="modal-dialog">

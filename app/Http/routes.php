@@ -747,10 +747,15 @@ Route::group(['middleware' => ['web']], function () {
                         ]);
                     });
 
+                    Route::post('action/bulk', [
+                        'as' => 'backend.sales.order.bulk_action',
+                        'uses' => 'OrderController@bulkAction',
+                    ]);
+
                     Route::any('process/{action}/{id?}', [
                         'as' => 'backend.sales.order.process',
                         'uses' => 'OrderController@process',
-                        'permissions' => [['place_order', 'process_order', 'complete_order', 'cancel_order']]
+                        'permissions' => [['place_order', 'process_order', 'ship_order', 'complete_order', 'cancel_order']]
                     ]);
 
                     Route::post('copy/customer_information/{type}/{profile_id?}', [

@@ -1,48 +1,58 @@
 var OrderIndex = function () {
+    $('#order-filter-btn').on('click', function(e){
+        e.preventDefault();
+
+        var queryString = $(':input', '#order-filter-form').map(function () {
+            return $(this).val().trim() == "" ? null : this;
+        }).serialize();
+        window.location.href = $('#order-filter-form').data('order_index') + '?external_filter=1&' + queryString;
+    });
+
     var runtimeAdditonalColumns = 0;
     var initTable = function () {
         var $dataTable = new Datatable();
 
         var columnDefs = [
-            {"name": "no", "targets": 0, "orderable": false},
-            {"name": "reference", "targets": 1},
-            {"name": "checkout_at", "targets": 2}
+            {"name": "bulk_action", "targets": 0, "orderable": false},
+            {"name": "no", "targets": 1, "orderable": false},
+            {"name": "reference", "targets": 2},
+            {"name": "checkout_at", "targets": 3}
         ];
 
         if(enable_delivery_date){
-            columnDefs.push({"name": "delivery_date", "targets": 3});
+            columnDefs.push({"name": "delivery_date", "targets": 4});
             runtimeAdditonalColumns += 1;
         }
 
         columnDefs = columnDefs.concat([
-            {"name": "billing", "targets": 3+runtimeAdditonalColumns, "orderable": false},
-            {"name": "shipping", "targets": 4+runtimeAdditonalColumns, "orderable": false}
+            {"name": "billing", "targets": 4+runtimeAdditonalColumns, "orderable": false},
+            {"name": "shipping", "targets": 5+runtimeAdditonalColumns, "orderable": false}
         ]);
 
         for(var i=0; i<additional_columns;i+=1){
-            columnDefs.push({"name": "sticky_product"+i, "targets": 5+i+runtimeAdditonalColumns, "orderable": false});
+            columnDefs.push({"name": "sticky_product"+i, "targets": 6+i+runtimeAdditonalColumns, "orderable": false});
         }
         runtimeAdditonalColumns += additional_columns;
 
         columnDefs = columnDefs.concat([
-            {"name": "total", "targets": 5+runtimeAdditonalColumns}
+            {"name": "total", "targets": 6+runtimeAdditonalColumns}
         ]);
 
         if(view_payment){
-            columnDefs.push({"name": "outstanding", "targets": 6+runtimeAdditonalColumns});
+            columnDefs.push({"name": "outstanding", "targets": 7+runtimeAdditonalColumns});
             runtimeAdditonalColumns += 1;
         }
 
         columnDefs = columnDefs.concat([
-            {"name": "status", "targets": 6+runtimeAdditonalColumns, "orderable": false}
+            {"name": "status", "targets": 7+runtimeAdditonalColumns, "orderable": false}
         ]);
 
         if(show_store_column){
-            columnDefs.push({"name": "store_id", "orderable" : false, "targets": 7+runtimeAdditonalColumns});
+            columnDefs.push({"name": "store_id", "orderable" : false, "targets": 8+runtimeAdditonalColumns});
             runtimeAdditonalColumns += 1;
         }
 
-        columnDefs.push({"name": "action", "orderable" : false, "targets": 7+runtimeAdditonalColumns});
+        columnDefs.push({"name": "action", "orderable" : false, "targets": 8+runtimeAdditonalColumns});
 
         $dataTable.init({
             token: $('#orders-dataset').data('form_token'),
@@ -86,7 +96,65 @@ var OrderIndex = function () {
                 "order": [
                     [2, "desc"]
                 ],
-                "columnDefs": columnDefs
+                "columnDefs": columnDefs,
+
+                /*//Scroller
+                scrollY: 450,
+                deferRender: true,
+                scroller: true*/
+            }
+        });
+
+        // handle group actionsubmit button click
+        var grid = $dataTable;
+        grid.getTableWrapper().on('click', '.table-group-action-submit', function (e) {
+            e.preventDefault();
+            var $modal = '#ajax_modal';
+            var action = $(".table-group-action-input", grid.getTableWrapper());
+            if (action.val() != "" && grid.getSelectedRowsCount() > 0) {
+                $.ajax($(".table-group-action-input", grid.getTableWrapper()).data('bulk_action'), {
+                    method: 'POST',
+                    data: {
+                        'id': grid.getSelectedRows(),
+                        'action': action.val(),
+                        'backUrl': global_vars.current_path
+                    },
+                    success: function(data){
+                        var $loadedData = $(data);
+
+                        $($modal).find('.modal-content').html($loadedData);
+
+                        $($modal).modal('show');
+
+                        formBehaviors.init($($modal).find('.modal-content'));
+                        App.initAjax();
+                    },
+                    error: function(xhr){
+                        App.alert({
+                            type: 'danger',
+                            icon: 'warning',
+                            message: xhr.responseText,
+                            container: grid.getTableWrapper(),
+                            place: 'prepend'
+                        });
+                    }
+                });
+            } else if (action.val() == "") {
+                App.alert({
+                    type: 'danger',
+                    icon: 'warning',
+                    message: 'Please select an action',
+                    container: grid.getTableWrapper(),
+                    place: 'prepend'
+                });
+            } else if (grid.getSelectedRowsCount() === 0) {
+                App.alert({
+                    type: 'danger',
+                    icon: 'warning',
+                    message: 'No order selected',
+                    container: grid.getTableWrapper(),
+                    place: 'prepend'
+                });
             }
         });
     }
