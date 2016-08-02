@@ -2,6 +2,7 @@
 
 namespace Kommercio\Http\Controllers\Backend\Sales;
 
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Event;
@@ -77,6 +78,7 @@ class PaymentController extends Controller{
         $payment->fill($request->input('payment'));
         $payment->order()->associate($order);
         $payment->status = Payment::STATUS_PENDING;
+        $payment->payment_date = Carbon::now();
 
         $payment->save();
 
