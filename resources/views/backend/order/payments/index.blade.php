@@ -23,7 +23,7 @@
                         @if($history['notes'])
                         Reason: {!! nl2br($history['notes']) !!}
                         @endif
-                        <span class="badge badge-default">{{ $history['at']?\Carbon\Carbon::parse($history['at'])->format('d-m-Y H:i')?null }}</span>
+                        <span class="badge badge-default">{{ $history['at']?\Carbon\Carbon::parse($history['at'])->format('d-m-Y H:i'):null }}</span>
                     </li>
                 @endforeach
             </ul>
