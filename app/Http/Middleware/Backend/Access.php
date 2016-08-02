@@ -21,9 +21,9 @@ class Access
         $routeAction = $route->getAction();
         $permissions = !empty($routeAction['permissions'])?$routeAction['permissions']:null;
 
-        if(!empty($permissions)){
-            $user = Auth::guard($guard)->user();
+        $user = Auth::guard($guard)->user();
 
+        if(!empty($permissions) && $user){
             $allowed = TRUE;
             foreach($permissions as $permission){
                 $allowed = $user->can('access', [$permission]);
