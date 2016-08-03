@@ -1006,7 +1006,7 @@ class OrderController extends Controller{
     {
         $couponCode = $request->input('coupon_code', 'ERRORCOUPON');
 
-        $couponPriceRules = CartPriceRule::getCoupon($couponCode, $request);
+        $couponPriceRules = CartPriceRule::getCoupon($couponCode, null, $request);
 
         if(is_string($couponPriceRules)){
             return new JsonResponse([

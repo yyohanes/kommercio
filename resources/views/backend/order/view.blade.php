@@ -325,6 +325,16 @@
                                                 <div class="col-md-8 name"> Grand Total: </div>
                                                 <div class="col-md-4 value"> {{ PriceFormatter::formatNumber($order->total, $order->currency) }} </div>
                                             </div>
+
+                                            <?php
+                                            $taxError = $order->tax_error_total;
+                                            ?>
+                                            @if(!empty($taxError+0))
+                                            <div class="row static-info align-reverse total">
+                                                <div class="col-md-8 name"> Tax Error: </div>
+                                                <div class="col-md-4 value"> {{ PriceFormatter::formatNumber($taxError, $order->currency) }} </div>
+                                            </div>
+                                            @endif
                                         </div>
                                     </div>
                                 </div>

@@ -1,11 +1,13 @@
 var OrderForm = function () {
     var $orderProductSubtotal;
     var $orderTaxTotal;
+    var $orderTaxErrorTotal;
     var $orderFeeTotal;
     var $orderShippingTotal;
     var $orderSubtotal;
     var $orderTotalBeforeRounding;
     var $orderTotalRounding;
+    var $orderTotalBeforeTax;
     var $orderTotal;
     var $taxes = {};
     var $totalShippingLineItems = 0;
@@ -19,12 +21,14 @@ var OrderForm = function () {
     {
         $orderProductSubtotal = 0;
         $orderTaxTotal = 0;
+        $orderTaxErrorTotal = 0;
         $orderFeeTotal = 0;
         $orderShippingTotal = 0;
         $orderPriceRuleTotal = 0;
         $orderSubtotal = 0;
         $orderTotalBeforeRounding = 0;
         $orderTotalRounding = 0;
+        $orderTotalBeforeTax = 0;
         $orderTotal = 0;
 
         for(var i in $cartPriceRules){
@@ -66,6 +70,13 @@ var OrderForm = function () {
         $orderTotal = formHelper.roundNumber($orderTotalBeforeRounding, global_vars.total_precision, 'floor');
 
         $orderTotalRounding += formHelper.calculateRounding($orderTotalBeforeRounding, $orderTotal);
+
+        //Calculate Tax Error
+        for(var i in $taxes){
+            $orderTaxErrorTotal += formHelper.roundNumber(($orderTotalBeforeTax + $orderPriceRuleTotal) * $taxes[i].rate/100);
+        }
+
+        $orderTaxErrorTotal = formHelper.roundNumber(Math.abs($orderTaxTotal - $orderTaxErrorTotal));
     }
 
     var calculateTax = function($lineItem, $quantity)
@@ -160,6 +171,10 @@ var OrderForm = function () {
 
                 $orderShippingTotal += lineitemTotalAmount;
             }
+
+            if($(obj).data('taxable') == '1'){
+                $orderTotalBeforeTax += lineitemTotalAmount;
+            }
         });
 
         totalOrderSummary();
@@ -208,6 +223,13 @@ var OrderForm = function () {
         $('.rounding .amount', '#order-summary').text(formHelper.convertNumber($orderTotalRounding));
 
         $('.total .amount', '#order-summary').text(formHelper.convertNumber($orderTotal));
+
+        if($orderTaxErrorTotal > 0 || $orderTaxErrorTotal < 0){
+            $('.tax-error', '#order-summary').show();
+        }else{
+            $('.tax-error', '#order-summary').hide();
+        }
+        $('.tax-error .amount', '#order-summary').text(formHelper.convertNumber($orderTaxErrorTotal));
     }
 
     var calculatePriceRuleValue = function(amount, price, modification, modification_type)

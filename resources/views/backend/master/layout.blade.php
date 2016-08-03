@@ -240,7 +240,7 @@ License: You must have a valid license purchased only from themeforest(the above
         total_precision: {{ config('project.total_precision') }},
         total_rounding: '{{ config('project.total_rounding') }}',
         csrf_token: '{{ csrf_token() }}',
-        current_path: '{{ Request::getPathInfo() }}'
+        current_path: '{{ Request::fullUrl() }}'
     };
 </script>
 
@@ -288,6 +288,7 @@ License: You must have a valid license purchased only from themeforest(the above
     <!-- BEGIN MODIFIED SCRIPTS -->
     <script src="{{ asset('backend/assets/scripts/plugins/jquery-migrate/jquery-migrate.min.js') }}" type="text/javascript"></script>
     <script src="{{ asset('backend/assets/scripts/plugins/jquery.ba-bbq/jquery.ba-bbq.min.js') }}" type="text/javascript"></script>
+    <script src="{{ asset('backend/assets/scripts/plugins/mathjs/math.min.js') }}" type="text/javascript"></script>
     <script src="{{ asset('backend/assets/scripts/app.js') }}" type="text/javascript"></script>
     <!-- END MODIFIED SCRIPTS -->
 @show

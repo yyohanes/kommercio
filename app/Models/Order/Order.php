@@ -508,6 +508,7 @@ class Order extends Model implements AuthorSignatureInterface
         $discountTotal = $this->calculateDiscountTotal();
         $additionalTotal = $this->calculateAdditionalTotal();
         $taxTotal = $this->calculateTaxTotal();
+        $taxError = $this->calculateTaxError();
 
         $this->total = PriceFormatter::round($subtotal + $shippingTotal + $discountTotal + $additionalTotal + $taxTotal);
         $beforeRoundingTotal = $this->total;
@@ -517,6 +518,34 @@ class Order extends Model implements AuthorSignatureInterface
         $this->rounding_total = PriceFormatter::calculateRounding($beforeRoundingTotal, $this->total);
 
         return $this->total;
+    }
+
+    public function calculateTaxError()
+    {
+        if(empty($this->tax_total)){
+            $this->calculateTaxTotal();
+        }
+
+        $subtotalTax = 0;
+        $subtotal = 0;
+
+        foreach($this->lineItems as $lineItem){
+            if($lineItem->taxable){
+                $subtotal += $lineItem->calculateTotal(false);
+            }
+        }
+
+        foreach($this->getTaxLineItems() as $taxLineItem){
+            $subtotalTax += PriceFormatter::round($subtotal * $taxLineItem->tax_rate/100);
+        }
+
+        if(!empty($subtotalTax)){
+            $this->tax_error_total = PriceFormatter::round($this->tax_total - $subtotalTax);
+        }else{
+            $this->tax_error_total = 0;
+        }
+
+        return $this->tax_error_total;
     }
 
     public function calculateProductTotal($total = false, $withTax = false)

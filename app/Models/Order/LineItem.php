@@ -31,19 +31,27 @@ class LineItem extends Model
         return $name;
     }
 
-    public function calculateNet()
+    public function calculateNet($withTax = true)
     {
-        return round($this->net_price + $this->discount_total + $this->tax_total, config('project.line_item_total_precision'));
+        $total = $this->net_price + $this->discount_total;
+
+        if($withTax){
+            $total += $this->tax_total;
+        }
+
+        return round($total, config('project.line_item_total_precision'));
     }
 
     public function calculateSubNet()
     {
-        return round($this->net_price + $this->net_price * $this->tax_rate/100, config('project.line_item_total_precision'));
+        $rate = $this->taxable?$this->tax_rate:0;
+
+        return round($this->net_price + $this->net_price * $rate/100, config('project.line_item_total_precision'));
     }
 
-    public function calculateTotal()
+    public function calculateTotal($withTax = true)
     {
-        $this->total = round($this->calculateNet() * $this->quantity, config('project.line_item_total_precision'));
+        $this->total = round($this->calculateNet($withTax) * $this->quantity, config('project.line_item_total_precision'));
 
         return $this->total;
     }
@@ -142,6 +150,7 @@ class LineItem extends Model
     {
         $tax = Tax::findOrFail($tax_id);
         $this->name = $tax->getSingleName();
+        $this->tax_rate = $tax->rate;
         $this->line_item_id = $tax->id;
         $this->line_item_type = 'tax';
     }

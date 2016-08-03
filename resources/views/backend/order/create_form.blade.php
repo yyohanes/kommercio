@@ -223,6 +223,10 @@
                 <div class="col-md-8 name"> Grand Total: </div>
                 <div class="col-md-4 value"> <span class="currency-symbol">{{ CurrencyHelper::getCurrentCurrency()['symbol'] }}</span> <span class="amount">0</span> </div>
             </div>
+            <div class="row static-info align-reverse tax-error">
+                <div class="col-md-8 name"> Tax Error: </div>
+                <div class="col-md-4 value"> <span class="currency-symbol">{{ CurrencyHelper::getCurrentCurrency()['symbol'] }}</span> <span class="amount">0</span> </div>
+            </div>
         </div>
     </div>
 </div>

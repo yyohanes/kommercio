@@ -80,7 +80,7 @@ var OrderIndex = function () {
                 // So when dropdowns used the scrollable div should be removed.
                 //"dom": "<'row'<'col-md-8 col-sm-12'pli><'col-md-4 col-sm-12'<'table-group-actions pull-right'>>r>t<'row'<'col-md-8 col-sm-12'pli><'col-md-4 col-sm-12'>>",
 
-                "bStateSave": true,
+                "bStateSave": false,
 
                 "lengthMenu": [
                     [50, 100, 150, 200, -1],
@@ -94,7 +94,7 @@ var OrderIndex = function () {
                 "processing": true,
                 "serverSide": true,
                 "order": [
-                    [2, "desc"]
+                    [3, "desc"]
                 ],
                 "columnDefs": columnDefs,
 
