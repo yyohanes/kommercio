@@ -129,7 +129,12 @@ class ProjectHelper
         }
 
         $configVariable->value = $value;
-        $configVariable->save();
+
+        if(is_null($value)){
+            $configVariable->delete();
+        }else{
+            $configVariable->save();
+        }
 
         return $configVariable;
     }

@@ -15,21 +15,20 @@ class ReprocessTaxLineItem extends Migration
     {
         //REProcess ALL orders
         $orders = \Kommercio\Models\Order\Order::checkout()->get();
-        foreach($orders as $order){
-            $subtotalTax = 0;
-            $subtotal = 0;
+        if(!ProjectHelper::getSiteConfig('tax_reprocessed', false)) {
+            foreach ($orders as $order) {
+                $subtotal = 0;
 
-            foreach($order->lineItems as $lineItem){
-                if($lineItem->taxable){
-                    $subtotal += $lineItem->calculateTotal(false);
+                foreach ($order->lineItems as $lineItem) {
+                    if ($lineItem->taxable) {
+                        $subtotal += $lineItem->calculateTotal(false);
+                    }
                 }
-            }
 
-            foreach($order->getTaxLineItems() as $taxLineItem){
-                if(!ProjectHelper::getSiteConfig('tax_reprocessed', false)){
+                foreach ($order->getTaxLineItems() as $taxLineItem) {
                     ProjectHelper::saveSiteConfig('tax_reprocessed', true);
 
-                    $base = PriceFormatter::round($subtotal * $taxLineItem->tax_rate/100);
+                    $base = PriceFormatter::round($subtotal * $taxLineItem->tax_rate / 100);
                     $taxLineItem->net_price = $taxLineItem->base_price;
                     $taxLineItem->base_price = $base;
                     $taxLineItem->save();
@@ -45,6 +44,6 @@ class ReprocessTaxLineItem extends Migration
      */
     public function down()
     {
-        //
+        ProjectHelper::saveSiteConfig('tax_reprocessed', null);
     }
 }
