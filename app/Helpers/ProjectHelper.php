@@ -134,12 +134,12 @@ class ProjectHelper
         return $configVariable;
     }
 
-    public function getSiteConfig($key)
+    public function getSiteConfig($key, $default = null)
     {
         $configVariable = ConfigVariable::find($key);
 
         if(!$configVariable){
-            return null;
+            return $default;
         }
 
         return $configVariable->value;

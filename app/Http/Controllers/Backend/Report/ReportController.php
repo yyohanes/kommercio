@@ -40,7 +40,7 @@ class ReportController extends Controller
             'year' => $request->input('search.year', key($yearOptions))
         ];
 
-        $qb = Order::selectRaw("DATE_FORMAT(checkout_at, '%c') AS month, SUM(total) AS total, SUM(discount_total) AS discount_total, SUM(shipping_total) AS shipping_total, SUM(tax_total) AS tax_total")
+        $qb = Order::selectRaw("DATE_FORMAT(checkout_at, '%c') AS month, SUM(total) AS total, SUM(discount_total) AS discount_total, SUM(shipping_total) AS shipping_total, SUM(tax_total - tax_error_total) AS tax_total")
             ->whereIn('status', $filter['status']);
 
         if($filter['store'] != 'all'){
@@ -100,7 +100,7 @@ class ReportController extends Controller
 
         $year = date_create_from_format('Y-m-d', $filter['date']['from']);
 
-        $qb = Order::selectRaw("DATE_FORMAT(" . $filter['date_type'] . ", '%Y-%m-%d') AS date, SUM(total) AS total, SUM(discount_total) AS discount_total, SUM(shipping_total) AS shipping_total, SUM(tax_total) AS tax_total")
+        $qb = Order::selectRaw("DATE_FORMAT(" . $filter['date_type'] . ", '%Y-%m-%d') AS date, SUM(total) AS total, SUM(discount_total) AS discount_total, SUM(shipping_total) AS shipping_total, SUM(tax_total - tax_error_total) AS tax_total")
             ->whereIn('status', $filter['status'])
             ->groupBy('date');
 

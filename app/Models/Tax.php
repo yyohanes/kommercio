@@ -13,6 +13,7 @@ class Tax extends Model
 
     //To store calculated total
     public $total = 0;
+    public $total_from_subtotal = 0;
 
     //Methods
     public function getSingleName()

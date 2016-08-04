@@ -66,6 +66,11 @@ class LineItem extends Model
         return round($this->calculateSubNet() * $this->quantity, config('project.line_item_total_precision'));
     }
 
+    public function calculateMargin()
+    {
+        return round(($this->base_price - $this->net_price) * $this->quantity, config('project.line_item_total_precision'));
+    }
+
     public function processData($data, $sort_order = 0)
     {
         if($data['line_item_type'] == 'product'){
@@ -97,7 +102,7 @@ class LineItem extends Model
             $this->saveData(['shipping_method' => $data['shipping_method']]);
         }elseif($data['line_item_type'] == 'tax'){
             $this->linkTax($data['tax_id']);
-            $this->base_price = $data['lineitem_total_amount'];
+            $this->base_price = $data['base_price'];
             $this->net_price = $data['lineitem_total_amount'];
             $this->total = $data['lineitem_total_amount'];
             $this->quantity = 1;

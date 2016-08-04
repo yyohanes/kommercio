@@ -522,25 +522,12 @@ class Order extends Model implements AuthorSignatureInterface
 
     public function calculateTaxError()
     {
-        if(empty($this->tax_total)){
-            $this->calculateTaxTotal();
-        }
-
-        $subtotalTax = 0;
-        $subtotal = 0;
-
-        foreach($this->lineItems as $lineItem){
-            if($lineItem->taxable){
-                $subtotal += $lineItem->calculateTotal(false);
-            }
-        }
-
         foreach($this->getTaxLineItems() as $taxLineItem){
-            $subtotalTax += PriceFormatter::round($subtotal * $taxLineItem->tax_rate/100);
+            $this->tax_error_total += $taxLineItem->base_price - $taxLineItem->net_price;
         }
 
-        if(!empty($subtotalTax)){
-            $this->tax_error_total = PriceFormatter::round($this->tax_total - $subtotalTax);
+        if(!empty($this->tax_error_total)){
+            $this->tax_error_total = PriceFormatter::round($this->tax_error_total);
         }else{
             $this->tax_error_total = 0;
         }

@@ -37,6 +37,7 @@ var OrderForm = function () {
 
         for(var i in $taxes){
             $taxes[i].total = 0;
+            $taxes[i].error = 0;
         }
     }
 
@@ -73,10 +74,11 @@ var OrderForm = function () {
 
         //Calculate Tax Error
         for(var i in $taxes){
-            $orderTaxErrorTotal += formHelper.roundNumber(($orderTotalBeforeTax + $orderPriceRuleTotal) * $taxes[i].rate/100);
+            $taxes[i].error = formHelper.roundNumber(($orderTotalBeforeTax + $orderPriceRuleTotal) * $taxes[i].rate/100);
+            $orderTaxErrorTotal += $taxes[i].error;
         }
 
-        $orderTaxErrorTotal = formHelper.roundNumber(Math.abs($orderTaxTotal - $orderTaxErrorTotal));
+        $orderTaxErrorTotal = formHelper.roundNumber($orderTaxTotal - $orderTaxErrorTotal);
     }
 
     var calculateTax = function($lineItem, $quantity)
@@ -208,7 +210,7 @@ var OrderForm = function () {
         $('.shipping .amount', '#order-summary').text(formHelper.convertNumber($orderShippingTotal));
 
         for(var i in $taxes){
-            $('.tax[data-tax_id="'+i+'"] .amount', '#order-summary').text(formHelper.convertNumber($taxes[i].total));
+            $('.tax[data-tax_id="'+i+'"] .amount', '#order-summary').text(formHelper.convertNumber(formHelper.roundNumber($taxes[i].error)));
         }
 
         for(var i in $cartPriceRules){
@@ -270,7 +272,8 @@ var OrderForm = function () {
         $('.tax', '#tax-summary-wrapper').each(function(idx, obj){
             $taxes[$(obj).data('tax_id')] = {
                 rate: $(obj).data('tax_rate'),
-                total: 0
+                total: 0,
+                error: 0
             }
         });
 
@@ -316,7 +319,8 @@ var OrderForm = function () {
                             for(var i in data.data){
                                 $taxes[data.data[i].id] = {
                                     rate: data.data[i].rate,
-                                    total: 0
+                                    total: 0,
+                                    error: 0
                                 }
                                 $('#tax-summary-wrapper').append($taxPrototype({key: i, label:data.data[i].name+' ('+data.data[i].rate+'%)', value:0, rate:data.data[i].rate, 'tax_id': data.data[i].id}));
                             }

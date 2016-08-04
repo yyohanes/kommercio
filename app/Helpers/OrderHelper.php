@@ -90,6 +90,8 @@ class OrderHelper
 
         $count = 0;
 
+        $subtotal = 0;
+
         $lineItems = [];
 
         if($freeEdit){
@@ -173,6 +175,8 @@ class OrderHelper
                     $lineItem->tax_total = $taxValue['net'];
                     $lineItem->tax_rate = $taxValue['rate_total'];
                 }
+
+                $subtotal += $lineItem->calculateTotal(false);
             }
 
             $lineItem->calculateTotal();
@@ -198,9 +202,12 @@ class OrderHelper
         }
 
         foreach($taxes as $tax){
+            $tax->total_from_subtotal = PriceFormatterFacade::round($tax->calculateTax($subtotal));
+
             $taxLineItemDatum = [
                 'tax_id' => $tax->id,
                 'line_item_type' => 'tax',
+                'base_price' => $tax->total_from_subtotal,
                 'lineitem_total_amount' => $tax->total,
             ];
 

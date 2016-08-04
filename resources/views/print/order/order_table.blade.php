@@ -69,6 +69,17 @@
         <td class="no-border" colspan="2" align="right"><strong>Grand Total</strong></td>
         <td class="no-border">{{ PriceFormatter::formatNumber($order->total, $order->currency) }}</td>
     </tr>
+
+    <?php
+    $taxError = $order->tax_error_total;
+    ?>
+    @if(!empty($taxError+0))
+        <tr>
+            <td class="no-border" colspan="2"></td>
+            <td class="no-border" colspan="2" align="right"><strong>Tax Error</strong></td>
+            <td class="no-border">{{ PriceFormatter::formatNumber($taxError, $order->currency) }}</td>
+        </tr>
+    @endif
     </tfoot>
 </table>
 
