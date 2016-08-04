@@ -23,13 +23,6 @@ class AddTaxErrorOrder extends Migration
         Schema::table('orders', function(Blueprint $table){
             $table->decimal('tax_error_total', 14, 2)->nullable()->after('tax_total');
         });
-
-        //Process ALL orders
-        $orders = \Kommercio\Models\Order\Order::checkout()->get();
-        foreach($orders as $order){
-            $order->calculateTaxError();
-            $order->save();
-        }
     }
 
     /**

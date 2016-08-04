@@ -33,6 +33,9 @@ class ReprocessTaxLineItem extends Migration
                     $taxLineItem->base_price = $base;
                     $taxLineItem->save();
                 }
+
+                $order->calculateTaxError();
+                $order->save();
             }
         }
     }
@@ -45,5 +48,13 @@ class ReprocessTaxLineItem extends Migration
     public function down()
     {
         ProjectHelper::saveSiteConfig('tax_reprocessed', null);
+
+        $orders = \Kommercio\Models\Order\Order::checkout()->get();
+        foreach ($orders as $order) {
+            foreach ($order->getTaxLineItems() as $taxLineItem) {
+                $taxLineItem->base_price = $taxLineItem->net_price;
+                $taxLineItem->save();
+            }
+        }
     }
 }
