@@ -18,6 +18,7 @@ class ReprocessTaxLineItem extends Migration
         if(!ProjectHelper::getSiteConfig('tax_reprocessed', false)) {
             foreach ($orders as $order) {
                 $subtotal = 0;
+                $tax_error = 0;
 
                 foreach ($order->lineItems as $lineItem) {
                     if ($lineItem->taxable) {
@@ -32,9 +33,11 @@ class ReprocessTaxLineItem extends Migration
                     $taxLineItem->net_price = $taxLineItem->base_price;
                     $taxLineItem->base_price = $base;
                     $taxLineItem->save();
+
+                    $tax_error += $taxLineItem->net_price - $taxLineItem->base_price;
                 }
 
-                $order->calculateTaxError();
+                $order->tax_error_total = $tax_error;
                 $order->save();
             }
         }
