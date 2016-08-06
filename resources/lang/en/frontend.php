@@ -13,6 +13,7 @@ return [
         'updated_cart' => 'Cart has been updated.',
         'coupon_added' => 'Coupon is successfully added.',
         'coupon_removed' => 'Coupon is successfully removed.',
+        'cart_clear' => 'Your cart is cleared.'
     ],
     'checkout' => [
         'empty_order' => 'Your order is empty.',

@@ -42,6 +42,26 @@ class OrderController extends Controller
         ]);
     }
 
+    public function cartClear(Request $request)
+    {
+        $order = FrontendHelper::getCurrentOrder();
+
+        $order->clearCart();
+
+        $order->calculateTotal();
+        $order->save();
+
+        $message = trans(LanguageHelper::getTranslationKey('frontend.order.cart_clear'));
+
+        if($request->ajax()){
+            return new JsonResponse($message);
+        }else{
+            return redirect()
+                ->back()
+                ->with('success', [$message]);
+        }
+    }
+
     public function cartUpdate(Request $request)
     {
         $order = FrontendHelper::getCurrentOrder();
@@ -113,20 +133,39 @@ class OrderController extends Controller
 
     public function addToCart(Request $request)
     {
-        $rules = [
-            'product_id' => 'required|exists:products,id,deleted_at,NULL|is_available|is_active|is_in_stock:'.$request->input('quantity').'|is_purchaseable',
-            'quantity' => 'required|integer|min:0'
-        ];
+        if($request->has('products')){
+            $rules = [
+                'products.*.product_id' => 'required|exists:products,id,deleted_at,NULL|is_available|is_active|is_in_stock:'.$request->input('quantity').'|is_purchaseable',
+                'products.*.quantity' => 'required|integer|min:0'
+            ];
+
+            $productData = $request->input('products');
+        }else{
+            $rules = [
+                'product_id' => 'required|exists:products,id,deleted_at,NULL|is_available|is_active|is_in_stock:'.$request->input('quantity').'|is_purchaseable',
+                'quantity' => 'required|integer|min:0'
+            ];
+
+            $productData = [
+                ['product_id' => $request->input('product_id'), 'quantity' => $request->input('quantity')]
+            ];
+        }
 
         $this->validate($request, $rules);
 
-        $product_id = $request->input('product_id');
-
-        $product = Product::findOrFail($product_id);
+        $messages = [];
 
         $order = FrontendHelper::getCurrentOrder('save');
 
-        $order->addToCart($product, $request->input('quantity'));
+        foreach($productData as $productDatum){
+            $product_id = $productDatum['product_id'];
+
+            $product = Product::findOrFail($product_id);
+
+            $order->addToCart($product, $productDatum['quantity']);
+
+            $messages[] = trans(LanguageHelper::getTranslationKey('frontend.order.added_to_cart'), ['product' => $product->name]);
+        }
 
         OrderHelper::processLineItems($request, $order, false);
         $order->calculateTotal();
@@ -137,13 +176,13 @@ class OrderController extends Controller
                 'data' => [
                     'itemsCount' => $order->itemsCount
                 ],
-                'success' => [trans(LanguageHelper::getTranslationKey('frontend.order.added_to_cart'), ['product' => $product->name])],
+                'success' => $messages,
                 '_token' => csrf_token()
             ]);
         }else{
             return redirect()
                 ->back()
-                ->with('success', [trans(LanguageHelper::getTranslationKey('frontend.order.added_to_cart'), ['product' => $product->name])]);
+                ->with('success', $messages);
         }
     }
 
@@ -308,14 +347,18 @@ class OrderController extends Controller
         $user = Auth::user();
 
         if($order->itemsCount <= 0){
-            return redirect(FrontendHelper::get_url('cart'))->withErrors([trans(LanguageHelper::getTranslationKey('frontend.checkout.empty_order'))]);
+            if($request->ajax()){
+                return new JsonResponse([trans(LanguageHelper::getTranslationKey('frontend.checkout.empty_order'))], 422);
+            }else{
+                return redirect(FrontendHelper::get_url('cart'))->withErrors([trans(LanguageHelper::getTranslationKey('frontend.checkout.empty_order'))]);
+            }
         }
 
         $view_name = ProjectHelper::getViewTemplate('frontend.order.checkout');
 
         //If logged in, update owner to new user and skip Account step
         if($user){
-            $order->billingProfile->saveDetails(['email' => $user->email]);
+            $order->saveProfile('billing', ['email' => $user->email]);
             $order->saveData(['checkout_step' => 'customer_information']);
         }
 
@@ -519,6 +562,7 @@ class OrderController extends Controller
 
                     $viewData['step'] = 'payment_method';
 
+                    $order->delivery_date = $request->input('delivery_date');
                     $order->saveProfile('shipping', $request->input('shippingProfile'));
                     $order->store()->associate(ProjectHelper::getStoreByRequest($request));
 
@@ -702,6 +746,11 @@ class OrderController extends Controller
             $viewData['order']->save();
         }
 
+        if($viewData['step'] == 'complete'){
+            Event::fire(new OrderUpdate($order, Order::STATUS_CART, true));
+            Event::fire(new OrderEvent('customer_place_order', $order));
+        }
+
         if($request->ajax()){
             //Pre-populate profile
             if($viewData['order']->billingProfile){
@@ -715,22 +764,30 @@ class OrderController extends Controller
             if($errors){
                 $response = new JsonResponse($errors, $errorCode);
             }else{
-                foreach($renderData as &$renderDatum){
-                    $renderDatum = view($renderDatum, $viewData)->render();
-                }
+                //If complete
+                if($viewData['step'] == 'complete'){
+                    $response = new JsonResponse([
+                        'data' => [
+                            'checkout' => $this->checkoutComplete($request, $order)->render()
+                        ],
+                        'step' => 'complete',
+                        '_token' => csrf_token()
+                    ]);
+                }else{
+                    foreach($renderData as &$renderDatum){
+                        $renderDatum = view($renderDatum, $viewData)->render();
+                    }
 
-                $response = new JsonResponse([
-                    'data' => $renderData,
-                    'step' => $viewData['step'],
-                    '_token' => csrf_token()
-                ]);
+                    $response = new JsonResponse([
+                        'data' => $renderData,
+                        'step' => $viewData['step'],
+                        '_token' => csrf_token()
+                    ]);
+                }
             }
         }else{
             //If complete
             if($viewData['step'] == 'complete'){
-                Event::fire(new OrderUpdate($order, Order::STATUS_CART, true));
-                Event::fire(new OrderEvent('customer_place_order', $order));
-
                 $response = redirect()
                     ->route('frontend.order.checkout.complete')
                     ->with('order_id', $order->id)
@@ -747,9 +804,12 @@ class OrderController extends Controller
         return $response;
     }
 
-    public function checkoutComplete(Request $request)
+    public function checkoutComplete(Request $request, Order $order = null)
     {
-        $order = Order::find($request->session()->get('order_id'));
+        //if order exists, it means internal call
+        if(!$order){
+            $order = Order::find($request->session()->get('order_id'));
+        }
 
         if(!$order || !$order->isCheckout){
             return redirect()->back()->withErrors([trans(LanguageHelper::getTranslationKey('frontend.order.order_not_complete'))]);
@@ -952,6 +1012,12 @@ class OrderController extends Controller
                 'payment_method' => 'required|exists:payment_methods,id'
             ]
         ];
+
+        if(ProjectHelper::getConfig('enable_delivery_date', FALSE)){
+            $ruleBook['customer_information'] += [
+                'delivery_date' => 'required|date_format:Y-m-d'
+            ];
+        }
 
         if(ProjectHelper::getConfig('require_billing_information')){
             $ruleBook['customer_information'] += [

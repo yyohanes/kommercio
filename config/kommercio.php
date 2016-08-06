@@ -60,7 +60,7 @@ return [
         ]
     ],
     'print_format' => 'default',
-    'require_billing_information' => true,
+    'require_billing_information' => false,
     'catalog_options' => [
         'limit' => 20,
         'sort_by' => 'order',

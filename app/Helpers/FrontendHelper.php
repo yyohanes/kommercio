@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Request as RequestFacade;
+use Kommercio\Facades\ProjectHelper as ProjectHelperFacade;
 use Illuminate\Http\Request;
 use Kommercio\Models\CMS\BannerGroup;
 use Kommercio\Models\CMS\Block;
@@ -119,7 +120,7 @@ class FrontendHelper
     {
         $now = Carbon::now();
 
-        $soonest = config('project.soonest_delivery_days');
+        $soonest = ProjectHelperFacade::getConfig('soonest_delivery_days');
 
         $now->modify('+'.$soonest.' days');
 
@@ -128,7 +129,7 @@ class FrontendHelper
 
     public function getCurrentOrder($context=null)
     {
-        $cookieKey = config('project.project_machine_name', 'kommercio').'_order_id';
+        $cookieKey = ProjectHelperFacade::getConfig('project_machine_name', 'kommercio').'_order_id';
 
         if(Cookie::has($cookieKey) && !isset($this->_currentOrder)){
             $order = Order::where('id', Cookie::get($cookieKey))

@@ -129,6 +129,11 @@ Route::group(['middleware' => ['web']], function () {
             'uses' => 'OrderController@cart'
         ]);
 
+        Route::get('cart/clear', [
+            'as' => 'frontend.order.cart.clear',
+            'uses' => 'OrderController@cartClear'
+        ]);
+
         Route::post('cart/update', [
             'as' => 'frontend.order.cart.update',
             'uses' => 'OrderController@cartUpdate'

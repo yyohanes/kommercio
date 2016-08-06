@@ -114,6 +114,33 @@ class Order extends Model implements AuthorSignatureInterface
         }
     }
 
+    public function getProfileOrNew($type)
+    {
+        if($type == 'billing'){
+            $profileRelation = 'billingProfile';
+            $profile = $this->billingProfile;
+        }else{
+            $profileRelation = 'shippingProfile';
+            $profile = $this->shippingProfile;
+        }
+
+        if(!$profile){
+            $profile = new Profile();
+            $profile->profileable()->associate($this);
+            $profile->save();
+
+            $this->$profileRelation()->associate($profile);
+            $this->save();
+        }
+
+        return $profile;
+    }
+
+    public function clearCart()
+    {
+        $this->lineItems()->delete();
+    }
+
     public function addToCart(Product $product, $quantity = 1, $options = [])
     {
         $existingLineItems = $this->getProductLineItems();
@@ -395,22 +422,9 @@ class Order extends Model implements AuthorSignatureInterface
 
     public function saveProfile($type, $data)
     {
-        if($type == 'billing'){
-            $profileRelation = 'billingProfile';
-            $profile = $this->billingProfile;
-        }else{
-            $profileRelation = 'shippingProfile';
-            $profile = $this->shippingProfile;
-        }
+        $profile = $this->getProfileOrNew($type);
 
-        if(!$profile){
-            $profile = new Profile();
-            $profile->profileable()->associate($this);
-            $profile->save();
-
-            $this->$profileRelation()->associate($profile);
-            $this->save();
-        }
+        $profileRelation = $type.'Profile';
 
         $profile->saveDetails($data);
 
