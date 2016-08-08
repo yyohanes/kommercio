@@ -657,8 +657,6 @@ class OrderController extends Controller
                 $viewData['order']->calculateTotal();
 
                 if($process == 'place_order'){
-                    Event::fire(new OrderEvent('before_update_order', $viewData['order']));
-
                     $placeOrderRules = [
                         'billingProfile.email' => 'required|email',
                         'shippingProfile.full_name' => 'required',
@@ -704,14 +702,14 @@ class OrderController extends Controller
                         'coupon' => $coupons
                     ], $placeOrderRules);
 
+                    Event::fire(new OrderEvent('frontend_rules_built', $order, ['rules' => &$rules]));
+
                     if ($validator->fails()) {
-                        return redirect()
-                            ->back()
-                            ->withErrors($validator)
-                            ->withInput();
+                        $errors = $validator->errors()->getMessages();
+                        break;
                     }
 
-                    Event::fire(new OrderEvent('frontend_rules_built', $order, ['rules' => &$rules]));
+                    Event::fire(new OrderEvent('before_update_order', $viewData['order']));
 
                     $order->processStocks();
 

@@ -1,5 +1,5 @@
 <tr class="line-item" data-line_item="fee" data-line_item_key="{{ $key }}">
-    <td colspan="2">
+    <td>
         {{ $lineItem->name }}
     </td>
     <td>
