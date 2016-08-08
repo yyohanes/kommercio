@@ -20,6 +20,12 @@ class Block extends Model
     public $translatedAttributes = ['name', 'body'];
     protected $toggleFields = ['active'];
 
+    //Scope
+    public function scopeActive($query)
+    {
+        $query->where('active', true);
+    }
+
     public function render()
     {
         $view_name = ProjectHelper::findViewTemplate(['frontend.block.view_'.$this->id, 'frontend.block.view']);

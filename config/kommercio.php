@@ -19,6 +19,11 @@ return [
             'w' => 200,
             'h' => 200
         ],
+        'product_thumbnail' => [
+            'w' => 240,
+            'h' => 360,
+            'fit' => 'crop',
+        ],
         'original' => [
 
         ]
@@ -70,5 +75,9 @@ return [
         'limit' => 20,
         'sort_by' => 'checkout_at',
         'sort_dir' => 'ASC',
+    ],
+    'mailerlite_api_key' => 'f27a47abc3d9162a2c987c05777322f3',
+    'mailerlite_subscriber_groups' => [
+        'default' => 4404091,
     ],
 ];

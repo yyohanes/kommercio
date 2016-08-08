@@ -20,6 +20,11 @@ class MenuItem extends Model
 
     protected $fillable = ['name', 'menu_id', 'parent_id', 'active', 'menu_class', 'sort_order', 'url'];
     protected $toggleFields = ['active'];
+    protected $types = [
+        'product' => '\Kommercio\Models\Product',
+        'product-category' => '\Kommercio\Models\ProductCategory',
+        'page' => '\Kommercio\Models\CMS\Page'];
+
     public $translatedAttributes = ['name', 'url', 'data'];
 
     //Relations
@@ -35,7 +40,7 @@ class MenuItem extends Model
 
     public function children()
     {
-        return $this->hasMany('Kommercio\Models\CMS\MenuItem', 'parent_id');
+        return $this->hasMany('Kommercio\Models\CMS\MenuItem', 'parent_id')->orderBy('sort_order', 'ASC');
     }
 
     //Accessors
@@ -57,6 +62,32 @@ class MenuItem extends Model
         }
 
         return $this->children->count();
+    }
+
+    public function getTypeAttribute()
+    {
+        $type = null;
+
+        foreach($this->types as $slug => $availableType){
+            if(strpos($this->url, $slug.'/') !== FALSE){
+                $type = $slug;
+                break;
+            }
+        }
+
+        return $type;
+    }
+
+    //Methods
+    public function getObject()
+    {
+        $type = $this->type;
+
+        $id = str_replace($type.'/', '', $this->url);
+
+        $model = call_user_func($this->types[$type].'::findOrFail', $id);
+
+        return $model;
     }
 
     //Statics

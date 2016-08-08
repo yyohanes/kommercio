@@ -93,6 +93,17 @@
 <hr/>
 
 @include('backend.master.form.fields.text', [
+    'name' => 'data[call_to_action]',
+    'label' => 'Call to Action',
+    'key' => 'data.call_to_action',
+    'attr' => [
+        'class' => 'form-control',
+        'id' => 'data[call_to_action]'
+    ],
+    'defaultValue' => old('data.call_to_action', $banner->exists?$banner->getData('call_to_action'):null)
+])
+
+@include('backend.master.form.fields.text', [
     'name' => 'data[url]',
     'label' => 'Path',
     'key' => 'data.url',
@@ -100,7 +111,7 @@
         'class' => 'form-control',
         'id' => 'data[url]'
     ],
-    'defaultOptions' => old('data.url', $banner->exists?$banner->getData('url'):null)
+    'defaultValue' => old('data.url', $banner->exists?$banner->getData('url'):null)
 ])
 
 @include('backend.master.form.fields.select', [
@@ -113,4 +124,15 @@
         'id' => 'data[target]'
     ],
     'defaultOptions' => old('data.target', $banner->exists?$banner->getData('target'):null)
+])
+
+@include('backend.master.form.fields.text', [
+    'name' => 'data[class]',
+    'label' => 'Class',
+    'key' => 'data.class',
+    'attr' => [
+        'class' => 'form-control',
+        'id' => 'data[class]'
+    ],
+    'defaultValue' => old('data.class', $banner->exists?$banner->getData('class'):null)
 ])

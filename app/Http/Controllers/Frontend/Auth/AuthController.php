@@ -49,6 +49,7 @@ class AuthController extends Controller
         $this->redirectTo = route('frontend.member.account');
 
         $this->loginView = ProjectHelper::getViewTemplate('frontend.auth.login');
+        $this->registerView = ProjectHelper::getViewTemplate('frontend.auth.register');
     }
 
     /**

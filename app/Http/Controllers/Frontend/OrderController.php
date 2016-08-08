@@ -18,6 +18,7 @@ use Kommercio\Facades\FrontendHelper;
 use Kommercio\Facades\LanguageHelper;
 use Kommercio\Facades\NewsletterSubscriptionHelper;
 use Kommercio\Facades\OrderHelper;
+use Kommercio\Facades\PriceFormatter;
 use Kommercio\Facades\ProjectHelper;
 use Kommercio\Http\Controllers\Controller;
 use Kommercio\Models\Customer;
@@ -174,7 +175,8 @@ class OrderController extends Controller
         if($request->ajax()){
             return new JsonResponse([
                 'data' => [
-                    'itemsCount' => $order->itemsCount
+                    'itemsCount' => $order->itemsCount,
+                    'total' => PriceFormatter::formatNumber($order->total)
                 ],
                 'success' => $messages,
                 '_token' => csrf_token()
@@ -804,11 +806,11 @@ class OrderController extends Controller
         return $response;
     }
 
-    public function checkoutComplete(Request $request, Order $order = null)
+    public function checkoutComplete(Request $request, $order = null)
     {
         //if order exists, it means internal call
         if(!$order){
-            $order = Order::find($request->session()->get('order_id'));
+            $order = Order::find($request->session()->get('order_id', $request->get('debug_order_id')));
         }
 
         if(!$order || !$order->isCheckout){

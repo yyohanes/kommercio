@@ -120,6 +120,11 @@ trait ProductHelper
         return $thumbnails->get(0);
     }
 
+    public function hasThumbnail()
+    {
+        return $this->getThumbnail()?true:false;
+    }
+
     public function getImages()
     {
         $images = $this->images;

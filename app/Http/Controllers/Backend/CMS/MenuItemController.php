@@ -85,6 +85,7 @@ class MenuItemController extends Controller{
     public function reorder(Request $request)
     {
         $this->saveNewOrder($request->input('objects', []));
+        \Log::info($request->input('objects', []));
 
         if($request->ajax()){
             return response()->json([
@@ -93,9 +94,9 @@ class MenuItemController extends Controller{
         }
     }
 
-    protected function saveNewOrder($chilren, $parent = null)
+    protected function saveNewOrder($children, $parent = null)
     {
-        foreach($chilren as $idx => $object){
+        foreach($children as $idx => $object){
             $menuItem = MenuItem::findOrFail($object['id']);
             $menuItem->update([
                 'sort_order' => $idx + 1,

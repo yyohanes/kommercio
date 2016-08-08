@@ -46,6 +46,11 @@ Route::group(['middleware' => ['web']], function () {
         ]);
 
         // Register Routes...
+        Route::get('register', [
+            'as' => 'frontend.register_form',
+            'uses' => 'Auth\AuthController@showRegisterForm'
+        ]);
+
         Route::post('register', [
             'as' => 'frontend.register',
             'uses' => 'Auth\AuthController@postRegister'
@@ -118,9 +123,19 @@ Route::group(['middleware' => ['web']], function () {
             'uses' => 'CatalogController@sale'
         ]);
 
+        Route::get('new-arrival', [
+            'as' => 'frontend.catalog.new_arrival',
+            'uses' => 'CatalogController@newArrival'
+        ]);
+
         Route::get('search', [
             'as' => 'frontend.catalog.search',
             'uses' => 'CatalogController@search'
+        ]);
+
+        Route::get('search/autocomplete', [
+            'as' => 'frontend.catalog.search.autocomplete',
+            'uses' => 'CatalogController@searchAutocomplete'
         ]);
 
         //Order

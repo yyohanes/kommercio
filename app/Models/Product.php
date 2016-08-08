@@ -174,11 +174,6 @@ class Product extends Model implements UrlAliasInterface
         return $breadcrumbs;
     }
 
-    public function hasThumbnail()
-    {
-        return $this->thumbnail?true:false;
-    }
-
     public function hasCategory($category)
     {
         if(is_int($category)){
@@ -882,11 +877,20 @@ class Product extends Model implements UrlAliasInterface
         });
     }
 
+    public function scopeIsNew($query)
+    {
+        $store = ProjectHelper::getActiveStore();
+
+        $query->whereHas('productDetails', function($query) use ($store){
+            $query->where('new', true)->where('store_id', $store->id);
+        });
+    }
+
     public function scopeCatalogVisible($query)
     {
         $store = ProjectHelper::getActiveStore()->id;
 
-        $query->whereHas('productDetail', function($query){
+        $query->whereHas('productDetails', function($query){
             $query->whereIn('visibility', [ProductDetail::VISIBILITY_CATALOG, ProductDetail::VISIBILITY_EVERYWHERE]);
         });
     }
@@ -895,7 +899,7 @@ class Product extends Model implements UrlAliasInterface
     {
         $store = ProjectHelper::getActiveStore()->id;
 
-        $query->whereHas('productDetail', function($query, $store){
+        $query->whereHas('productDetails', function($query, $store){
             $query->whereIn('visibility', [ProductDetail::VISIBILITY_SEARCH, ProductDetail::VISIBILITY_EVERYWHERE]);
         });
     }

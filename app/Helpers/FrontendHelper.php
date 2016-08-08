@@ -12,6 +12,7 @@ use Kommercio\Models\CMS\BannerGroup;
 use Kommercio\Models\CMS\Block;
 use Kommercio\Models\CMS\Menu;
 use Kommercio\Models\Order\Order;
+use Kommercio\Models\Product;
 use Kommercio\Models\UrlAlias;
 
 class FrontendHelper
@@ -110,9 +111,25 @@ class FrontendHelper
     //Block
     public function getBlock($machine_name)
     {
-        $block = Block::where('machine_name', $machine_name)->first();
+        $block = Block::where('machine_name', $machine_name)->active()->first();
 
         return $block;
+    }
+
+    //Products
+    public function getNewProducts($take = null, $criteria = [])
+    {
+        $newItems = [];
+
+        $qb = Product::isNew()->active()->catalogVisible()->productEntity()->orderBy('created_at', 'DESC');
+
+        if($take){
+            $newItems = $qb->take($take);
+        }
+
+        $newItems = $qb->get();
+
+        return $newItems;
     }
 
     //Cart
