@@ -502,6 +502,14 @@ class OrderController extends Controller
 
                     $viewData['step'] = 'customer_information';
                     Auth::login($newCustomer->user);
+
+                    $addressOptions = $this->getAddressOptions($request, $order);
+
+                    $viewData += $addressOptions;
+
+                    $renderData = [
+                        'customer_information' => ProjectHelper::getViewTemplate('frontend.order.one_page.customer_information')
+                    ];
                 }elseif($process == 'continue_as_guest'){
                     $this->validate($request, $this->getCheckoutRuleBook('continue_as_guest'));
 
@@ -531,6 +539,8 @@ class OrderController extends Controller
 
                     //If already logged in, next
                     if($user){
+                        $viewData['step'] = 'customer_information';
+
                         $addressOptions = $this->getAddressOptions($request, $order);
 
                         $viewData += $addressOptions;

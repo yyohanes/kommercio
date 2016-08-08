@@ -160,7 +160,7 @@ class AccountController extends Controller
 
         $this->validate($request, $rules);
 
-        NewsletterSubscriptionHelper::subscribe($request->input('group'), $request->input('email'), $request->input('name', null), $request->input('last_name', null), $request->input('fields', null));
+        NewsletterSubscriptionHelper::subscribe($request->input('group'), $request->input('email'), $request->input('name', null), $request->input('last_name', null), $request->input('fields', []));
 
         return redirect()->back()->with('success', [trans(LanguageHelper::getTranslationKey('frontend.member.newsletter.subscription_success_message'))]);
     }
