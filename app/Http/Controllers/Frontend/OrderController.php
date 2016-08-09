@@ -282,7 +282,7 @@ class OrderController extends Controller
 
             $profileData = $request->input('billingProfile');
 
-            $customer = Customer::saveCustomer($profileData);
+            $customer = Customer::saveCustomer($profileData, null, false);
 
             if($customer){
                 $order->customer()->associate($customer);
@@ -736,7 +736,7 @@ class OrderController extends Controller
                     }
 
                     $profileData = $order->billingInformation->getDetails();
-                    Customer::saveCustomer($profileData);
+                    Customer::saveCustomer($profileData, null, FALSE);
 
                     $viewData['step'] = 'complete';
                 }
