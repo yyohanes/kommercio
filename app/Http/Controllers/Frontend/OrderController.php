@@ -383,7 +383,7 @@ class OrderController extends Controller
             }
         }
 
-        if($order->billingInformation && $order->billingInformation->email && !isset($customer->user)){
+        if($order->billingInformation && $order->billingInformation->email && (!isset($customer->user) || !($customer))){
             $canRegister = TRUE;
         }
 
@@ -438,7 +438,7 @@ class OrderController extends Controller
             'success' => []
         ];
 
-        if($request->has('billingProfile.email') && !isset($viewData['customer']->user)){
+        if($request->has('billingProfile.email') && (!isset($viewData['customer']->user) || !isset($viewData['customer']))){
             $viewData['canRegister'] = TRUE;
         }
 
@@ -541,7 +541,7 @@ class OrderController extends Controller
                     $order->saveProfile('billing', ['email' => $request->input('billingProfile.email')]);
 
                     //If already logged in, next
-                    if($user){
+                    if(Auth::check()){
                         $viewData['step'] = 'customer_information';
 
                         $addressOptions = $this->getAddressOptions($request, $order);
