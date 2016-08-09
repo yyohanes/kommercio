@@ -361,7 +361,10 @@ class OrderController extends Controller
         //If logged in, update owner to new user and skip Account step
         if($user){
             $order->saveProfile('billing', ['email' => $user->email]);
-            $order->saveData(['checkout_step' => 'customer_information']);
+
+            if($order->getData('checkout_step', 'account') == 'account'){
+                $order->saveData(['checkout_step' => 'customer_information']);
+            }
         }
 
         $customer = $order->billingInformation?Customer::getByEmail($order->billingInformation->email):null;
@@ -574,7 +577,7 @@ class OrderController extends Controller
 
                     $viewData['step'] = 'payment_method';
 
-                    $order->delivery_date = $request->input('delivery_date');
+                    $order->delivery_date = $request->input('delivery_date', null);
                     $order->saveProfile('shipping', $request->input('shippingProfile'));
                     $order->store()->associate(ProjectHelper::getStoreByRequest($request));
 
