@@ -35,7 +35,7 @@ class ReportController extends Controller
                 'from' => $request->input('search.delivery_date.from'),
                 'to' => $request->input('search.delivery_date.to')
             ],
-            'status' => $request->input('search.status', [Order::STATUS_PENDING, Order::STATUS_PROCESSING, Order::STATUS_COMPLETED]),
+            'status' => $request->input('search.status', [Order::STATUS_PENDING, Order::STATUS_PROCESSING, Order::STATUS_SHIPPED, Order::STATUS_COMPLETED]),
             'store' => $request->input('search.store', key($storeOptions)),
             'year' => $request->input('search.year', key($yearOptions))
         ];
@@ -94,7 +94,7 @@ class ReportController extends Controller
                 'from' => $request->input('search.date.from', $now->format('Y-m-01')),
                 'to' => $request->input('search.date.to', $now->format('Y-m-t'))
             ],
-            'status' => $request->input('search.status', [Order::STATUS_PENDING, Order::STATUS_PROCESSING, Order::STATUS_COMPLETED]),
+            'status' => $request->input('search.status', [Order::STATUS_PENDING, Order::STATUS_PROCESSING, Order::STATUS_SHIPPED, Order::STATUS_COMPLETED]),
             'store' => $request->input('search.store', key($storeOptions)),
         ];
 
