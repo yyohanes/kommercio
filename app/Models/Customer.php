@@ -15,6 +15,9 @@ class Customer extends Model
     const SALUTE_MRS = 'mrs';
     const SALUTE_MS = 'ms';
 
+    const PROFILE_NAME_HOME = 'home';
+    const PROFILE_NAME_OFFICE = 'office';
+
     protected $guarded = ['profile', 'user'];
     protected $casts = [
         'is_guest' => 'boolean',
@@ -31,12 +34,38 @@ class Customer extends Model
 
     public function orders()
     {
-        return $this->hasMany('Kommercio\Models\Order\Order')->orderBy('checkout_at', 'DESC');
+        return $this->hasMany('Kommercio\Models\Order\Order')->orderBy('checkout_at', 'DESC')->checkout();
     }
 
     public function shippingProfile()
     {
         return $this->belongsTo('Kommercio\Models\Profile\Profile', 'shipping_profile_id');
+    }
+
+    public function profiles()
+    {
+        return $this->morphMany('Kommercio\Models\Profile\Profile', 'profileable');
+    }
+
+    public function savedProfiles()
+    {
+        return $this->belongsToMany('Kommercio\Models\Profile\Profile', 'customer_profile')->withPivot(['name', 'billing', 'shipping']);
+    }
+
+    //Methods
+    public function saveAddress($data, $billing = false, $shipping = false)
+    {
+        $profile = new Profile\Profile();
+
+        $this->savedProfiles()->save($profile, [
+            'name' => isset($data['name'])?$data['name']:'',
+            'billing' => $billing,
+            'shipping' => $shipping
+        ]);
+
+        $profile->saveDetails($data['profile']);
+
+        return $profile;
     }
 
     //Scopes
@@ -69,6 +98,30 @@ class Customer extends Model
     public function getFullNameAttribute()
     {
         return $this->getProfile()->full_name;
+    }
+
+    public function getDefaultBillingProfileAttribute()
+    {
+        foreach($this->savedProfiles as $savedProfile){
+            if($savedProfile->pivot->billing){
+                return $savedProfile;
+                break;
+            }
+        }
+
+        return null;
+    }
+
+    public function getDefaultShippingProfileAttribute()
+    {
+        foreach($this->savedProfiles as $savedProfile){
+            if($savedProfile->pivot->shipping){
+                return $savedProfile;
+                break;
+            }
+        }
+
+        return null;
     }
 
     //Statics
@@ -135,6 +188,20 @@ class Customer extends Model
             self::SALUTE_MR => trans('Mr'),
             self::SALUTE_MRS => trans('Mrs'),
             self::SALUTE_MS => trans('Ms'),
+        ];
+
+        if(empty($option)){
+            return $array;
+        }
+
+        return (isset($array[$option]))?$array[$option]:$array;
+    }
+
+    public static function getProfileNameOptions($option=null)
+    {
+        $array = [
+            self::PROFILE_NAME_HOME => trans('Home'),
+            self::PROFILE_NAME_OFFICE => trans('Office'),
         ];
 
         if(empty($option)){

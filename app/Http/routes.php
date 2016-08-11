@@ -1240,6 +1240,30 @@ Route::group(['middleware' => ['web']], function () {
                     'uses' => 'CustomerController@delete',
                     'permissions' => ['delete_customer']
                 ]);
+
+                Route::get('{customer_id}/address/index', [
+                    'as' => 'backend.customer.address.index',
+                    'uses' => 'CustomerController@addressIndex',
+                    'permissions' => ['view_customer']
+                ]);
+
+                Route::get('{customer_id}/address/form/{id?}', [
+                    'as' => 'backend.customer.address.form',
+                    'uses' => 'CustomerController@addressForm',
+                    'permissions' => ['edit_customer']
+                ]);
+
+                Route::post('{customer_id}/address/save/{id?}', [
+                    'as' => 'backend.customer.address.save',
+                    'uses' => 'CustomerController@addressSave',
+                    'permissions' => ['edit_customer']
+                ]);
+
+                Route::post('{customer_id}/address/delete/{id}', [
+                    'as' => 'backend.customer.address.delete',
+                    'uses' => 'CustomerController@addressDelete',
+                    'permissions' => ['edit_customer']
+                ]);
             });
 
             //CMS

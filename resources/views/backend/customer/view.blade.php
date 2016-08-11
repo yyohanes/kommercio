@@ -27,7 +27,7 @@
             </div>
 
             <div class="portlet-body">
-                <div class="form-body" id="order-wrapper">
+                <div class="form-body" id="customer-wrapper">
                     <div class="tabbable-bordered">
                         <ul class="nav nav-tabs" role="tablist">
                             <li class="active" role="presentation">
@@ -38,6 +38,10 @@
                                 <a href="#tab_orders" data-toggle="tab"> Orders </a>
                             </li>
                             @endcan
+
+                            <li role="presentation">
+                                <a href="#tab_address" data-toggle="tab"> Address </a>
+                            </li>
                         </ul>
 
                         <div class="tab-content">
@@ -164,10 +168,36 @@
                                 </div>
                             </div>
                             @endcan
+
+                            <div class="tab-pane" id="tab_address">
+                                <div class="form-body">
+                                    <div class="margin-bottom-10">
+                                        @can('access', ['edit_customer'])
+                                        <a class="btn btn-default" id="address-add-btn" href="#">
+                                            <i class="icon-plus"></i> Add Address
+                                        </a>
+                                        @endcan
+                                    </div>
+
+                                    <div id="address-form-wrapper"
+                                         data-address_form="{{ route('backend.customer.address.form', ['customer_id' => $customer->id]) }}"
+                                         data-address_index="{{ route('backend.customer.address.index', ['customer_id' => $customer->id]) }}"></div>
+
+                                    <div id="address-index-wrapper">
+                                        @include('backend.customer.address.index', ['profiles' => $customer->savedProfiles])
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+@stop
+
+@section('bottom_page_scripts')
+    @parent
+
+    <script src="{{ asset('backend/assets/scripts/pages/customer_view.js') }}" type="text/javascript"></script>
 @stop

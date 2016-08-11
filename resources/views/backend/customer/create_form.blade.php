@@ -91,6 +91,16 @@
     ]
 ])
 
+@include('backend.master.form.fields.tel', [
+    'name' => 'profile[home_phone]',
+    'label' => 'Home Phone',
+    'key' => 'profile.home_phone',
+    'attr' => [
+        'class' => 'form-control',
+        'id' => 'profile[home_phone]'
+    ]
+])
+
 @include('backend.master.form.fields.address.address', [
     'name' => 'profile',
     'label' => 'Address',

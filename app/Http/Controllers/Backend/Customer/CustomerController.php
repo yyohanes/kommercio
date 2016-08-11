@@ -4,12 +4,14 @@ namespace Kommercio\Http\Controllers\Backend\Customer;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Session;
 use Kommercio\Facades\PriceFormatter;
 use Kommercio\Http\Controllers\Controller;
 use Kommercio\Models\Customer;
 use Kommercio\Http\Requests\Backend\Customer\CustomerFormRequest;
 use Collective\Html\FormFacade;
 use Illuminate\Support\Facades\Request as RequestFacade;
+use Kommercio\Models\Profile\Profile;
 use Kommercio\Models\User;
 
 class CustomerController extends Controller{
@@ -200,6 +202,11 @@ class CustomerController extends Controller{
             $customer->user->delete();
         }
 
+        $customerProfiles = $customer->profiles;
+        foreach($customerProfiles as $customerProfile){
+            $customerProfile->delete();
+        }
+
         $customer->delete();
 
         return redirect()->back()->with('success', [$name.' has been deleted.']);
@@ -251,6 +258,133 @@ class CustomerController extends Controller{
         }
 
         return response()->json(['data' => $return, '_token' => csrf_token()]);
+    }
+
+    public function addressIndex($customer_id)
+    {
+        $customer = Customer::findOrFail($customer_id);
+
+        $profiles = $customer->savedProfiles;
+
+        $index = view('backend.customer.address.index', [
+            'profiles' => $profiles,
+            'customer' => $customer
+        ])->render();
+
+        return response()->json([
+            'html' => $index,
+            '_token' => csrf_token()
+        ]);
+    }
+
+    public function addressForm($customer_id, $id = null)
+    {
+        $customer = Customer::findOrFail($customer_id);
+        if($id){
+            $profile = $customer->savedProfiles()->where('profile_id', $id)->firstOrFail();
+
+            $profile->getDetails();
+            Session::flashInput([
+                'name' => $profile->pivot->name,
+                'shipping' => $profile->pivot->shipping,
+                'billing' => $profile->pivot->billing,
+                'profile' => $profile->getDetails()
+            ]);
+        }else{
+            $profile = new Profile();
+        }
+
+        $billingProfile = $customer->defaultBillingProfile;
+        $shippingProfile = $customer->defaultShippingProfile;
+
+        $form = view('backend.customer.address.form', [
+            'profile' => $profile,
+            'customer' => $customer,
+            'billing' => false,
+            'shipping' => false,
+        ])->render();
+
+        //Clear flashed input
+        Session::pull('_old_input');
+
+        return response()->json([
+            'html' => $form,
+            '_token' => csrf_token()
+        ]);
+    }
+
+    public function addressSave(Request $request, $customer_id, $id = null)
+    {
+        $customer = Customer::findOrFail($customer_id);
+        if($id){
+            $profile = $customer->savedProfiles()->where('profile_id', $id)->firstOrFail();
+        }else{
+            $profile = new Profile();
+        }
+
+        $rules = [
+            'name' => 'required|in:'.implode(',', array_keys(Customer::getProfileNameOptions())),
+            'profile.salute' => 'in:'.implode(',', array_keys(Customer::getSaluteOptions())),
+            'profile.full_name' => 'required',
+            'profile.phone_number' => 'required',
+            'profile.home_phone' => '',
+            'profile.address_1' => 'required',
+            'profile.country_id' => 'required',
+            'profile.state_id' => 'descendant_address:state',
+            'profile.city_id' => 'descendant_address:city',
+            'profile.district_id' => 'descendant_address:district',
+            'profile.area_id' => 'descendant_address:area',
+            'billing' => 'boolean',
+            'shipping' => 'boolean',
+        ];
+
+        $this->validate($request, $rules);
+
+        $profile->profileable()->associate($customer);
+        $profile->save();
+
+        $profile->saveDetails($request->input('profile'));
+
+        $syncData = [];
+
+        //Un-default other saved profiles
+        foreach($customer->savedProfiles as $savedProfile){
+            $syncData[$savedProfile->id] = [
+                'name' => $savedProfile->pivot->name
+            ];
+
+            $syncData[$savedProfile->id]['shipping'] = $request->has('shipping')?false:$savedProfile->pivot->shipping;
+            $syncData[$savedProfile->id]['billing'] = $request->has('billing')?false:$savedProfile->pivot->billing;
+        }
+
+        $syncData[$profile->id] = [
+            'name' => $request->input('name'),
+            'shipping' => $request->has('shipping'),
+            'billing' => $request->has('billing'),
+        ];
+
+        $customer->savedProfiles()->detach();
+        $customer->savedProfiles()->sync($syncData);
+
+        return response()->json([
+            'result' => 'success',
+            'message' => Customer::getProfileNameOptions($request->input('name')).' Address is successfully entered.'
+        ]);
+    }
+
+    public function addressDelete(Request $request, $customer_id, $id)
+    {
+        $customer = Customer::findOrFail($customer_id);
+        $profile = $customer->savedProfiles()->where('profile_id', $id)->firstOrFail();
+
+        $message = Customer::getProfileNameOptions($profile->pivot->name).' Address is successfully deleted.';
+
+        $profile->delete();
+
+        return response()->json([
+            'result' => 'success',
+            'message' => $message
+        ]);
     }
 
     protected function deleteable(Customer $customer)

@@ -77,8 +77,8 @@ var orderPaymentFormBehaviors = {
                             'messagesWrapper' : '#payment-form-messages'
                         });
 
-                        App.scrollTo($('#payment-form-wrapper'));
                     }
+                    App.scrollTo($('#payment-form-wrapper'));
 
                     formBehaviors.initComponents(context);
                 }

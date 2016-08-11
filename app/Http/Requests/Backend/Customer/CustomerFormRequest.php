@@ -35,8 +35,6 @@ class CustomerFormRequest extends Request
             'profile.email' => 'email|required_with:user.create_account|unique:users,email'.($user?','.$user->id:null),
             'profile.salute' => 'in:'.implode(',', $saluteAllowedOptions),
             'profile.full_name' => 'required',
-            'profile.mobile_phone' => '',
-            'profile.home_phone' => '',
             'profile.birthday' => 'date_format:Y-m-d',
             'user.password' => 'confirmed|min:6',
             'user.status' => 'required_with:user.create_account|in:'.implode(',', $statusAllowedOptions),
