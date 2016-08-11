@@ -69,7 +69,7 @@ class User extends Authenticatable
 
     public function getIsCustomerAttribute()
     {
-        return isset($this->customer);
+        return !empty($this->customer);
     }
 
     public function getIsMasterSuperAdminAttribute()

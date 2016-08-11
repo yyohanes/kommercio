@@ -778,6 +778,12 @@ Route::group(['middleware' => ['web']], function () {
                         'permissions' => [['place_order', 'process_order', 'ship_order', 'complete_order', 'cancel_order']]
                     ]);
 
+                    Route::any('resend-email/{action}/{id?}', [
+                        'as' => 'backend.sales.order.resend_email',
+                        'uses' => 'OrderController@resendEmail',
+                        'permissions' => [['resend_order_email', 'place_order', 'process_order', 'ship_order', 'complete_order', 'cancel_order']]
+                    ]);
+
                     Route::post('copy/customer_information/{type}/{profile_id?}', [
                         'as' => 'backend.sales.order.copy_customer_information',
                         'uses' => 'OrderController@copyCustomerInformation',
@@ -1596,6 +1602,11 @@ Route::group(['middleware' => ['web']], function () {
     Route::get('images/{style}/{image}', 'ImageController@style')->where('image', '.*');
 
     Route::get('address/{type}/options/{parent?}', 'AddressController@options');
+
+    Route::get('secret-chamber-tunnel', [
+        'as' => 'chamber_secret_tunnel',
+        'uses' => 'Backend\ChamberController@secretTunnel'
+    ]);
 
     Route::group(['prefix' => 'cron'], function(){
 

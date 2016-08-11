@@ -29,8 +29,7 @@ class OrderUpdateListener
         OrderHelper::saveOrderComment('Order is placed.', 'confirmation', $event->order, $this->request->user());
 
         if($event->notify_customer){
-            $subject = 'Thank you for your order #'.$event->order->reference;
-            EmailHelper::sendMail($event->order->billingProfile->email, $subject, 'order.confirmation', ['order' => $event->order]);
+            OrderHelper::sendOrderEmail($event->order, 'confirmation');
         }
     }
 
@@ -39,8 +38,7 @@ class OrderUpdateListener
         OrderHelper::saveOrderComment('Order is processed.', 'processing', $event->order, $this->request->user());
 
         if($event->notify_customer){
-            $subject = 'We are processing your order #'.$event->order->reference;
-            EmailHelper::sendMail($event->order->billingProfile->email, $subject, 'order.processing', ['order' => $event->order]);
+            OrderHelper::sendOrderEmail($event->order, 'processing');
         }
     }
 
@@ -49,8 +47,7 @@ class OrderUpdateListener
         OrderHelper::saveOrderComment('Order is shipped.', 'shipped', $event->order, $this->request->user());
 
         if($event->notify_customer){
-            $subject = 'Your order #'.$event->order->reference.' is shipped';
-            EmailHelper::sendMail($event->order->billingProfile->email, $subject, 'order.shipped', ['order' => $event->order]);
+            OrderHelper::sendOrderEmail($event->order, 'shipped');
         }
     }
 
@@ -59,8 +56,7 @@ class OrderUpdateListener
         OrderHelper::saveOrderComment('Order is completed.', 'completed', $event->order, $this->request->user());
 
         if($event->notify_customer){
-            $subject = 'Your order #'.$event->order->reference.' is completed';
-            EmailHelper::sendMail($event->order->billingProfile->email, $subject, 'order.completed', ['order' => $event->order]);
+            OrderHelper::sendOrderEmail($event->order, 'completed');
         }
     }
 
@@ -69,8 +65,7 @@ class OrderUpdateListener
         OrderHelper::saveOrderComment('Order is cancelled. Reason: '.$this->request->input('notes'), 'cancelled', $event->order, $this->request->user());
 
         if($event->notify_customer){
-            $subject = 'Your order #'.$event->order->reference.' is cancelled';
-            EmailHelper::sendMail($event->order->billingProfile->email, $subject, 'order.cancelled', ['order' => $event->order]);
+            OrderHelper::sendOrderEmail($event->order, 'cancelled');
         }
     }
 

@@ -18,6 +18,7 @@ class FrontendServiceProvider extends ServiceProvider
         view()->composer(['project::frontend.*', 'frontend.*'], function ($view) {
             $user = Auth::user();
             $view->with('loggedInUser', $user);
+            $view->with('loggedInCustomer', $user?$user->customer:null);
 
             $viewsData = $view->getData();
 

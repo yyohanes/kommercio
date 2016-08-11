@@ -922,6 +922,75 @@ class OrderController extends Controller{
         return call_user_func_array([$this, $function], $arguments);
     }
 
+    public function resendEmail(Request $request, $process, $id)
+    {
+        $user = $request->user();
+        $order = Order::findOrFail($id);
+
+        if($request->isMethod('GET')){
+            $options = [
+                'process' => $process,
+                'order' => $order,
+                'backUrl' => $request->get('backUrl', route('backend.sales.order.index'))
+            ];
+
+            return view('backend.order.resend_email_confirmation', $options);
+        }else{
+            if(Order::processAndStatusMap($process) != $order->status){
+                abort(400);
+            }
+
+            $rules = [
+                'email' => 'required|email'
+            ];
+            $this->validate($request, $rules);
+
+            switch($process){
+                case 'confirmation':
+                    $orderComment = 'Resend Confirmation email.';
+                    break;
+                case 'processing':
+                    if(!Gate::allows('access', ['process_order'])){
+                        abort(403);
+                    }
+
+                    $orderComment = 'Resend Processing email.';
+                    break;
+                case 'shipped':
+                    if(!Gate::allows('access', ['ship_order'])){
+                        abort(403);
+                    }
+
+                    $orderComment = 'Resend Shipped email.';
+                    break;
+                case 'completed':
+                    if(!Gate::allows('access', ['complete_order'])){
+                        abort(403);
+                    }
+
+                    $orderComment = 'Resend Completed email.';
+                    break;
+                case 'cancelled':
+                    if(!Gate::allows('access', ['cancel_order'])){
+                        abort(403);
+                    }
+
+                    $orderComment = 'Resend Cancelled email.';
+                    break;
+                default:
+                    return response('No process is selected.');
+                    break;
+            }
+
+            OrderHelper::saveOrderComment($orderComment, $process, $order, $user);
+            OrderHelper::sendOrderEmail($order, $process, $request->input('email'));
+
+            $message = ucfirst($process).' email is successfully queued for resend.';
+
+            return redirect($request->input('backUrl', route('backend.sales.order.index')))->with('success', [$message]);
+        }
+    }
+
     public function copyCustomerInformation(Request $request, $type, $profile_id = null)
     {
         if($profile_id){

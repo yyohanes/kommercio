@@ -34,7 +34,7 @@ trait HasDataColumn
 
     public function unsetData($attribute=null, $immediateSave = false)
     {
-        $data = $this->getData($attribute);
+        $data = $this->getData($attribute, []);
 
         if($attribute){
             array_pull($data, $attribute);

@@ -67,6 +67,44 @@
                         </ul>
                     </div>
                     @endif
+
+                    <?php
+                    $resendActions = '';
+
+                    if(Gate::allows('access', ['resend_order_email'])){
+                        if(in_array($order->status, [\Kommercio\Models\Order\Order::STATUS_PENDING])){
+                            $resendActions .= '<li><a class="modal-ajax" href="'.route('backend.sales.order.resend_email', ['process' => 'confirmation', 'backUrl' => Request::fullUrl(), 'id' => $order->id]).'" target="_blank">Confirmation</a></li>';
+                        }
+
+                        if(in_array($order->status, [\Kommercio\Models\Order\Order::STATUS_PROCESSING])){
+                            $resendActions .= '<li><a class="modal-ajax" href="'.route('backend.sales.order.resend_email', ['process' => 'processing', 'backUrl' => Request::fullUrl(), 'id' => $order->id]).'" target="_blank">Processing</a></li>';
+                        }
+
+                        if(in_array($order->status, [\Kommercio\Models\Order\Order::STATUS_SHIPPED])){
+                            $resendActions .= '<li><a class="modal-ajax" href="'.route('backend.sales.order.resend_email', ['process' => 'shipped', 'backUrl' => Request::fullUrl(), 'id' => $order->id]).'" target="_blank">Shipped</a></li>';
+                        }
+
+                        if(in_array($order->status, [\Kommercio\Models\Order\Order::STATUS_COMPLETED])){
+                            $resendActions .= '<li><a class="modal-ajax" href="'.route('backend.sales.order.resend_email', ['process' => 'completed', 'backUrl' => Request::fullUrl(), 'id' => $order->id]).'" target="_blank">Completed</a></li>';
+                        }
+
+                        if(in_array($order->status, [\Kommercio\Models\Order\Order::STATUS_CANCELLED])){
+                            $resendActions .= '<li><a class="modal-ajax" href="'.route('backend.sales.order.resend_email', ['process' => 'cancelled', 'backUrl' => Request::fullUrl(), 'id' => $order->id]).'" target="_blank">Cancelled</a></li>';
+                        }
+                    }
+                    ?>
+
+                    @if(!empty($resendActions))
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-default dropdown-toggle" data-hover="dropdown" data-toggle="dropdown">
+                                <i class="fa fa-envelope"></i> Resend
+                                <i class="fa fa-angle-down"></i>
+                            </button>
+                            <ul class="dropdown-menu pull-right">
+                                {!! $resendActions !!}
+                            </ul>
+                        </div>
+                    @endif
                 </div>
             </div>
 

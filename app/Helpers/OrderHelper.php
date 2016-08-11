@@ -5,6 +5,7 @@ namespace Kommercio\Helpers;
 use Illuminate\Http\Request;
 use Kommercio\Facades\PriceFormatter as PriceFormatterFacade;
 use Kommercio\Facades\ProjectHelper as ProjectHelperFacade;
+use Kommercio\Facades\EmailHelper as EmailHelperFacade;
 use Kommercio\Models\Customer;
 use Kommercio\Models\Order\LineItem;
 use Kommercio\Models\Order\Order;
@@ -323,7 +324,7 @@ class OrderHelper
         $request->replace($attributes);
     }
 
-    public function addPendingPayment(Order $order, $data)
+    public function addPendingPayment(Order $order, $data, Request $request)
     {
         $payment = new Payment();
         $payment->fill($data);
@@ -345,5 +346,33 @@ class OrderHelper
             'result' => 'success',
             'message' => 'Payment with amount of '.PriceFormatter::formatNumber($payment->amount, $payment->currency).' is successfully entered.'
         ]);
+    }
+
+    public function sendOrderEmail($order, $type, $destination = null)
+    {
+        switch($type){
+            case 'confirmation':
+                $subject = 'Thank you for your order #'.$order->reference;
+                EmailHelperFacade::sendMail($destination?:$order->billingInformation->email, $subject, 'order.confirmation', ['order' => $order]);
+                break;
+            case 'processing':
+                $subject = 'We are processing your order #'.$order->reference;
+                EmailHelperFacade::sendMail($destination?:$order->billingInformation->email, $subject, 'order.processing', ['order' => $order]);
+                break;
+            case 'shipped':
+                $subject = 'Your order #'.$order->reference.' is shipped';
+                EmailHelperFacade::sendMail($destination?:$order->billingInformation->email, $subject, 'order.shipped', ['order' => $order]);
+                break;
+            case 'completed':
+                $subject = 'Your order #'.$order->reference.' is completed';
+                EmailHelperFacade::sendMail($destination?:$order->billingInformation->email, $subject, 'order.completed', ['order' => $order]);
+                break;
+            case 'cancelled':
+                $subject = 'Your order #'.$order->reference.' is cancelled';
+                EmailHelperFacade::sendMail($destination?:$order->billingInformation->email, $subject, 'order.cancelled', ['order' => $order]);
+                break;
+            default:
+                break;
+        }
     }
 }

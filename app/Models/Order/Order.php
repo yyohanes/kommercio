@@ -924,6 +924,19 @@ class Order extends Model implements AuthorSignatureInterface
         return (isset($array[$option]))?$array[$option]:$array;
     }
 
+    public static function processAndStatusMap($process)
+    {
+        $array = [
+            'confirmation' => self::STATUS_PENDING,
+            'processing' => self::STATUS_PROCESSING,
+            'shipped' => self::STATUS_SHIPPED,
+            'completed' => self::STATUS_COMPLETED,
+            'cancelled' => self::STATUS_CANCELLED,
+        ];
+
+        return $array[$process];
+    }
+
     protected static function boot()
     {
         parent::boot();
