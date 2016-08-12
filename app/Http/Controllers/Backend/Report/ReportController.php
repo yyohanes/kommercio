@@ -23,7 +23,7 @@ class ReportController extends Controller
         $orderStatusOptions = Order::getStatusOptions();
         $storeOptions = Store::getStoreOptions(false, true);
 
-        $ordersByYear = Order::checkout()->selectRaw("DATE_FORMAT(checkout_at, '%Y') AS order_year")->groupBy('order_year')->pluck('order_year', 'order_year')->toArray();
+        $ordersByYear = Order::checkout()->selectRaw("DATE_FORMAT(checkout_at, '%Y') AS order_year")->whereNotNull('checkout_at')->groupBy('order_year')->pluck('order_year', 'order_year')->toArray();
         $yearOptions = $ordersByYear ?: [Carbon::now()->format('Y')];
 
         $filter = [
