@@ -627,7 +627,7 @@ class ProductController extends Controller{
         $search = $request->get('query', '');
 
         if(!empty($search)){
-            $qb = Product::selectSelf()->joinTranslation()->joinDetail();
+            $qb = Product::with('parent')->joinTranslation()->joinDetail()->selectSelf();
 
             if($request->input('entity_only') == '1'){
                 $qb->productEntity();
@@ -655,13 +655,14 @@ class ProductController extends Controller{
             $results = $qb->get();
 
             foreach($results as $result){
+                $name = $result->name.' ('.$result->sku.')'.($result->parent->defaultCategory?' - '.$result->parent->defaultCategory->name:'');
                 $return[] = [
                     'id' => $result->id,
-                    'name' => $result->name.' ('.$result->sku.')',
+                    'name' => $name,
                     'sku' => $result->sku,
-                    'thumbnail' => $result->hasThumbnail()?asset($result->thumbnail->getImagePath('backend_thumbnail')):'',
+                    'thumbnail' => $result->hasThumbnail()?asset($result->getThumbnail()->getImagePath('backend_thumbnail')):'',
                     'tokens' => [
-                        $result->name,
+                        $name,
                         $result->sku
                     ]
                 ];
