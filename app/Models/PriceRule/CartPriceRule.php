@@ -80,7 +80,7 @@ class CartPriceRule extends Model
             $calculatedAmount += ($calculatedAmount * $this->modification/100);
         }
 
-        return PriceFormatter::round($calculatedAmount);
+        return $calculatedAmount;
     }
 
     public function getNetValue($price = null)
@@ -93,7 +93,7 @@ class CartPriceRule extends Model
             $calculatedAmount = ($calculatedAmount * $this->modification/100);
         }
 
-        return PriceFormatter::round($calculatedAmount);
+        return $calculatedAmount;
     }
 
     public function getModificationOutput()

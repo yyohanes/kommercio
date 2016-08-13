@@ -150,12 +150,15 @@ class OrderHelper
                     continue;
                 }
 
-                $priceRuleValue += $cartPriceRule->getNetValue($lineItemAmount);
+                $priceRuleValue = $cartPriceRule->getNetValue($lineItemAmount);
+                $valueDifference = PriceFormatterFacade::round($lineItemAmount + $priceRuleValue) - $lineItemAmount;
 
-                $cartPriceRule->total += $priceRuleValue * $lineItem->quantity;
-                $lineItemAmount += $priceRuleValue;
+
+                $lineItemAmount += $valueDifference;
+                $lineItem->discount_total += $valueDifference;
+
+                $cartPriceRule->total += $valueDifference * $lineItem->quantity;
             }
-            $lineItem->discount_total = $priceRuleValue;
 
             if($lineItem->taxable){
                 foreach($taxes as $tax){

@@ -92,15 +92,15 @@ var OrderForm = function () {
             };
 
             $taxAmount.gross = formHelper.roundNumber($lineItem.net * ($taxes[i].rate/100));
-            $taxAmount.net = formHelper.roundNumber($taxAmount.gross);
+            $taxAmount.net = $taxAmount.gross;
 
             $thisTaxAmount += $taxAmount.net;
 
             $lineItem.taxes[i] = $taxAmount.net * $quantity;
         }
 
-        $lineItem.total += $thisTaxAmount * $quantity;
-        $lineItem.net += $thisTaxAmount;
+        $lineItem.net = $lineItem.net + $thisTaxAmount;
+        $lineItem.total = $lineItem.net * $quantity;
 
         return $thisTaxAmount;
     }
@@ -119,7 +119,7 @@ var OrderForm = function () {
 
         for(var i in $cartPriceRules){
             calculated.gross = calculatePriceRuleValue(calculated.total, $cartPriceRules[i].price, $cartPriceRules[i].modification, $cartPriceRules[i].modification_type);
-            calculated.net = formHelper.roundNumber(calculated.gross);
+            calculated.net = calculated.gross;
             calculated.total += calculated.net;
 
             if($cartPriceRules[i].offer_type == 'product_discount' && $lineItem.object.data('line_item') == 'product'){
@@ -140,10 +140,10 @@ var OrderForm = function () {
                 $cartPriceRules[i].applied_line_items.push($lineItem);
             }
 
-            $lineItem.cartPriceRules[i] = calculated.net * $quantity;
+            $lineItem.cartPriceRules[i] = (formHelper.roundNumber($lineItem.net + calculated.net) - $lineItem.net) * $quantity;
         }
 
-        $lineItem.net += calculated.net;
+        $lineItem.net = formHelper.roundNumber($lineItem.net + calculated.net);
         $lineItem.total = $lineItem.net * $quantity;
 
         return calculated.net;
@@ -248,7 +248,7 @@ var OrderForm = function () {
             calculatedAmount += Number(modification);
         }
 
-        return formHelper.roundNumber(calculatedAmount - amount);
+        return calculatedAmount - amount;
     }
 
     var getNextIndex = function()

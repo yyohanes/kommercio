@@ -799,14 +799,17 @@ var formHelper = {
             rounding = 'default';
         }
 
-        var multiplier = Math.pow(10, places);
+        value = Number(value);
+        value = Number(math.format(value, 5));
+
+        var multiplier = math.pow(10, places);
 
         if(rounding == 'floor'){
-            return (Math.floor(value * multiplier) / multiplier);
+            return (math.floor(value * multiplier) / multiplier);
         }else if(rounding == 'ceil') {
-            return (Math.ceil(value * multiplier) / multiplier);
+            return (math.ceil(value * multiplier) / multiplier);
         }else{
-            return (Math.round(value * multiplier) / multiplier);
+            return (math.round(value * multiplier) / multiplier);
         }
     },
     calculateRounding: function(before, after, round){
