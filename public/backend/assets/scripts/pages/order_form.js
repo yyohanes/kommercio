@@ -110,6 +110,7 @@ var OrderForm = function () {
     var calculateCartPrice = function($lineItem, $quantity)
     {
         var calculated = {
+            base: $lineItem.net,
             net: 0,
             gross: 0,
             total: $lineItem.net
@@ -118,7 +119,12 @@ var OrderForm = function () {
         $product_id = ($lineItem.object.data('line_item') == 'product')?$lineItem.object.find('.line-item-id').val():false;
 
         for(var i in $cartPriceRules){
-            calculated.gross = calculatePriceRuleValue(calculated.total, $cartPriceRules[i].price, $cartPriceRules[i].modification, $cartPriceRules[i].modification_type);
+            if($cartPriceRules[i].modification_source == 0){
+                calculated.gross = calculatePriceRuleValue(calculated.base, $cartPriceRules[i].price, $cartPriceRules[i].modification, $cartPriceRules[i].modification_type);
+            }else{
+                calculated.gross = calculatePriceRuleValue(calculated.total, $cartPriceRules[i].price, $cartPriceRules[i].modification, $cartPriceRules[i].modification_type);
+            }
+
             calculated.net = calculated.gross;
             calculated.total += calculated.net;
 
@@ -140,10 +146,11 @@ var OrderForm = function () {
                 $cartPriceRules[i].applied_line_items.push($lineItem);
             }
 
-            $lineItem.cartPriceRules[i] = (formHelper.roundNumber($lineItem.net + calculated.net) - $lineItem.net) * $quantity;
+            $lineItem.cartPriceRules[i] = (formHelper.roundNumber(calculated.base + calculated.net) - calculated.base) * $quantity;
+            $lineItem.net += calculated.net;
         }
 
-        $lineItem.net = formHelper.roundNumber($lineItem.net + calculated.net);
+        $lineItem.net = formHelper.roundNumber($lineItem.net);
         $lineItem.total = $lineItem.net * $quantity;
 
         return calculated.net;
@@ -210,11 +217,11 @@ var OrderForm = function () {
         $('.shipping .amount', '#order-summary').text(formHelper.convertNumber($orderShippingTotal));
 
         for(var i in $taxes){
-            $('.tax[data-tax_id="'+i+'"] .amount', '#order-summary').text(formHelper.convertNumber(formHelper.roundNumber($taxes[i].error)));
+            $('.tax[data-tax_id="'+ i.replace('tax_', '') +'"] .amount', '#order-summary').text(formHelper.convertNumber(formHelper.roundNumber($taxes[i].error)));
         }
 
         for(var i in $cartPriceRules){
-            $('.cart-price-rule[data-cart_price_rule_id="'+i+'"] .amount', '#order-summary').text(formHelper.convertNumber($cartPriceRules[i].total));
+            $('.cart-price-rule[data-cart_price_rule_id="'+ i.replace('cart_price_rule_', '') +'"] .amount', '#order-summary').text(formHelper.convertNumber($cartPriceRules[i].total));
         }
 
         if($orderTotalRounding > 0 || $orderTotalRounding < 0){
@@ -270,7 +277,7 @@ var OrderForm = function () {
         var $taxPrototype = Handlebars.compile($taxTemplate);
 
         $('.tax', '#tax-summary-wrapper').each(function(idx, obj){
-            $taxes[$(obj).data('tax_id')] = {
+            $taxes['tax_' + $(obj).data('tax_id')] = {
                 rate: $(obj).data('tax_rate'),
                 total: 0,
                 error: 0
@@ -286,15 +293,17 @@ var OrderForm = function () {
                 method: 'POST',
                 data: $('#order-form').serialize(),
                 success: function(data){
-                    $cartPriceRules = {};
+                    $cartPriceRules = [];
                     $productPriceRulesTotal = {};
                     $('#cart-price-rules-wrapper').empty();
+
                     for(var i in data.data){
-                        $cartPriceRules[data.data[i].id] = {
+                        $cartPriceRules['cart_price_rule_' + data.data[i].id] = {
                             offer_type: data.data[i].offer_type,
                             price: data.data[i].price,
                             modification: data.data[i].modification,
                             modification_type: data.data[i].modification_type,
+                            modification_source: data.data[i].modification_source,
                             total: 0,
                             products: data.data[i].products,
                             applied_line_items: []
@@ -313,11 +322,11 @@ var OrderForm = function () {
                     $.ajax(global_vars.get_tax_path, {
                         data: 'country_id='+$('#profile\\[country_id\\]').val()+'&state_id='+$('#profile\\[state_id\\]').val()+'&city_id='+$('#profile\\[city_id\\]').val()+'&district_id='+$('#profile\\[district_id\\]').val()+'&area_id='+$('#profile\\[area_id\\]').val(),
                         success: function(data) {
-                            $taxes = {};
+                            $taxes = [];
                             $productTaxes = {};
                             $('#tax-summary-wrapper').empty();
                             for(var i in data.data){
-                                $taxes[data.data[i].id] = {
+                                $taxes['tax_' + data.data[i].id] = {
                                     rate: data.data[i].rate,
                                     total: 0,
                                     error: 0
@@ -782,11 +791,12 @@ var OrderForm = function () {
             $lineItems[$timestamp] = {
                 uid: $timestamp,
                 object: $lineItem,
-                cartPriceRules: {},
+                cartPriceRules: [],
                 taxes: {},
                 total: 0,
                 net: 0,
-                calculated: 0
+                calculated: 0,
+                base: Number(lineItem.find('.net-price-field').inputmask('unmaskedvalue'))
             };
 
             $('.product-search', lineItem).bind('typeahead:select', function(e, suggestion){
@@ -851,8 +861,8 @@ var OrderForm = function () {
                 var $netPrice;
 
                 $(obj).on('change', function(e, stopImmediateTrigger){
-                    calculateLineItemNetPrice($lineItems[$lineItem.data('uid')], Number($lineItem.find('.net-price-field').inputmask('unmaskedvalue')), $lineItem.find('.quantity-field').val());
                     $netPrice = Number($lineItem.find('.net-price-field').inputmask('unmaskedvalue'));
+                    calculateLineItemNetPrice($lineItems[$lineItem.data('uid')], $netPrice, $lineItem.find('.quantity-field').val());
                     $totalAmount = $lineItem.find('.quantity-field').val() * $netPrice;
                     $totalAmount = formHelper.roundNumber($totalAmount);
 

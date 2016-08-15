@@ -40,6 +40,8 @@ class CartPriceRuleController extends Controller
 
         $offerTypeOptions = CartPriceRule::getOfferTypeOptions();
 
+        $modificationSourceOptions = CartPriceRule::getModificationSourceOptions();
+
         $shippingMethodOptions = ShippingMethod::getShippingMethodObjects()->pluck('name', 'id')->all();
 
         $defaultProducts = [];
@@ -55,6 +57,7 @@ class CartPriceRuleController extends Controller
             'reductionTypeOptions' => $reductionTypeOptions,
             'offerTypeOptions' => $offerTypeOptions,
             'shippingMethodOptions' => $shippingMethodOptions,
+            'modificationSourceOptions' => $modificationSourceOptions,
             'defaultProducts' => $defaultProducts
         ]);
     }
@@ -73,6 +76,9 @@ class CartPriceRuleController extends Controller
         }else{
             $priceRule->customer()->dissociate();
         }
+
+        $lastSortOrder = CartPriceRule::orderBy('sort_order', 'DESC')->first();
+        $priceRule->sort_order = $lastSortOrder?$lastSortOrder->sort_order+1:0;
 
         $priceRule->save();
         $priceRule->products()->sync($request->input('products', []));
@@ -93,6 +99,8 @@ class CartPriceRuleController extends Controller
         $reductionTypeOptions = CartPriceRule::getModificationTypeOptions();
 
         $offerTypeOptions = CartPriceRule::getOfferTypeOptions();
+
+        $modificationSourceOptions = CartPriceRule::getModificationSourceOptions();
 
         $shippingMethodOptions = ShippingMethod::getShippingMethodObjects()->pluck('name', 'id')->all();
 
@@ -127,6 +135,7 @@ class CartPriceRuleController extends Controller
             'reductionTypeOptions' => $reductionTypeOptions,
             'offerTypeOptions' => $offerTypeOptions,
             'shippingMethodOptions' => $shippingMethodOptions,
+            'modificationSourceOptions' => $modificationSourceOptions,
             'defaultProducts' => $defaultProducts
         ]);
     }

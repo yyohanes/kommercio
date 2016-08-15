@@ -18,11 +18,14 @@ class CartPriceRule extends Model
     const MODIFICATION_TYPE_PERCENT = 'percent';
     const MODIFICATION_TYPE_AMOUNT = 'amount';
 
+    const MODIFICATION_SOURCE_BASE = 0;
+    const MODIFICATION_SOURCE_NET = 1;
+
     const OFFER_TYPE_FREE_SHIPPING = 'free_shipping';
     const OFFER_TYPE_ORDER_DISCOUNT = 'order_discount';
     const OFFER_TYPE_PRODUCT_DISCOUNT = 'product_discount';
 
-    protected $fillable = ['name', 'coupon_code', 'price', 'modification', 'modification_type',
+    protected $fillable = ['name', 'coupon_code', 'price', 'modification', 'modification_type', 'modification_source',
         'currency', 'store_id', 'customer_id', 'minimum_subtotal', 'max_usage', 'max_usage_per_customer', 'offer_type', 'active', 'active_date_from', 'active_date_to', 'sort_order'];
     protected $toggleFields = ['active'];
     protected $casts = [
@@ -221,9 +224,23 @@ class CartPriceRule extends Model
         return (isset($array[$option]))?$array[$option]:$array;
     }
 
+    public static function getModificationSourceOptions($option=null)
+    {
+        $array = [
+            self::MODIFICATION_SOURCE_BASE => 'Base Price',
+            self::MODIFICATION_SOURCE_NET => 'Net Price',
+        ];
+
+        if(empty($option)){
+            return $array;
+        }
+
+        return (isset($array[$option]))?$array[$option]:$array;
+    }
+
     public static function getCartPriceRules($options)
     {
-        $qb = self::orderBy('sort_order', 'ASC')->active();
+        $qb = self::active()->orderBy('sort_order', 'ASC');
 
         $subtotal = isset($options['subtotal'])?$options['subtotal']:null;
         $customer = null;
@@ -245,6 +262,10 @@ class CartPriceRule extends Model
             $qb->where('coupon_code', 'LIKE', $coupon_code);
         }else{
             $qb->whereNull('coupon_code');
+        }
+
+        if($added_coupons){
+            $qb->orWhereIn('id', $added_coupons);
         }
 
         $qb->where(function($qb) use ($currency){
@@ -290,17 +311,6 @@ class CartPriceRule extends Model
         });
 
         $priceRules = $qb->get();
-
-
-        foreach($added_coupons as $added_coupon){
-            if(!in_array($added_coupon, $priceRules->pluck('id')->all())){
-                $coupon = self::find($added_coupon);
-
-                if($coupon){
-                    $priceRules->push($coupon);
-                }
-            }
-        }
 
         return $priceRules;
     }

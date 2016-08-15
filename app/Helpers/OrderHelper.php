@@ -132,6 +132,7 @@ class OrderHelper
             }
 
             $lineItemAmount = $lineItem->net_price;
+            $baseLineItemAmount = $lineItem->net_price;
 
             $priceRuleValue = 0;
 
@@ -150,7 +151,12 @@ class OrderHelper
                     continue;
                 }
 
-                $priceRuleValue = $cartPriceRule->getNetValue($lineItemAmount);
+                if($cartPriceRule->modification_source = CartPriceRule::MODIFICATION_SOURCE_BASE){
+                    $priceRuleValue = $cartPriceRule->getNetValue($baseLineItemAmount);
+                }else{
+                    $priceRuleValue = $cartPriceRule->getNetValue($lineItemAmount);
+                }
+
                 $valueDifference = PriceFormatterFacade::round($lineItemAmount + $priceRuleValue) - $lineItemAmount;
 
 

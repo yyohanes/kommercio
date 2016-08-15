@@ -64,6 +64,19 @@
 ])
 </div>
 
+@include('backend.master.form.fields.select', [
+    'name' => 'modification_source',
+    'label' => 'Apply To',
+    'key' => 'modification_source',
+    'attr' => [
+        'class' => 'form-control',
+        'id' => 'modification_source',
+    ],
+    'options' => $modificationSourceOptions,
+    'valueColumnClass' => 'col-md-6',
+    'help_text' => 'Base Price: Before other rules\' calculation. Net Price: Otherwise.'
+])
+
 @include('backend.master.form.fields.checkbox', [
     'name' => 'active',
     'label' => 'Active',
