@@ -16,7 +16,6 @@
                 'id' => 'name'
             ],
             'options' => ['' => 'Select'] + \Kommercio\Models\Customer::getProfileNameOptions(),
-            'required' => TRUE,
         ])
 
         @include('backend.master.form.fields.select', [

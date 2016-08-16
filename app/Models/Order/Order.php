@@ -34,7 +34,7 @@ class Order extends Model implements AuthorSignatureInterface
 
     public $referenceFormat;
 
-    protected $guarded = [];
+    protected $guarded = ['shippingProfile', 'billingProfile'];
     protected $dates = ['deleted_at', 'delivery_date', 'checkout_at'];
 
     public function __construct($attributes = [])
@@ -105,6 +105,8 @@ class Order extends Model implements AuthorSignatureInterface
             $this->store_id = null;
             $this->payment_method_id = null;
             $this->unsetData('checkout_step');
+            $this->unsetData('saved_shipping_profile');
+            $this->unsetData('saved_billing_profile');
 
             $time = $this->freshTimestamp();
             $this->setCreatedAt($time);

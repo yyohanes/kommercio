@@ -1,6 +1,9 @@
 <?php
 
 return [
+    'general' => [
+        'not_allowed' => 'You are not allowed to do this'
+    ],
     'product' => [
         'not_active' => 'This item is not accessible.'
     ],
@@ -35,6 +38,12 @@ return [
         ],
         'newsletter' => [
             'subscription_success_message' => 'You are successfully subscribed to our Mailing list.'
+        ],
+        'address' => [
+            'create_success_message' => 'Address is successfully saved.',
+            'edit_success_message' => 'Address is successfully updated.',
+            'delete_success_message' => 'Address is successfully deleted.',
+            'create_new_address' => 'Create New Address'
         ]
     ],
 ];

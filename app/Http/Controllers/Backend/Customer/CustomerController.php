@@ -108,6 +108,7 @@ class CustomerController extends Controller{
                 '<i class="fa fa-'.(isset($customer->user)?'check text-success':'remove text-danger').'"></i>',
                 isset($customer->user)?'<i class="fa fa-'.($customer->user->status == User::STATUS_ACTIVE?'check text-success':'remove text-danger').'"></i>':'',
                 $customer->created_at?$customer->created_at->format('d M Y H:i'):'',
+                $customer->last_active?$customer->last_active->format('d M Y H:i'):'',
                 PriceFormatter::formatNumber($customer->total),
                 $customerAction
             ];
@@ -323,7 +324,7 @@ class CustomerController extends Controller{
         }
 
         $rules = [
-            'name' => 'required|in:'.implode(',', array_keys(Customer::getProfileNameOptions())),
+            'name' => 'in:'.implode(',', array_keys(Customer::getProfileNameOptions())),
             'profile.salute' => 'in:'.implode(',', array_keys(Customer::getSaluteOptions())),
             'profile.full_name' => 'required',
             'profile.phone_number' => 'required',
@@ -377,7 +378,7 @@ class CustomerController extends Controller{
         $customer = Customer::findOrFail($customer_id);
         $profile = $customer->savedProfiles()->where('profile_id', $id)->firstOrFail();
 
-        $message = Customer::getProfileNameOptions($profile->pivot->name).' Address is successfully deleted.';
+        $message = ($profile->pivot->name?Customer::getProfileNameOptions($profile->pivot->name).' ':'').'Address is successfully deleted.';
 
         $profile->delete();
 

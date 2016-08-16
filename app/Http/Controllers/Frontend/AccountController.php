@@ -4,12 +4,14 @@ namespace Kommercio\Http\Controllers\Frontend;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Session;
 use Kommercio\Facades\LanguageHelper;
 use Kommercio\Facades\NewsletterSubscriptionHelper;
 use Kommercio\Facades\ProjectHelper;
 use Kommercio\Http\Controllers\Controller;
 use Kommercio\Models\Customer;
 use Kommercio\Models\Order\Order;
+use Kommercio\Models\Profile\Profile;
 
 class AccountController extends Controller
 {
@@ -146,6 +148,154 @@ class AccountController extends Controller
         return view($view_name, [
             'order' => $order,
         ]);
+    }
+
+    public function addressIndex()
+    {
+        $user = Auth::user();
+        $profiles = $user->customer->savedProfiles;
+
+        $view_name = ProjectHelper::getViewTemplate('frontend.member.address.index');
+
+        return view($view_name, [
+            'profiles' => $profiles,
+        ]);
+    }
+
+    public function addressCreate(Request $request)
+    {
+        $user = $request->user();
+        $customer = $user->customer;
+        $profile = new Profile();
+
+        $billingDefault = old('billing', empty($customer->defaultBillingProfile));
+        $shippingDefault = old('shipping', empty($customer->defaultShippingProfile));
+
+        $view_name = ProjectHelper::getViewTemplate('frontend.member.address.create');
+
+        return view($view_name, [
+            'customer' => $customer,
+            'profile' => $profile,
+            'billingDefault' => $billingDefault,
+            'shippingDefault' => $shippingDefault
+        ]);
+    }
+
+    public function addressEdit(Request $request, $id)
+    {
+        $user = $request->user();
+        $customer = $user->customer;
+
+        $profile = $customer->savedProfiles()->where('profile_id', $id)->firstOrFail();
+        $profile->getDetails();
+
+        Session::flashInput([
+            'name' => $profile->pivot->name,
+            'profile' => $profile->getDetails(),
+            'shipping' => $profile->pivot->shipping,
+            'billing' => $profile->pivot->billing,
+        ]);
+
+        $billingDefault = old('billing', $profile->pivot->billing)?true:false;
+        $shippingDefault = old('shipping', $profile->pivot->shipping)?true:false;
+
+        $view_name = ProjectHelper::getViewTemplate('frontend.member.address.edit');
+
+        return view($view_name, [
+            'customer' => $customer,
+            'profile' => $profile,
+            'billingDefault' => $billingDefault,
+            'shippingDefault' => $shippingDefault
+        ]);
+    }
+
+    public function addressSave(Request $request, $id = null)
+    {
+        $user = $request->user();
+        $customer = $user->customer;
+
+        if($id){
+            $profile = $customer->savedProfiles()->where('profile_id', $id)->firstOrFail();
+        }else{
+            $profile = new Profile();
+        }
+
+        $rules = [
+            'name' => 'required|in:'.implode(',', array_keys(Customer::getProfileNameOptions())),
+            'profile.salute' => 'in:'.implode(',', array_keys(Customer::getSaluteOptions())),
+            'profile.full_name' => 'required',
+            'profile.phone_number' => 'required',
+            'profile.home_phone' => '',
+            'profile.address_1' => 'required',
+            'profile.country_id' => 'required',
+            'profile.state_id' => 'descendant_address:state',
+            'profile.city_id' => 'descendant_address:city',
+            'profile.district_id' => 'descendant_address:district',
+            'profile.area_id' => 'descendant_address:area',
+            'billing' => 'boolean',
+            'shipping' => 'boolean',
+        ];
+
+        $this->validate($request, $rules);
+
+        $profile->profileable()->associate($customer);
+        $profile->save();
+
+        $profile->saveDetails($request->input('profile'));
+
+        $syncData = [];
+
+        //Un-default other saved profiles
+        foreach($customer->savedProfiles as $savedProfile){
+            $syncData[$savedProfile->id] = [
+                'name' => $savedProfile->pivot->name
+            ];
+
+            $syncData[$savedProfile->id]['shipping'] = $request->has('shipping')?false:$savedProfile->pivot->shipping;
+            $syncData[$savedProfile->id]['billing'] = $request->has('billing')?false:$savedProfile->pivot->billing;
+        }
+
+        $syncData[$profile->id] = [
+            'name' => $request->input('name'),
+            'shipping' => $request->has('shipping'),
+            'billing' => $request->has('billing'),
+        ];
+
+        $customer->savedProfiles()->detach();
+        $customer->savedProfiles()->sync($syncData);
+
+        if($id){
+            $message = trans(LanguageHelper::getTranslationKey('frontend.member.address.edit_success_message'));
+        }else{
+            $message = trans(LanguageHelper::getTranslationKey('frontend.member.address.create_success_message'));
+        }
+
+        if($request->ajax()){
+            return response()->json([
+                'message' => $message,
+                '_token' => csrf_token(),
+            ]);
+        }else{
+            return redirect()->route('frontend.member.address.index')->with('success', [$message]);
+        }
+    }
+
+    public function addressDelete(Request $request, $id)
+    {
+        $profile = Profile::findOrFail($id);
+
+        $profile->delete();
+
+        $message = trans(LanguageHelper::getTranslationKey('frontend.member.address.delete_success_message'));
+
+        if($request->ajax()){
+            return response()->json([
+                'message' => $message,
+                '_token' => csrf_token(),
+            ]);
+        }else{
+            return redirect()->route('frontend.member.address.index')->with('success', [$message]);
+        }
     }
 
     public function newsletterWidgetSubscribe(Request $request)

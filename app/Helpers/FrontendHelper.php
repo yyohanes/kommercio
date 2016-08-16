@@ -84,6 +84,13 @@ class FrontendHelper
         return $currentPath == $path;
     }
 
+    public function pathIsDescendant($path)
+    {
+        $currentPath = substr(RequestFacade::getPathInfo().'/', 1);
+
+        return strpos($currentPath, $path) === 0;
+    }
+
     //Menus
     public function getRootMenuItems($menu_slugs)
     {

@@ -12,7 +12,7 @@
 */
 
 Route::group(['middleware' => ['web']], function () {
-    Route::group(['namespace' => 'Frontend'], function(){
+    Route::group(['namespace' => 'Frontend', 'middleware' => ['frontend.customer_activity']], function(){
         // Authentication Routes...
         Route::get('login', [
             'as' => 'frontend.login_form',
@@ -87,6 +87,33 @@ Route::group(['middleware' => ['web']], function () {
                     'as' => 'frontend.member.orders.view',
                     'uses' => 'AccountController@viewOrder'
                 ]);
+
+                Route::get('address/index', [
+                    'as' => 'frontend.member.address.index',
+                    'uses' => 'AccountController@addressIndex'
+                ]);
+
+                Route::get('address/create', [
+                    'as' => 'frontend.member.address.create',
+                    'uses' => 'AccountController@addressCreate'
+                ]);
+
+                Route::group(['middleware' => 'frontend.customer_can_edit'], function(){
+                    Route::get('address/edit/{id}', [
+                        'as' => 'frontend.member.address.edit',
+                        'uses' => 'AccountController@addressEdit'
+                    ]);
+
+                    Route::post('address/save/{id?}', [
+                        'as' => 'frontend.member.address.save',
+                        'uses' => 'AccountController@addressSave'
+                    ]);
+
+                    Route::get('address/delete/{id}', [
+                        'as' => 'frontend.member.address.delete',
+                        'uses' => 'AccountController@addressDelete'
+                    ]);
+                });
             });
         });
 

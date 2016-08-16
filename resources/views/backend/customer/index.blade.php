@@ -45,6 +45,7 @@
                         <th>Account</th>
                         <th>Status</th>
                         <th>Since</th>
+                        <th>Last Seen</th>
                         <th>Order Total</th>
                         <th></th>
                     </tr>
@@ -55,6 +56,7 @@
                         <td>{!! Form::text('filter[email]', null, ['class' => 'form-control form-filter input-sm']) !!}</td>
                         <td>{!! Form::select('filter[account]', ['' => 'All'] + ['1' => 'Has Account', '0' => 'No Account'], null, ['class' => 'form-control form-filter input-sm']) !!}</td>
                         <td>{!! Form::select('filter[status]', ['' => 'All'] + \Kommercio\Models\User::getStatusOptions(), null, ['class' => 'form-control form-filter input-sm']) !!}</td>
+                        <td></td>
                         <td></td>
                         <td></td>
                         <td>

@@ -7,7 +7,7 @@
         <div class="col-md-6 ">
             <div class="portlet light bordered">
                 <div class="portlet-title">
-                    <div class="caption">{{ \Kommercio\Models\Customer::getProfileNameOptions($savedProfile->pivot->name) }}</div>
+                    <div class="caption">{{ $savedProfile->pivot->name?\Kommercio\Models\Customer::getProfileNameOptions($savedProfile->pivot->name):null }}</div>
                     <div class="actions">
                         <a href="#" data-address_edit="{{ route('backend.customer.address.form', ['customer_id' => $customer->id, 'id' => $savedProfile->id]) }}" class="btn address-edit-btn btn-default btn-sm">
                             <i class="fa fa-pencil"></i> Edit </a>
