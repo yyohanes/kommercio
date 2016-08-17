@@ -48,7 +48,7 @@ Route::group(['middleware' => ['web']], function () {
         // Register Routes...
         Route::get('register', [
             'as' => 'frontend.register_form',
-            'uses' => 'Auth\AuthController@showRegisterForm'
+            'uses' => 'Auth\AuthController@getRegister'
         ]);
 
         Route::post('register', [
@@ -107,6 +107,11 @@ Route::group(['middleware' => ['web']], function () {
                     Route::post('address/save/{id?}', [
                         'as' => 'frontend.member.address.save',
                         'uses' => 'AccountController@addressSave'
+                    ]);
+
+                    Route::get('address/default/{id}/{type}', [
+                        'as' => 'frontend.member.address.set_default',
+                        'uses' => 'AccountController@addressSetDefault'
                     ]);
 
                     Route::get('address/delete/{id}', [

@@ -54,7 +54,10 @@ return [
     |
     */
 
-    'from' => ['address' => null, 'name' => null],
+    'from' => [
+        'address' => config('project.contacts.administrator.email', config('kommercio.contacts.administrator.email')),
+        'name' => config('project.contacts.administrator.name', config('kommercio.contacts.administrator.name')),
+    ],
 
     /*
     |--------------------------------------------------------------------------

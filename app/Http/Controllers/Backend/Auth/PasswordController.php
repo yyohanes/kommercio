@@ -31,6 +31,8 @@ class PasswordController extends Controller
     {
         $this->middleware('backend.guest');
 
+        $this->redirectPath = route('backend.login_form');
         $this->linkRequestView = 'backend.auth.passwords.email';
+        $this->resetView = 'backend.auth.passwords.reset';
     }
 }

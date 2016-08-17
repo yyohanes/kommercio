@@ -6,6 +6,7 @@ use Exception;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Kommercio\Facades\LanguageHelper;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 
@@ -45,6 +46,14 @@ class Handler extends ExceptionHandler
      */
     public function render($request, Exception $e)
     {
+        if ($e instanceof \Illuminate\Session\TokenMismatchException)
+        {
+            return redirect()
+                ->back()
+                ->withInput($request->except('password'))
+                ->withErrors([trans(LanguageHelper::getTranslationKey('frontend.general.token_expired'))]);
+        }
+
         return parent::render($request, $e);
     }
 }

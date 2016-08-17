@@ -2,7 +2,9 @@
 
 namespace Kommercio\Http\Controllers\Frontend\Auth;
 
-use Illuminate\Support\Facades\Session;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Kommercio\Facades\LanguageHelper;
 use Kommercio\Facades\NewsletterSubscriptionHelper;
 use Kommercio\Facades\ProjectHelper;
 use Kommercio\Models\User;
@@ -25,7 +27,11 @@ class AuthController extends Controller
     |
     */
 
-    use AuthenticatesAndRegistersUsers, ThrottlesLogins;
+    use AuthenticatesAndRegistersUsers, ThrottlesLogins {
+        showLoginForm as parentShowLoginForm;
+        showRegistrationForm as parentShowRegistrationForm;
+        register as parentRegister;
+    }
 
     /**
      * Where to redirect users after login / registration.
@@ -65,6 +71,87 @@ class AuthController extends Controller
             'email' => 'required|email|max:255|unique:users',
             'password' => 'required|confirmed|min:6',
         ]);
+    }
+
+    /*
+     * Override parent trait to add SEO Data
+     */
+    public function showLoginForm()
+    {
+        $view = property_exists($this, 'loginView')
+            ? $this->loginView : 'auth.authenticate';
+
+        if (!view()->exists($view)) {
+            $view = 'auth.login';
+        }
+
+        $seoData = [
+            'meta_title' => trans(LanguageHelper::getTranslationKey('frontend.seo.member.login.meta_title'))
+        ];
+
+        return view($view, [
+            'seoData' => $seoData
+        ]);
+    }
+
+    /*
+     * Override parent trait to add SEO Data
+     */
+    public function showRegistrationForm()
+    {
+        $view = 'auth.register';
+
+        if (property_exists($this, 'registerView')) {
+            $view = $this->registerView;
+        }
+
+        $seoData = [
+            'meta_title' => trans(LanguageHelper::getTranslationKey('frontend.seo.member.register.meta_title'))
+        ];
+
+        return view($view, [
+            'seoData' => $seoData
+        ]);
+    }
+
+    /*
+     * Override parent trait to add AJAX response
+     */
+    public function register(Request $request)
+    {
+        $validator = $this->validator($request->all());
+
+        if ($validator->fails()) {
+            $this->throwValidationException(
+                $request, $validator
+            );
+        }
+
+        Auth::guard($this->getGuard())->login($this->create($request->all()));
+
+        if ($request->ajax()) {
+            return new JsonResponse([
+                'redirect' => $this->redirectPath(),
+                '_token' => csrf_token()
+            ]);
+        }
+
+        return redirect($this->redirectPath());
+    }
+
+    /*
+     * If ajax, return redirect URL
+     */
+    protected function authenticated(Request $request, $user)
+    {
+        if ($request->ajax()) {
+            return new JsonResponse([
+                'redirect' => $request->session()->pull('url.intended', $this->redirectPath()),
+                '_token' => csrf_token()
+            ]);
+        }
+
+        return redirect()->intended($this->redirectPath());
     }
 
     /**

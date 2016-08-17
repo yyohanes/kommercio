@@ -2,7 +2,8 @@
 
 return [
     'general' => [
-        'not_allowed' => 'You are not allowed to do this'
+        'not_allowed' => 'You are not allowed to do this',
+        'token_expired' => 'Your session is expired. Please login agin.'
     ],
     'product' => [
         'not_active' => 'This item is not accessible.'
@@ -43,7 +44,54 @@ return [
             'create_success_message' => 'Address is successfully saved.',
             'edit_success_message' => 'Address is successfully updated.',
             'delete_success_message' => 'Address is successfully deleted.',
-            'create_new_address' => 'Create New Address'
+            'create_new_address' => 'Create New Address',
+            'set_default_success_message' => ':address is successfully set as default :type'
         ]
     ],
+    'seo' => [
+        'member' => [
+            'login' => [
+                'meta_title' => 'Login',
+            ],
+            'password' => [
+                'email' => [
+                    'meta_title' => 'Forget Password',
+                ],
+                'reset' => [
+                    'meta_title' => 'Reset Your Password',
+                ]
+            ],
+            'register' => [
+                'meta_title' => 'Register',
+            ],
+            'dashboard' => [
+                'meta_title' => 'My Account',
+            ],
+            'profile' => [
+                'meta_title' => 'Update Profile',
+            ],
+            'account' => [
+                'meta_title' => 'Update Account',
+            ],
+            'order' => [
+                'history' => [
+                    'meta_title' => 'Order History',
+                ],
+                'view' => [
+                    'meta_title' => 'Order #:order_reference',
+                ],
+            ],
+            'address_book' => [
+                'index' => [
+                    'meta_title' => 'Address Book',
+                ],
+                'create' => [
+                    'meta_title' => 'Create Address Book',
+                ],
+                'edit' => [
+                    'meta_title' => 'Edit Address Book',
+                ]
+            ]
+        ]
+    ]
 ];

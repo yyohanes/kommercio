@@ -46,6 +46,18 @@ var KommercioFrontend = function(){
             }
 
             return returnText;
+        },
+        addError: function($name, $message, context)
+        {
+            if(typeof context === 'undefined'){
+                context = document;
+            }
+
+            $('[name="'+KommercioFrontend.convertDotToSquareBracket($name, true)+'"]', context).parent().addClass('has-error').append('<div class="help-block">' + $message + '</div>');
+        },
+        clearErrors: function(context){
+            $('.has-error', context).removeClass('has-error');
+            $('.help-block', context).remove();
         }
     }
 }();

@@ -369,7 +369,7 @@ class CustomerController extends Controller{
 
         return response()->json([
             'result' => 'success',
-            'message' => Customer::getProfileNameOptions($request->input('name')).' Address is successfully entered.'
+            'message' => ($request->has('name')?Customer::getProfileNameOptions($request->input('name')).' ':'').'Address is successfully entered.'
         ]);
     }
 

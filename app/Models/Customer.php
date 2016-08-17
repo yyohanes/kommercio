@@ -24,7 +24,7 @@ class Customer extends Model
         'is_virgin' => 'boolean'
     ];
     protected $dates = ['last_active'];
-    protected $profileKeys = ['profile', 'shippingProfile'];
+    protected $profileKeys = ['profile'];
 
     //Relations
     public function user()
@@ -35,11 +35,6 @@ class Customer extends Model
     public function orders()
     {
         return $this->hasMany('Kommercio\Models\Order\Order')->orderBy('checkout_at', 'DESC')->checkout();
-    }
-
-    public function shippingProfile()
-    {
-        return $this->belongsTo('Kommercio\Models\Profile\Profile', 'shipping_profile_id');
     }
 
     public function profiles()

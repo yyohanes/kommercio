@@ -5,6 +5,7 @@ namespace Kommercio\Http\Controllers\Frontend;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Validator;
 use Kommercio\Facades\LanguageHelper;
 use Kommercio\Facades\NewsletterSubscriptionHelper;
 use Kommercio\Facades\ProjectHelper;
@@ -28,9 +29,14 @@ class AccountController extends Controller
     {
         $viewName = ProjectHelper::getViewTemplate('frontend.member.dashboard');
 
+        $seoData = [
+            'meta_title' => trans(LanguageHelper::getTranslationKey('frontend.seo.member.dashboard.meta_title'))
+        ];
+
         return view($viewName, [
             'user' => $this->user,
-            'customer' => $this->customer
+            'customer' => $this->customer,
+            'seoData' => $seoData
         ]);
     }
 
@@ -52,11 +58,16 @@ class AccountController extends Controller
             return redirect()->back()->with('success', [trans(LanguageHelper::getTranslationKey('frontend.member.profile_update.success_message'))]);
         }
 
+        $seoData = [
+            'meta_title' => trans(LanguageHelper::getTranslationKey('frontend.seo.member.profile.meta_title'))
+        ];
+
         $viewName = ProjectHelper::getViewTemplate('frontend.member.account.profileUpdate');
 
         return view($viewName, [
             'user' => $this->user,
-            'customer' => $this->customer
+            'customer' => $this->customer,
+            'seoData' => $seoData
         ]);
     }
 
@@ -92,11 +103,16 @@ class AccountController extends Controller
             return redirect()->back()->with('success', [trans(LanguageHelper::getTranslationKey('frontend.member.account_update.success_message'))]);
         }
 
+        $seoData = [
+            'meta_title' => trans(LanguageHelper::getTranslationKey('frontend.seo.member.account.meta_title'))
+        ];
+
         $viewName = ProjectHelper::getViewTemplate('frontend.member.account.accountUpdate');
 
         return view($viewName, [
             'user' => $this->user,
-            'customer' => $this->customer
+            'customer' => $this->customer,
+            'seoData' => $seoData
         ]);
     }
 
@@ -126,11 +142,16 @@ class AccountController extends Controller
 
         $orders->appends($appendedOptions);
 
+        $seoData = [
+            'meta_title' => trans(LanguageHelper::getTranslationKey('frontend.seo.member.order.history.meta_title'))
+        ];
+
         $view_name = ProjectHelper::getViewTemplate('frontend.member.orders.index');
 
         return view($view_name, [
             'orders' => $orders,
             'options' => $options,
+            'seoData' => $seoData
         ]);
     }
 
@@ -143,10 +164,15 @@ class AccountController extends Controller
             return redirect()->route('frontend.member.orders');
         }
 
+        $seoData = [
+            'meta_title' => trans(LanguageHelper::getTranslationKey('frontend.seo.member.order.view.meta_title'), ['order_reference' => $order->reference])
+        ];
+
         $view_name = ProjectHelper::getViewTemplate('frontend.member.orders.view');
 
         return view($view_name, [
             'order' => $order,
+            'seoData' => $seoData
         ]);
     }
 
@@ -155,10 +181,15 @@ class AccountController extends Controller
         $user = Auth::user();
         $profiles = $user->customer->savedProfiles;
 
+        $seoData = [
+            'meta_title' => trans(LanguageHelper::getTranslationKey('frontend.seo.member.address_book.index.meta_title'))
+        ];
+
         $view_name = ProjectHelper::getViewTemplate('frontend.member.address.index');
 
         return view($view_name, [
             'profiles' => $profiles,
+            'seoData' => $seoData
         ]);
     }
 
@@ -171,13 +202,18 @@ class AccountController extends Controller
         $billingDefault = old('billing', empty($customer->defaultBillingProfile));
         $shippingDefault = old('shipping', empty($customer->defaultShippingProfile));
 
+        $seoData = [
+            'meta_title' => trans(LanguageHelper::getTranslationKey('frontend.seo.member.address_book.create.meta_title'))
+        ];
+
         $view_name = ProjectHelper::getViewTemplate('frontend.member.address.create');
 
         return view($view_name, [
             'customer' => $customer,
             'profile' => $profile,
             'billingDefault' => $billingDefault,
-            'shippingDefault' => $shippingDefault
+            'shippingDefault' => $shippingDefault,
+            'seoData' => $seoData
         ]);
     }
 
@@ -199,13 +235,18 @@ class AccountController extends Controller
         $billingDefault = old('billing', $profile->pivot->billing)?true:false;
         $shippingDefault = old('shipping', $profile->pivot->shipping)?true:false;
 
+        $seoData = [
+            'meta_title' => trans(LanguageHelper::getTranslationKey('frontend.seo.member.address_book.edit.meta_title'))
+        ];
+
         $view_name = ProjectHelper::getViewTemplate('frontend.member.address.edit');
 
         return view($view_name, [
             'customer' => $customer,
             'profile' => $profile,
             'billingDefault' => $billingDefault,
-            'shippingDefault' => $shippingDefault
+            'shippingDefault' => $shippingDefault,
+            'seoData' => $seoData
         ]);
     }
 
@@ -221,7 +262,7 @@ class AccountController extends Controller
         }
 
         $rules = [
-            'name' => 'required|in:'.implode(',', array_keys(Customer::getProfileNameOptions())),
+            'name' => 'in:'.implode(',', array_keys(Customer::getProfileNameOptions())),
             'profile.salute' => 'in:'.implode(',', array_keys(Customer::getSaluteOptions())),
             'profile.full_name' => 'required',
             'profile.phone_number' => 'required',
@@ -269,6 +310,59 @@ class AccountController extends Controller
         }else{
             $message = trans(LanguageHelper::getTranslationKey('frontend.member.address.create_success_message'));
         }
+
+        if($request->ajax()){
+            return response()->json([
+                'message' => $message,
+                '_token' => csrf_token(),
+            ]);
+        }else{
+            return redirect()->route('frontend.member.address.index')->with('success', [$message]);
+        }
+    }
+
+    public function addressSetDefault(Request $request, $id, $type)
+    {
+        $user = $request->user();
+        $customer = $user->customer;
+
+        $profile = $customer->savedProfiles()->where('profile_id', $id)->firstOrFail();
+        $profile->getDetails();
+
+        $rules = [
+            'type' => 'in:shipping,billing',
+        ];
+
+        $validator = Validator::make([
+            'type' => $type,
+        ], $rules);
+
+        if ($validator->fails()) {
+            $this->throwValidationException($request, $validator);
+        }
+
+        $syncData = [];
+
+        //Un-default other saved profiles
+        foreach($customer->savedProfiles as $savedProfile){
+            $syncData[$savedProfile->id] = [
+                'name' => $savedProfile->pivot->name
+            ];
+
+            if($type == 'shipping'){
+                $syncData[$savedProfile->id]['shipping'] = $savedProfile->id == $id;
+            }elseif($type == 'billing'){
+                $syncData[$savedProfile->id]['billing'] = $savedProfile->id == $id;
+            }
+        }
+
+        $customer->savedProfiles()->detach();
+        $customer->savedProfiles()->sync($syncData);
+
+        $message = trans(LanguageHelper::getTranslationKey('frontend.member.address.set_default_success_message'), [
+            'address' => ($profile->pivot->name?Customer::getProfileNameOptions($profile->pivot->name).' - ':'').str_limit($profile->address_1, 50),
+            'type' => $type
+        ]);
 
         if($request->ajax()){
             return response()->json([

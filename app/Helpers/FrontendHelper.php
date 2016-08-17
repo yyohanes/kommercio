@@ -86,9 +86,21 @@ class FrontendHelper
 
     public function pathIsDescendant($path)
     {
+        if(is_array($path)){
+            $paths = $path;
+        }else{
+            $paths = [$path];
+        }
+
         $currentPath = substr(RequestFacade::getPathInfo().'/', 1);
 
-        return strpos($currentPath, $path) === 0;
+        foreach($paths as $path){
+            if(strpos($currentPath, $path) === 0){
+                return true;
+            }
+        }
+
+        return false;
     }
 
     //Menus
