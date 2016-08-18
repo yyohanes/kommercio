@@ -44,6 +44,7 @@
                     <tr>
                         <th>Name</th>
                         <th>Description</th>
+                        <th style="width: 10%;">Products</th>
                         <th style="width: 10%;">Subcategories</th>
                         <th style="width: 10%;">Active</th>
                         <th>Action</th>
@@ -58,6 +59,7 @@
                                 @endcan
                                 <a class="category-name btn btn-sm blue-madison" data-category_id="{{ $category->id }}" href="{{ route('backend.catalog.category.index', ['parent' => $category->id]) }}">{{ $category->name }} (ID: {{ $category->id }})</a></td>
                             <td>{!! $category->description !!}</td>
+                            <td>{{ $category->productCount }}</td>
                             <td>{{ $category->childrenCount }}</td>
                             <td><i class="fa fa-{{ $category->active?'check text-success':'remove text-danger' }}"></i></td>
                             <td class="text-center">

@@ -129,6 +129,15 @@ class ProductCategory extends Model implements UrlAliasInterface
         return $this->children->count();
     }
 
+    public function getProductCountAttribute()
+    {
+        if(!$this->relationLoaded('products')){
+            $this->load('products');
+        }
+
+        return $this->products->count();
+    }
+
     public function getRootAttribute()
     {
         if(!isset($this->_rootCategory)){
