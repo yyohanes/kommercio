@@ -655,7 +655,7 @@ class ProductController extends Controller{
             $results = $qb->get();
 
             foreach($results as $result){
-                $name = $result->name.' ('.$result->sku.')'.($result->parent->defaultCategory?' - '.$result->parent->defaultCategory->name:'');
+                $name = $result->name.' ('.$result->sku.')'.($result->parent && $result->parent->defaultCategory?' - '.$result->parent->defaultCategory->name:'');
                 $return[] = [
                     'id' => $result->id,
                     'name' => $name,
