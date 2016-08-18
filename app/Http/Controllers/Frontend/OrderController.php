@@ -512,11 +512,6 @@ class OrderController extends Controller
                         Auth::logout();
                     }
 
-                    //Save customer to order
-                    if($viewData['customer']){
-                        $order->customer()->associate($viewData['customer']);
-                    }
-
                     //Save email to order
                     $order->saveProfile('billing', ['email' => $request->input('billingProfile.email')]);
 
@@ -703,7 +698,7 @@ class OrderController extends Controller
                         break;
                     }
 
-                    Event::fire(new OrderEvent('before_update_order', $viewData['order']));
+                    Event::fire(new OrderEvent('before_update_order', $order));
 
                     $order->processStocks();
 
@@ -715,7 +710,12 @@ class OrderController extends Controller
                     }
 
                     $profileData = $order->billingInformation->getDetails();
-                    Customer::saveCustomer($profileData, null, FALSE);
+                    $viewData['customer'] = Customer::saveCustomer($profileData, null, FALSE);
+
+                    //Save customer to order
+                    if($viewData['customer']){
+                        $order->customer()->associate($viewData['customer']);
+                    }
 
                     $nextStep = 'complete';
                 }

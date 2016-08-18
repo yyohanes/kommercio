@@ -196,7 +196,6 @@ Route::group(['middleware' => ['web']], function () {
             'uses' => 'OrderController@checkout'
         ]);
 
-
         Route::post('checkout/process', [
             'as' => 'frontend.order.checkout.process',
             'uses' => 'OrderController@checkoutProcess'
@@ -1650,10 +1649,6 @@ Route::group(['middleware' => ['web']], function () {
         'uses' => 'Backend\Catalog\ProductController@availabilityCalendar',
     ]);
 
-    Route::get('images/{style}/{image}', 'ImageController@style')->where('image', '.*');
-
-    Route::get('address/{type}/options/{parent?}', 'AddressController@options');
-
     Route::get('secret-chamber-tunnel', [
         'as' => 'chamber_secret_tunnel',
         'uses' => 'Backend\ChamberController@secretTunnel'
@@ -1663,3 +1658,7 @@ Route::group(['middleware' => ['web']], function () {
 
     });
 });
+
+Route::get('address/{type}/options/{parent?}', 'AddressController@options');
+
+Route::get('images/{style}/{image}', 'ImageController@style')->where('image', '.*');
