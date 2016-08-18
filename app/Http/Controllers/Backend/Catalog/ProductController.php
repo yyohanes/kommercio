@@ -655,7 +655,14 @@ class ProductController extends Controller{
             $results = $qb->get();
 
             foreach($results as $result){
-                $name = $result->name.' ('.$result->sku.')'.($result->parent && $result->parent->defaultCategory?' - '.$result->parent->defaultCategory->name:'');
+                $name = $result->name.' ('.$result->sku.')';
+
+                if($result->parent && $result->parent->defaultCategory){
+                    $name .= ' - '.$result->parent->defaultCategory->name;
+                }elseif($result->defaultCategory){
+                    $name .= ' - '.$result->defaultCategory->name;
+                }
+
                 $return[] = [
                     'id' => $result->id,
                     'name' => $name,
