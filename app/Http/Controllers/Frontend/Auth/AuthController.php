@@ -32,6 +32,7 @@ class AuthController extends Controller
         showLoginForm as parentShowLoginForm;
         showRegistrationForm as parentShowRegistrationForm;
         register as parentRegister;
+        sendFailedLoginResponse as parentSendFailedLoginResponse;
     }
 
     /**
@@ -153,6 +154,22 @@ class AuthController extends Controller
         }
 
         return redirect()->intended($this->redirectPath());
+    }
+
+    /*
+     * If ajax, return redirect URL
+     */
+    protected function sendFailedLoginResponse(Request $request)
+    {
+        if ($request->ajax()) {
+            return new JsonResponse([$this->loginUsername() => [$this->getFailedLoginMessage()]], 403);
+        }
+
+        return redirect()->back()
+            ->withInput($request->only($this->loginUsername(), 'remember'))
+            ->withErrors([
+                $this->loginUsername() => $this->getFailedLoginMessage(),
+            ]);
     }
 
     /**
