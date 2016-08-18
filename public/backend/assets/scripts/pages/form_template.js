@@ -7,68 +7,44 @@ var formBehaviors = function(){
         });
     }
 
-    var handleSummernote = function (context) {
-        $('.summernote-editor', context).each(function(idx, obj){
-            $(obj).summernote({
-                height: ($(obj).data('height') === undefined)?200:$(obj).data('height'),
-                callbacks: {
-                    onInit: function(e){
-                        //Remove annoying uniform checkbox on link popup
-                        e.editor.find('input[type="checkbox"]').addClass('toggle').parent().wrap('<div class="form-group"/>');
-                    },
-                    onPaste: function(e){
-                        var updatePastedText = function(someNote){
-                            var original = someNote.code();
-                            var cleaned = CleanPastedHTML(original); //this is where to call whatever clean function you want. I have mine in a different file, called CleanPastedHTML.
-                            someNote.code(cleaned); //this sets the displayed content editor to the cleaned pasted code.
-                        };
-                        setTimeout(function () {
-                            //this kinda sucks, but if you don't do a setTimeout,
-                            //the function is called before the text is really pasted.
-                            updatePastedText($(obj));
-                        }, 100);
-                    },
-                    onImageUpload: function(files) {
-                        for (var i = files.length - 1; i >= 0; i--) {
-                            sendFile(files[i], this);
-                        }
-                    }
+    var handleTinyMCE = function(context)
+    {
+        var tinymce_config = {
+            selector: '.wysiwyg-editor',
+            height: 250,
+            plugins: [
+                'advlist autolink lists link image charmap print preview anchor',
+                'searchreplace visualblocks code fullscreen',
+                'insertdatetime media table contextmenu paste code'
+            ],
+            toolbar: 'insertfile undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image media',
+            relative_urls : true,
+            document_base_url : global_vars.base_path,
+            remove_trailing_brs: false,
+            paste_as_text: true,
+            file_browser_callback : function(field_name, url, type, win) {
+                var x = window.innerWidth || document.documentElement.clientWidth || document.getElementsByTagName('body')[0].clientWidth;
+                var y = window.innerHeight|| document.documentElement.clientHeight|| document.getElementsByTagName('body')[0].clientHeight;
+
+                var cmsURL = tinymce_config.document_base_url + '/laravel-filemanager?field_name=' + field_name;
+                if (type == 'image') {
+                    cmsURL = cmsURL + "&type=Images";
+                } else {
+                    cmsURL = cmsURL + "&type=Files";
                 }
-            });
 
-            $(obj).parents('form').on('submit', function(){
-                if($(obj).summernote('isEmpty')){
-                    $(obj).val('');
-                }
-            });
-        });
-
-        var CleanPastedHTML = function(input) {
-            // 1. remove line breaks / Mso classes
-            var stringStripper = /(\n|\r| class=(")?Mso[a-zA-Z]+(")?)/g;
-            var output = input.replace(stringStripper, ' ');
-            // 2. strip Word generated HTML comments
-            var commentSripper = new RegExp('<!--(.*?)-->','g');
-            var output = output.replace(commentSripper, '');
-            var tagStripper = new RegExp('<(/)*(meta|link|span|\\?xml:|st1:|o:|font)(.*?)>','gi');
-            // 3. remove tags leave content if any
-            output = output.replace(tagStripper, '');
-            // 4. Remove everything in between and including tags '<style(.)style(.)>'
-            var badTags = ['style', 'script','applet','embed','noframes','noscript'];
-
-            for (var i=0; i< badTags.length; i++) {
-                tagStripper = new RegExp('<'+badTags[i]+'.*?'+badTags[i]+'(.*?)>', 'gi');
-                output = output.replace(tagStripper, '');
+                tinyMCE.activeEditor.windowManager.open({
+                    file : cmsURL,
+                    title : 'Filemanager',
+                    width : x * 0.8,
+                    height : y * 0.8,
+                    resizable : "yes",
+                    close_previous : "no"
+                });
             }
-            // 5. remove attributes ' style="..."'
-            var badAttributes = ['style', 'start'];
-            for (var i=0; i< badAttributes.length; i++) {
-                var attributeStripper = new RegExp(' ' + badAttributes[i] + '="(.*?)"','gi');
-                output = output.replace(attributeStripper, '');
-            }
+        };
 
-            return output;
-        }
+        tinymce.init(tinymce_config);
     }
 
     //create record for attachment
@@ -744,7 +720,7 @@ var formBehaviors = function(){
                 context = document;
             }
 
-            handleSummernote(context);
+            handleTinyMCE(context);
             handleBtnLinks(context);
             handleSelects(context);
             handleSlugs(context);

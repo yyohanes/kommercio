@@ -36,30 +36,6 @@ class FileController extends Controller{
         ]);
     }
 
-    public function summernoteImageUpload(Request $request)
-    {
-        $rules = [
-            'image' => 'required|image|max:'.File::MAXIMUM_SIZE
-        ];
-
-        $this->validate($request, $rules);
-
-        $file = $request->file('image');
-        $uploadFile = new Media();
-
-        if($uploadFile->saveFile($file, FALSE, 'editor')){
-            $baseUrl = $request->getBaseUrl();
-
-            return new JsonResponse([
-                'image_url' => (empty($baseUrl)?'/':$baseUrl).$uploadFile->getImagePath('original'),
-                'filename' => $uploadFile->filename,
-                'id' => $uploadFile->id
-            ]);
-        }else{
-            return response('Image uploade failed.', 422);
-        }
-    }
-
     public function getRules(Request $request, $type)
     {
         $rules = [];

@@ -12,7 +12,7 @@
 */
 
 Route::group(['middleware' => ['web']], function () {
-    Route::group(['namespace' => 'Frontend', 'middleware' => ['frontend.customer_activity']], function(){
+    Route::group(['namespace' => 'Frontend', 'middleware' => ['frontend.customer_activity', 'discern_admin_customer']], function(){
         // Authentication Routes...
         Route::get('login', [
             'as' => 'frontend.login_form',
@@ -223,7 +223,7 @@ Route::group(['middleware' => ['web']], function () {
         ]);
     });
 
-    Route::group(['prefix' => config('kommercio.backend_prefix'), 'namespace' => 'Backend', 'middleware' => 'backend.access'], function(){
+    Route::group(['prefix' => config('kommercio.backend_prefix'), 'namespace' => 'Backend', 'middleware' => ['backend.access', 'discern_admin_customer']], function(){
         // Authentication Routes...
         Route::get('login', [
             'as' => 'backend.login_form',
@@ -283,11 +283,6 @@ Route::group(['middleware' => ['web']], function () {
                 Route::post('upload', [
                     'as' => 'backend.file.upload',
                     'uses' => 'FileController@upload'
-                ]);
-
-                Route::post('summernote-image-upload', [
-                    'as' => 'backend.file.summernote_image_upload',
-                    'uses' => 'FileController@summernoteImageUpload'
                 ]);
             });
 

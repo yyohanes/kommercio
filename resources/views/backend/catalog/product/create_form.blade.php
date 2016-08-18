@@ -103,7 +103,7 @@
                     'label' => 'Short Description',
                     'key' => 'description_short',
                     'attr' => [
-                        'class' => 'form-control summernote-editor',
+                        'class' => 'form-control wysiwyg-editor',
                         'id' => 'description_short',
                         'data-height' => 100
                     ],
@@ -114,7 +114,7 @@
                     'label' => 'Description',
                     'key' => 'description',
                     'attr' => [
-                        'class' => 'form-control summernote-editor',
+                        'class' => 'form-control wysiwyg-editor',
                         'id' => 'description',
                     ],
                 ])

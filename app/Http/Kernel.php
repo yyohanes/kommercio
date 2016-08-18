@@ -56,5 +56,6 @@ class Kernel extends HttpKernel
         'backend.access' => \Kommercio\Http\Middleware\Backend\Access::class,
         'frontend.customer_can_edit' => \Kommercio\Http\Middleware\Frontend\CustomerCanEdit::class,
         'frontend.customer_activity' => \Kommercio\Http\Middleware\Frontend\CustomerActivity::class,
+        'discern_admin_customer' => \Kommercio\Http\Middleware\DiscernAdminCustomer::class,
     ];
 }

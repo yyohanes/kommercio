@@ -26,7 +26,7 @@
     'label' => 'Description',
     'key' => 'description',
     'attr' => [
-        'class' => 'form-control summernote-editor',
+        'class' => 'form-control wysiwyg-editor',
         'id' => 'description'
     ]
 ])

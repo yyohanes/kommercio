@@ -55,6 +55,13 @@ class MenuItem extends Model
         return $path;
     }
 
+    public function getTargetAttribute()
+    {
+        $target = $this->getTranslation()->getData('target', '_self');
+
+        return $target;
+    }
+
     public function getChildrenCountAttribute()
     {
         if(!$this->relationLoaded('children')){

@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Kommercio\Models\CMS\BannerGroup;
 use Kommercio\Models\CMS\Block;
 use Kommercio\Models\CMS\Menu;
+use Kommercio\Models\CMS\MenuItem;
 use Kommercio\Models\Order\Order;
 use Kommercio\Models\Product;
 use Kommercio\Models\UrlAlias;
@@ -104,9 +105,15 @@ class FrontendHelper
     }
 
     //Menus
-    public function getRootMenuItems($menu_slugs)
+    public function getRootMenuItems($menu_slug)
     {
         $menuItems = [];
+
+        if(is_array($menu_slug)){
+            $menu_slugs = $menu_slug;
+        }else{
+            $menu_slugs = [$menu_slug];
+        }
 
         foreach($menu_slugs as $menu_slug){
             $menu = Menu::with('rootMenuItems')->where('slug', $menu_slug)->first();
@@ -115,6 +122,16 @@ class FrontendHelper
         }
 
         return $menuItems;
+    }
+
+    public function getMenuItemSiblings($path, $menu_slug)
+    {
+        $menu = Menu::where('slug', $menu_slug)->firstOrFail();
+        $menuItems = $menu->menuItems()->WhereTranslation('url', $path)->pluck('parent_id')->all();
+
+        $siblings = $menu->menuItems()->whereIn('parent_id', $menuItems)->get();
+
+        return $siblings;
     }
 
     //Banners

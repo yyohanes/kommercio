@@ -26,7 +26,7 @@
     'label' => 'Display Message',
     'key' => 'message',
     'attr' => [
-        'class' => 'form-control summernote-editor',
+        'class' => 'form-control wysiwyg-editor',
         'id' => 'message',
         'data-height' => 100
     ],

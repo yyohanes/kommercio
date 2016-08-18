@@ -155,11 +155,13 @@ return [
         \Barryvdh\Debugbar\ServiceProvider::class,
         \Dimsav\Translatable\TranslatableServiceProvider::class,
         \Collective\Html\HtmlServiceProvider::class,
+        \Intervention\Image\ImageServiceProvider::class,
         \Spatie\Glide\GlideServiceProvider::class,
         \Fedeisas\LaravelMailCssInliner\LaravelMailCssInlinerServiceProvider::class,
         \Collective\Bus\BusServiceProvider::class,
         \Maatwebsite\Excel\ExcelServiceProvider::class,
         \Mews\Captcha\CaptchaServiceProvider::class,
+        \Unisharp\Laravelfilemanager\LaravelFilemanagerServiceProvider::class,
 
         /*
          * Application Service Providers...
@@ -226,6 +228,7 @@ return [
         'NewsletterSubscriptionHelper' => \Kommercio\Facades\NewsletterSubscriptionHelper::class,
         'ProjectHelper' => \Kommercio\Facades\ProjectHelper::class,
         'CurrencyHelper' => \Kommercio\Facades\CurrencyHelper::class,
+        'Image' => Intervention\Image\Facades\Image::class,
         'GlideImage' => Spatie\Glide\GlideImageFacade::class,
         'PriceFormatter' => \Kommercio\Facades\PriceFormatter::class,
         'AddressHelper' => \Kommercio\Facades\AddressHelper::class,
