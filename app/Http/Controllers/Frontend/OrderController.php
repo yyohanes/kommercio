@@ -364,7 +364,7 @@ class OrderController extends Controller
             $order->saveProfile('billing', ['email' => $user->email]);
 
             if($order->getData('checkout_step', 'account') == 'account'){
-                $order->saveData(['checkout_step' => 'customer_information']);
+                $order->saveData(['checkout_step' => 'customer_information'], TRUE);
             }
         }
 
