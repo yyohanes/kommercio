@@ -289,6 +289,7 @@ var OrderForm = function () {
 
         $('#order-form').on('order.major_change', function(e){
             var priceRuleName, isCoupon;
+
             $.ajax(global_vars.get_order_cart_rules_path, {
                 method: 'POST',
                 data: $('#order-form').serialize(),

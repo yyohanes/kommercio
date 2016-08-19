@@ -260,12 +260,6 @@ class CartPriceRule extends Model
 
         if($coupon_code){
             $qb->where('coupon_code', 'LIKE', $coupon_code);
-        }else{
-            $qb->whereNull('coupon_code');
-        }
-
-        if($added_coupons){
-            $qb->orWhereIn('id', $added_coupons);
         }
 
         $qb->where(function($qb) use ($currency){
@@ -311,6 +305,12 @@ class CartPriceRule extends Model
         });
 
         $priceRules = $qb->get();
+
+        if($added_coupons){
+            $addedCoupons = self::whereIn('id', $added_coupons)->get();
+        }
+
+        $priceRules = $priceRules->merge($addedCoupons)->sortBy('sort_order');
 
         return $priceRules;
     }
