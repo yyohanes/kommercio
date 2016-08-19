@@ -308,9 +308,9 @@ class CartPriceRule extends Model
 
         if($added_coupons){
             $addedCoupons = self::whereIn('id', $added_coupons)->get();
-        }
 
-        $priceRules = $priceRules->merge($addedCoupons)->sortBy('sort_order');
+            $priceRules = $priceRules->merge($addedCoupons)->sortBy('sort_order');
+        }
 
         return $priceRules;
     }
