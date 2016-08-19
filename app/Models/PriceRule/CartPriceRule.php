@@ -260,6 +260,8 @@ class CartPriceRule extends Model
 
         if($coupon_code){
             $qb->where('coupon_code', 'LIKE', $coupon_code);
+        }else{
+            $qb->whereNull('coupon_code');
         }
 
         $qb->where(function($qb) use ($currency){
