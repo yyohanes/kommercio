@@ -576,7 +576,14 @@ class OrderController extends Controller
                     }
 
                     $order->delivery_date = $request->input('delivery_date', null);
-                    $order->saveProfile('shipping', $request->input('shippingProfile'));
+
+                    $shippingProfile = $request->input('shippingProfile');
+                    //If no shipping email, use billing email
+                    if(!isset($shippingProfile['email'])){
+                        $shippingProfile['email'] = $order->billingInformation->email;
+                    }
+
+                    $order->saveProfile('shipping', $shippingProfile);
                     $order->store()->associate(ProjectHelper::getStoreByRequest($request));
 
                     $nextStep = 'payment_method';

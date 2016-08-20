@@ -538,6 +538,8 @@ class Order extends Model implements AuthorSignatureInterface
 
     public function calculateTaxError()
     {
+        $this->tax_error_total = 0;
+
         foreach($this->getTaxLineItems() as $taxLineItem){
             $this->tax_error_total += $taxLineItem->net_price - $taxLineItem->base_price;
         }
