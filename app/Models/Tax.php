@@ -18,7 +18,7 @@ class Tax extends Model
     //Methods
     public function getSingleName()
     {
-        return $this->name.' ('.$this->rate.'%)';
+        return $this->name.' ('.($this->rate + 0).'%)';
     }
 
     public function calculateTax($amount)

@@ -144,35 +144,71 @@ class CustomValidator extends Validator
         return $message;
     }
 
-    public function validateOrderLimit($attribute, $value, $parameters)
+    public function validateDeliveryOrderLimit($attribute, $value, $parameters)
     {
+        return $this->processValidateOrderLimit('delivery_date', $attribute, $value, $parameters);
+    }
+
+    public function replaceDeliveryOrderLimit($message, $attribute, $rule, $parameters)
+    {
+        $delivery_date = $parameters[2];
+        $delivery_date = Carbon::createFromFormat('Y-m-d', $delivery_date)->format('d F Y');
+
+        $left = static::$_storage['delivery_date_'.$this->getValue($attribute).'_available_quantity']?:0;
+        $left = $left < 1?0:$left;
+
+        $message = $this->replaceProductAttribute($message, $attribute, $rule, $parameters);
+        $message = str_replace(':date', $delivery_date, $message);
+        $message = str_replace(':quantity', $left, $message);
+
+        return $message;
+    }
+
+    public function validateTodayOrderLimit($attribute, $value, $parameters)
+    {
+        return $this->processValidateOrderLimit('checkout_at', $attribute, $value, $parameters);
+    }
+
+    public function replaceTodayOrderLimit($message, $attribute, $rule, $parameters)
+    {
+        $left = static::$_storage['checkout_at_'.$this->getValue($attribute).'_available_quantity']?:0;
+        $left = $left < 1?0:$left;
+
+        $message = $this->replaceProductAttribute($message, $attribute, $rule, $parameters);
+        $message = str_replace(':quantity', $left, $message);
+
+        return $message;
+    }
+
+    public function validatePerOrderLimit($attribute, $value, $parameters)
+    {
+        $product_id = $value;
         $quantity = $parameters[0];
         $order_id = $parameters[1];
-        $delivery_date = isset($parameters[2])?$parameters[2]:null;
-        $today = Carbon::now()->format('Y-m-d');
-
-        $product_id = $value;
 
         $product = Product::findOrFail($product_id);
         $order = Order::findOrFail($order_id);
 
-        $orderCount = $product->getOrderCount([
-            'delivery_date' => $delivery_date,
-            'checkout_at' => $today,
-            'store' => $order->store_id
-        ]);
-
-        $orderLimit = $product->getOrderLimit([
+        $orderLimit = $product->getPerOrderLimit([
             'store' => $order->store_id,
-            'date' => $today,
-            'delivery_date' => $delivery_date
+            'date' => Carbon::now()->format('Y-m-d')
         ]);
 
-        if(is_array($orderLimit)){
+        if($orderLimit){
+            static::$_storage['per_order_'.$product->id.'_available_quantity'] = $orderLimit + 0;
 
+            return $orderLimit >= $quantity;
         }
 
         return true;
+    }
+
+    public function replacePerOrderLimit($message, $attribute, $rule, $parameters)
+    {
+        $message = $this->replaceProductAttribute($message, $attribute, $rule, $parameters);
+        $message = str_replace(':quantity', static::$_storage['per_order_'.$this->getValue($attribute).'_available_quantity'], $message);
+
+        return $message;
     }
 
     public function validateOldPassword($attribute, $value, $parameters)
@@ -186,5 +222,45 @@ class CustomValidator extends Validator
         $product = Product::findOrFail($product_id);
 
         return str_replace(':product', $product->name, $message);
+    }
+
+    protected function processValidateOrderLimit($type, $attribute, $value, $parameters)
+    {
+        $product_id = $value;
+        $quantity = $parameters[0];
+        $order_id = $parameters[1];
+
+        $delivery_date = null;
+        if($type == 'delivery_date'){
+            $delivery_date = $parameters[2];
+        }
+
+        $today = null;
+        if($type == 'checkout_at'){
+            $today = Carbon::now()->format('Y-m-d');
+        }
+
+        $order = Order::findOrFail($order_id);
+        $product = Product::findOrFail($product_id);
+
+        $orderCount = $product->getOrderCount([
+            'delivery_date' => $delivery_date,
+            'checkout_at' => $today,
+            'store' => $order->store_id
+        ]);
+
+        $orderLimit = $product->getOrderLimit([
+            'store' => $order->store_id,
+            'date' => $today,
+            'delivery_date' => $delivery_date
+        ]);
+
+        if(is_array($orderLimit) && $orderLimit['limit_type'] == $type){
+            static::$_storage[$type.'_'.$product->id.'_available_quantity'] = $orderLimit['limit'] - $orderCount;
+
+            return ($orderLimit['limit'] - $orderCount) >= $quantity;
+        }
+
+        return true;
     }
 }

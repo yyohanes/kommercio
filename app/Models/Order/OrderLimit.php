@@ -163,7 +163,7 @@ class OrderLimit extends Model
     public static function getLimitTypeOptions($option=null)
     {
         $array = [
-            //self::LIMIT_PER_ORDER => 'Per Order',
+            self::LIMIT_PER_ORDER => 'Per Order',
             self::LIMIT_ORDER_DATE => 'Total Order',
         ];
 

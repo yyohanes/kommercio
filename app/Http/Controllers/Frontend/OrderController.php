@@ -273,7 +273,7 @@ class OrderController extends Controller
 
             $originalStatus = $order->status;
 
-            Event::fire(new OrderEvent('built_frontend_rules', $order, ['rules' => &$rules]));
+            Event::fire(new OrderEvent('frontend_rules_built', $order, ['rules' => &$rules]));
 
             $this->validate($request, $rules);
 
@@ -435,7 +435,7 @@ class OrderController extends Controller
         $order = FrontendHelper::getCurrentOrder();
         $user = Auth::user();
 
-        $errorCode = 400;
+        $errorCode = 422;
         $errors = [];
         $renderData = null;
 
@@ -671,7 +671,17 @@ class OrderController extends Controller
 
                     $products = [];
                     foreach($order->getProductLineItems() as $idx=>$productLineItem){
-                        $placeOrderRules['product.'.$idx] = 'required|exists:products,id,deleted_at,NULL|is_available|is_active|is_in_stock:'.$productLineItem->quantity.'|is_purchaseable';
+                        $placeOrderRules['product.'.$idx] = [
+                            'required',
+                            'exists:products,id,deleted_at,NULL',
+                            'is_available',
+                            'is_active',
+                            'is_in_stock:'.$productLineItem->quantity,
+                            'is_purchaseable',
+                            'per_order_limit:'.$productLineItem->quantity.','.$order->id,
+                            'delivery_order_limit:'.$productLineItem->quantity.','.$order->id.($order->delivery_date?','.$order->delivery_date->format('Y-m-d'):null),
+                            'today_order_limit:'.$productLineItem->quantity.','.$order->id,
+                        ];
                         $products[] = $productLineItem->line_item_id;
                     }
 
@@ -1037,6 +1047,7 @@ class OrderController extends Controller
     {
         $shippingMethodOptions = ShippingMethod::getShippingMethods([
             'order' => $order,
+            'frontend' => true
         ]);
 
         return [
@@ -1046,7 +1057,9 @@ class OrderController extends Controller
 
     protected function getPaymentMethodOptions(Request $request)
     {
-        $paymentMethods = PaymentMethod::getPaymentMethods();
+        $paymentMethods = PaymentMethod::getPaymentMethods([
+            'frontend' => true
+        ]);
 
         $paymentMethodOptions = [];
         foreach($paymentMethods as $paymentMethod){

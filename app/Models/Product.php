@@ -404,24 +404,9 @@ class Product extends Model implements UrlAliasInterface
 
     protected function calculateTax($price)
     {
-        $taxTotal = 0;
-        $taxes = $this->store->getTaxes();
-
-        foreach($taxes as $tax){
-            $taxValue = [
-                'net' => 0,
-                'gross' => 0,
-                'rate_total' => 0
-            ];
-
-            $taxValue['gross'] = PriceFormatter::round($tax->calculateTax($price));
-            $taxValue['net'] = PriceFormatter::round($taxValue['gross']);
-            $taxValue['rate_total'] += $tax->rate;
-
-            $taxTotal += $taxValue['net'];
-        }
-
-        return $taxTotal;
+        return PriceFormatter::calculateTax($price, [
+            'store' => $this->store
+        ]);
     }
 
     public function getStock($warehouse_id=null)
