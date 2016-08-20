@@ -611,6 +611,10 @@ class Product extends Model implements UrlAliasInterface
             ->whereHas('order', function($query) use ($options){
                 $query->usageCounted();
 
+                if(!empty($options['store'])){
+                    $query->where('store_id', $options['store']);
+                }
+
                 if(!empty($options['delivery_date'])){
                     $query->whereRaw('DATE_FORMAT(delivery_date, \'%Y-%m-%d\') = ?', [$options['delivery_date']]);
                 }

@@ -2,6 +2,7 @@
 
 namespace Kommercio\Validator;
 
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Validator;
 use Kommercio\Models\Address\Address;
@@ -141,6 +142,37 @@ class CustomValidator extends Validator
         $message = is_string(static::$_storage[$couponCode])?static::$_storage[$couponCode]:'';
 
         return $message;
+    }
+
+    public function validateOrderLimit($attribute, $value, $parameters)
+    {
+        $quantity = $parameters[0];
+        $order_id = $parameters[1];
+        $delivery_date = isset($parameters[2])?$parameters[2]:null;
+        $today = Carbon::now()->format('Y-m-d');
+
+        $product_id = $value;
+
+        $product = Product::findOrFail($product_id);
+        $order = Order::findOrFail($order_id);
+
+        $orderCount = $product->getOrderCount([
+            'delivery_date' => $delivery_date,
+            'checkout_at' => $today,
+            'store' => $order->store_id
+        ]);
+
+        $orderLimit = $product->getOrderLimit([
+            'store' => $order->store_id,
+            'date' => $today,
+            'delivery_date' => $delivery_date
+        ]);
+
+        if(is_array($orderLimit)){
+
+        }
+
+        return true;
     }
 
     public function validateOldPassword($attribute, $value, $parameters)
