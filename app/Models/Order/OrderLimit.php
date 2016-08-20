@@ -164,11 +164,11 @@ class OrderLimit extends Model
     {
         $array = [
             self::LIMIT_PER_ORDER => 'Per Order',
-            self::LIMIT_ORDER_DATE => 'Total Order',
+            self::LIMIT_ORDER_DATE => 'Total per Day',
         ];
 
         if(config('project.enable_delivery_date')){
-            $array[self::LIMIT_DELIVERY_DATE] = 'Delivery Date';
+            $array[self::LIMIT_DELIVERY_DATE] = 'Total per Delivery Date';
         }
 
         if(empty($option)){
