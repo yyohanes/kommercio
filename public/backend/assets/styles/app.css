@@ -1,59 +1,64 @@
 /* line 2, sass/app.scss */
+*:not(i, .icon) {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif !important;
+}
+
+/* line 9, sass/app.scss */
 .side-margin-0, .note-editor {
   margin-left: 0 !important;
   margin-right: 0 !important;
 }
-/* line 6, sass/app.scss */
+/* line 13, sass/app.scss */
 .side-margin-0 .form-group, .note-editor .form-group {
   margin-left: 0 !important;
   margin-right: 0 !important;
 }
 
-/* line 13, sass/app.scss */
+/* line 20, sass/app.scss */
 .images-upload .dropzone {
   padding: 2em;
   border: 1px dashed #ccc;
   text-align: center;
   color: #999;
 }
-/* line 21, sass/app.scss */
+/* line 28, sass/app.scss */
 .images-upload.is-dragover .dropzone {
   background: #eee;
 }
 
-/* line 30, sass/app.scss */
+/* line 37, sass/app.scss */
 .page-header.navbar .page-logo .logo-default {
   margin: 2px 0 0;
   height: 40px;
 }
 
-/* line 38, sass/app.scss */
+/* line 45, sass/app.scss */
 .note-editor.panel {
   overflow: visible;
 }
 
-/* line 44, sass/app.scss */
+/* line 51, sass/app.scss */
 .table .btn-group .btn {
   margin-right: 0;
 }
 
-/* line 51, sass/app.scss */
+/* line 58, sass/app.scss */
 .table.table-cell-valign-middle th, .table.table-cell-valign-middle td {
   vertical-align: middle;
 }
 
-/* line 56, sass/app.scss */
+/* line 63, sass/app.scss */
 .form-in-btn-group {
   display: inline-block;
 }
 
-/* line 61, sass/app.scss */
+/* line 68, sass/app.scss */
 .sortable-placeholder {
   border: 2px dashed #ccc;
   height: 150px;
 }
 
-/* line 69, sass/app.scss */
+/* line 76, sass/app.scss */
 .datepicker.loading:after {
   content: 'Loading calendar...';
   position: absolute;
@@ -66,37 +71,37 @@
   right: 0;
   text-align: center;
 }
-/* line 83, sass/app.scss */
+/* line 90, sass/app.scss */
 .datepicker .day.disabled-date {
   text-decoration: line-through;
   color: #ccc !important;
 }
 
-/* line 91, sass/app.scss */
+/* line 98, sass/app.scss */
 #products-dataset .product-image {
   width: 40px;
 }
 
-/* line 98, sass/app.scss */
+/* line 105, sass/app.scss */
 #line-items-table .availability div {
   display: none;
 }
 
-/* line 104, sass/app.scss */
+/* line 111, sass/app.scss */
 .permissions-check-all, .permissions-uncheck-all {
   font-size: 12px;
 }
 
-/* line 108, sass/app.scss */
+/* line 115, sass/app.scss */
 .expanded-detail {
   font-size: 12px !important;
   line-height: 1.25em;
 }
-/* line 109, sass/app.scss */
+/* line 116, sass/app.scss */
 .expanded-detail .product-image {
   width: 60px !important;
 }
-/* line 116, sass/app.scss */
+/* line 123, sass/app.scss */
 .expanded-detail th, .expanded-detail td, .expanded-detail div, .expanded-detail p {
   font-size: 12px !important;
   line-height: 1.25em;
