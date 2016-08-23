@@ -67,23 +67,12 @@ class OrderHelper
         $order->currency = $request->input('currency');
         $order->conversion_rate = 1;
 
-        $count = 0;
-        foreach($request->input('line_items', []) as $lineItemDatum){
-            if($lineItemDatum['line_item_type'] == 'product' && (empty($lineItemDatum['quantity']) || (empty($lineItemDatum['sku']) || empty($lineItemDatum['line_item_id'])))){
-                continue;
-            }
-
-            $lineItem = new LineItem();
-            $lineItem->processData($lineItemDatum, $count);
-            $order->lineItems[] = $lineItem;
-
-            $count += 1;
-        }
+        $order->lineItems = $this->processLineItems($request, $order, true, true);
 
         return $order;
     }
 
-    public function processLineItems(Request $request, $order, $freeEdit = true)
+    public function processLineItems(Request $request, $order, $freeEdit = true, $dummy = false)
     {
         $cartPriceRules = $this->getCartRules($request, $order, $freeEdit);
 
@@ -190,7 +179,10 @@ class OrderHelper
             }
 
             $lineItem->calculateTotal();
-            $lineItem->save();
+
+            if(!$dummy){
+                $lineItem->save();
+            }
 
             $count += 1;
         }
@@ -205,7 +197,11 @@ class OrderHelper
             $lineItem = $this->reuseOrCreateLineItem($order, $existingLineItems, $count);
 
             $lineItem->processData($priceRuleLineItemDatum, $count);
-            $lineItem->save();
+
+            if(!$dummy) {
+                $lineItem->save();
+            }
+
             $lineItems[] = $lineItem;
 
             $count += 1;
@@ -224,7 +220,11 @@ class OrderHelper
             $lineItem = $this->reuseOrCreateLineItem($order, $existingLineItems, $count);
 
             $lineItem->processData($taxLineItemDatum, $count);
-            $lineItem->save();
+
+            if(!$dummy) {
+                $lineItem->save();
+            }
+
             $lineItems[] = $lineItem;
 
             $count += 1;
@@ -234,6 +234,8 @@ class OrderHelper
         foreach($existingLineItems as $existingLineItem){
             $existingLineItem->delete();
         }
+
+        return $lineItems;
     }
 
     public function reuseOrCreateLineItem($order, &$existingLineItems, $count)
@@ -254,7 +256,7 @@ class OrderHelper
 
     public function getCartRules(Request $request, $referencedOrder = null, $freeEdit = true)
     {
-        $order = ($freeEdit || !$referencedOrder)?$this->createDummyOrderFromRequest($request):$referencedOrder;
+        $order = ($freeEdit && !$referencedOrder)?$this->createDummyOrderFromRequest($request):$referencedOrder;
 
         $subtotal = $order->calculateProductTotal() + $order->calculateAdditionalTotal();
 
