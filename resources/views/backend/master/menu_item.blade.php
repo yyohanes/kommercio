@@ -20,7 +20,7 @@ $childPermissions = isset($newMenu['children'])?array_pluck($newMenu['children']
         </ul>
     @else
         <a href="{{ isset($newMenu['route'])?route($newMenu['route'], (isset($newMenu['route_params'])?$newMenu['route_params']:[])):(isset($newMenu['path'])?$newMenu['path']:'') }}" class="nav-link ">
-            {!! isset($newMenu['prepend'])?$newMenu['prepend']:'' !!} {{ $newMenu['name'] }}
+            {!! isset($newMenu['prepend'])?$newMenu['prepend']:'' !!} <span class="title">{{ $newMenu['name'] }}</span>
         </a>
     @endif
 </li>
