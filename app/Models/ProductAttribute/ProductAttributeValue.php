@@ -5,16 +5,17 @@ namespace Kommercio\Models\ProductAttribute;
 use Illuminate\Database\Eloquent\Model;
 use Dimsav\Translatable\Translatable;
 use Kommercio\Models\Product;
+use Kommercio\Traits\Model\MediaAttachable;
 
 class ProductAttributeValue extends Model
 {
-    use Translatable;
+    use Translatable, MediaAttachable;
 
     public $timestamps = FALSE;
 
     public $translatedAttributes = ['name', 'slug'];
 
-    protected $guarded = [];
+    protected $fillable = ['name', 'slug', 'sort_order'];
 
     //Methods
     public function newPivot(Model $parent, array $attributes, $table, $exists)
@@ -35,5 +36,20 @@ class ProductAttributeValue extends Model
     public function products()
     {
         return $this->belongsToMany('Kommercio\Models\Product', 'product_product_attribute');
+    }
+
+    public function thumbnails()
+    {
+        return $this->media('thumbnail');
+    }
+
+    //Accessors
+    public function getThumbnailAttribute()
+    {
+        if(!$this->relationLoaded('thumbnails')){
+            $this->load('thumbnails');
+        }
+
+        return $this->thumbnails->first();
     }
 }

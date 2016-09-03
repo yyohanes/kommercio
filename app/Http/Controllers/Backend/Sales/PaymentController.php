@@ -153,7 +153,7 @@ class PaymentController extends Controller{
             }
 
             $payment->status = $status;
-            $payment->recordStatusChange($status, Auth::user()->fullName, $request->input('reason'));
+            $payment->recordStatusChange($status, Auth::user()->email, $request->input('reason'));
             $payment->save();
 
             return redirect($request->input('backUrl', route('backend.sales.order.view', ['id' => $payment->order->id])))->with('success', [$message]);

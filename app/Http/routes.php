@@ -170,6 +170,11 @@ Route::group(['middleware' => ['web']], function () {
             'uses' => 'CatalogController@searchAutocomplete'
         ]);
 
+        Route::get(\Kommercio\Facades\ProjectHelper::getConfig('catalog_options.shop_url'), [
+            'as' => 'frontend.catalog.shop',
+            'uses' => 'CatalogController@shop'
+        ]);
+
         //Order
         Route::get('cart', [
             'as' => 'frontend.order.cart',

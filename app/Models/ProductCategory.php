@@ -5,11 +5,12 @@ namespace Kommercio\Models;
 use Dimsav\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Model;
 use Kommercio\Facades\FrontendHelper;
+use Kommercio\Models\Interfaces\SeoModelInterface;
 use Kommercio\Models\Interfaces\UrlAliasInterface;
 use Kommercio\Traits\AuthorSignature;
 use Kommercio\Traits\Model\SeoTrait;
 
-class ProductCategory extends Model implements UrlAliasInterface
+class ProductCategory extends Model implements UrlAliasInterface, SeoModelInterface
 {
     use Translatable, SeoTrait;
 
@@ -117,6 +118,11 @@ class ProductCategory extends Model implements UrlAliasInterface
         $viewSuggestions[] = 'frontend.catalog.product_category.view';
 
         return $viewSuggestions;
+    }
+
+    public function getMetaImage()
+    {
+        return $this->thumbnail?$this->thumbnail->getImagePath('original'):null;
     }
 
     //Accessors

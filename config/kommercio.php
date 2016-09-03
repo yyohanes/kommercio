@@ -67,6 +67,7 @@ return [
     'print_format' => 'default',
     'require_billing_information' => false,
     'catalog_options' => [
+        'shop_url' => 'shop',
         'limit' => 20,
         'sort_by' => 'order',
         'sort_dir' => 'ASC',

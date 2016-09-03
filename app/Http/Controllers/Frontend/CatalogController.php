@@ -93,28 +93,11 @@ class CatalogController extends Controller
 
         $qb = Product::productEntity();
 
-        $event_results = Event::fire(new CatalogQueryBuilderEvent('products', $qb, $request, $options));
+        $event_results = Event::fire(new CatalogQueryBuilderEvent('search', $qb, $request, $options));
 
         //If not processed, build default query here
         if(!isset($event_results[0]) || empty($event_results[0])){
-            $qb->joinTranslation()->joinDetail()->selectSelf()
-                ->where('D.active', true)
-                ->whereIn('D.visibility', [ProductDetail::VISIBILITY_EVERYWHERE, ProductDetail::VISIBILITY_SEARCH]);
-
-            switch($options['sort_by']){
-                case 'newest':
-                    $qb->orderBy('products.created_at', $options['sort_dir']);
-                    break;
-                case 'price':
-                    $qb->orderBy('D.retail_price', $options['sort_dir']);
-                    break;
-                case 'name':
-                    $qb->orderBy('T.name', $options['sort_dir']);
-                    break;
-                default:
-                    $qb->orderBy('D.sort_order', $options['sort_dir']);
-                    break;
-            }
+            $this->addSortQuery($qb, $options);
 
             if($options['new']){
                 $qb->isNew();
@@ -154,10 +137,6 @@ class CatalogController extends Controller
         $products->setPath(FrontendHelper::get_url($request->path()))->appends($appendedOptions);
 
         $views = ['frontend.catalog.product.search'];
-
-        if($options['new']){
-            array_unshift($views, 'frontend.catalog.product.new');
-        }
 
         $view_name = ProjectHelper::findViewTemplate($views);
 
@@ -215,6 +194,59 @@ class CatalogController extends Controller
         return new JsonResponse($return);
     }
 
+    public function shop(Request $request)
+    {
+        $options = [
+            'limit' => $request->input('limit', ProjectHelper::getConfig('catalog_options.limit')),
+            'sort_by' => $request->input('sort_by', ProjectHelper::getConfig('catalog_options.sort_by')),
+            'sort_dir' => $request->input('sort_dir', ProjectHelper::getConfig('catalog_options.sort_dir')),
+            'new' => $request->input('new', false)
+        ];
+
+        $qb = Product::productEntity();
+
+        $event_results = Event::fire(new CatalogQueryBuilderEvent('products', $qb, $request, $options));
+
+        //If not processed, build default query here
+        if(!isset($event_results[0]) || empty($event_results[0])){
+            $this->addSortQuery($qb, $options);
+
+            if($options['new']){
+                $qb->isNew();
+            }
+
+            $products = $qb->paginate($options['limit']);
+        }else{
+            $products = $event_results[0];
+        }
+
+        $appendedOptions = $options;
+        foreach($appendedOptions as $key => $appendedOption){
+            if(!$request->has($key)){
+                unset($appendedOptions[$key]);
+            }
+        }
+
+        $products->setPath(FrontendHelper::get_url($request->path()))->appends($appendedOptions);
+
+        $views = ['frontend.catalog.shop'];
+
+        if($options['new']){
+            array_unshift($views, 'frontend.catalog.product.new');
+        }
+
+        $view_name = ProjectHelper::findViewTemplate($views);
+
+        $seoData = [
+            'meta_title' => trans(LanguageHelper::getTranslationKey('frontend.seo.catalog.shop.meta_title'))
+        ];
+
+        return view($view_name, [
+            'products' => $products,
+            'options' => $options,
+        ]);
+    }
+
     public function newArrival(Request $request)
     {
         $attributes = $request->all();
@@ -245,24 +277,7 @@ class CatalogController extends Controller
 
         //If not processed, build default query here
         if(!isset($event_results[0]) || empty($event_results[0])){
-            $qb->joinTranslation()->joinDetail()->selectSelf()
-                ->where('D.active', true)
-                ->whereIn('D.visibility', [ProductDetail::VISIBILITY_EVERYWHERE, ProductDetail::VISIBILITY_CATALOG]);
-
-            switch($options['sort_by']){
-                case 'newest':
-                    $qb->orderBy('products.created_at', $options['sort_dir']);
-                    break;
-                case 'price':
-                    $qb->orderBy('D.retail_price', $options['sort_dir']);
-                    break;
-                case 'name':
-                    $qb->orderBy('T.name', $options['sort_dir']);
-                    break;
-                default:
-                    $qb->orderBy('D.sort_order', $options['sort_dir']);
-                    break;
-            }
+            $this->addSortQuery($qb, $options);
 
             $products = $qb->paginate($options['limit']);
         }else{
@@ -286,5 +301,31 @@ class CatalogController extends Controller
             'options' => $options,
             'seoModel' => $productCategory
         ]);
+    }
+
+    protected function addSortQuery($qb, $options)
+    {
+        $qb->joinTranslation()->joinDetail()->selectSelf()
+            ->where('D.active', true)
+            ->whereIn('D.visibility', [ProductDetail::VISIBILITY_EVERYWHERE, ProductDetail::VISIBILITY_SEARCH]);
+
+        switch($options['sort_by']){
+            case 'newest':
+                $qb->orderBy('products.created_at', $options['sort_dir']);
+                break;
+            case 'price':
+                $qb->orderBy('D.retail_price', $options['sort_dir']);
+                break;
+            case 'name':
+                $qb->orderBy('T.name', $options['sort_dir']);
+                break;
+            default:
+                $qb->orderBy('D.sort_order', $options['sort_dir']);
+                break;
+        }
+
+        if(isset($options['new']) && $options['new']){
+            $qb->isNew();
+        }
     }
 }

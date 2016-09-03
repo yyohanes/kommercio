@@ -26,6 +26,8 @@ class PasswordController extends Controller
     use ResetsPasswords {
         showLinkRequestForm as parentShowLinkRequestForm;
         showResetForm as parentShowResetForm;
+        getSendResetLinkEmailSuccessResponse as parentGetSendResetLinkEmailSuccessResponse;
+        getResetSuccessResponse as parentGetResetSuccessResponse;
     }
 
     /**
@@ -84,5 +86,15 @@ class PasswordController extends Controller
         }
 
         return view('auth.reset')->with(compact('token', 'email'));
+    }
+
+    protected function getSendResetLinkEmailSuccessResponse($response)
+    {
+        return redirect()->back()->with('success', [trans($response)]);
+    }
+
+    protected function getResetSuccessResponse($response)
+    {
+        return redirect($this->redirectPath())->with('success', [trans($response)]);
     }
 }

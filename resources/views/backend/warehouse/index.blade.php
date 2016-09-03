@@ -38,7 +38,6 @@
                             <td>{!! nl2br(AddressHelper::printAddress($warehouse->toArray())) !!}</td>
                             <td>{{ $warehouse->productCount }}</td>
                             <td class="text-center">
-                                @if()
                                 {!! Form::open(['route' => ['backend.warehouse.delete', 'id' => $warehouse->id]]) !!}
                                 <div class="btn-group btn-group-sm">
                                     @can('access', ['edit_warehouse'])

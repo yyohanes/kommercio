@@ -39,8 +39,13 @@ class OrderController extends Controller
         $view_name = ProjectHelper::getViewTemplate('frontend.order.cart');
         $productLineItems = FrontendHelper::getCurrentOrder()->getProductLineItems();
 
+        $seoData = [
+            'meta_title' => trans(LanguageHelper::getTranslationKey('frontend.seo.order.cart.meta_title'))
+        ];
+
         return view($view_name, [
-            'productLineItems' => $productLineItems
+            'productLineItems' => $productLineItems,
+            'seoData' => $seoData
         ]);
     }
 
@@ -218,8 +223,13 @@ class OrderController extends Controller
 
         $addressOptions = $this->getAddressOptions($request, $order);
 
+        $seoData = [
+            'meta_title' => trans(LanguageHelper::getTranslationKey('frontend.seo.order.checkout.meta_title'))
+        ];
+
         return view($view_name, [
             'order' => $order,
+            'seoData' => $seoData,
         ] + $addressOptions + $shippingMethodOptions + $paymentMethodOptions);
     }
 
@@ -419,6 +429,10 @@ class OrderController extends Controller
 
         $addressOptions = $this->getAddressOptions($request, $order);
 
+        $seoData = [
+            'meta_title' => trans(LanguageHelper::getTranslationKey('frontend.seo.order.checkout.meta_title'))
+        ];
+
         return view($view_name, [
             'order' => $order,
             'step' => $step,
@@ -426,7 +440,8 @@ class OrderController extends Controller
             'customerLoggedIn' => $customerLoggedIn,
             'canLogin' => $canLogin,
             'canRegister' => $canRegister,
-            'savedAddressOptions' => $savedAddressOptions
+            'savedAddressOptions' => $savedAddressOptions,
+            'seoData' => $seoData,
         ] + $addressOptions + $shippingMethodOptions + $paymentMethodOptions);
     }
 
@@ -834,7 +849,11 @@ class OrderController extends Controller
 
         $view_name = ProjectHelper::getViewTemplate('frontend.order.complete');
 
-        return view($view_name, ['order' => $order]);
+        $seoData = [
+            'meta_title' => trans(LanguageHelper::getTranslationKey('frontend.seo.order.checkout_complete.meta_title'))
+        ];
+
+        return view($view_name, ['order' => $order, 'seoData' => $seoData]);
     }
 
     public function confirmPayment(Request $request)
@@ -926,7 +945,11 @@ class OrderController extends Controller
         }else{
             $view_name = ProjectHelper::getViewTemplate('frontend.order.confirm_payment');
 
-            return view($view_name);
+            $seoData = [
+                'meta_title' => trans(LanguageHelper::getTranslationKey('frontend.seo.order.confirm_payment.meta_title'))
+            ];
+
+            return view($view_name, ['seoData' => $seoData]);
         }
     }
 

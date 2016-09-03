@@ -231,7 +231,7 @@ class CustomValidator extends Validator
         $order_id = $parameters[1];
 
         $delivery_date = null;
-        if($type == 'delivery_date'){
+        if($type == 'delivery_date' && isset($parameters[2])){
             $delivery_date = $parameters[2];
         }
 

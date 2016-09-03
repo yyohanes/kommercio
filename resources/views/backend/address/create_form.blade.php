@@ -30,6 +30,7 @@
         'attr' => [
             'class' => 'form-control',
             'id' => 'iso_code',
+            'placeholder' => 'ID'
         ],
         'help-block' => '2-characters ISO Code',
         'required' => TRUE
@@ -42,6 +43,7 @@
         'attr' => [
             'class' => 'form-control',
             'id' => 'country_code',
+            'placeholder' => '62'
         ],
         'help-block' => 'Country Code/Phone Prefix',
         'required' => TRUE

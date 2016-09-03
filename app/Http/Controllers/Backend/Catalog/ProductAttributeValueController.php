@@ -39,6 +39,16 @@ class ProductAttributeValueController extends Controller{
         $productAttributeValue->fill($request->all());
         $productAttribute->values()->save($productAttributeValue);
 
+        if($request->has('thumbnail')){
+            foreach($request->input('thumbnail', []) as $idx=>$image){
+                $thumbnail[$image] = [
+                    'type' => 'thumbnail',
+                    'caption' => $request->input('thumbnail_caption.'.$idx, null),
+                ];
+            }
+            $productAttributeValue->attachMedia($thumbnail, 'thumbnail');
+        }
+
         return redirect()->route('backend.catalog.product_attribute.value.index', ['attribute_id' => $attribute_id])->with('success', [$productAttributeValue->name.' has successfully been created.']);
     }
 
@@ -68,6 +78,15 @@ class ProductAttributeValueController extends Controller{
         $productAttributeValue->fill($request->all());
         $productAttributeValue->save();
 
+        $thumbnail = [];
+        foreach($request->input('thumbnail', []) as $idx=>$image){
+            $thumbnail[$image] = [
+                'type' => 'thumbnail',
+                'caption' => $request->input('thumbnail_caption.'.$idx, null),
+            ];
+        }
+        $productAttributeValue->syncMedia($thumbnail, 'thumbnail');
+
         return redirect()->back()->with('success', [$productAttributeValue->name.' has successfully been updated.']);
     }
 
@@ -85,6 +104,7 @@ class ProductAttributeValueController extends Controller{
 
         $name = $productAttributeValue->name;
 
+        $productAttributeValue->deleteMedia('thumbnail');
         $productAttributeValue->delete();
 
         return redirect()->back()->with('success', [$name.' has been deleted.']);

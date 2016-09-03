@@ -5,6 +5,7 @@ namespace Kommercio\Providers;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\ServiceProvider;
 use Kommercio\Facades\FrontendHelper;
+use Kommercio\Facades\ProjectHelper;
 
 class FrontendServiceProvider extends ServiceProvider
 {
@@ -27,12 +28,14 @@ class FrontendServiceProvider extends ServiceProvider
             $isHomepage = FrontendHelper::isHomepage();
             $view->with('isHomepage', $isHomepage);
 
-            $meta_title = config('project.client_name');
-            $meta_description = config('project.client_subtitle');
+            $meta_title = ProjectHelper::getClientName();
+            $meta_description = ProjectHelper::getClientSubtitle();
+            $meta_image = null;
 
             if(isset($viewsData['seoModel'])){
                 $meta_title = $viewsData['seoModel']->getMetaTitle();
                 $meta_description = $viewsData['seoModel']->getMetaDescription();
+                $meta_image = $viewsData['seoModel']->getMetaImage();
             }elseif(isset($viewsData['seoData'])){
                 extract($viewsData['seoData']);
             }
@@ -41,6 +44,7 @@ class FrontendServiceProvider extends ServiceProvider
 
             $view->with('meta_title', $meta_title);
             $view->with('meta_description', $meta_description);
+            $view->with('meta_image', $meta_image);
         });
     }
 

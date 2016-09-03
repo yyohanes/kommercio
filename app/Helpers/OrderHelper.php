@@ -309,7 +309,7 @@ class OrderHelper
 
         if($author){
             $comment->saveData([
-                'author_name' => $author->fullName
+                'author_name' => $author->email
             ]);
         }
 

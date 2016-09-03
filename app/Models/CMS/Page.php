@@ -5,11 +5,12 @@ namespace Kommercio\Models\CMS;
 use Dimsav\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Model;
 use Kommercio\Facades\FrontendHelper;
+use Kommercio\Models\Interfaces\SeoModelInterface;
 use Kommercio\Models\Interfaces\UrlAliasInterface;
 use Kommercio\Traits\Model\SeoTrait;
 use Kommercio\Traits\Model\ToggleDate;
 
-class Page extends Model implements UrlAliasInterface
+class Page extends Model implements UrlAliasInterface, SeoModelInterface
 {
     use SeoTrait, Translatable, ToggleDate {
         Translatable::setAttribute as translateableSetAttribute;
@@ -81,6 +82,11 @@ class Page extends Model implements UrlAliasInterface
         $breadcrumbs = array_reverse($breadcrumbs);
 
         return $breadcrumbs;
+    }
+
+    public function getMetaImage()
+    {
+        return $this->images->count() > 0?$this->images->get(0)->getImagePath('original'):null;
     }
 
     //Accessors

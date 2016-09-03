@@ -9,16 +9,18 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
 use Kommercio\Facades\FrontendHelper;
 use Kommercio\Facades\ProjectHelper;
+use Kommercio\Models\Interfaces\SeoModelInterface;
 use Kommercio\Models\Interfaces\UrlAliasInterface;
 use Kommercio\Models\Order\LineItem;
 use Kommercio\Models\Order\Order;
 use Kommercio\Models\Order\OrderLimit;
+use Kommercio\Models\ProductAttribute\ProductAttribute;
 use Kommercio\Models\ProductAttribute\ProductAttributeValue;
 use Kommercio\Traits\Frontend\ProductHelper as FrontendProductHelper;
 use Kommercio\Traits\Model\SeoTrait;
 use Kommercio\Facades\PriceFormatter;
 
-class Product extends Model implements UrlAliasInterface
+class Product extends Model implements UrlAliasInterface, SeoModelInterface
 {
     use SoftDeletes, Translatable, SeoTrait, FrontendProductHelper;
 
@@ -299,6 +301,29 @@ class Product extends Model implements UrlAliasInterface
         return $this->getRetailPrice($tax);
     }
 
+    public function getAvailableAttributeValues()
+    {
+        $array = [];
+
+        if($this->combination_type == self::COMBINATION_TYPE_VARIABLE){
+            foreach($this->variations as $variation){
+                foreach($variation->productAttributeValues as $productAttributeValue){
+                    $array[$productAttributeValue->product_attribute_id][$productAttributeValue->id] = $productAttributeValue;
+                }
+            }
+        }else{
+            foreach($this->productAttributeValues as $productAttributeValue){
+                $array[$productAttributeValue->product_attribute_id][$productAttributeValue->id] = $productAttributeValue;
+            }
+        }
+
+        foreach($array[$productAttributeValue->product_attribute_id] as &$productAttributeValues){
+            $productAttributeValues = collect($productAttributeValues)->sortBy('sort_order');
+        }
+
+        return $array;
+    }
+
     public function getProductAttributeValue($attribute)
     {
         $productAttributeValue = null;
@@ -357,6 +382,26 @@ class Product extends Model implements UrlAliasInterface
         }
 
         return $array;
+    }
+
+    public function getVariationsByAttribute($attribute)
+    {
+        if(is_string($attribute)){
+            $attribute = ProductAttribute::where('slug', $attribute)->firstOrFail();
+        }elseif(is_int($attribute)){
+            $attribute = ProductAttribute::findOrFail($attribute);
+        }
+
+        $variationsQb = $this->variations();
+
+        $join = with(new self())->productAttributes();
+
+        $variationsQb->leftJoin($join->getTable().' AS A'.$attribute->id, 'A'.$attribute->id.'.product_id', '=', $join->getQualifiedParentKeyName());
+        $variationsQb->where('A'.$attribute->id.'.product_attribute_id', $attribute->id);
+
+        $variations = $variationsQb->get();
+
+        return $variations;
     }
 
     public function getVariationsByAttributes($attributes, $attributeValues)
@@ -802,6 +847,11 @@ class Product extends Model implements UrlAliasInterface
         return $qb;
     }
 
+    public function getMetaImage()
+    {
+        return $this->thumbnail?$this->thumbnail->getImagePath('original'):null;
+    }
+
     //Accessors
     public function getProductDetailAttribute()
     {
@@ -843,6 +893,11 @@ class Product extends Model implements UrlAliasInterface
     }
 
     //Mutators
+    public function setProductDetailAttribute($productDetail)
+    {
+        $this->_productDetail = $productDetail;
+    }
+
     public function setStoreAttribute($store_id)
     {
         $store = Store::find($store_id);

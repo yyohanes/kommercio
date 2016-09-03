@@ -92,6 +92,25 @@ return [
                     'meta_title' => 'Edit Address Book',
                 ]
             ]
+        ],
+        'catalog' => [
+            'shop' => [
+                'meta_title' => 'Shop'
+            ]
+        ],
+        'order' => [
+            'cart' => [
+                'meta_title' => 'Shopping Cart'
+            ],
+            'checkout' => [
+                'meta_title' => 'Checkout'
+            ],
+            'checkout_complete' => [
+                'meta_title' => 'Checkout Complete'
+            ],
+            'confirm_payment' => [
+                'meta_title' => 'Confirm Payment'
+            ]
         ]
     ]
 ];

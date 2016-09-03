@@ -154,4 +154,14 @@ class ProjectHelper
     {
         return config('project.'.$key, config('kommercio.'.$key, $default));
     }
+
+    public function getClientName()
+    {
+        return config('project.client_name');
+    }
+
+    public function getClientSubtitle()
+    {
+        return config('project.client_subtitle');
+    }
 }

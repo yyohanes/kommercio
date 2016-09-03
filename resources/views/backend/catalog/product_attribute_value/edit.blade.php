@@ -34,7 +34,7 @@
 
             <div class="portlet-body">
                 <div class="form-body">
-                    @include('backend.catalog.product_attribute.create_form')
+                    @include('backend.catalog.product_attribute_value.create_form')
                 </div>
 
                 <div class="form-actions text-center">

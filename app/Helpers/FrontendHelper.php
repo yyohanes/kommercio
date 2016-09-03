@@ -3,6 +3,7 @@
 namespace Kommercio\Helpers;
 
 use Carbon\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Request as RequestFacade;
@@ -61,11 +62,19 @@ class FrontendHelper
         return $this->get_url($path).(!empty($query)?'?'.http_build_query($query):'');
     }
 
-    public function get_home_url()
+    public function getHomeUrl()
     {
         //$homePath = config('project.home_uri');
 
         return url('/');
+    }
+
+    /*
+     * Alias of getHomeUrl
+     */
+    public function get_home_url()
+    {
+        return $this->getHomeUrl();
     }
 
     public function isHomepage()
@@ -96,7 +105,7 @@ class FrontendHelper
         $currentPath = substr(RequestFacade::getPathInfo().'/', 1);
 
         foreach($paths as $path){
-            if(strpos($currentPath, $path) === 0){
+            if(!empty($path) && strpos($currentPath, $path) === 0){
                 return true;
             }
         }
@@ -121,6 +130,8 @@ class FrontendHelper
             $menuItems += ($menu->rootMenuItems->count() > 0)?$menu->rootMenuItems->all():[];
         }
 
+        $menuItems = new Collection($menuItems);
+
         return $menuItems;
     }
 
@@ -132,6 +143,14 @@ class FrontendHelper
         $siblings = $menu->menuItems()->whereIn('parent_id', $menuItems)->get();
 
         return $siblings;
+    }
+
+    public function getMenuItemChildren($menu_item_id, $menu_slug)
+    {
+        $menu = Menu::where('slug', $menu_slug)->firstOrFail();
+        $menuItem = $menu->menuItems()->findOrFail($menu_item_id);
+
+        return $menuItem->children;
     }
 
     //Banners
@@ -225,7 +244,7 @@ class FrontendHelper
         if($isHomepage){
             $title = $text;
         }else{
-            $title = $text.' - '.config('project.client_name');
+            $title = $text.' - '.ProjectHelperFacade::getClientName();
         }
 
         return $title;

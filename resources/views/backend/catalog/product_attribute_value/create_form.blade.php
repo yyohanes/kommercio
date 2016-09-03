@@ -20,3 +20,15 @@
     ],
     'required' => TRUE
 ])
+
+@include('backend.master.form.fields.images', [
+    'name' => 'thumbnail',
+    'label' => 'Thumbnail',
+    'key' => 'thumbnail',
+    'attr' => [
+        'class' => 'form-control',
+        'id' => 'thumbnail'
+    ],
+    'multiple' => FALSE,
+    'existing' => $productAttributeValue->thumbnail?[$productAttributeValue->thumbnail]:[]
+])

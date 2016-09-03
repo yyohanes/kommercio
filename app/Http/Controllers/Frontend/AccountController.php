@@ -22,7 +22,7 @@ class AccountController extends Controller
     public function __construct()
     {
         $this->user = Auth::user();
-        $this->customer = $this->user->customer;
+        $this->customer = $this->user?$this->user->customer:null;
     }
 
     public function account()

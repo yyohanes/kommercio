@@ -86,18 +86,35 @@ trait ProductHelper
                     $attributes[$attributeValue->productAttribute->id] = [
                         'id' => $attributeValue->productAttribute->id,
                         'label' => $attributeValue->productAttribute->name,
+                        'object' => $attributeValue->productAttribute,
                         'options' => []
                     ];
                 }
 
                 $attributes[$attributeValue->productAttribute->id]['options'][$attributeValue->id] = [
                     'label' => $attributeValue->name,
-                    'id' => $attributeValue->id
+                    'id' => $attributeValue->id,
+                    'object' => $attributeValue
                 ];
             }
         }
 
         return $attributes;
+    }
+
+    public function getVariationsGroupedByAttribute($attribute_id = null)
+    {
+        $array = [];
+
+        foreach($this->getActiveVariations() as $variation){
+            foreach($variation->productAttributeValues as $productAttributeValue){
+                if(!$attribute_id || $attribute_id == $productAttributeValue->product_attribute_id){
+                    $array[$productAttributeValue->product_attribute_id][$productAttributeValue->id][$variation->id] = $variation;
+                }
+            }
+        }
+
+        return $array;
     }
 
     public function getThumbnails()
@@ -117,7 +134,7 @@ trait ProductHelper
     {
         $thumbnails = $this->getThumbnails();
 
-        return $thumbnails->get(0);
+        return $thumbnails->count() > 0?$thumbnails->get(0):null;
     }
 
     public function hasThumbnail()

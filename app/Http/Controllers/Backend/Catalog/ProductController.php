@@ -96,14 +96,20 @@ class ProductController extends Controller{
         foreach($products as $idx=>$product){
             $productAction = FormFacade::open(['route' => ['backend.catalog.product.delete', 'id' => $product->id]]);
             $productAction .= '<div class="btn-group btn-group-sm">';
+
             if(Gate::allows('access', ['edit_product'])):
             $productAction .= '<a class="btn btn-default" href="'.route('backend.catalog.product.edit', ['id' => $product->id, 'backUrl' => RequestFacade::fullUrl()]).'"><i class="fa fa-pencil"></i> Edit</a>';
             endif;
 
             if(Gate::allows('access', ['delete_product'])):
-            $productAction .= '<button class="btn btn-default" data-toggle="confirmation" data-original-title="Are you sure?" title=""><i class="fa fa-trash-o"></i> Delete</button></div>';
+            $productAction .= '<button class="btn btn-default" data-toggle="confirmation" data-original-title="Are you sure?" title=""><i class="fa fa-trash-o"></i> Delete</button>';
             endif;
-            $productAction .= FormFacade::close();
+
+            if(Gate::allows('access', ['create_product'])):
+                $productAction .= '<a class="btn btn-default" href="'.route('backend.catalog.product.create', ['clone' => $product->id, 'backUrl' => RequestFacade::fullUrl()]).'"><i class="fa fa-clone"></i> Clone</a>';
+            endif;
+
+            $productAction .= '</div>'.FormFacade::close();
 
             $meat[] = [
                 $idx + 1 + $orderingStart,
@@ -123,9 +129,20 @@ class ProductController extends Controller{
         return $meat;
     }
 
-    public function create()
+    public function create(Request $request)
     {
-        $product = new Product();
+        if($request->has('clone') && !$request->old()){
+            $referencedProduct = Product::findOrFail($request->get('clone'));
+            $product = $referencedProduct->replicate();
+
+            $product->setRelation('translations', $referencedProduct->translations);
+            $product->setRelation('defaultCategory', $referencedProduct->defaultCategory);
+            $product->setRelation('categories', $referencedProduct->categories);
+
+            $product->productDetail = $referencedProduct->productDetail;
+        }else{
+            $product = new Product();
+        }
 
         $currencyOptions = CurrencyHelper::getCurrencyOptions();
 
