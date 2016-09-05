@@ -89,6 +89,28 @@ switch($type){
     'valueColumnClass' => 'col-md-4'
 ])
 
+<div id="day-rules">
+    <label class="control-label col-md-3">
+        Every
+    </label>
+
+    <div class="col-md-9">
+        <?php
+        $days = ProjectHelper::getDaysOptions();
+        ?>
+        @foreach($dayRules as $idx => $dayRule)
+            <div class="form-group">
+                <div class="checkbox-list">
+                    @foreach($days as $dayIdx => $day)
+                        <label class="checkbox-inline">
+                            {!! Form::checkbox('dayRules['.$idx.'][days][]', $dayIdx, $dayRule->$dayIdx) !!} {{ $day }} </label>
+                    @endforeach
+                </div>
+            </div>
+        @endforeach
+    </div>
+</div>
+
 @include('backend.master.form.fields.checkbox', [
     'name' => 'active',
     'label' => 'Active',

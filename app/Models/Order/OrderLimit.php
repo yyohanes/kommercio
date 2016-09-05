@@ -15,7 +15,7 @@ class OrderLimit extends Model
     const LIMIT_DELIVERY_DATE = 'delivery_date';
     const LIMIT_PER_ORDER = 'per_order';
 
-    protected $fillable = ['type', 'limit_type', 'limit', 'date_from', 'date_to', 'active', 'store_id'];
+    protected $fillable = ['type', 'limit_type', 'limit', 'date_from', 'date_to', 'active', 'store_id', 'sort_order'];
     protected $casts = [
         'active' => 'boolean'
     ];
@@ -27,6 +27,25 @@ class OrderLimit extends Model
     public function hasDate()
     {
         return !empty($this->date_from) || !empty($this->date_to);
+    }
+
+    public function dayRulesPassed(Carbon $date)
+    {
+        if($this->dayRules->count() < 1){
+            return TRUE;
+        }
+
+        $valid = false;
+
+        foreach($this->dayRules as $dayRule){
+            $valid = $dayRule->check($date);
+
+            if($valid){
+                break;
+            }
+        }
+
+        return $valid;
     }
 
     //Scopes
@@ -96,6 +115,11 @@ class OrderLimit extends Model
     public function productCategories()
     {
         return $this->morphedByMany('Kommercio\Models\ProductCategory', 'order_limitable')->withTranslation();
+    }
+
+    public function dayRules()
+    {
+        return $this->hasMany('Kommercio\Models\Order\OrderLimitDayRule');
     }
 
     public function getItemRelation()

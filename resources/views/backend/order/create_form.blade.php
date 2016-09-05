@@ -32,6 +32,59 @@
         </div>
     </div>
 
+    <div class="col-md-3">
+        @if(count($managedStores) > 1)
+            <?php
+            $storeOptions = [];
+            foreach($managedStores as $managedStore){
+                $storeOptions[$managedStore->id] = $managedStore->name;
+            }
+            ?>
+            <div class="portlet light bordered">
+                <div class="portlet-title">
+                    <div class="caption">
+                        <i class="fa fa-shopping-cart"></i>
+                        <span class="caption-subject">Store</span>
+                    </div>
+                </div>
+                <div class="portlet-body" id="store-selection-wrapper">
+                    <div class="form-group">
+                        <div class="col-md-12">
+                            {!! Form::select('store_id', $storeOptions, [$order->store_id?:ProjectHelper::getActiveStore()->id], ['class' => 'form-control']) !!}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @else
+            <?php
+            $onlyStore = array_shift(array_values($managedStores));
+            ?>
+            {!! Form::hidden('store_id', $order->store_id?$order->store_id:$onlyStore->id) !!}
+        @endif
+    </div>
+
+    <div class="col-md-3">
+        <div class="portlet light bordered">
+            <div class="portlet-title">
+                <div class="caption">
+                    <i class="fa fa-money"></i>
+                    <span class="caption-subject">Payment Method</span>
+                </div>
+            </div>
+            <div class="portlet-body" id="payment-method-wrapper">
+                <div class="form-group">
+                    <div class="col-md-12">
+                        <div class="radio-list">
+                            @foreach($paymentMethodOptions as $value=>$paymentMethodOption)
+                                <label>{!! Form::radio('payment_method', $value) !!} {{ $paymentMethodOption }}</label>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     @if(config('project.enable_delivery_date', FALSE))
         <div class="col-md-6">
             <div class="portlet light bordered" id="delivery-date-panel">
@@ -58,44 +111,6 @@
             </div>
         </div>
     @endif
-
-    <div class="col-md-3">
-        <div class="portlet light bordered">
-            <div class="portlet-title">
-                <div class="caption">
-                    <i class="fa fa-money"></i>
-                    <span class="caption-subject">Payment Method</span>
-                </div>
-            </div>
-            <div class="portlet-body" id="payment-method-wrapper">
-                <div class="form-group">
-                    <div class="col-md-12">
-                        <div class="radio-list">
-                            @foreach($paymentMethodOptions as $value=>$paymentMethodOption)
-                                <label>{!! Form::radio('payment_method', $value) !!} {{ $paymentMethodOption }}</label>
-                            @endforeach
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-3">
-        <div class="portlet light bordered">
-            <div class="portlet-title">
-                <div class="caption">
-                    <i class="fa fa-shopping-cart"></i>
-                    <span class="caption-subject">Store</span>
-                </div>
-            </div>
-            <div class="portlet-body" id="store-selection-wrapper">
-                <div class="form-group">
-                    {!! Form::hidden('store_id', $order->store_id?$order->store_id:ProjectHelper::getActiveStore()->id) !!}
-                </div>
-            </div>
-        </div>
-    </div>
 </div>
 
 <div class="row">

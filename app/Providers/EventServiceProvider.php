@@ -40,7 +40,7 @@ class EventServiceProvider extends ServiceProvider
             $this->listen['Kommercio\Events\StoreEvent'][] = 'Project\Project\Listeners\StoreListener';
         }
 
-        //Add package Order Event Listener
+        //Add package Order Update Event Listener
         if(file_exists(base_path('packages/project/src/Project/Listeners/OrderUpdateListener.php'))){
             $this->listen['Kommercio\Events\OrderUpdate'][] = 'Project\Project\Listeners\OrderUpdateListener';
         }

@@ -935,6 +935,12 @@ Route::group(['middleware' => ['web']], function () {
                         'uses' => 'OrderLimitController@delete',
                         'permissions' => ['delete_order_limit']
                     ]);
+
+                    Route::post('{type}/reorder', [
+                        'as' => 'backend.order_limit.reorder',
+                        'uses' => 'OrderLimitController@reorder',
+                        'permissions' => ['edit_order_limit']
+                    ]);
                 });
             });
 

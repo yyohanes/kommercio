@@ -1,5 +1,18 @@
 @extends('backend.master.layout')
 
+@section('top_page_styles')
+    <link href="{{ asset('backend/assets/template/global/plugins/datatables/datatables.min.css') }}" rel="stylesheet" type="text/css" />
+    <link href="{{ asset('backend/assets/template/global/plugins/datatables/plugins/bootstrap/datatables.bootstrap.css') }}" rel="stylesheet" type="text/css" />
+@stop
+
+@section('bottom_page_scripts')
+    <script src="{{ asset('backend/assets/template/global/scripts/datatable.js') }}" type="text/javascript"></script>
+    <script src="{{ asset('backend/assets/template/global/plugins/datatables/datatables.min.js') }}" type="text/javascript"></script>
+    <script src="{{ asset('backend/assets/template/global/plugins/datatables/plugins/bootstrap/datatables.bootstrap.js') }}" type="text/javascript"></script>
+
+    <script src="{{ asset('backend/assets/scripts/pages/table_reorder.js') }}" type="text/javascript"></script>
+@stop
+
 @section('breadcrumb')
     <li>
         <span>Sales</span>
@@ -27,11 +40,13 @@
             </div>
 
             <div class="portlet-body">
-                <table class="table table-striped table-bordered table-advance">
+                <table class="table table-striped table-bordered table-advance dataset-reorder" data-row_class="order_limit-row" data-row_value="order_limit_id"\ data-reorder_action="{{ route('backend.order_limit.reorder', ['type' => $type]) }}">
                     <thead>
                     <tr>
+                        <th></th>
                         <th>{{ \Kommercio\Models\Order\OrderLimit::getTypeOptions($type) }}</th>
                         <th>Limit</th>
+                        <th>Store</th>
                         <th>Type</th>
                         <th>Date From</th>
                         <th>Date To</th>
@@ -41,7 +56,12 @@
                     </thead>
                     <tbody>
                     @foreach($orderLimits as $orderLimit)
-                        <tr>
+                        <tr class="order_limit-row" data-order_limit_id="{{ $orderLimit->id }}">
+                            <td>
+                                @can('access', ['edit_order_limit'])
+                                <i class="fa fa-reorder"></i>
+                                @endcan
+                            </td>
                             <td>
                                 <ul>
                                     @foreach($orderLimit->getItems() as $item)
@@ -51,6 +71,13 @@
                             </td>
                             <td>
                                 {{ $orderLimit->limit+0 }}
+                            </td>
+                            <td>
+                                @if($orderLimit->store)
+                                    {{ $orderLimit->store->name }}
+                                @else
+                                    All Stores
+                                @endif
                             </td>
                             <td>
                                 {{ \Kommercio\Models\Order\OrderLimit::getLimitTypeOptions($orderLimit->limit_type) }}

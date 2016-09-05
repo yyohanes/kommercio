@@ -2,6 +2,7 @@
 
 namespace Kommercio\Http\Requests\Backend\Order;
 
+use Kommercio\Facades\ProjectHelper;
 use Kommercio\Http\Requests\Request;
 use Kommercio\Models\Order\OrderLimit;
 
@@ -49,6 +50,8 @@ class OrderLimitFormRequest extends Request
             'limit' => 'required|numeric|min:0',
             'date_from' => 'date_format:Y-m-d H:i',
             'date_to' => 'date_format:Y-m-d H:i',
+            'dayRules' => 'required',
+            'dayRules.*.days.*' => 'in:'.implode(',', array_keys(ProjectHelper::getDaysOptions()))
         ];
 
         return $rules;

@@ -2,16 +2,19 @@
 
 namespace Kommercio\Http\Controllers\Backend\Sales;
 
+use Illuminate\Http\Request;
+use Kommercio\Facades\ProjectHelper;
 use Kommercio\Http\Requests\Backend\Order\OrderLimitFormRequest;
 use Kommercio\Http\Controllers\Controller;
 use Kommercio\Models\Order\OrderLimit;
+use Kommercio\Models\Order\OrderLimitDayRule;
 use Kommercio\Models\Store;
 
 class OrderLimitController extends Controller
 {
     public function index($type)
     {
-        $qb = OrderLimit::where('type', $type)->orderBy('created_at', 'DESC');
+        $qb = OrderLimit::where('type', $type)->orderBy('sort_order', 'ASC');
 
         $orderLimits = $qb->get();
 
@@ -33,11 +36,14 @@ class OrderLimitController extends Controller
             $defaultItems[$itemObj->id] = $itemObj->getName();
         }
 
+        $dayRules = old('dayRules', [new OrderLimitDayRule()]);
+
         return view('backend.order.order_limits.create', [
             'orderLimit' => $orderLimit,
             'type' =>  $type,
             'defaultItems' => $defaultItems,
-            'storeOptions' => $storeOptions
+            'storeOptions' => $storeOptions,
+            'dayRules' => $dayRules
         ]);
     }
 
@@ -46,6 +52,20 @@ class OrderLimitController extends Controller
         $orderLimit = new OrderLimit();
         $orderLimit->fill($request->all());
         $orderLimit->save();
+
+        $days = array_keys(ProjectHelper::getDaysOptions());
+
+        foreach($request->input('dayRules') as $idx => $dayRuleData){
+            $dayRule = new OrderLimitDayRule();
+
+            $selectedDays = $request->input('dayRules.'.$idx.'.days');
+
+            foreach($days as $day){
+                $dayRule->setAttribute($day, in_array($day, $selectedDays));
+            }
+
+            $orderLimit->dayRules()->save($dayRule);
+        }
 
         $orderLimit->getItemRelation()->sync($request->input('items'));
 
@@ -57,16 +77,33 @@ class OrderLimitController extends Controller
         $storeOptions = ['' => 'All Stores'] + Store::getStoreOptions();
         $orderLimit = OrderLimit::findOrFail($id);
 
+        $type = $orderLimit->type;
+
         $defaultItems = [];
         foreach(old('items', $orderLimit->getItems()) as $item){
-            $defaultItems[$item->id] = $item->getName();
+            $class = $this->getTypeClass($type);
+
+            if(!is_object($item)){
+                $itemObj = $class::findOrFail($item);
+            }else{
+                $itemObj = $item;
+            }
+
+            $defaultItems[$itemObj->id] = $itemObj->getName();
+        }
+
+        $dayRules = old('dayRules', $orderLimit->dayRules->all());
+
+        if(count($dayRules) < 1){
+            $dayRules = [new OrderLimitDayRule()];
         }
 
         return view('backend.order.order_limits.edit', [
             'orderLimit' => $orderLimit,
             'type' =>  $orderLimit->type,
             'defaultItems' => $defaultItems,
-            'storeOptions' => $storeOptions
+            'storeOptions' => $storeOptions,
+            'dayRules' => $dayRules
         ]);
     }
 
@@ -75,6 +112,19 @@ class OrderLimitController extends Controller
         $orderLimit = OrderLimit::findOrFail($id);
         $orderLimit->fill($request->all());
         $orderLimit->save();
+
+        $days = array_keys(ProjectHelper::getDaysOptions());
+
+        foreach($request->input('dayRules') as $idx => $dayRuleData){
+            $selectedDays = $request->input('dayRules.'.$idx.'.days');
+
+            $dayRule = $orderLimit->dayRules->get($idx)?$orderLimit->dayRules->get($idx):new OrderLimitDayRule(['order_limit_id' => $orderLimit->id]);
+            foreach($days as $day){
+                $dayRule->setAttribute($day, in_array($day, $selectedDays));
+            }
+
+            $dayRule->save();
+        }
 
         $orderLimit->getItemRelation()->sync($request->input('items'));
 
@@ -89,6 +139,24 @@ class OrderLimitController extends Controller
 
 
         return redirect()->back()->with('success', [OrderLimit::getTypeOptions($orderLimit->type).' Order Limit has successfully been deleted.']);
+    }
+
+    public function reorder(Request $request, $type)
+    {
+        foreach($request->input('objects') as $idx=>$object){
+            $category = OrderLimit::findOrFail($object);
+            $category->update([
+                'sort_order' => $idx
+            ]);
+        }
+
+        if($request->ajax()){
+            return response()->json([
+                'result' => 'success',
+            ]);
+        }else{
+            return redirect()->route('backend.order_limit.index', ['type' => $type]);
+        }
     }
 
     protected function getTypeClass($type)

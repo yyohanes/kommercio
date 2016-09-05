@@ -665,10 +665,9 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
         $date = isset($options['date'])?Carbon::createFromFormat('Y-m-d', $options['date']):null;
 
         //Per Order Limit
-        $orderLimitsQb = $this->getOrderLimitQb(OrderLimit::LIMIT_PER_ORDER, $date, $store);
-        $orderLimits = $orderLimitsQb->get();
+        $orderLimits = $this->getOrderLimits(OrderLimit::LIMIT_PER_ORDER, $date, $store);
 
-        $orderLimit = ($orderLimits->count() > 0)?$this->extractOrderLimit($orderLimits)->limit:null;
+        $orderLimit = (count($orderLimits) > 0)?$this->extractOrderLimit($orderLimits)->limit:null;
 
         return $orderLimit;
     }
@@ -683,19 +682,17 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
 
         if($deliveryDate){
             //Delivery Limit
-            $deliveryOrderLimitsQb = $this->getOrderLimitQb(OrderLimit::LIMIT_DELIVERY_DATE, $deliveryDate, $store);
-            $deliveryOrderLimits = $deliveryOrderLimitsQb->get();
+            $deliveryOrderLimits = $this->getOrderLimits(OrderLimit::LIMIT_DELIVERY_DATE, $deliveryDate, $store);
 
-            $deliveryOrderLimit = ($deliveryOrderLimits->count() > 0)?$this->extractOrderLimit($deliveryOrderLimits)->limit:null;
+            $deliveryOrderLimit = (count($deliveryOrderLimits) > 0)?$this->extractOrderLimit($deliveryOrderLimits)->limit:null;
         }
 
         //Order Total Limit
         $totalOrderLimit = null;
         if($date){
-            $totalOrderLimitsQb = $this->getOrderLimitQb(OrderLimit::LIMIT_ORDER_DATE, $date, $store);
-            $totalOrderLimits = $totalOrderLimitsQb->get();
+            $totalOrderLimits = $this->getOrderLimits(OrderLimit::LIMIT_ORDER_DATE, $date, $store);
 
-            $totalOrderLimit = ($totalOrderLimits->count() > 0)?$this->extractOrderLimit($totalOrderLimits)->limit:null;
+            $totalOrderLimit = (count($totalOrderLimits) > 0)?$this->extractOrderLimit($totalOrderLimits)->limit:null;
         }
 
         $orderLimits = [
@@ -756,7 +753,7 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
                     'delivery_date' => $dayToRun->format($format)
                 ]);
 
-                if(is_array($dayOrderLimit) && $dayOrderCount + $quantity > $dayOrderLimit['limit']){
+                if(is_array($dayOrderLimit) && ($dayOrderLimit['limit'] == 0 || $dayOrderCount + $quantity > $dayOrderLimit['limit'])){
                     $disabledDates[] = $dayToRun->format($format);
                 }
 
@@ -820,10 +817,10 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
         }
     }
 
-    protected function getOrderLimitQb($limit_type, $date, $store)
+    protected function getOrderLimits($limit_type, $date, $store)
     {
         $qb = OrderLimit::active()
-            ->orderBy('created_at', 'ASC')
+            ->orderBy('sort_order', 'ASC')
             ->whereLimitType($limit_type)
             ->where(function($qb){
                 $qb->whereHas('products', function($qb){
@@ -841,10 +838,19 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
         if($date){
             $qb->withinDate($date);
         }else{
+            $date = Carbon::now();
             $qb->allDays();
         }
 
-        return $qb;
+        $orderLimits = [];
+
+        foreach($qb->get() as $orderLimit){
+            if($orderLimit->dayRulesPassed($date)){
+                $orderLimits[] = $orderLimit;
+            }
+        }
+
+        return $orderLimits;
     }
 
     public function getMetaImage()

@@ -87,6 +87,21 @@ class ProjectHelper
         return $activeStore?:$this->getDefaultStore();
     }
 
+    public function getDaysOptions()
+    {
+        $days = [
+            'monday' => 'Monday',
+            'tuesday' => 'Tuesday',
+            'wednesday' => 'Wednesday',
+            'thursday' => 'Thursday',
+            'friday' => 'Friday',
+            'saturday' => 'Saturday',
+            'sunday' => 'Sunday',
+        ];
+
+        return $days;
+    }
+
     public function findViewTemplate($templates = [])
     {
         foreach($templates as $template){
