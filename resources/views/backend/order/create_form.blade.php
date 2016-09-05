@@ -80,6 +80,22 @@
             </div>
         </div>
     </div>
+
+    <div class="col-md-3">
+        <div class="portlet light bordered">
+            <div class="portlet-title">
+                <div class="caption">
+                    <i class="fa fa-shopping-cart"></i>
+                    <span class="caption-subject">Store</span>
+                </div>
+            </div>
+            <div class="portlet-body" id="store-selection-wrapper">
+                <div class="form-group">
+                    {!! Form::hidden('store_id', $order->store_id?$order->store_id:ProjectHelper::getActiveStore()->id) !!}
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <div class="row">
@@ -231,7 +247,6 @@
     </div>
 </div>
 
-{!! Form::hidden('store_id', $order->store_id?$order->store_id:ProjectHelper::getActiveStore()->id) !!}
 {!! Form::hidden('currency', CurrencyHelper::getCurrentCurrency()['code']) !!}
 {!! Form::hidden('backUrl', Request::input('backUrl')) !!}
 
