@@ -152,6 +152,18 @@ $permissions = [
         'edit_banner_group' => 'Edit Banner Group',
         'delete_banner_group' => 'Delete Banner Group',
     ],
+    'Post' => [
+        'view_post' => 'View Post',
+        'create_post' => 'Create Post',
+        'edit_post' => 'Edit Post',
+        'delete_post' => 'Delete Post',
+    ],
+    'Post Categories' => [
+        'view_post_category' => 'View Post Category',
+        'create_post_category' => 'Create Post Category',
+        'edit_post_category' => 'Edit Post Category',
+        'delete_post_category' => 'Delete Post Category',
+    ],
     'Menus' => [
         'view_menu' => 'View Menu',
         'create_menu' => 'Create Menu',

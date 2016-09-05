@@ -25,6 +25,7 @@ class CronListener
             '\Kommercio\Models\PriceRule\CartPriceRule',
             '\Kommercio\Models\CMS\MenuItem',
             '\Kommercio\Models\CMS\Page',
+            '\Kommercio\Models\CMS\Post',
             '\Kommercio\Models\CMS\Banner',
             '\Kommercio\Models\CMS\Block',
         ];
