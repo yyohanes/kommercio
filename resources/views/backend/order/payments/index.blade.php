@@ -11,7 +11,7 @@
         <td>
             <ul class="list-group">
                 <li class="list-group-item">
-                    Payment entered by {{ $payment->createdBy?$payment->createdBy->fullName:'Customer' }}<br/>
+                    Payment entered by {{ $payment->createdBy?$payment->createdBy->email:'Customer' }}<br/>
                     @if($payment->notes)
                     Notes:<br/>{!! nl2br($payment->notes) !!}
                     @endif
