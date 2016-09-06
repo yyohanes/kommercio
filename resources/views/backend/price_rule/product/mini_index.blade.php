@@ -15,6 +15,9 @@
         </thead>
         <tbody>
         @foreach($priceRules as $priceRule)
+            <?php
+            $canStoreManage = Gate::allows('manage_store', [$priceRule]);
+            ?>
             <tr>
                 <td> {{ $priceRule->name?$priceRule->name:'-' }} </td>
                 <td> {{ $priceRule->variation?$priceRule->variation->name:'-' }} </td>
@@ -26,7 +29,11 @@
                 <td> <i class="fa {{ $priceRule->is_discount?'fa-check text-success':'fa-remove text-danger' }}"></i> </td>
                 <td style="width: 20%;">
                     <div class="btn-group btn-group-sm">
+                        @if(Gate::allows('access', ['edit_product_price_rule']) && $canStoreManage)
                         <a class="price-rule-edit-btn btn btn-default" href="#" data-price_rule_edit="{{ route('backend.price_rule.product.mini_form', ['id' => $priceRule->id, 'product_id' => $priceRule->product_id]) }}"><i class="fa fa-pencil"></i> Edit</a>
+                        @endif
+
+                        @if(Gate::allows('access', ['delete_product_price_rule']) && $canStoreManage)
                         <button class="btn btn-default"
                                 data-price_rule_delete="{{ route('backend.price_rule.product.delete', ['id' => $priceRule->id]) }}"
                                 data-toggle="confirmation"
@@ -34,6 +41,7 @@
                                 data-on-confirm="ProductFormPrice.deletePriceRule"
                                 title>
                             <i class="fa fa-trash-o"></i> Delete</button>
+                        @endif
                     </div>
                 </td>
             </tr>

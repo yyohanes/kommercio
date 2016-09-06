@@ -56,6 +56,9 @@
                     </thead>
                     <tbody>
                     @foreach($orderLimits as $orderLimit)
+                        <?php
+                        $canStoreManage = Gate::allows('manage_store', [$orderLimit]);
+                        ?>
                         <tr class="order_limit-row" data-order_limit_id="{{ $orderLimit->id }}">
                             <td>
                                 @can('access', ['edit_order_limit'])
@@ -92,13 +95,13 @@
                             <td class="text-center">
                                 {!! Form::open(['route' => ['backend.order_limit.delete', 'id' => $orderLimit->id]]) !!}
                                 <div class="btn-group btn-group-sm">
-                                    @can('access', ['edit_order_limit'])
+                                    @if(Gate::allows('access', ['edit_order_limit']) && $canStoreManage)
                                     <a class="btn btn-default" href="{{ route('backend.order_limit.edit', ['id' => $orderLimit->id, 'backUrl' => Request::fullUrl()]) }}"><i class="fa fa-pencil"></i> Edit</a>
-                                    @endcan
+                                    @endif
 
-                                    @can('access', ['delete_order_limit'])
+                                    @if(Gate::allows('access', ['delete_order_limit']) && $canStoreManage)
                                     <button class="btn btn-default" data-toggle="confirmation" data-original-title="Are you sure?" title=""><i class="fa fa-trash-o"></i> Delete</button>
-                                    @endcan
+                                    @endif
                                 </div>
                                 {!! Form::close() !!}
                             </td>

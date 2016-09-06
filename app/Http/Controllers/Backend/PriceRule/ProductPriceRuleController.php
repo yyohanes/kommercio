@@ -2,6 +2,7 @@
 
 namespace Kommercio\Http\Controllers\Backend\PriceRule;
 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 use Kommercio\Facades\CurrencyHelper;
 use Kommercio\Http\Controllers\Controller;
@@ -17,6 +18,8 @@ class ProductPriceRuleController extends Controller
     public function mini_index(Request $request, $product_id)
     {
         $qb = PriceRule::where('product_id', $product_id)->orderBy('created_at', 'DESC');
+
+        $qb->whereNull('store_id')->orWhereIn('store_id', Auth::user()->getManagedStores()->pluck('id')->all());
 
         $priceRules = $qb->get();
 
@@ -51,7 +54,8 @@ class ProductPriceRuleController extends Controller
 
         $currencyOptions = ['' => 'All Currencies'] + CurrencyHelper::getCurrencyOptions();
 
-        $storeOptions = ['' => 'All Stores'] + Store::getStoreOptions();
+        $storeOptions = Auth::user()->manageAllStores?['' => 'All Stores']:[];
+        $storeOptions += Store::getStoreOptions();
 
         $variationOptions = ['' => 'All Variations'] + $product->variations->pluck('name', 'id')->all();
 
@@ -74,6 +78,7 @@ class ProductPriceRuleController extends Controller
 
     public function mini_save(PriceRuleFormRequest $request, $product_id, $id=null)
     {
+        $user = Auth::user();
         $product = Product::findOrFail($product_id);
         $new = FALSE;
         $priceRule = null;
@@ -84,6 +89,10 @@ class ProductPriceRuleController extends Controller
             $new = TRUE;
         }else{
             $priceRule = PriceRule::findOrFail($id);
+
+            if(!$user->can('manage_store', [$priceRule])){
+                abort(401);
+            }
         }
 
         $priceRule->fill($request->input('price_rule'));
@@ -105,6 +114,9 @@ class ProductPriceRuleController extends Controller
     public function index()
     {
         $qb = PriceRule::notProductSpecific()->orderBy('sort_order', 'ASC');
+
+        $qb->whereNull('store_id')->orWhereIn('store_id', Auth::user()->getManagedStores()->pluck('id')->all());
+
         $priceRules = $qb->get();
 
         return view('backend.price_rule.product.index', [
@@ -119,7 +131,8 @@ class ProductPriceRuleController extends Controller
 
         $currencyOptions = ['' => 'All Currencies'] + CurrencyHelper::getCurrencyOptions();
 
-        $storeOptions = ['' => 'All Stores'] + Store::getStoreOptions();
+        $storeOptions = Auth::user()->manageAllStores?['' => 'All Stores']:[];
+        $storeOptions += Store::getStoreOptions();
 
         $reductionTypeOptions = PriceRule::getModificationTypeOptions();
 
@@ -148,7 +161,8 @@ class ProductPriceRuleController extends Controller
 
         $currencyOptions = ['' => 'All Currencies'] + CurrencyHelper::getCurrencyOptions();
 
-        $storeOptions = ['' => 'All Stores'] + Store::getStoreOptions();
+        $storeOptions = Auth::user()->manageAllStores?['' => 'All Stores']:[];
+        $storeOptions += Store::getStoreOptions();
 
         $reductionTypeOptions = PriceRule::getModificationTypeOptions();
 
@@ -181,7 +195,14 @@ class ProductPriceRuleController extends Controller
 
     public function update(PriceRuleFormRequest $request, $id)
     {
+        $user = Auth::user();
+
         $priceRule = PriceRule::with('priceRuleOptionGroups')->findOrFail($id);
+
+        if(!$user->can('manage_store', [$priceRule])){
+            abort(401);
+        }
+
         $priceRule->fill($request->input('price_rule'));
         $priceRule->save();
 
@@ -192,7 +213,13 @@ class ProductPriceRuleController extends Controller
 
     public function delete(Request $request, $id)
     {
+        $user = Auth::user();
+
         $priceRule = PriceRule::findOrFail($id);
+
+        if(!$user->can('manage_store', [$priceRule])){
+            abort(401);
+        }
 
         $priceRule->delete();
 

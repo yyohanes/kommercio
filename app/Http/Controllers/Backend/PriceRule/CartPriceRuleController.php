@@ -2,6 +2,7 @@
 
 namespace Kommercio\Http\Controllers\Backend\PriceRule;
 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 use Kommercio\Facades\CurrencyHelper;
 use Kommercio\Http\Controllers\Controller;
@@ -20,6 +21,9 @@ class CartPriceRuleController extends Controller
     public function index()
     {
         $qb = CartPriceRule::orderBy('sort_order', 'ASC');
+
+        $qb->whereNull('store_id')->orWhereIn('store_id', Auth::user()->getManagedStores()->pluck('id')->all());
+
         $priceRules = $qb->get();
 
         return view('backend.price_rule.cart.index', [
@@ -34,7 +38,8 @@ class CartPriceRuleController extends Controller
 
         $currencyOptions = ['' => 'All Currencies'] + CurrencyHelper::getCurrencyOptions();
 
-        $storeOptions = ['' => 'All Stores'] + Store::getStoreOptions();
+        $storeOptions = Auth::user()->manageAllStores?['' => 'All Stores']:[];
+        $storeOptions += Store::getStoreOptions();
 
         $reductionTypeOptions = CartPriceRule::getModificationTypeOptions();
 
@@ -90,11 +95,18 @@ class CartPriceRuleController extends Controller
 
     public function edit($id)
     {
+        $user = Auth::user();
+
         $priceRule = CartPriceRule::findOrFail($id);
+
+        if(!$user->can('manage_store', [$priceRule])){
+            abort(401);
+        }
 
         $currencyOptions = ['' => 'All Currencies'] + CurrencyHelper::getCurrencyOptions();
 
-        $storeOptions = ['' => 'All Stores'] + Store::getStoreOptions();
+        $storeOptions = $user->manageAllStores?['' => 'All Stores']:[];
+        $storeOptions += Store::getStoreOptions();
 
         $reductionTypeOptions = CartPriceRule::getModificationTypeOptions();
 
@@ -142,7 +154,14 @@ class CartPriceRuleController extends Controller
 
     public function update(CartPriceRuleFormRequest $request, $id)
     {
+        $user = Auth::user();
+
         $priceRule = CartPriceRule::findOrFail($id);
+
+        if(!$user->can('manage_store', [$priceRule])){
+            abort(401);
+        }
+
         $priceRule->fill($request->all());
 
         if($request->has('customer')){
@@ -165,7 +184,13 @@ class CartPriceRuleController extends Controller
 
     public function delete(Request $request, $id)
     {
+        $user = Auth::user();
+
         $priceRule = CartPriceRule::findOrFail($id);
+
+        if(!$user->can('manage_store', [$priceRule])){
+            abort(401);
+        }
 
         if(!$this->deleteable($priceRule->id)){
             return redirect()->back()->withErrors(['Can\'t delete this product. It is used in settled Orders.']);

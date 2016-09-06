@@ -50,7 +50,7 @@
                 <div class="portlet-body" id="store-selection-wrapper">
                     <div class="form-group">
                         <div class="col-md-12">
-                            {!! Form::select('store_id', $storeOptions, [$order->store_id?:ProjectHelper::getActiveStore()->id], ['class' => 'form-control']) !!}
+                            {!! Form::select('store_id', $storeOptions, [$order->store_id?:ProjectHelper::getActiveStore()->id], ['id' => 'store-option', 'class' => 'form-control']) !!}
                         </div>
                     </div>
                 </div>

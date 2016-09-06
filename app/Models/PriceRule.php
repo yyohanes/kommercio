@@ -4,9 +4,10 @@ namespace Kommercio\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Kommercio\Facades\PriceFormatter;
+use Kommercio\Models\Interfaces\StoreManagedInterface;
 use Kommercio\Traits\Model\ToggleDate;
 
-class PriceRule extends Model
+class PriceRule extends Model implements StoreManagedInterface
 {
     use ToggleDate;
 
@@ -120,6 +121,15 @@ class PriceRule extends Model
         }else{
             return ($this->modification+0).'%';
         }
+    }
+
+    public function checkStorePermissionByUser(User $user)
+    {
+        if($user->manageAllStores){
+            return true;
+        }
+
+        return $this->store_id && in_array($this->store_id, $user->getManagedStores()->pluck('id')->all());
     }
 
     //Statics

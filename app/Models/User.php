@@ -24,6 +24,7 @@ class User extends Authenticatable
 
     protected $profileKeys = ['profile'];
 
+    private $_manage_all_stores;
     private $_manage_multiple_stores;
     private $_managed_stores;
 
@@ -89,6 +90,16 @@ class User extends Authenticatable
         }
 
         return $this->_manage_multiple_stores;
+    }
+
+    public function getManageAllStoresAttribute()
+    {
+        if(!isset($this->_manage_all_stores)){
+            $storeCount = Store::count();
+            $this->_manage_all_stores = $this->getManagedStores()->count() >= $storeCount;
+        }
+
+        return $this->_manage_all_stores;
     }
 
     //Scopes

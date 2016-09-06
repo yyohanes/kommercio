@@ -4,9 +4,11 @@ namespace Kommercio\Models\Order;
 
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
+use Kommercio\Models\Interfaces\StoreManagedInterface;
 use Kommercio\Models\Product;
+use Kommercio\Models\User;
 
-class OrderLimit extends Model
+class OrderLimit extends Model implements StoreManagedInterface
 {
     const TYPE_PRODUCT = 'product';
     const TYPE_PRODUCT_CATEGORY = 'product_category';
@@ -46,6 +48,15 @@ class OrderLimit extends Model
         }
 
         return $valid;
+    }
+
+    public function checkStorePermissionByUser(User $user)
+    {
+        if($user->manageAllStores){
+            return true;
+        }
+
+        return $this->store_id && in_array($this->store_id, $user->getManagedStores()->pluck('id')->all());
     }
 
     //Scopes

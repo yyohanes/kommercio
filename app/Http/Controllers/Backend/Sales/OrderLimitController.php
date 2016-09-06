@@ -3,6 +3,7 @@
 namespace Kommercio\Http\Controllers\Backend\Sales;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Kommercio\Facades\ProjectHelper;
 use Kommercio\Http\Requests\Backend\Order\OrderLimitFormRequest;
 use Kommercio\Http\Controllers\Controller;
@@ -16,6 +17,8 @@ class OrderLimitController extends Controller
     {
         $qb = OrderLimit::where('type', $type)->orderBy('sort_order', 'ASC');
 
+        $qb->whereNull('store_id')->orWhereIn('store_id', Auth::user()->getManagedStores()->pluck('id')->all());
+
         $orderLimits = $qb->get();
 
         return view('backend.order.order_limits.index', [
@@ -26,7 +29,9 @@ class OrderLimitController extends Controller
 
     public function create($type)
     {
-        $storeOptions = ['' => 'All Stores'] + Store::getStoreOptions();
+        $storeOptions = Auth::user()->manageAllStores?['' => 'All Stores']:[];
+        $storeOptions += Store::getStoreOptions();
+
         $orderLimit = new OrderLimit();
 
         $defaultItems = [];
@@ -74,8 +79,16 @@ class OrderLimitController extends Controller
 
     public function edit($id)
     {
-        $storeOptions = ['' => 'All Stores'] + Store::getStoreOptions();
+        $user = Auth::user();
+
+        $storeOptions = $user->manageAllStores?['' => 'All Stores']:[];
+        $storeOptions += Store::getStoreOptions();
+
         $orderLimit = OrderLimit::findOrFail($id);
+
+        if(!$user->can('manage_store', [$orderLimit])){
+            abort(401);
+        }
 
         $type = $orderLimit->type;
 
@@ -109,7 +122,14 @@ class OrderLimitController extends Controller
 
     public function update(OrderLimitFormRequest $request, $id)
     {
+        $user = Auth::user();
+
         $orderLimit = OrderLimit::findOrFail($id);
+
+        if(!$user->can('manage_store', [$orderLimit])){
+            abort(401);
+        }
+
         $orderLimit->fill($request->all());
         $orderLimit->save();
 
@@ -133,7 +153,14 @@ class OrderLimitController extends Controller
 
     public function delete($id)
     {
+        $user = Auth::user();
+
         $orderLimit = OrderLimit::findOrFail($id);
+
+        if(!$user->can('manage_store', [$orderLimit])){
+            abort(401);
+        }
+
         $orderLimit->getItemRelation()->detach();
         $orderLimit->delete();
 

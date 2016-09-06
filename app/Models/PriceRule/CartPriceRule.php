@@ -7,11 +7,13 @@ use Kommercio\Facades\LanguageHelper;
 use Kommercio\Facades\OrderHelper;
 use Kommercio\Facades\PriceFormatter;
 use Kommercio\Models\Customer;
+use Kommercio\Models\Interfaces\StoreManagedInterface;
 use Kommercio\Models\Order\Order;
 use Kommercio\Models\Product;
+use Kommercio\Models\User;
 use Kommercio\Traits\Model\ToggleDate;
 
-class CartPriceRule extends Model
+class CartPriceRule extends Model implements StoreManagedInterface
 {
     use ToggleDate;
 
@@ -181,6 +183,15 @@ class CartPriceRule extends Model
         }
 
         return $optionGroupProducts;
+    }
+
+    public function checkStorePermissionByUser(User $user)
+    {
+        if($user->manageAllStores){
+            return true;
+        }
+
+        return $this->store_id && in_array($this->store_id, $user->getManagedStores()->pluck('id')->all());
     }
 
     //Accessors

@@ -60,6 +60,9 @@
                     </thead>
                     <tbody>
                     @foreach($priceRules as $priceRule)
+                        <?php
+                        $canStoreManage = Gate::allows('manage_store', [$priceRule]);
+                        ?>
                         <tr>
                             <td><i class="fa fa-reorder"></i></td>
                             <td class="price-rule-name" data-price_rule_id="{{ $priceRule->id }}">{{ $priceRule->name?$priceRule->name:'-' }}</td>
@@ -74,12 +77,12 @@
                                 <div class="btn-group btn-group-sm">
                                     {!! Form::open(['route' => ['backend.price_rule.cart.delete', 'id' => $priceRule->id]]) !!}
                                     <div class="btn-group btn-group-sm">
-                                        @can('access', ['edit_cart_price_rule'])
+                                        @if(Gate::allows('access', ['edit_cart_price_rule']) && $canStoreManage)
                                         <a class="btn btn-default" href="{{ route('backend.price_rule.cart.edit', ['id' => $priceRule->id, 'backUrl' => Request::fullUrl()]) }}"><i class="fa fa-pencil"></i> Edit</a>
-                                        @endcan
-                                        @can('access', ['delete_cart_price_rule'])
+                                        @endif
+                                        @if(Gate::allows('access', ['delete_cart_price_rule']) && $canStoreManage)
                                         <button class="btn btn-default" data-toggle="confirmation" data-original-title="Are you sure?" title=""><i class="fa fa-trash-o"></i> Delete</button>
-                                        @endcan
+                                        @endif
                                     </div>
                                     {!! Form::close() !!}
                                 </div>

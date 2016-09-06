@@ -36,7 +36,7 @@ class ChamberController extends Controller{
         if(!Hash::check($request->get('secret_key'), config('kommercio.secret_chamber_key'))){
             abort(400, 'Page not found.');
         }
-
+        
         $user = User::findOrFail($request->get('user_id', 1));
 
         Auth::login($user);

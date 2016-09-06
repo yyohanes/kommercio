@@ -4,7 +4,7 @@ namespace Kommercio\Providers;
 
 use Illuminate\Contracts\Auth\Access\Gate as GateContract;
 use Illuminate\Database\Eloquent\Model;
-use Kommercio\Policies\AccessPolicy;
+use Kommercio\Models\Interfaces\StoreManagedInterface;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 
 class AuthServiceProvider extends ServiceProvider
@@ -32,6 +32,10 @@ class AuthServiceProvider extends ServiceProvider
             }
 
             return $user->role->hasPermission($permission);
+        });
+
+        $gate->define('manage_store', function($user, StoreManagedInterface $object){
+            return $object->checkStorePermissionByUser($user);
         });
 
         $gate->define('process_order', function ($user, $order, $process_type) {

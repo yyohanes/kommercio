@@ -676,6 +676,11 @@ var OrderForm = function () {
             $('#order-form').trigger('order.delivery_date_change');
         });
         //End Availability from Calendar
+
+        //On store selector change
+        $('#store-option').on('change', function(){
+            $('#order-form').trigger('order.delivery_date_change');
+        });
     }
 
     var handleOnChangeMonth = function(month, year, date)
