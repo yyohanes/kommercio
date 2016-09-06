@@ -83,7 +83,9 @@
                         <a href="javascript:;" class="dropdown-toggle" data-toggle="dropdown" data-hover="dropdown" data-close-others="true">
                             <i class="fa fa-home"></i>
                             <span class="username"> {{ $activeStore->name }} </span>
+                            @if($otherStores)
                             <i class="fa fa-angle-down"></i>
+                            @endif
                         </a>
                         @if($otherStores)
                         <ul class="dropdown-menu dropdown-menu-default">
