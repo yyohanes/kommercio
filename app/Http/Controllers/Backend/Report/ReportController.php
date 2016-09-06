@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Kommercio\Facades\ProjectHelper;
 use Kommercio\Http\Requests;
@@ -21,7 +22,9 @@ class ReportController extends Controller
     public function salesYear(Request $request)
     {
         $orderStatusOptions = Order::getStatusOptions();
-        $storeOptions = Store::getStoreOptions(false, true);
+
+        $storeOptions = Auth::user()->manageAllStores?['' => 'All Stores']:[];
+        $storeOptions += Store::getStoreOptions();
 
         $ordersByYear = Order::checkout()->selectRaw("DATE_FORMAT(checkout_at, '%Y') AS order_year")->whereNotNull('checkout_at')->groupBy('order_year')->pluck('order_year', 'order_year')->toArray();
         $yearOptions = $ordersByYear ?: [Carbon::now()->format('Y')];
@@ -81,7 +84,9 @@ class ReportController extends Controller
         $now = Carbon::now();
 
         $orderStatusOptions = Order::getStatusOptions();
-        $storeOptions = Store::getStoreOptions(false, true);
+
+        $storeOptions = Auth::user()->manageAllStores?['' => 'All Stores']:[];
+        $storeOptions += Store::getStoreOptions();
 
         $dateTypeOptions = ['checkout_at' => 'Order Date'];
         if (config('project.enable_delivery_date', false)) {
@@ -137,7 +142,9 @@ class ReportController extends Controller
         $date->modify('+1 day');
 
         $orderStatusOptions = Order::getStatusOptions();
-        $storeOptions = Store::getStoreOptions(false, true);
+
+        $storeOptions = Auth::user()->manageAllStores?['' => 'All Stores']:[];
+        $storeOptions += Store::getStoreOptions();
 
         $shippingMethods = ShippingMethod::getAvailableMethods();
         foreach($shippingMethods as $shippingMethodIdx=>$shippingMethod)
@@ -245,7 +252,9 @@ class ReportController extends Controller
         $date->modify('+1 day');
 
         $orderStatusOptions = Order::getStatusOptions();
-        $storeOptions = Store::getStoreOptions(false, true);
+
+        $storeOptions = Auth::user()->manageAllStores?['' => 'All Stores']:[];
+        $storeOptions += Store::getStoreOptions();
 
         $shippingMethods = ShippingMethod::getAvailableMethods();
 
