@@ -37,6 +37,11 @@ class ProductDetail extends Model implements AuthorSignatureInterface
         return $this->belongsTo('Kommercio\Models\Product');
     }
 
+    public function store()
+    {
+        return $this->belongsTo('Kommercio\Models\Store');
+    }
+
     //Statics
     public static function getVisibilityOptions($option=null)
     {

@@ -135,6 +135,21 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
     }
 
     //Methods
+    public function getStoreProductDetailOrNew($store_id)
+    {
+        $productDetail = $this->productDetails->where('store_id', $store_id)->first();
+
+        if(!$productDetail){
+            $productDetail = new ProductDetail([
+                'store_id' => $store_id,
+            ]);
+
+            $productDetail->product()->associate($this);
+        }
+
+        return $productDetail;
+    }
+
     public function getExternalPath()
     {
         if($this->isVariation){
@@ -882,6 +897,16 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
     {
         if(!$this->_store){
             $this->_store = ProjectHelper::getActiveStore();
+
+            //Check if has productDetail with this store. Otherwise, get default
+            if(!$this->productDetails()->where('store_id', $this->_store->id)->count()){
+                $this->_store = ProjectHelper::getDefaultStore();
+
+                //Another check if has productDetail with default store. Otherwise, get available
+                if(!$this->productDetails()->where('store_id', $this->_store->id)->count()){
+                    $this->_store = $this->productDetails->get(0)->store;
+                }
+            }
         }
 
         return $this->_store;

@@ -312,7 +312,7 @@
                     </div>
                 </div>
 
-                {!! Form::hidden('store_id', ProjectHelper::getActiveStore()->id) !!}
+                {!! Form::hidden('store_id', $store->id) !!}
             </div>
         </div>
 

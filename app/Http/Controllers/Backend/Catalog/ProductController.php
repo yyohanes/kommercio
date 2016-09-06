@@ -64,6 +64,8 @@ class ProductController extends Controller{
                 $qb->orderBy($orderColumn['name'], $order['dir']);
             }
 
+            $qb->orderBy('products.created_at', 'DESC');
+
             if($request->has('length')){
                 $qb->take($request->input('length'));
             }
@@ -274,15 +276,9 @@ class ProductController extends Controller{
         }
         $product->getTranslation()->syncMedia($thumbnails, 'thumbnail');
 
-        $productDetail = $product->productDetail;
-
-        if(!$productDetail){
-            $productDetail = new ProductDetail();
-            $productDetail->product()->associate($product);
-        }
+        $productDetail = $product->getStoreProductDetailOrNew($request->input('store_id'));
 
         $productDetail->fill($request->input('productDetail'));
-        $productDetail->store_id = $request->input('store_id');
 
         $productDetail->save();
 

@@ -57,7 +57,7 @@
             </div>
         @else
             <?php
-            $onlyStore = array_shift(array_values($managedStores));
+            $onlyStore = $managedStores->get(0);
             ?>
             {!! Form::hidden('store_id', $order->store_id?$order->store_id:$onlyStore->id) !!}
         @endif
