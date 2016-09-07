@@ -205,7 +205,7 @@ class OrderController extends Controller
 
         $view_name = ProjectHelper::getViewTemplate('frontend.order.checkout');
 
-        $paymentMethodOptions = $this->getPaymentMethodOptions($request);
+        $paymentMethodOptions = $this->getPaymentMethodOptions($request, $order);
 
         $shippingMethodOptions = $this->getShippingMethodOptions($request, $order);
 
@@ -400,7 +400,7 @@ class OrderController extends Controller
             $canRegister = TRUE;
         }
 
-        $paymentMethodOptions = $this->getPaymentMethodOptions($request);
+        $paymentMethodOptions = $this->getPaymentMethodOptions($request, $order);
         $shippingMethodOptions = $this->getShippingMethodOptions($request, $order);
 
         $oldValues = old();
@@ -954,7 +954,7 @@ class OrderController extends Controller
                 ];
                 break;
             case 'payment_method':
-                $paymentMethodOptions = $this->getPaymentMethodOptions($request);
+                $paymentMethodOptions = $this->getPaymentMethodOptions($request, $order);
 
                 $viewData += $paymentMethodOptions;
 
@@ -1057,10 +1057,11 @@ class OrderController extends Controller
         ];
     }
 
-    protected function getPaymentMethodOptions(Request $request)
+    protected function getPaymentMethodOptions(Request $request, $order)
     {
         $paymentMethods = PaymentMethod::getPaymentMethods([
-            'frontend' => true
+            'frontend' => true,
+            'order' => $order,
         ]);
 
         $paymentMethodOptions = [];
