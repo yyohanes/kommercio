@@ -23,7 +23,7 @@ class ReportController extends Controller
     {
         $orderStatusOptions = Order::getStatusOptions();
 
-        $storeOptions = Auth::user()->manageAllStores?['' => 'All Stores']:[];
+        $storeOptions = Auth::user()->manageAllStores?['all' => 'All Stores']:[];
         $storeOptions += Store::getStoreOptions();
 
         $ordersByYear = Order::checkout()->selectRaw("DATE_FORMAT(checkout_at, '%Y') AS order_year")->whereNotNull('checkout_at')->groupBy('order_year')->pluck('order_year', 'order_year')->toArray();
@@ -85,7 +85,7 @@ class ReportController extends Controller
 
         $orderStatusOptions = Order::getStatusOptions();
 
-        $storeOptions = Auth::user()->manageAllStores?['' => 'All Stores']:[];
+        $storeOptions = Auth::user()->manageAllStores?['all' => 'All Stores']:[];
         $storeOptions += Store::getStoreOptions();
 
         $dateTypeOptions = ['checkout_at' => 'Order Date'];
@@ -143,7 +143,7 @@ class ReportController extends Controller
 
         $orderStatusOptions = Order::getStatusOptions();
 
-        $storeOptions = Auth::user()->manageAllStores?['' => 'All Stores']:[];
+        $storeOptions = Auth::user()->manageAllStores?['all' => 'All Stores']:[];
         $storeOptions += Store::getStoreOptions();
 
         $shippingMethods = ShippingMethod::getAvailableMethods();
@@ -253,7 +253,7 @@ class ReportController extends Controller
 
         $orderStatusOptions = Order::getStatusOptions();
 
-        $storeOptions = Auth::user()->manageAllStores?['' => 'All Stores']:[];
+        $storeOptions = Auth::user()->manageAllStores?['all' => 'All Stores']:[];
         $storeOptions += Store::getStoreOptions();
 
         $shippingMethods = ShippingMethod::getAvailableMethods();

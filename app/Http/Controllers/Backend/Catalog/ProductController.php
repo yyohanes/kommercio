@@ -769,12 +769,6 @@ class ProductController extends Controller{
         $orderedQuantities = [];
 
         if($internal){
-            $focusedDate->modify('-1 month');
-            $months[] = $focusedDate->format('n-Y');
-
-            $focusedDate->modify('+2 months');
-            $months[] = $focusedDate->format('n-Y');
-
             $order = Order::find($request->input('order_id', null));
 
             foreach($request->input('line_items', []) as $idx=>$lineItemDatum) {
@@ -797,7 +791,7 @@ class ProductController extends Controller{
             }
         }
 
-        $store = ProjectHelper::getStoreByRequest($request);
+        $store = ProjectHelper::getStoreByRequest($request, $order->store);
         $store_id = $store->id;
 
         foreach($products as $idx=>$product){

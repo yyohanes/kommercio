@@ -140,7 +140,12 @@ class Order extends Model implements AuthorSignatureInterface
 
     public function clearCart()
     {
-        $this->lineItems()->delete();
+        foreach($this->lineItems as $lineItem){
+            $lineItem->delete();
+            if(!$lineItem->isShipping){
+
+            }
+        }
     }
 
     public function addToCart(Product $product, $quantity = 1, $options = [])

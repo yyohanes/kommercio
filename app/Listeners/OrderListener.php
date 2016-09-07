@@ -35,6 +35,8 @@ class OrderListener
             $this->beforeOrderPlaced($order);
         }elseif($event->type == 'customer_place_order'){
             $this->customerPlaceOrder($order);
+        }elseif($event->type == 'shipping_method_changed'){
+            $this->shippingMethodChanged($order);
         }
     }
 
@@ -50,5 +52,10 @@ class OrderListener
         $orderEmail = ProjectHelper::getConfig('contacts.order.email');
 
         EmailHelper::sendMail($orderEmail, $subject, 'order.admin_new_order', ['order' => $order], 'general');
+    }
+
+    protected function shippingMethodChanged(Order $order)
+    {
+
     }
 }

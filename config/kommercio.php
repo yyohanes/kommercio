@@ -77,6 +77,9 @@ return [
         'sort_by' => 'checkout_at',
         'sort_dir' => 'ASC',
     ],
+    'checkout_options' => [
+        'shipping_method_position' => 'review', //review and before_review
+    ],
     'mailerlite_api_key' => 'f27a47abc3d9162a2c987c05777322f3',
     'mailerlite_subscriber_groups' => [
         'default' => 4404091,

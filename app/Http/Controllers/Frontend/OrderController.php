@@ -30,6 +30,7 @@ use Kommercio\Models\PriceRule\CartPriceRule;
 use Kommercio\Models\Product;
 use Kommercio\Models\Profile\Profile;
 use Kommercio\Models\ShippingMethod\ShippingMethod;
+use Kommercio\Models\Store;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
 class OrderController extends Controller
@@ -467,6 +468,8 @@ class OrderController extends Controller
             'success' => []
         ];
 
+        $shippingMethodOptions = $this->getShippingMethodOptions($request, $order)['shippingMethodOptions'];
+
         if($request->has('billingProfile.email') && (!isset($viewData['customer']->user) || !isset($viewData['customer']))){
             $viewData['canRegister'] = TRUE;
         }
@@ -495,7 +498,7 @@ class OrderController extends Controller
 
                     $nextStep = 'account';
                 }elseif($process == 'login'){
-                    $this->validate($request, $this->getCheckoutRuleBook('login'));
+                    $this->validate($request, $this->getCheckoutRuleBook('login', $request, $order));
 
                     if (Auth::attempt(['email' => $request->input('billingProfile.email'), 'password' => $request->input('password')])) {
                         $nextStep = 'customer_information';
@@ -506,7 +509,7 @@ class OrderController extends Controller
                         $nextStep = 'account';
                     }
                 }elseif($process == 'register'){
-                    $this->validate($request, $this->getCheckoutRuleBook('register'));
+                    $this->validate($request, $this->getCheckoutRuleBook('register', $request, $order));
 
                     $newCustomer = Customer::saveCustomer(['email' => $request->input('billingProfile.email'), 'full_name' => $request->input('name')], ['email' => $request->input('billingProfile.email'), 'password' => $request->input('password')]);
                     if($request->input('signup_newsletter', null) == 1){
@@ -517,11 +520,11 @@ class OrderController extends Controller
 
                     $nextStep = 'customer_information';
                 }elseif($process == 'continue_as_guest'){
-                    $this->validate($request, $this->getCheckoutRuleBook('continue_as_guest'));
+                    $this->validate($request, $this->getCheckoutRuleBook('continue_as_guest', $request, $order));
 
                     $nextStep = 'customer_information';
                 }else{
-                    $this->validate($request, $this->getCheckoutRuleBook('account'));
+                    $this->validate($request, $this->getCheckoutRuleBook('account', $request, $order));
 
                     if($user && (!$viewData['customer'] || $user->id != $viewData['customer']->user_id)){
                         Auth::logout();
@@ -551,11 +554,13 @@ class OrderController extends Controller
                         'saved_shipping_profile' => $savedShippingProfile->id
                     ]);
 
-                    $order->setRelation('shippingProfile', $savedShippingProfile);
+                    //$order->setRelation('shippingProfile', $savedShippingProfile);
 
                     $nextStep = 'customer_information';
+                }elseif($process == 'select_shipping_method') {
+                    $nextStep = 'customer_information';
                 }else{
-                    $this->validate($request, $this->getCheckoutRuleBook('customer_information'));
+                    $this->validate($request, $this->getCheckoutRuleBook('customer_information', $request, $order));
 
                     //Save address
                     if($viewData['customerLoggedIn']){
@@ -609,7 +614,7 @@ class OrderController extends Controller
                 if($process == 'change'){
                     $nextStep = 'payment_method';
                 }else{
-                    $this->validate($request, $this->getCheckoutRuleBook('payment_method'));
+                    $this->validate($request, $this->getCheckoutRuleBook('payment_method', $request, $order));
 
                     $order->paymentMethod()->associate($request->input('payment_method'));
 
@@ -641,25 +646,6 @@ class OrderController extends Controller
                 $order->currency = $request->input('currency');
                 $order->conversion_rate = 1;
 
-                //Process shipping
-                if($request->has('shipping_method')){
-                    $shippingMethodOptions = $this->getShippingMethodOptions($request, $order)['shippingMethodOptions'];
-
-                    $rules = [
-                        'shipping_method' => 'required|in:'.implode(',', array_keys($shippingMethodOptions))
-                    ];
-
-                    $this->validate($request, $rules);
-
-                    foreach($shippingMethodOptions as $idx => $shippingMethodOption){
-                        if($request->input('shipping_method') == $idx){
-
-                            $order->updateShippingMethod($request->input('shipping_method'), $shippingMethodOption);
-                            break;
-                        }
-                    }
-                }
-
                 OrderHelper::processLineItems($request, $viewData['order'], false);
 
                 $order->load('lineItems');
@@ -668,48 +654,15 @@ class OrderController extends Controller
                 $nextStep = 'checkout_summary';
 
                 if($process == 'place_order'){
-                    $placeOrderRules = [
-                        'billingProfile.email' => 'required|email',
-                        'shippingProfile.full_name' => 'required',
-                        'shippingProfile.phone_number' => 'required',
-                        'shipping_method' => 'required'.(isset($shippingMethodOptions)?'|in:'.implode(',', array_keys($shippingMethodOptions)):''),
-                        'payment_method' => 'required|exists:payment_methods,id'
-                    ];
-
-                    if($order->getShippingMethod() && $order->getShippingMethod()->requireAddress){
-                        $placeOrderRules += [
-                            'shippingProfile.address_1' => 'required',
-                            'shippingProfile.country_id' => 'required',
-                            'shippingProfile.state_id' => 'descendant_address:state',
-                            'shippingProfile.city_id' => 'descendant_address:city',
-                            'shippingProfile.district_id' => 'descendant_address:district',
-                            'shippingProfile.area_id' => 'descendant_address:area',
-                        ];
-                    }
-
-                    if(config('project.enable_delivery_date', FALSE)){
-                        $placeOrderRules['delivery_date'] = 'required|date_format:Y-m-d';
-                    }
+                    $placeOrderRules = $this->getCheckoutRuleBook('place_order', $request, $order);
 
                     $products = [];
                     foreach($order->getProductLineItems() as $idx=>$productLineItem){
-                        $placeOrderRules['product.'.$idx] = [
-                            'required',
-                            'exists:products,id,deleted_at,NULL',
-                            'is_available',
-                            'is_active',
-                            'is_in_stock:'.$productLineItem->quantity,
-                            'is_purchaseable',
-                            'per_order_limit:'.$productLineItem->quantity.','.$order->id,
-                            'delivery_order_limit:'.$productLineItem->quantity.','.$order->id.($order->delivery_date?','.$order->delivery_date->format('Y-m-d'):null),
-                            'today_order_limit:'.$productLineItem->quantity.','.$order->id,
-                        ];
                         $products[] = $productLineItem->line_item_id;
                     }
 
                     $coupons = [];
                     foreach($order->getCouponLineItems() as $idx=>$couponLineItem){
-                        $placeOrderRules['coupon.'.$idx] = 'valid_coupon:'.$order->id;
                         $coupons[] = $couponLineItem->cartPriceRule->coupon_code;
                     }
 
@@ -729,8 +682,6 @@ class OrderController extends Controller
                         $errors = $validator->errors()->getMessages();
                         break;
                     }
-
-                    Event::fire(new OrderEvent('before_update_order', $order));
 
                     $order->processStocks();
 
@@ -764,11 +715,31 @@ class OrderController extends Controller
         }
 
         if(!$errors){
+            //Process shipping
+            if($request->has('shipping_method')){
+                $rules = [
+                    'shipping_method' => 'required|in:'.implode(',', array_keys($shippingMethodOptions))
+                ];
+
+                $this->validate($request, $rules);
+
+                foreach($shippingMethodOptions as $idx => $shippingMethodOption){
+                    if($request->input('shipping_method') == $idx){
+
+                        $order->updateShippingMethod($request->input('shipping_method'), $shippingMethodOption);
+                        break;
+                    }
+                }
+            }
+
             if($request->has('additional_fields')){
                 $order->additional_fields = $request->input('additional_fields');
             }
 
             $order->saveData(['checkout_step' => $viewData['step']]);
+
+            Event::fire(new OrderEvent('before_update_order', $order));
+
             $order->save();
         }
 
@@ -968,14 +939,15 @@ class OrderController extends Controller
                 break;
             case 'customer_information':
                 $savedAddressOptions = $this->getSavedAddressOptions($request, $order);
-
                 $viewData += [
                     'savedAddressOptions' => $savedAddressOptions
                 ];
 
                 $addressOptions = $this->getAddressOptions($request, $order);
-
                 $viewData += $addressOptions;
+
+                $shippingMethodOptions = $this->getShippingMethodOptions($request, $order);
+                $viewData += $shippingMethodOptions;
 
                 $renderData = [
                     'customer_information' => ProjectHelper::getViewTemplate('frontend.order.one_page.customer_information')
@@ -1102,7 +1074,7 @@ class OrderController extends Controller
         ];
     }
 
-    protected function getCheckoutRuleBook($type)
+    protected function getCheckoutRuleBook($type, $request, $order)
     {
         $ruleBook = [
             'register' => [
@@ -1132,12 +1104,30 @@ class OrderController extends Controller
             ],
             'payment_method' => [
                 'payment_method' => 'required|exists:payment_methods,id'
+            ],
+            'place_order' => [
+                'billingProfile.email' => 'required|email',
+                'shippingProfile.full_name' => 'required',
+                'shippingProfile.phone_number' => 'required',
+                'payment_method' => 'required|exists:payment_methods,id'
             ]
         ];
 
         if(ProjectHelper::getConfig('enable_delivery_date', FALSE)){
             $ruleBook['customer_information'] += [
                 'delivery_date' => 'required|date_format:Y-m-d'
+            ];
+        }
+
+        if(ProjectHelper::getConfig('checkout_options.shipping_method_position', 'review') == 'before_review'){
+            $shippingMethodOptions = $this->getShippingMethodOptions($request, $order)['shippingMethodOptions'];
+
+            $ruleBook['customer_information'] += [
+                'shipping_method' => 'required'.(isset($shippingMethodOptions)?'|in:'.implode(',', array_keys($shippingMethodOptions)):''),
+            ];
+        }else{
+            $ruleBook['place_order'] += [
+                'shipping_method' => 'required'.(isset($shippingMethodOptions)?'|in:'.implode(',', array_keys($shippingMethodOptions)):''),
             ];
         }
 
@@ -1151,6 +1141,41 @@ class OrderController extends Controller
                 'billingProfile.district_id' => 'descendant_address:district',
                 'billingProfile.area_id' => 'descendant_address:area',
             ];
+        }
+
+        if($type == 'place_order'){
+            if($order->getShippingMethod() && $order->getShippingMethod()->requireAddress){
+                $ruleBook['place_order'] += [
+                    'shippingProfile.address_1' => 'required',
+                    'shippingProfile.country_id' => 'required',
+                    'shippingProfile.state_id' => 'descendant_address:state',
+                    'shippingProfile.city_id' => 'descendant_address:city',
+                    'shippingProfile.district_id' => 'descendant_address:district',
+                    'shippingProfile.area_id' => 'descendant_address:area',
+                ];
+            }
+
+            if(config('project.enable_delivery_date', FALSE)){
+                $ruleBook['place_order']['delivery_date'] = 'required|date_format:Y-m-d';
+            }
+
+            foreach($order->getProductLineItems() as $idx=>$productLineItem){
+                $ruleBook['place_order']['product.'.$idx] = [
+                    'required',
+                    'exists:products,id,deleted_at,NULL',
+                    'is_available',
+                    'is_active',
+                    'is_in_stock:'.$productLineItem->quantity,
+                    'is_purchaseable',
+                    'per_order_limit:'.$productLineItem->quantity.','.$order->id,
+                    'delivery_order_limit:'.$productLineItem->quantity.','.$order->id.($order->delivery_date?','.$order->delivery_date->format('Y-m-d'):null),
+                    'today_order_limit:'.$productLineItem->quantity.','.$order->id,
+                ];
+            }
+
+            foreach($order->getCouponLineItems() as $idx=>$couponLineItem){
+                $ruleBook['place_order']['coupon.'.$idx] = 'valid_coupon:'.$order->id;
+            }
         }
 
         return $ruleBook[$type];

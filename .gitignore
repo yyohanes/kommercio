@@ -7,6 +7,7 @@
 .env.example
 .idea
 .sass-cache
+.sass-cache/*
 .DS_STORE
 
 /packages/project/src/Project
