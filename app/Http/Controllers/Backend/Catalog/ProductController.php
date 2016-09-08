@@ -779,6 +779,8 @@ class ProductController extends Controller{
                     $orderedQuantities[$idx] = $request->input('line_items.'.$idx.'.quantity');
                 }
             }
+
+            $store = ProjectHelper::getStoreByRequest($request);
         }else{
             $focusedDate->modify('+1 week');
             $months[] = $focusedDate->format('n-Y');
@@ -789,9 +791,10 @@ class ProductController extends Controller{
                 $products[$idx] = $productLineItem->product;
                 $orderedQuantities[$idx] = $productLineItem->quantity;
             }
+
+            $store = ProjectHelper::getStoreByRequest($request, $order->store);
         }
 
-        $store = ProjectHelper::getStoreByRequest($request, $order->store);
         $store_id = $store->id;
 
         foreach($products as $idx=>$product){
