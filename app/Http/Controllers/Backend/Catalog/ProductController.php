@@ -729,13 +729,15 @@ class ProductController extends Controller{
             if($options['delivery_date']){
                 $totalOrderedByDelivery = $product->getOrderCount([
                     'delivery_date' => $options['delivery_date'],
+                    'store' => $store_id
                 ]);
             }
 
             $totalOrdered = $totalOrderedByDelivery;
         }else{
             $totalOrderedByDate = $product->getOrderCount([
-                'checkout_at' => $options['date']
+                'checkout_at' => $options['date'],
+                'store' => $store_id
             ]);
 
             $totalOrdered = $totalOrderedByDate;
