@@ -756,7 +756,8 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
 
             while($dayToRun->lte($lastDayOfMonth)){
                 $dayOrderCount = $this->getOrderCount([
-                    'delivery_date' => $dayToRun->format('Y-m-d')
+                    'delivery_date' => $dayToRun->format('Y-m-d'),
+                    'store' => $store,
                 ]);
 
                 if($dayToRun->format('j-n-Y') == $saved_delivery_date){
