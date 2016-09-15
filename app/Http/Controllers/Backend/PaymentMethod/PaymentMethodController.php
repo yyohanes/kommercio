@@ -51,7 +51,10 @@ class PaymentMethodController extends Controller{
         $paymentMethod = PaymentMethod::findOrFail($id);
 
         $paymentMethod->fill($request->all());
-        $paymentMethod->saveData($request->input('data', []));
+
+        if($request->has('data')){
+            $paymentMethod->saveData($request->input('data', []));
+        }
 
         $paymentMethod->save();
 
