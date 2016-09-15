@@ -613,6 +613,8 @@ class OrderController extends Controller
             case 'payment_method':
                 if($process == 'change'){
                     $nextStep = 'payment_method';
+                }elseif($process == 'select') {
+                    $order->paymentMethod()->associate($request->input('payment_method'));
                 }else{
                     $this->validate($request, $this->getCheckoutRuleBook('payment_method', $request, $order));
 
@@ -739,6 +741,8 @@ class OrderController extends Controller
             $order->saveData(['checkout_step' => $viewData['step']]);
 
             Event::fire(new OrderEvent('before_update_order', $order));
+
+            Event::fire(new OrderEvent('process_payment', $order));
 
             $order->save();
         }

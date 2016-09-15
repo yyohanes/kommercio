@@ -37,6 +37,8 @@ class OrderListener
             $this->customerPlaceOrder($order);
         }elseif($event->type == 'shipping_method_changed'){
             $this->shippingMethodChanged($order);
+        }elseif($event->type == 'process_payment'){
+            $this->processPayment($order);
         }
     }
 
@@ -55,6 +57,11 @@ class OrderListener
     }
 
     protected function shippingMethodChanged(Order $order)
+    {
+
+    }
+
+    protected function processPayment(Order $order)
     {
 
     }

@@ -21,7 +21,8 @@
         "maiorano84/shortcodes": "~1.0",
         "mews/captcha": "^2.1",
         "mailerlite/mailerlite-api-v2-php-sdk": "^0.1.6",
-        "unisharp/laravel-filemanager": "^1.6"
+        "unisharp/laravel-filemanager": "^1.6",
+        "stripe/stripe-php": "3.*"
     },
     "require-dev": {
         "fzaninotto/faker": "~1.4",

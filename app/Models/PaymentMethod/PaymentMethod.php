@@ -4,10 +4,11 @@ namespace Kommercio\Models\PaymentMethod;
 
 use Dimsav\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Model;
+use Kommercio\Traits\Model\HasDataColumn;
 
 class PaymentMethod extends Model
 {
-    use Translatable;
+    use Translatable, HasDataColumn;
 
     public $timestamps = FALSE;
     public $translatedAttributes = ['name', 'message'];

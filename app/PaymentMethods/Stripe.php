@@ -2,10 +2,11 @@
 
 namespace Kommercio\PaymentMethods;
 
-use Illuminate\Http\Request;
+use Kommercio\Facades\ProjectHelper;
 use Kommercio\Models\PaymentMethod\PaymentMethod;
+use Illuminate\Http\Request;
 
-class CashOnDelivery implements PaymentMethodInterface
+class Stripe implements PaymentMethodInterface
 {
     protected $paymentMethod;
 
@@ -23,7 +24,7 @@ class CashOnDelivery implements PaymentMethodInterface
 
     public function getCheckoutForm($options = null)
     {
-        return false;
+        return ProjectHelper::getViewTemplate('frontend.order.payment_method.stripe');
     }
 
     public function processPayment($options = null)
@@ -31,8 +32,11 @@ class CashOnDelivery implements PaymentMethodInterface
 
     }
 
+    //Statics
     public static function additionalValidation(Request $request)
     {
-        return [];
+        return [
+            'data.api_key' => 'required'
+        ];
     }
 }

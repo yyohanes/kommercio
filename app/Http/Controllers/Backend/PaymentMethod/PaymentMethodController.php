@@ -51,6 +51,8 @@ class PaymentMethodController extends Controller{
         $paymentMethod = PaymentMethod::findOrFail($id);
 
         $paymentMethod->fill($request->all());
+        $paymentMethod->saveData($request->input('data', []));
+
         $paymentMethod->save();
 
         return redirect($request->get('backUrl', route('backend.payment_method.index')))->with('success', [$paymentMethod->name.' has successfully been updated.']);

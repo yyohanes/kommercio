@@ -435,6 +435,8 @@ class OrderController extends Controller{
 
         Event::fire(new OrderEvent('before_update_order', $order));
 
+        Event::fire(new OrderEvent('process_payment', $order));
+
         if($request->input('action') == 'place_order'){
             $this->placeOrder($order);
 
