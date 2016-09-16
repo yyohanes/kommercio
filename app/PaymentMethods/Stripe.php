@@ -59,7 +59,7 @@ class Stripe implements PaymentMethodInterface, PaymentMethodSettingFormInterfac
         \Stripe\Stripe::setApiKey($this->getSecretKey());
 
         try{
-            $token = \Stripe\Token::retrieve($order->getData('stripeToken', null));
+            $token = json_decode(\Stripe\Token::retrieve($order->getData('stripeToken', null)));
             \Log::info($token);
         }catch(\Exception $e){
             return false;
