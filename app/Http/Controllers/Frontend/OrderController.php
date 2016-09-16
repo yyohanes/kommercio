@@ -613,12 +613,20 @@ class OrderController extends Controller
             case 'payment_method':
                 if($process == 'change'){
                     $nextStep = 'payment_method';
-                }elseif($process == 'select') {
+                }elseif($process == 'select_payment_method') {
+                    $nextStep = 'payment_method';
                     $order->paymentMethod()->associate($request->input('payment_method'));
                 }else{
-                    $this->validate($request, $this->getCheckoutRuleBook('payment_method', $request, $order));
+                    $paymentMethodRules = $this->getCheckoutRuleBook('payment_method', $request, $order);
+
+                    $this->validate($request, $paymentMethodRules);
 
                     $order->paymentMethod()->associate($request->input('payment_method'));
+
+                    $order->paymentMethod->getProcessor()->processPayment([
+                        'order' => $order,
+                        'request' => $request
+                    ]);
 
                     $nextStep = 'checkout_summary';
                 }
@@ -685,6 +693,8 @@ class OrderController extends Controller
                         break;
                     }
 
+                    $this->processFinalPayment($order, $order->paymentMethod, $request);
+
                     $order->processStocks();
 
                     $this->placeOrder($order);
@@ -741,8 +751,6 @@ class OrderController extends Controller
             $order->saveData(['checkout_step' => $viewData['step']]);
 
             Event::fire(new OrderEvent('before_update_order', $order));
-
-            Event::fire(new OrderEvent('process_payment', $order));
 
             $order->save();
         }
@@ -1114,9 +1122,14 @@ class OrderController extends Controller
                 'billingProfile.email' => 'required|email',
                 'shippingProfile.full_name' => 'required',
                 'shippingProfile.phone_number' => 'required',
-                'payment_method' => 'required|exists:payment_methods,id'
+                'payment_method' => 'required|exists:payment_methods,id|payment_method:'.$order->id
             ]
         ];
+
+        //Payment method additional validations
+        if($order->paymentMethod){
+            $ruleBook['payment_method'] += $order->paymentMethod->getProcessor()->getValidationRules();
+        }
 
         if(ProjectHelper::getConfig('enable_delivery_date', FALSE)){
             $ruleBook['customer_information'] += [
@@ -1184,5 +1197,13 @@ class OrderController extends Controller
         }
 
         return $ruleBook[$type];
+    }
+
+    protected function processFinalPayment(Order $order, PaymentMethod $paymentMethod, Request $request)
+    {
+        $paymentMethod->getProcessor()->finalProcessPayment([
+            'order' => $order,
+            'request' => $request
+        ]);
     }
 }

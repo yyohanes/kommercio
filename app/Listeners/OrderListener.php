@@ -6,6 +6,7 @@ use Kommercio\Events\OrderEvent;
 use Kommercio\Facades\EmailHelper;
 use Kommercio\Facades\ProjectHelper;
 use Kommercio\Models\Order\Order;
+use Kommercio\Models\PaymentMethod\PaymentMethod;
 
 class OrderListener
 {
@@ -63,6 +64,10 @@ class OrderListener
 
     protected function processPayment(Order $order)
     {
+        $paymentMethod = PaymentMethod::find($order->payment_method_id);
 
+        if($paymentMethod){
+            $paymentMethod->getProcessor()->processPayment();
+        }
     }
 }

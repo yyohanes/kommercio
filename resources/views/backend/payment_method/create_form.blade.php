@@ -32,6 +32,6 @@
     ],
 ])
 
-@if($paymentMethod->exists && view()->exists(ProjectHelper::getViewTemplate('backend.payment_method.'.$paymentMethod->class.'.additional_setting_form')))
-    @include(ProjectHelper::getViewTemplate('backend.payment_method.'.$paymentMethod->class.'.additional_setting_form'))
+@if($additionalFieldsForm)
+    @include($additionalFieldsForm)
 @endif

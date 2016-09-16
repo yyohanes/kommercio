@@ -3,9 +3,11 @@
 namespace Kommercio\Http\Controllers\Backend\PaymentMethod;
 
 use Illuminate\Http\Request;
+use Kommercio\Facades\ProjectHelper;
 use Kommercio\Http\Controllers\Controller;
 use Kommercio\Http\Requests\Backend\PaymentMethod\PaymentMethodFormRequest;
 use Kommercio\Models\PaymentMethod\PaymentMethod;
+use Kommercio\PaymentMethods\PaymentMethodSettingFormInterface;
 
 class PaymentMethodController extends Controller{
     public function index()
@@ -24,7 +26,8 @@ class PaymentMethodController extends Controller{
         $paymentMethod = new PaymentMethod();
 
         return view('backend.payment_method.create', [
-            'paymentMethod' => $paymentMethod
+            'paymentMethod' => $paymentMethod,
+            'additionalFieldsForm' => false
         ]);
     }
 
@@ -41,8 +44,15 @@ class PaymentMethodController extends Controller{
     {
         $paymentMethod = PaymentMethod::findOrFail($id);
 
+        $additionalFieldsForm = null;
+
+        if($paymentMethod->getProcessor() instanceof PaymentMethodSettingFormInterface){
+           $additionalFieldsForm = ProjectHelper::getViewTemplate('backend.payment_method.'.$paymentMethod->class.'.additional_setting_form');
+        }
+
         return view('backend.payment_method.edit', [
-            'paymentMethod' => $paymentMethod
+            'paymentMethod' => $paymentMethod,
+            'additionalFieldsForm' => $additionalFieldsForm
         ]);
     }
 

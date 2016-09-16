@@ -26,14 +26,23 @@ class BankTransfer implements PaymentMethodInterface
         return false;
     }
 
+    public function getValidationRules($options = null)
+    {
+        return [];
+    }
+
     public function processPayment($options = null)
     {
 
     }
 
-    //Statics
-    public static function additionalValidation(Request $request)
+    public function finalProcessPayment($options = null)
     {
-        return [];
+
+    }
+
+    public function paymentMethodValidation($options = null)
+    {
+        return true;
     }
 }

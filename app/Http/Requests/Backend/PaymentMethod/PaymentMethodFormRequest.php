@@ -32,7 +32,7 @@ class PaymentMethodFormRequest extends Request
         if($this->route('id')){
             $paymentMethod = PaymentMethod::findOrFail($this->route('id'));
 
-            $additionalValidation = call_user_func(get_class($paymentMethod->getProcessor()).'::additionalValidation', $this);
+            $additionalValidation = call_user_func(get_class($paymentMethod->getProcessor()).'::additionalSettingValidation', $this);
 
             if(is_array($additionalValidation)){
                 $rules += $additionalValidation;

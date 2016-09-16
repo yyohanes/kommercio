@@ -351,7 +351,10 @@ class OrderController extends Controller{
     {
         $order = new Order();
 
-        $paymentMethods = PaymentMethod::getPaymentMethods();
+        $paymentMethods = PaymentMethod::getPaymentMethods([
+            'order' => $order,
+            'frontend' => FALSE
+        ]);
 
         $paymentMethodOptions = [];
         foreach($paymentMethods as $paymentMethod){
@@ -430,7 +433,6 @@ class OrderController extends Controller{
         OrderHelper::processLineItems($request, $order);
 
         $order->load('lineItems');
-        $order->processStocks();
         $order->calculateTotal();
 
         Event::fire(new OrderEvent('before_update_order', $order));
@@ -438,6 +440,7 @@ class OrderController extends Controller{
         Event::fire(new OrderEvent('process_payment', $order));
 
         if($request->input('action') == 'place_order'){
+            $order->processStocks();
             $this->placeOrder($order);
 
             $profileData = $request->input('profile');
@@ -535,7 +538,10 @@ class OrderController extends Controller{
 
         $lineItems = old('line_items', $order->lineItems);
 
-        $paymentMethods = PaymentMethod::getPaymentMethods();
+        $paymentMethods = PaymentMethod::getPaymentMethods([
+            'order' => $order,
+            'frontend' => FALSE
+        ]);
 
         $paymentMethodOptions = [];
         foreach($paymentMethods as $paymentMethod){
@@ -633,12 +639,15 @@ class OrderController extends Controller{
         OrderHelper::processLineItems($request, $order);
 
         $order->load('lineItems');
-        $order->processStocks();
         $order->calculateTotal();
 
         Event::fire(new OrderEvent('before_update_order', $order));
 
         if($request->input('action') == 'place_order'){
+            $paymentMethod = PaymentMethod::findOrFail($order->payment_method_id);
+            $this->processFinalPayment($order, $paymentMethod, $request);
+
+            $order->processStocks();
             $this->placeOrder($order);
 
             $profileData = $request->input('profile');
@@ -1106,5 +1115,13 @@ class OrderController extends Controller{
         Event::fire(new OrderEvent('before_place_order', $order));
 
         return $order;
+    }
+
+    protected function processFinalPayment(Order $order, PaymentMethod $paymentMethod, Request $request)
+    {
+        $paymentMethod->getProcessor()->finalProcessPayment([
+            'order' => $order,
+            'request' => $request
+        ]);
     }
 }

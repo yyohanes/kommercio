@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Validator;
 use Kommercio\Models\Address\Address;
 use Kommercio\Models\Order\Order;
+use Kommercio\Models\PaymentMethod\PaymentMethod;
 use Kommercio\Models\PriceRule\CartPriceRule;
 use Kommercio\Models\Product;
 use Symfony\Component\Translation\TranslatorInterface;
@@ -222,6 +223,17 @@ class CustomValidator extends Validator
         $product = Product::findOrFail($product_id);
 
         return str_replace(':product', $product->name, $message);
+    }
+
+    protected function validatePaymentMethod($attribute, $value, $parameters)
+    {
+        $paymentMethod = PaymentMethod::findOrFail($value);
+
+        $order = Order::findOrFail($parameters[0]);
+
+        return $paymentMethod->getProcessor()->paymentMethodValidation([
+            'order' => $order
+        ]);
     }
 
     protected function processValidateOrderLimit($type, $attribute, $value, $parameters)

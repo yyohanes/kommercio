@@ -107,6 +107,7 @@ class Order extends Model implements AuthorSignatureInterface
             $this->unsetData('checkout_step');
             $this->unsetData('saved_shipping_profile');
             $this->unsetData('saved_billing_profile');
+            $this->calculateTotal();
 
             $time = $this->freshTimestamp();
             $this->setCreatedAt($time);
