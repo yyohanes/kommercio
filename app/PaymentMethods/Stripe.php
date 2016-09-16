@@ -33,9 +33,7 @@ class Stripe implements PaymentMethodInterface, PaymentMethodSettingFormInterfac
 
     public function getValidationRules($options = null)
     {
-        return [
-            'stripeToken' => 'required'
-        ];
+        return ['stripeToken' => 'required'];
     }
 
     public function processPayment($options = null)
@@ -47,6 +45,11 @@ class Stripe implements PaymentMethodInterface, PaymentMethodSettingFormInterfac
     public function finalProcessPayment($options = null)
     {
 
+    }
+
+    public function stepPaymentMethodValidation($options = null)
+    {
+        return true;
     }
 
     public function paymentMethodValidation($options = null)

@@ -88,6 +88,7 @@ return [
     'descendant_address' => 'The :attribute field is required.',
     'captcha' => 'Verification code is invalid. Please try again.',
     'old_password' => 'Old password is invalid.',
+    'step_payment_method' => 'Payment information is invalid.',
     'payment_method' => 'Payment failed. Please check your Payment information.',
 
     /*

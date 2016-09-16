@@ -25,10 +25,9 @@
         </label>
     </div>
 @show
-    
+    {!! Form::hidden('stripeToken', $order->getData('stripeToken', null), ['class' => 'stripeToken']) !!}
 </div>
 
-<!--
 <script type="text/javascript">
     (function() {
         var stripeJS = document.createElement('script');
@@ -67,4 +66,3 @@
         s.parentNode.insertBefore(stripeCheckoutJS, s);
     })();
 </script>
--->

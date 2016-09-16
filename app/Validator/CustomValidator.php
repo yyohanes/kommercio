@@ -225,6 +225,17 @@ class CustomValidator extends Validator
         return str_replace(':product', $product->name, $message);
     }
 
+    protected function validateStepPaymentMethod($attribute, $value, $parameters)
+    {
+        $paymentMethod = PaymentMethod::findOrFail($value);
+
+        $order = Order::findOrFail($parameters[0]);
+
+        return $paymentMethod->getProcessor()->stepPaymentMethodValidation([
+            'order' => $order
+        ]);
+    }
+
     protected function validatePaymentMethod($attribute, $value, $parameters)
     {
         $paymentMethod = PaymentMethod::findOrFail($value);

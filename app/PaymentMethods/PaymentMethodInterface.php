@@ -13,5 +13,6 @@ interface PaymentMethodInterface
     public function getValidationRules($options);
     public function processPayment($options);
     public function finalProcessPayment($options);
+    public function stepPaymentMethodValidation($options);
     public function paymentMethodValidation($options);
 }

@@ -41,6 +41,11 @@ class CashOnDelivery implements PaymentMethodInterface
 
     }
 
+    public function stepPaymentMethodValidation($options = null)
+    {
+        return true;
+    }
+
     public function paymentMethodValidation($options = null)
     {
         return true;

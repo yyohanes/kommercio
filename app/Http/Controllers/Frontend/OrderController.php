@@ -1116,7 +1116,7 @@ class OrderController extends Controller
                 'shippingProfile.address_1' => 'required',
             ],
             'payment_method' => [
-                'payment_method' => 'required|exists:payment_methods,id'
+                'payment_method' => 'required|exists:payment_methods,id|step_payment_method:'.$order->id
             ],
             'place_order' => [
                 'billingProfile.email' => 'required|email',
