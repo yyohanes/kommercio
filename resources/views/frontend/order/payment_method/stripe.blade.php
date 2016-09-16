@@ -25,7 +25,7 @@
         </label>
     </div>
 @show
-    {!! //Form::hidden('stripeToken', $order->getData('stripeToken', null), ['class' => 'stripeToken']) !!}
+    
 </div>
 
 <!--
