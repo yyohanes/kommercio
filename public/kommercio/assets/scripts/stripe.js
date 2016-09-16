@@ -8,7 +8,7 @@ var KommercioStripe = function(){
                 if($process != 'select_payment_method' && $process != 'change'){
                     process = $process;
                     checkoutData = $data;
-                    checkoutData.validated = false;
+                    checkoutData.run_flag = false;
 
                     var submitData = {
                         number: $form.find('[data-stripe="number"]').val(),
@@ -25,7 +25,7 @@ var KommercioStripe = function(){
                 if (response.error) {
                     // Show the errors on the form
                     $form.find('.payment-errors').text(response.error.message);
-                    checkoutData.validated = false;
+                    checkoutData.run_flag = false;
                 } else {
                     // Get the token ID:
                     var token = response.id;
@@ -34,7 +34,7 @@ var KommercioStripe = function(){
                     $form.find('.stripeToken').remove();
                     $form.append($('<input type="hidden" class="stripeToken" name="stripeToken" />').val(token));
 
-                    checkoutData.validated = true;
+                    checkoutData.run_flag = true;
 
                     checkoutForm.submitCheckoutForm($form, process);
                 }
