@@ -71,13 +71,14 @@ class Stripe implements PaymentMethodInterface, PaymentMethodSettingFormInterfac
                 'order_id' => $order->id,
             ];
 
-            $paymentData['notes'] = "Card Detail".$charge->id."\r\n";
-            $paymentData['notes'] .= "Type: ".$charge->brand."\r\n";
-            $paymentData['notes'] .= "Country: ".$charge->country."\r\n";
-            $paymentData['notes'] .= "Last4: ".$charge->last4."\r\n";
+            $paymentData['notes'] = "Card Detail"."\r\n";
+            $paymentData['notes'] .= "Type: ".$charge->source->brand."\r\n";
+            $paymentData['notes'] .= "Country: ".$charge->source->country."\r\n";
+            $paymentData['notes'] .= "Last4: ".$charge->source->last4."\r\n";
 
             $payment = new Payment();
             $payment->fill($paymentData);
+            $payment->status = Payment::STATUS_SUCCESS;
             $payment->payment_date = Carbon::now();
             $payment->saveData(['stripe' => $charge]);
             $payment->save();
