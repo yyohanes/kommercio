@@ -70,7 +70,7 @@ class Stripe implements PaymentMethodInterface, PaymentMethodSettingFormInterfac
                 'order_id' => $order->id,
             ];
 
-            $paymentData['notes'] .= "Card Detail".$charge->id."\r\n";
+            $paymentData['notes'] = "Card Detail".$charge->id."\r\n";
             $paymentData['notes'] .= "Type: ".$charge->brand."\r\n";
             $paymentData['notes'] .= "Country: ".$charge->country."\r\n";
             $paymentData['notes'] .= "Last4: ".$charge->last4."\r\n";
