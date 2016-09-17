@@ -80,8 +80,10 @@ class Stripe implements PaymentMethodInterface, PaymentMethodSettingFormInterfac
             $payment->payment_date = Carbon::now();
             $payment->saveData(['stripe' => $charge]);
             $payment->save();
-        }catch(\Exception $e){
-            return [$e->message];
+        }catch(\Stripe\Error\Base $e){
+            $body = $e->getJsonBody();
+            $err  = $body['error'];
+            return $err['message'];
         }
     }
 
