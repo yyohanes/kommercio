@@ -693,7 +693,10 @@ class OrderController extends Controller
                         break;
                     }
 
-                    $this->processFinalPayment($order, $order->paymentMethod, $request);
+                    $paymentResponse = $this->processFinalPayment($order, $order->paymentMethod, $request);
+                    if(is_array($paymentResponse)){
+                        $errors = $paymentResponse;
+                    }
 
                     $order->processStocks();
 
@@ -1201,7 +1204,7 @@ class OrderController extends Controller
 
     protected function processFinalPayment(Order $order, PaymentMethod $paymentMethod, Request $request)
     {
-        $paymentMethod->getProcessor()->finalProcessPayment([
+        return $paymentMethod->getProcessor()->finalProcessPayment([
             'order' => $order,
             'request' => $request
         ]);

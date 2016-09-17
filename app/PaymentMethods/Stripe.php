@@ -3,6 +3,7 @@
 namespace Kommercio\PaymentMethods;
 
 use Kommercio\Facades\ProjectHelper;
+use Kommercio\Models\Order\Payment;
 use Kommercio\Models\PaymentMethod\PaymentMethod;
 use Illuminate\Http\Request;
 
@@ -39,12 +40,49 @@ class Stripe implements PaymentMethodInterface, PaymentMethodSettingFormInterfac
     public function processPayment($options = null)
     {
         $request = $options['request'];
-        $options['order']->saveData(['stripeToken' => $request->input('stripeToken')]);
+        $order = $options['order'];
+
+        $order->saveData(['stripeToken' => $request->input('stripeToken')]);
     }
 
     public function finalProcessPayment($options = null)
     {
+        $order = $options['order'];
 
+        \Stripe\Stripe::setApiKey($this->getSecretKey());
+
+        try{
+            $charge = \Stripe\Charge::create(array(
+                "amount" => $order->total * 100,
+                "currency" => $order->currency,
+                "source" => $order->getData('stripeToken'),
+                "description" => "Charge for ".$order->billingInformation->email,
+                "metadata" => [
+                    "order_reference" => $order->reference
+                ]
+            ));
+
+            $paymentData = [
+                'payment_method_id' => $this->paymentMethod->id,
+                'amount' => $order->total,
+                'currency' => $order->currency,
+                'status' => Payment::STATUS_PENDING,
+                'order_id' => $order->id,
+            ];
+            $paymentData->saveData(['stripe' => $charge]);
+
+            $paymentData['notes'] .= "Card Detail".$charge->id."\r\n";
+            $paymentData['notes'] .= "Type: ".$charge->brand."\r\n";
+            $paymentData['notes'] .= "Country: ".$charge->country."\r\n";
+            $paymentData['notes'] .= "Last4: ".$charge->last4."\r\n";
+
+            $payment = new Payment();
+            $payment->fill($paymentData);
+            $payment->payment_date = Carbon::now();
+            $payment->save();
+        }catch(\Exception $e){
+            return [$e['message']];
+        }
     }
 
     public function stepPaymentMethodValidation($options = null)
@@ -60,12 +98,10 @@ class Stripe implements PaymentMethodInterface, PaymentMethodSettingFormInterfac
 
         try{
             $token = \Stripe\Token::retrieve($order->getData('stripeToken', null));
-            \Log::info($token->used);
+            return !$token->used;
         }catch(\Exception $e){
             return false;
         }
-
-        return false;
     }
 
     public function settingForm()

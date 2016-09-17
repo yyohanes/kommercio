@@ -440,6 +440,14 @@ class OrderController extends Controller{
         Event::fire(new OrderEvent('process_payment', $order));
 
         if($request->input('action') == 'place_order'){
+            $paymentMethod = PaymentMethod::findOrFail($order->payment_method_id);
+
+            $paymentResponse = $this->processFinalPayment($order, $paymentMethod, $request);
+
+            if(is_array($paymentResponse)){
+                return redirect()->back()->withErrors($paymentResponse);
+            }
+
             $order->processStocks();
             $this->placeOrder($order);
 
@@ -631,11 +639,6 @@ class OrderController extends Controller{
         $order->saveProfile('billing', $request->input('profile'));
         $order->saveProfile('shipping', $request->input('shipping_profile'));
 
-        //If PENDING order is updated, return all stocks first
-        if($order->status == Order::STATUS_PENDING){
-            $order->returnStocks();
-        }
-
         OrderHelper::processLineItems($request, $order);
 
         $order->load('lineItems');
@@ -645,7 +648,17 @@ class OrderController extends Controller{
 
         if($request->input('action') == 'place_order'){
             $paymentMethod = PaymentMethod::findOrFail($order->payment_method_id);
-            $this->processFinalPayment($order, $paymentMethod, $request);
+
+            $paymentResponse = $this->processFinalPayment($order, $paymentMethod, $request);
+
+            if(is_array($paymentResponse)){
+                return redirect()->back()->withErrors($paymentResponse);
+            }
+
+            //If order is not cart, return all stocks first
+            if(in_array($order->status, [Order::STATUS_CART, Order::STATUS_ADMIN_CART, Order::STATUS_CANCELLED])){
+                $order->returnStocks();
+            }
 
             $order->processStocks();
             $this->placeOrder($order);
@@ -1119,7 +1132,7 @@ class OrderController extends Controller{
 
     protected function processFinalPayment(Order $order, PaymentMethod $paymentMethod, Request $request)
     {
-        $paymentMethod->getProcessor()->finalProcessPayment([
+        return $paymentMethod->getProcessor()->finalProcessPayment([
             'order' => $order,
             'request' => $request
         ]);
