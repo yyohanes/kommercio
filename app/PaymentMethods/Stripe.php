@@ -2,6 +2,7 @@
 
 namespace Kommercio\PaymentMethods;
 
+use Carbon\Carbon;
 use Kommercio\Facades\ProjectHelper;
 use Kommercio\Models\Order\Payment;
 use Kommercio\Models\PaymentMethod\PaymentMethod;
