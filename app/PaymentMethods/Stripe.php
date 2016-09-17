@@ -69,7 +69,6 @@ class Stripe implements PaymentMethodInterface, PaymentMethodSettingFormInterfac
                 'status' => Payment::STATUS_PENDING,
                 'order_id' => $order->id,
             ];
-            $paymentData->saveData(['stripe' => $charge]);
 
             $paymentData['notes'] .= "Card Detail".$charge->id."\r\n";
             $paymentData['notes'] .= "Type: ".$charge->brand."\r\n";
@@ -79,6 +78,7 @@ class Stripe implements PaymentMethodInterface, PaymentMethodSettingFormInterfac
             $payment = new Payment();
             $payment->fill($paymentData);
             $payment->payment_date = Carbon::now();
+            $payment->saveData(['stripe' => $charge]);
             $payment->save();
         }catch(\Exception $e){
             return [$e['message']];
