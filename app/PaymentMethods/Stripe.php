@@ -81,7 +81,7 @@ class Stripe implements PaymentMethodInterface, PaymentMethodSettingFormInterfac
             $payment->saveData(['stripe' => $charge]);
             $payment->save();
         }catch(\Exception $e){
-            return [$e['message']];
+            return [$e->message];
         }
     }
 
