@@ -137,7 +137,7 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
     //Methods
     public function getStoreProductDetailOrNew($store_id)
     {
-        $productDetail = $this->productDetails->where('store_id', $store_id)->first();
+        $productDetail = $this->productDetails()->where('store_id', $store_id)->first();
 
         if(!$productDetail){
             $productDetail = new ProductDetail([

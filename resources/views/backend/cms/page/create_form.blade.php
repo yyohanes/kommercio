@@ -31,15 +31,26 @@
 ])
 
 @include('backend.master.form.fields.images', [
-    'name' => 'image',
-    'label' => 'Page Image',
-    'key' => 'image',
+    'name' => 'images',
+    'label' => 'Page Images',
+    'key' => 'images',
     'attr' => [
         'class' => 'form-control',
-        'id' => 'image'
+        'id' => 'images'
     ],
-    'multiple' => FALSE,
+    'multiple' => TRUE,
     'existing' => $page->images
+])
+
+@include('backend.master.form.fields.text', [
+    'name' => 'sort_order',
+    'label' => 'Sort Order',
+    'key' => 'sort_order',
+    'attr' => [
+        'class' => 'form-control',
+        'id' => 'sort_order'
+    ],
+    'valueColumnClass' => 'col-md-3'
 ])
 
 @include('backend.master.form.fields.checkbox', [

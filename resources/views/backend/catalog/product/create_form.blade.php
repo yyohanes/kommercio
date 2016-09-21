@@ -353,10 +353,12 @@
                             <span class="caption-subject"> Price Rules </span>
                         </div>
 
+                        @if($product->exists)
                         <div class="actions">
                             <a id="price-rule-add-btn" href="#" class="btn grey-salt btn-sm">
                                 <i class="fa fa-plus"></i> Add Price Rule </a>
                         </div>
+                        @endif
                     </div>
 
                     <div class="portlet-body">

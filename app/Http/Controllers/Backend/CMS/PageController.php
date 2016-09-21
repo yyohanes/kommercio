@@ -34,14 +34,14 @@ class PageController extends Controller{
     {
         $page = new Page();
 
-        $page->fill($request->all());
+        $page->fill($request->except('images'));
         $page->save();
 
-        if($request->has('image')){
-            foreach($request->input('image', []) as $idx=>$image){
+        if($request->has('images')){
+            foreach($request->input('images', []) as $idx=>$image){
                 $images[$image] = [
                     'type' => 'image',
-                    'caption' => $request->input('image_caption.'.$idx, null),
+                    'caption' => $request->input('images_caption.'.$idx, null),
                     'locale' => $page->getTranslation()->locale
                 ];
             }
@@ -66,14 +66,14 @@ class PageController extends Controller{
     {
         $page = Page::findOrFail($id);
 
-        $page->fill($request->all());
+        $page->fill($request->except('images'));
         $page->save();
 
         $images = [];
-        foreach($request->input('image', []) as $idx=>$image){
+        foreach($request->input('images', []) as $idx=>$image){
             $images[$image] = [
                 'type' => 'image',
-                'caption' => $request->input('image_caption.'.$idx, null),
+                'caption' => $request->input('images_caption.'.$idx, null),
                 'locale' => $page->getTranslation()->locale
             ];
         }

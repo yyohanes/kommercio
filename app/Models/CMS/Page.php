@@ -21,7 +21,7 @@ class Page extends Model implements UrlAliasInterface, SeoModelInterface
         'active' => 'boolean',
     ];
 
-    public $fillable = ['name', 'slug', 'body', 'parent_id', 'meta_title', 'meta_description', 'images', 'active'];
+    public $fillable = ['name', 'slug', 'body', 'parent_id', 'meta_title', 'meta_description', 'images', 'active', 'sort_order'];
     public $translatedAttributes = ['name', 'slug', 'body', 'meta_title', 'meta_description', 'images'];
     protected $toggleFields = ['active'];
     protected $seoDefaultFields = [
@@ -36,7 +36,7 @@ class Page extends Model implements UrlAliasInterface, SeoModelInterface
 
     public function children()
     {
-        return $this->hasMany('Kommercio\Models\CMS\Page', 'parent_id');
+        return $this->hasMany('Kommercio\Models\CMS\Page', 'parent_id')->orderBy('sort_order', 'ASC');
     }
 
     //Methods

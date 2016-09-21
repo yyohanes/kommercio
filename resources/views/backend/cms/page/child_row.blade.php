@@ -1,6 +1,6 @@
 @foreach($page->children as $childPage)
     <tr>
-        <td>{{ str_pad($childPage->name, $level + strlen(trim($childPage->name)), '-', STR_PAD_LEFT) }}</td>
+        <td>{{ str_pad($childPage->name, $level + strlen(trim($childPage->name)), '-', STR_PAD_LEFT) }} (ID: {{ $childPage->id }})</td>
         <td>{{ $childPage->slug }}</td>
         <td><i class="fa fa-{{ $childPage->active?'check text-success':'remove text-danger' }}"></i></td>
         <td class="text-center">

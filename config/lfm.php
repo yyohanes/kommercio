@@ -24,13 +24,13 @@ return [
     // NOTE: make sure to use an unique field.
     'user_field'            => 'id',
 
-    'shared_folder_name'    => 'shares',
+    'shared_folder_name'    => '/shares',
     'thumb_folder_name'     => 'thumbs',
 
-    'images_dir'            => 'public/cms/photos/',
+    'images_dir'            => 'public/cms/photos',
     'images_url'            => '/cms/photos/',
 
-    'files_dir'             => 'public/cms/files/',
+    'files_dir'             => 'public/cms/files',
     'files_url'             => '/cms/files/',
 
     // available since v1.3.0

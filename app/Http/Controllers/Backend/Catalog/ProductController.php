@@ -144,6 +144,10 @@ class ProductController extends Controller{
             $product->productDetail = $referencedProduct->productDetail;
         }else{
             $product = new Product();
+            $product->productDetail = new ProductDetail([
+                'active' => TRUE,
+                'available' => TRUE
+            ]);
         }
 
         $currencyOptions = CurrencyHelper::getCurrencyOptions();
