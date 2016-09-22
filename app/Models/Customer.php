@@ -63,6 +63,11 @@ class Customer extends Model
         return $profile;
     }
 
+    public function getDefaultProfiles()
+    {
+        return $this->savedProfiles()->wherePivot('billing', 1)->orWherePivot('shipping', 1)->get();
+    }
+
     //Scopes
     public function scopeWhereUserStatus($query, $status)
     {

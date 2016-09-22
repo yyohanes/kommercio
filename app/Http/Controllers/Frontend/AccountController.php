@@ -33,10 +33,17 @@ class AccountController extends Controller
             'meta_title' => trans(LanguageHelper::getTranslationKey('frontend.seo.member.dashboard.meta_title'))
         ];
 
+        $qb = Order::checkout()->where('customer_id', $this->customer->id);
+        $recentOrders = $qb->take(5)->get();
+
+        $defaultProfiles = $this->customer->getDefaultProfiles();
+
         return view($viewName, [
             'user' => $this->user,
             'customer' => $this->customer,
-            'seoData' => $seoData
+            'seoData' => $seoData,
+            'recentOrders' => $recentOrders,
+            'defaultProfiles' => $defaultProfiles
         ]);
     }
 

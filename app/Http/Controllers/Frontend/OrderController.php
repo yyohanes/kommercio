@@ -557,8 +557,6 @@ class OrderController extends Controller
                     //$order->setRelation('shippingProfile', $savedShippingProfile);
 
                     $nextStep = 'customer_information';
-                }elseif($process == 'select_shipping_method') {
-                    $nextStep = 'customer_information';
                 }else{
                     $this->validate($request, $this->getCheckoutRuleBook('customer_information', $request, $order));
 
@@ -606,9 +604,26 @@ class OrderController extends Controller
                     $order->saveProfile('shipping', $shippingProfile);
                     $order->store()->associate(ProjectHelper::getStoreByRequest($request));
 
-                    $nextStep = 'payment_method';
+                    if(ProjectHelper::getConfig('checkout_options.shipping_method_position', 'review') == 'before_review'){
+                        $nextStep = 'shipping_method';
+                    }else{
+                        $nextStep = 'payment_method';
+                    }
                 }
 
+                break;
+            case 'shipping_method':
+                if($process == 'change'){
+                    $nextStep = 'shipping_method';
+                }elseif($process == 'select_shipping_method'){
+                    $nextStep = 'shipping_method';
+                }else{
+                    $shippingMethodRules = $this->getCheckoutRuleBook('shipping_method', $request, $order);
+
+                    $this->validate($request, $shippingMethodRules);
+
+                    $nextStep = 'payment_method';
+                }
                 break;
             case 'payment_method':
                 if($process == 'change'){
@@ -968,6 +983,15 @@ class OrderController extends Controller
                     'customer_information' => ProjectHelper::getViewTemplate('frontend.order.one_page.customer_information')
                 ];
                 break;
+            case 'shipping_method':
+                $shippingMethodOptions = $this->getShippingMethodOptions($request, $order);
+
+                $viewData += $shippingMethodOptions;
+
+                $renderData = [
+                    'shipping_method' => ProjectHelper::getViewTemplate('frontend.order.one_page.shipping_method')
+                ];
+                break;
             case 'payment_method':
                 $paymentMethodOptions = $this->getPaymentMethodOptions($request, $order);
 
@@ -1092,6 +1116,8 @@ class OrderController extends Controller
 
     protected function getCheckoutRuleBook($type, $request, $order)
     {
+        $shippingMethodOptions = $this->getShippingMethodOptions($request, $order)['shippingMethodOptions'];
+
         $ruleBook = [
             'register' => [
                 'billingProfile.email' => 'required|email|unique:users,email',
@@ -1121,12 +1147,15 @@ class OrderController extends Controller
             'payment_method' => [
                 'payment_method' => 'required|exists:payment_methods,id|step_payment_method:'.$order->id
             ],
+            'shipping_method' => [
+                'shipping_method' => 'required'.(isset($shippingMethodOptions)?'|in:'.implode(',', array_keys($shippingMethodOptions)):''),
+            ],
             'place_order' => [
                 'billingProfile.email' => 'required|email',
                 'shippingProfile.full_name' => 'required',
                 'shippingProfile.phone_number' => 'required',
                 'payment_method' => 'required|exists:payment_methods,id|payment_method:'.$order->id
-            ]
+            ],
         ];
 
         //Payment method additional validations
@@ -1140,13 +1169,7 @@ class OrderController extends Controller
             ];
         }
 
-        if(ProjectHelper::getConfig('checkout_options.shipping_method_position', 'review') == 'before_review'){
-            $shippingMethodOptions = $this->getShippingMethodOptions($request, $order)['shippingMethodOptions'];
-
-            $ruleBook['customer_information'] += [
-                'shipping_method' => 'required'.(isset($shippingMethodOptions)?'|in:'.implode(',', array_keys($shippingMethodOptions)):''),
-            ];
-        }else{
+        if(ProjectHelper::getConfig('checkout_options.shipping_method_position', 'review') == 'review'){
             $ruleBook['place_order'] += [
                 'shipping_method' => 'required'.(isset($shippingMethodOptions)?'|in:'.implode(',', array_keys($shippingMethodOptions)):''),
             ];
