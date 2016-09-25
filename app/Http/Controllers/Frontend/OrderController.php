@@ -757,6 +757,12 @@ class OrderController extends Controller
                     if($request->input('shipping_method') == $idx){
 
                         $order->updateShippingMethod($request->input('shipping_method'), $shippingMethodOption);
+
+                        OrderHelper::processLineItems($request, $order, false);
+
+                        $order->load('lineItems');
+                        $order->calculateTotal();
+
                         break;
                     }
                 }

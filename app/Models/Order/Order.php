@@ -141,6 +141,8 @@ class Order extends Model implements AuthorSignatureInterface
 
     public function clearCart()
     {
+        $this->unsetData('checkout_step', true);
+
         foreach($this->lineItems as $lineItem){
             $lineItem->delete();
             if(!$lineItem->isShipping){
@@ -597,7 +599,7 @@ class Order extends Model implements AuthorSignatureInterface
 
     public function calculateSimpleDiscount()
     {
-        return round($this->total - $this->calculateAdditionalTotal(false, true) - $this->calculateProductTotal(false, true) - $this->calculateShippingTotal(false, true), config('project.line_item_total_precision'));
+        return round($this->calculateTotal() - $this->calculateAdditionalTotal(false, true) - $this->calculateProductTotal(false, true) - $this->calculateShippingTotal(false, true) - $this->rounding_total, config('project.line_item_total_precision'));
     }
 
     public function getPaidAmount()

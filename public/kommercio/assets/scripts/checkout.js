@@ -16,7 +16,7 @@
         plugin.init = function() {
             plugin.settings = $.extend({}, defaults, options);
 
-            initComponent(element);
+            plugin.initComponent(element);
         }
 
         plugin.processCheckout = function($form, $process)
@@ -52,7 +52,7 @@
                             $('#'+ i +'-wrapper', element).html($html);
                         }
 
-                        initComponent($('#'+ i +'-wrapper', element));
+                        plugin.initComponent($('#'+ i +'-wrapper', element));
                         checkoutData.step = data.step;
                     }
                 },
@@ -77,7 +77,7 @@
             });
         }
 
-        var initComponent = function(context)
+        plugin.initComponent = function(context)
         {
             handleAddressOptions(context);
             handleStepButton(context);
@@ -185,7 +185,9 @@
             $('input[name="shipping_method"]', context).on('change', function(){
                 var $form = $(this).parents('form');
 
-                plugin.processCheckout($form, 'select_shipping_method');
+                //if($form.attr('action').search('shipping_method') < 0){
+                    plugin.processCheckout($form, 'select_shipping_method');
+                //}
             });
         }
 

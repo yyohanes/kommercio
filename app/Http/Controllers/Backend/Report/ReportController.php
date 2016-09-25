@@ -7,7 +7,9 @@ use Illuminate\Http\Request;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
+use Kommercio\Events\ReportEvent;
 use Kommercio\Facades\ProjectHelper;
 use Kommercio\Http\Requests;
 use Kommercio\Http\Controllers\Controller;
@@ -54,6 +56,12 @@ class ReportController extends Controller
 
         $qb->whereRaw("DATE_FORMAT(checkout_at, '%Y') = ?", [$filter['year']])
             ->groupBy('month');
+
+        Event::fire(new ReportEvent('sales_year', [
+            'request' => $request,
+            'filter' => $filter,
+            'queryBuilder' => $qb
+        ]));
 
         $orders = $qb->get();
 
@@ -118,6 +126,12 @@ class ReportController extends Controller
         $qb->whereRaw("DATE_FORMAT(" . $filter['date_type'] . ", '%Y-%m-%d') >= ?", [$filter['date']['from']]);
 
         $qb->whereRaw("DATE_FORMAT(" . $filter['date_type'] . ", '%Y-%m-%d') <= ?", [$filter['date']['to']]);
+
+        Event::fire(new ReportEvent('sales', [
+            'request' => $request,
+            'filter' => $filter,
+            'queryBuilder' => $qb
+        ]));
 
         $orders = $qb->get();
 
