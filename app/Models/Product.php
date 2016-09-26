@@ -881,6 +881,10 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
             $this->_productDetail = $this->productDetails()->where('store_id', $this->store->id)->first();
         }
 
+        if(!$this->_productDetail){
+            $this->_productDetail = new ProductDetail();
+        }
+
         return $this->_productDetail;
     }
 
@@ -905,7 +909,9 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
 
                 //Another check if has productDetail with default store. Otherwise, get available
                 if(!$this->productDetails()->where('store_id', $this->_store->id)->count()){
-                    $this->_store = $this->productDetails->get(0)->store;
+                    if($this->productDetails->count() > 0){
+                        $this->_store = $this->productDetails->get(0)->store;
+                    }
                 }
             }
         }

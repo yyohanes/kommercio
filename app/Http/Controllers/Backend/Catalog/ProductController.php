@@ -572,8 +572,7 @@ class ProductController extends Controller{
 
         $productDetail = $product->productDetail;
 
-        if(!$productDetail){
-            $productDetail = new ProductDetail();
+        if(!$productDetail->exists){
             $productDetail->product()->associate($product);
         }
 
