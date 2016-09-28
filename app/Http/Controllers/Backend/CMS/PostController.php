@@ -95,7 +95,7 @@ class PostController extends Controller{
                 $idx + 1 + $orderingStart,
                 $post->name.' (ID: '.$post->id.')',
                 implode(',', $post->postCategories->pluck('name')->all()),
-                $post->created_at->format('d M Y H:i'),
+                $post->created_at?$post->created_at->format('d M Y H:i'):null,
                 '<i class="fa fa-'.($post->active?'check text-success':'remove text-danger').'"></i>',
                 $action
             ];

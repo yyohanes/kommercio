@@ -43,6 +43,10 @@ class PostFormRequest extends Request
             $attributes['parent_id'] = null;
         }
 
+        if(empty($attributes['created_at'])){
+            unset($attributes['created_at']);
+        }
+
         if(!isset($attributes['active'])){
             $attributes['active'] = 0;
         }
