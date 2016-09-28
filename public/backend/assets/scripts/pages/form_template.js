@@ -262,7 +262,7 @@ var formBehaviors = function(){
 
         //init datetimepickers
         //Remove last seconds
-        $(".datetime-picker", context).each(function(idx, obj){
+        $(".datetime-picker:not(.keep-second)", context).each(function(idx, obj){
             if($(obj).val() != ''){
                 if($(obj).val().split(':').length >= 3){
                     $(obj).val($(obj).val().trim().slice(0, -3));
