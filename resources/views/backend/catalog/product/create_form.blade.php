@@ -420,7 +420,7 @@
 
         <div class="tab-pane" role="tabpanel" id="tab_category">
             <div class="form-body">
-                @include('backend.master.form.fields.product_categories_checkbox_tree', [
+                @include('backend.master.form.fields.categories_checkbox_tree', [
                     'name' => 'categories[]',
                     'label' => 'Associated Categories',
                     'key' => 'categories',
@@ -428,7 +428,8 @@
                         'class' => 'form-control height-auto',
                         'id' => 'categories-checkbox'
                     ],
-                    'existing' => $product->categories->pluck('id')->all()
+                    'existing' => $product->categories->pluck('id')->all(),
+                    'rootCategories' => \Kommercio\Models\ProductCategory::getRootCategories()
                 ])
 
                 @include('backend.master.form.fields.select', [

@@ -134,6 +134,17 @@ Route::group(['middleware' => ['web']], function () {
             'uses' => 'PageController@view'
         ]);
 
+        //Posts
+        Route::get('post-category/{id}', [
+            'as' => 'frontend.post.category.view',
+            'uses' => 'PostController@viewCategory'
+        ]);
+
+        Route::get('post/{id}', [
+            'as' => 'frontend.post.view',
+            'uses' => 'PostController@viewPost'
+        ]);
+
         //Catalog
         Route::any('product-categories/{parent_id?}', [
             'as' => 'frontend.catalog.product_categories',
@@ -1423,6 +1434,83 @@ Route::group(['middleware' => ['web']], function () {
                         'as' => 'backend.cms.page.delete',
                         'uses' => 'PageController@delete',
                         'permissions' => ['delete_page']
+                    ]);
+                });
+
+                //Post
+                Route::group(['prefix' => 'post'], function(){
+                    Route::group(['prefix' => 'category'], function(){
+                        Route::get('index/{parent?}', [
+                            'as' => 'backend.cms.post.category.index',
+                            'uses' => 'PostCategoryController@index',
+                            'permissions' => ['view_post_category']
+                        ]);
+
+                        Route::get('create', [
+                            'as' => 'backend.cms.post.category.create',
+                            'uses' => 'PostCategoryController@create',
+                            'permissions' => ['create_post_category']
+                        ]);
+
+                        Route::post('store', [
+                            'as' => 'backend.cms.post.category.store',
+                            'uses' => 'PostCategoryController@store',
+                            'permissions' => ['create_post_category']
+                        ]);
+
+                        Route::get('edit/{id}', [
+                            'as' => 'backend.cms.post.category.edit',
+                            'uses' => 'PostCategoryController@edit',
+                            'permissions' => ['edit_post_category']
+                        ]);
+
+                        Route::post('update/{id}', [
+                            'as' => 'backend.cms.post.category.update',
+                            'uses' => 'PostCategoryController@update',
+                            'permissions' => ['edit_post_category']
+                        ]);
+
+                        Route::post('delete/{id}', [
+                            'as' => 'backend.cms.post.category.delete',
+                            'uses' => 'PostCategoryController@delete',
+                            'permissions' => ['delete_post_category']
+                        ]);
+                    });
+
+                    Route::any('index', [
+                        'as' => 'backend.cms.post.index',
+                        'uses' => 'PostController@index',
+                        'permissions' => ['view_post']
+                    ]);
+
+                    Route::get('create', [
+                        'as' => 'backend.cms.post.create',
+                        'uses' => 'PostController@create',
+                        'permissions' => ['create_post']
+                    ]);
+
+                    Route::post('store', [
+                        'as' => 'backend.cms.post.store',
+                        'uses' => 'PostController@store',
+                        'permissions' => ['create_post']
+                    ]);
+
+                    Route::get('edit/{id}', [
+                        'as' => 'backend.cms.post.edit',
+                        'uses' => 'PostController@edit',
+                        'permissions' => ['edit_post']
+                    ]);
+
+                    Route::post('update/{id}', [
+                        'as' => 'backend.cms.post.update',
+                        'uses' => 'PostController@update',
+                        'permissions' => ['edit_post']
+                    ]);
+
+                    Route::post('delete/{id}', [
+                        'as' => 'backend.cms.post.delete',
+                        'uses' => 'PostController@delete',
+                        'permissions' => ['delete_post']
                     ]);
                 });
 

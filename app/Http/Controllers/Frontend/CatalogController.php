@@ -81,7 +81,7 @@ class CatalogController extends Controller
         ]);
     }
 
-    public function search(Request $request)
+    public function search(Request $request, $view_name = null)
     {
         $options = [
             'limit' => $request->input('limit', ProjectHelper::getConfig('catalog_options.limit')),
@@ -138,7 +138,9 @@ class CatalogController extends Controller
 
         $views = ['frontend.catalog.product.search'];
 
-        $view_name = ProjectHelper::findViewTemplate($views);
+        if(empty($view_name)){
+            $view_name = ProjectHelper::findViewTemplate($views);
+        }
 
         return view($view_name, [
             'products' => $products,
@@ -254,7 +256,13 @@ class CatalogController extends Controller
 
         $request->replace($attributes);
 
-        return $this->search($request);
+        $view_name = ProjectHelper::findViewTemplate(['frontend.catalog.new_arrival']);
+
+        $seoData = [
+            'meta_title' => trans(LanguageHelper::getTranslationKey('frontend.seo.catalog.new_arrival.meta_title'))
+        ];
+
+        return $this->search($request, $view_name)->with('seoData', $seoData);
     }
 
     public function viewCategory(Request $request, $id)

@@ -46,7 +46,15 @@ class FrontendHelper
         return $path;
     }
 
+    /*
+     * Alias of getUrl
+     */
     public function get_url($internal_path, $params = [], $secure = null)
+    {
+        return $this->getUrl($internal_path, $params, $secure);
+    }
+
+    public function getUrl($internal_path, $params = [], $secure = null)
     {
         $path = $this->getAlias($internal_path);
 

@@ -96,6 +96,9 @@ return [
         'catalog' => [
             'shop' => [
                 'meta_title' => 'Shop'
+            ],
+            'new_arrival' => [
+                'meta_title' => 'New Arrival'
             ]
         ],
         'order' => [

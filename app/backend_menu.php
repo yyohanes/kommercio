@@ -187,21 +187,40 @@ $menus['cms'] = [
     'children' => [
         'menu' => [
             'active_path' => 'menu',
-            'name' => 'Menus',
+            'name' => 'Menu',
             'route' => 'backend.cms.menu.index',
             'permissions' => 'view_menu'
         ],
         'page' => [
             'active_path' => 'cms/page',
-            'name' => 'Pages',
+            'name' => 'Page',
             'route' => 'backend.cms.page.index',
             'permissions' => 'view_page'
         ],
         'banner' => [
             'active_path' => 'cms/banner',
-            'name' => 'Banners',
+            'name' => 'Banner',
             'route' => 'backend.cms.banner_group.index',
             'permissions' => 'view_banner'
+        ],
+        'post' => [
+            'active_path' => 'cms/post',
+            'name' => 'Post',
+            'permissions' => 'view_post',
+            'children' => [
+                'post' => [
+                    'active_path' => 'cms/post',
+                    'name' => 'Post',
+                    'route' => 'backend.cms.post.index',
+                    'permissions' => 'view_post'
+                ],
+                'post_category' => [
+                    'active_path' => 'cms/post/category',
+                    'name' => 'Post Category',
+                    'route' => 'backend.cms.post.category.index',
+                    'permissions' => 'view_post_category'
+                ],
+            ]
         ],
         'block' => [
             'active_path' => 'cms/block/index',
