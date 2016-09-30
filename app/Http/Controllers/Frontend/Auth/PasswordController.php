@@ -2,11 +2,13 @@
 
 namespace Kommercio\Http\Controllers\Frontend\Auth;
 
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Kommercio\Facades\LanguageHelper;
 use Kommercio\Facades\ProjectHelper;
 use Kommercio\Http\Controllers\Controller;
 use Illuminate\Foundation\Auth\ResetsPasswords;
+use Illuminate\Support\Facades\Request as RequestFacade;
 
 class PasswordController extends Controller
 {
@@ -27,7 +29,9 @@ class PasswordController extends Controller
         showLinkRequestForm as parentShowLinkRequestForm;
         showResetForm as parentShowResetForm;
         getSendResetLinkEmailSuccessResponse as parentGetSendResetLinkEmailSuccessResponse;
+        getSendResetLinkEmailFailureResponse as parentGetSendResetLinkEmailFailureResponse;
         getResetSuccessResponse as parentGetResetSuccessResponse;
+        getResetFailureResponse as parentGetResetFailureResponse;
     }
 
     /**
@@ -90,11 +94,51 @@ class PasswordController extends Controller
 
     protected function getSendResetLinkEmailSuccessResponse($response)
     {
+        if (RequestFacade::ajax()) {
+            return new JsonResponse([
+                'success' => [
+                    trans($response)
+                ],
+                '_token' => csrf_token()
+            ]);
+        }
+
         return redirect()->back()->with('success', [trans($response)]);
+    }
+
+    protected function getSendResetLinkEmailFailureResponse($response)
+    {
+        if (RequestFacade::ajax()) {
+            return new JsonResponse(
+                ['email' => [trans($response)]], 422);
+        }
+
+        return redirect()->back()->withErrors(['email' => trans($response)]);
     }
 
     protected function getResetSuccessResponse($response)
     {
+        if (RequestFacade::ajax()) {
+            return new JsonResponse([
+                'success' => [
+                    trans($response)
+                ],
+                '_token' => csrf_token()
+            ]);
+        }
+
         return redirect($this->redirectPath())->with('success', [trans($response)]);
+    }
+
+    protected function getResetFailureResponse(Request $request, $response)
+    {
+        if ($request->ajax()) {
+            return new JsonResponse(
+                ['email' => [trans($response)]], 422);
+        }
+
+        return redirect()->back()
+            ->withInput($request->only('email'))
+            ->withErrors(['email' => trans($response)]);
     }
 }

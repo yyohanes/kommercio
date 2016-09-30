@@ -2,6 +2,7 @@
 
 namespace Kommercio\Http\Controllers\Frontend;
 
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
@@ -62,6 +63,13 @@ class AccountController extends Controller
 
             $this->customer->saveProfile($request->input('profile'));
 
+            if ($request->ajax()) {
+                return new JsonResponse([
+                    'success' => [trans(LanguageHelper::getTranslationKey('frontend.member.profile_update.success_message'))],
+                    '_token' => csrf_token()
+                ]);
+            }
+
             return redirect()->back()->with('success', [trans(LanguageHelper::getTranslationKey('frontend.member.profile_update.success_message'))]);
         }
 
@@ -106,6 +114,13 @@ class AccountController extends Controller
             $this->customer->is_virgin = false;
             $this->customer->save();
             $this->customer->saveProfile(['email' => $request->input('email')]);
+
+            if ($request->ajax()) {
+                return new JsonResponse([
+                    'success' => [trans(LanguageHelper::getTranslationKey('frontend.member.account_update.success_message'))],
+                    '_token' => csrf_token()
+                ]);
+            }
 
             return redirect()->back()->with('success', [trans(LanguageHelper::getTranslationKey('frontend.member.account_update.success_message'))]);
         }

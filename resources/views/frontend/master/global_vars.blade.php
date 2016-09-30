@@ -11,6 +11,10 @@
         total_rounding: '{{ ProjectHelper::getConfig('total_rounding') }}',
         csrf_token: '{{ csrf_token() }}',
         kommercio_api_url: '{{ KommercioAPIHelper::getAPIUrl() }}',
-        enable_delivery_date: {{ ProjectHelper::getConfig('enable_delivery_date')?'true':'false' }}
+        enable_delivery_date: {{ ProjectHelper::getConfig('enable_delivery_date')?'true':'false' }},
+        auth: {
+            login_path: '{{ route('frontend.login_form') }}',
+            logout_path: '{{ route('frontend.logout') }}'
+        }
     };
 </script>

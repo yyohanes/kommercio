@@ -39,14 +39,17 @@ class UrlAlias
         $dupRequest = $request->duplicate();
 
         $request_uri = $dupRequest->server->get('REQUEST_URI');
-        $request_uri_string = urldecode(substr($request_uri,1));
+        $request_uri_string = substr($request_uri,1);
 
-        if(strlen($request_uri_string) == 0){
+        $query = '?'.$dupRequest->getQueryString();
+
+        $uriWithoutQuery = str_replace($query, '', $request_uri_string);
+
+        if(strlen($uriWithoutQuery) == 0){
             $request_uri_string = config('project.home_uri', config('kommercio.home_uri'));
         }
 
         if(strlen($dupRequest->getQueryString()) > 0){
-            $query = '?'.$dupRequest->getQueryString();
             $path = str_replace($query, '', $request_uri_string);
         }else{
             $path = $request_uri_string;

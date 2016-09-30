@@ -49,11 +49,11 @@ class AuthController extends Controller
      *
      * @return void
      */
-    public function __construct()
+    public function __construct(Request $request)
     {
         $this->middleware('guest', ['except' => 'getLogout']);
 
-        $this->redirectAfterLogout = route('frontend.login_form');
+        $this->redirectAfterLogout = $request->get('to', route('frontend.login_form'));
         $this->redirectTo = route('frontend.member.account');
 
         $this->loginView = ProjectHelper::getViewTemplate('frontend.auth.login');
