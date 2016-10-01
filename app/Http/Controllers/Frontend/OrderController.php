@@ -72,13 +72,13 @@ class OrderController extends Controller
 
     public function cartUpdate(Request $request)
     {
-        $order = FrontendHelper::getCurrentOrder();
+        $order = FrontendHelper::getCurrentOrder('save');
 
         //On update, reset checkout_step and delete everything but product, coupon & shipping
-        $order->unsetData('checkout_step', true);
+        $this->unsetData('checkout_step', true);
 
-        foreach($order->lineItems as $lineItem){
-            if(!$lineItem->isProduct && !$lineItem->isCoupon){
+        foreach($this->lineItems as $lineItem){
+            if(!$lineItem->isShipping && !$lineItem->isProduct && !$lineItem){
                 $lineItem->delete();
             }
         }

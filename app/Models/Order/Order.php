@@ -568,7 +568,7 @@ class Order extends Model implements AuthorSignatureInterface
         foreach($this->lineItems as $lineItem){
             if($lineItem->isProduct){
                 if($total){
-                    $productTotal += $lineItem->calculateTotal();
+                    $productTotal += $lineItem->updateQuantity();
                 }else{
                     if($withTax){
                         $productTotal += $lineItem->calculateSubtotalWithTax();
