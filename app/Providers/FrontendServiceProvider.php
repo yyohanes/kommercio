@@ -3,6 +3,7 @@
 namespace Kommercio\Providers;
 
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Request;
 use Illuminate\Support\ServiceProvider;
 use Kommercio\Facades\FrontendHelper;
 use Kommercio\Facades\ProjectHelper;
@@ -17,6 +18,9 @@ class FrontendServiceProvider extends ServiceProvider
     public function boot()
     {
         view()->composer(['project::frontend.*', 'frontend.*'], function ($view) {
+            $testEnvironment = env('APP_ENV') != 'production' || in_array(Request::ip(), [ProjectHelper::getConfig('test_ips')]);
+            $view->with('testEnvironment', $testEnvironment);
+
             $user = Auth::user();
             $view->with('loggedInUser', $user);
             $view->with('loggedInCustomer', $user?$user->customer:null);

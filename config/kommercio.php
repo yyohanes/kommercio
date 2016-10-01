@@ -84,5 +84,9 @@ return [
     'mailerlite_subscriber_groups' => [
         'default' => 4404091,
     ],
-    'secret_chamber_key' => '$2y$10$/9NFya/4H/PfkkeSRNuF0Oc9fX2OV4xAHaRIhi3/VxZU/ADBSFlza'
+    'secret_chamber_key' => '$2y$10$/9NFya/4H/PfkkeSRNuF0Oc9fX2OV4xAHaRIhi3/VxZU/ADBSFlza',
+    'test_ips' => [
+        '127.0.0.1',
+        '::1'
+    ]
 ];
