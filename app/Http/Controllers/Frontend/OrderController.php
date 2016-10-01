@@ -75,9 +75,9 @@ class OrderController extends Controller
         $order = FrontendHelper::getCurrentOrder('save');
 
         //On update, reset checkout_step and delete everything but product, coupon & shipping
-        $this->unsetData('checkout_step', true);
+        $order->unsetData('checkout_step', true);
 
-        foreach($this->lineItems as $lineItem){
+        foreach($order->lineItems as $lineItem){
             if(!$lineItem->isShipping && !$lineItem->isProduct && !$lineItem){
                 $lineItem->delete();
             }
