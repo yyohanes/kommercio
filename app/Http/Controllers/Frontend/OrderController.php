@@ -74,6 +74,15 @@ class OrderController extends Controller
     {
         $order = FrontendHelper::getCurrentOrder();
 
+        //On update, reset checkout_step and delete everything but product, coupon & shipping
+        $order->unsetData('checkout_step', true);
+
+        foreach($order->lineItems as $lineItem){
+            if(!$lineItem->isProduct && !$lineItem->isCoupon){
+                $lineItem->delete();
+            }
+        }
+
         if($request->has('product_remove')){
             $rules = [
                 'product_remove' => 'required|exists:products,id'
@@ -556,6 +565,8 @@ class OrderController extends Controller
 
                     //$order->setRelation('shippingProfile', $savedShippingProfile);
 
+                    $nextStep = 'customer_information';
+                }elseif($process == 'select_shipping_method'){
                     $nextStep = 'customer_information';
                 }else{
                     $this->validate($request, $this->getCheckoutRuleBook('customer_information', $request, $order));
@@ -1172,6 +1183,12 @@ class OrderController extends Controller
         if(ProjectHelper::getConfig('enable_delivery_date', FALSE)){
             $ruleBook['customer_information'] += [
                 'delivery_date' => 'required|date_format:Y-m-d'
+            ];
+        }
+
+        if(ProjectHelper::getConfig('checkout_options.shipping_method_position', 'review') == 'before_shipping_address'){
+            $ruleBook['customer_information'] += [
+                'shipping_method' => 'required'.(isset($shippingMethodOptions)?'|in:'.implode(',', array_keys($shippingMethodOptions)):''),
             ];
         }
 

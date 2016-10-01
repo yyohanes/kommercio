@@ -125,6 +125,7 @@ class OrderHelper
 
             $priceRuleValue = 0;
 
+            $lineItem->discount_total = 0;
             foreach($cartPriceRules as $cartPriceRule){
                 if($cartPriceRule->offer_type == CartPriceRule::OFFER_TYPE_PRODUCT_DISCOUNT){
                     $productCartPriceRuleProducts = $cartPriceRule->getProducts();

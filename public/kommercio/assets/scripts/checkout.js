@@ -43,6 +43,8 @@
                 success: function(data){
                     var $html = null;
 
+                    $element.trigger('after_step_change', [data.step, checkoutData.step]);
+
                     for(var i in data.data){
                         $html = $(data.data[i]);
 
@@ -274,7 +276,8 @@
 
         var checkoutData = {
             run_flag: true,
-            step: null
+            step: null,
+            plugin: plugin
         };
 
         plugin.init();

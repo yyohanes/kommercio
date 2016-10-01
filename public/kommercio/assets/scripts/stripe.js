@@ -22,10 +22,11 @@ var KommercioStripe = function(){
             });
 
             var stripeResponseHandler = function(status, response){
+                checkoutData.run_flag = true;
+
                 if (response.error) {
                     // Show the errors on the form
-                    $form.find('.payment-errors').text(response.error.message);
-                    checkoutData.run_flag = false;
+                    $form.find('.payment-errors').html('<div class="alert alert-danger">' + response.error.message + '</div>');
                 } else {
                     // Get the token ID:
                     var token = response.id;
@@ -34,9 +35,7 @@ var KommercioStripe = function(){
                     $form.find('.stripeToken').remove();
                     $form.append($('<input type="hidden" class="stripeToken" name="stripeToken" />').val(token));
 
-                    checkoutData.run_flag = true;
-
-                    checkoutForm.submitCheckoutForm($form, process);
+                    checkoutData.plugin.submitCheckoutForm($form, process);
                 }
             }
         }
