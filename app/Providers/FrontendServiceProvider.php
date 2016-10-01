@@ -18,7 +18,7 @@ class FrontendServiceProvider extends ServiceProvider
     public function boot()
     {
         view()->composer(['project::frontend.*', 'frontend.*'], function ($view) {
-            $testEnvironment = env('APP_ENV') != 'production' || in_array(Request::ip(), [ProjectHelper::getConfig('test_ips')]);
+            $testEnvironment = (env('APP_ENV') != 'production') || in_array(Request::ip(), ProjectHelper::getConfig('test_ips'));
             $view->with('testEnvironment', $testEnvironment);
 
             $user = Auth::user();
