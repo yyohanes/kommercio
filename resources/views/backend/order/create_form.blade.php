@@ -78,9 +78,6 @@
                             @foreach($paymentMethodOptions as $value=>$paymentMethodOption)
                                 <label>{!! Form::radio('payment_method', $value) !!} {{ $paymentMethodOption }}</label>
                                 <?php $paymentMethod = \Kommercio\Models\PaymentMethod\PaymentMethod::findOrFail($value); ?>
-                                @if($paymentMethod->getProcessor()->getCheckoutForm())
-                                    @include($order->paymentMethod->getProcessor()->getCheckoutForm())
-                                @endif
                             @endforeach
                         </div>
                     </div>

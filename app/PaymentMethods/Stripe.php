@@ -17,7 +17,7 @@ class Stripe implements PaymentMethodInterface, PaymentMethodSettingFormInterfac
         $valid = TRUE;
 
         if(isset($options['frontend'])){
-            $valid = $options['frontend'];
+            //$valid = $options['frontend'];
         }
 
         return $valid;
