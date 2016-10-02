@@ -648,6 +648,7 @@ class OrderController extends Controller
                     $this->validate($request, $paymentMethodRules);
 
                     $order->paymentMethod()->associate($request->input('payment_method'));
+                    $order->load('paymentMethod');
 
                     $order->paymentMethod->getProcessor()->processPayment([
                         'order' => $order,
