@@ -2,6 +2,7 @@
 
 namespace Kommercio\Helpers;
 
+use Illuminate\Support\Facades\Request as RequestFacade;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Event;
@@ -150,6 +151,11 @@ class ProjectHelper
         }
 
         return $viewPath;
+    }
+
+    public function isTestEnvironment()
+    {
+        return (env('APP_ENV') != 'production') || in_array(RequestFacade::ip(), $this->getConfig('test_ips'));
     }
 
     //Configs
