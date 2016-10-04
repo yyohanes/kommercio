@@ -104,6 +104,7 @@ class Stripe implements PaymentMethodInterface, PaymentMethodSettingFormInterfac
             $token = \Stripe\Token::retrieve($order->getData('stripeToken', null));
             return !$token->used;
         }catch(\Exception $e){
+            \Log::info($e);
             return false;
         }
     }
