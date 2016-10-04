@@ -15,7 +15,7 @@
     <script src="{{ asset('backend/assets/template/global/plugins/bootstrap-datetimepicker/js/bootstrap-datetimepicker.min.js') }}" type="text/javascript"></script>
     <script src="{{ asset('backend/assets/template/global/plugins/moment.min.js') }}" type="text/javascript"></script>
     <script src="{{ asset('backend/assets/template/global/plugins/bootstrap-typeahead/bootstrap3-typeahead.min.js') }}" type="text/javascript"></script>
-    <script src="{{ asset('backend/assets/scripts/plugins/inputmask/dist/min/jquery.inputmask.bundle.min.js') }}" type="text/javascript"></script>
+    <script src="{{ asset('backend/assets/scripts/plugins/inputmask/min/jquery.inputmask.bundle.min.js') }}" type="text/javascript"></script>
     <script src="{{ asset('backend/assets/template/global/plugins/bootstrap-maxlength/bootstrap-maxlength.min.js') }}" type="text/javascript"></script>
     <script src="{{ asset('backend/assets/scripts/plugins/jquery-seo-url-master/jquery.seourl.min.js') }}" type="text/javascript"></script>
     <script src="{{ asset('backend/assets/scripts/plugins/html5sortable/html.sortable.min.js') }}" type="text/javascript"></script>
