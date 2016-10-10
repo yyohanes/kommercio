@@ -39,20 +39,21 @@ var OrderIndex = function () {
         ]);
 
         if(view_payment){
-            columnDefs.push({"name": "outstanding", "targets": 7+runtimeAdditonalColumns});
+            columnDefs.push({"name": "payment_method", "orderable" : false, "targets": 7+runtimeAdditonalColumns});
+            columnDefs.push({"name": "outstanding", "targets": 8+runtimeAdditonalColumns});
             runtimeAdditonalColumns += 1;
         }
 
         columnDefs = columnDefs.concat([
-            {"name": "status", "targets": 7+runtimeAdditonalColumns, "orderable": false}
+            {"name": "status", "targets": 8+runtimeAdditonalColumns, "orderable": false}
         ]);
 
         if(show_store_column){
-            columnDefs.push({"name": "store_id", "orderable" : false, "targets": 8+runtimeAdditonalColumns});
+            columnDefs.push({"name": "store_id", "orderable" : false, "targets": 9+runtimeAdditonalColumns});
             runtimeAdditonalColumns += 1;
         }
 
-        columnDefs.push({"name": "action", "orderable" : false, "targets": 8+runtimeAdditonalColumns});
+        columnDefs.push({"name": "action", "orderable" : false, "targets": 9+runtimeAdditonalColumns});
 
         $dataTable.init({
             token: $('#orders-dataset').data('form_token'),

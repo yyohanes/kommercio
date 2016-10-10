@@ -36,6 +36,8 @@ class CustomerController extends Controller{
                         $qb->whereUserStatus($search);
                     }elseif($searchKey == 'full_name') {
                         $qb->whereRaw('CONCAT(VFNAME.value, " ", VLNAME.value) LIKE ?', ['%'.$search.'%']);
+                        $qb->orWhereRaw('VFNAME.value LIKE ?', ['%'.$search.'%']);
+                        $qb->orWhereRaw('VLNAME.value LIKE ?', ['%'.$search.'%']);
                     }elseif($searchKey == 'salute'){
                         $qb->whereField($searchKey, $search);
                     }else{

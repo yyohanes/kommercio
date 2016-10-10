@@ -680,6 +680,10 @@ class OrderController extends Controller
 
                 }
 
+                if($request->has('notes')){
+                    $order->notes = $request->input('notes');
+                }
+
                 $order->currency = $request->input('currency');
                 $order->conversion_rate = 1;
 

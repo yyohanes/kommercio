@@ -91,6 +91,7 @@
                             @endforeach
                             <th>Total</th>
                             @can('access', ['view_payment'])
+                            <th>Payment Method</th>
                             <th>Outstanding</th>
                             @endcan
                             <th>Status</th>
@@ -120,6 +121,7 @@
                             @endforeach
                             <td></td>
                             @can('access', ['view_payment'])
+                            <td>{!! Form::select('filter[payment_method_id]', ['' => 'All'] + $paymentMethodOptions, [Request::input('filter.payment_method_id')], ['class' => 'form-control form-filter input-sm']) !!}</td>
                             <td>{!! Form::select('filter[outstanding]', ['' => 'All', 'settled' => 'Settled', 'unsettled' => 'Unsettled'], [Request::input('filter.outstanding')], ['class' => 'form-control form-filter input-sm']) !!}</td>
                             @endcan
                             <td>{!! Form::select('filter[status]', ['' => 'All'] + \Kommercio\Models\Order\Order::getStatusOptions(), Request::input('filter.status'), ['class' => 'form-control form-filter input-sm']) !!}</td>

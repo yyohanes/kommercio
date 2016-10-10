@@ -235,8 +235,14 @@ class OrderController extends Controller{
         }
         $stickyProducts = Product::joinDetail($store_id)->selectSelf()->active()->where('sticky_line_item', 1)->orderBy('sort_order', 'ASC')->get();
 
+        $paymentMethodOptions = [];
+        foreach(PaymentMethod::getPaymentMethods() as $paymentMethod){
+            $paymentMethodOptions[$paymentMethod->id] = $paymentMethod->name;
+        }
+
         return view('backend.order.index', [
-            'stickyProducts' => $stickyProducts
+            'stickyProducts' => $stickyProducts,
+            'paymentMethodOptions' => $paymentMethodOptions
         ]);
     }
 
@@ -329,6 +335,7 @@ class OrderController extends Controller{
 
             if(Gate::allows('access', ['view_payment'])):
                 $rowMeat = array_merge($rowMeat, [
+                    $order->paymentMethod->name,
                     '<label class="label label-sm label-'.($order->outstanding > 0?'warning':'success').'">'.PriceFormatter::formatNumber($order->outstanding).'</label>',
                 ]);
             endif;

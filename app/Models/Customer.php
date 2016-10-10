@@ -79,14 +79,14 @@ class Customer extends Model
     public function scopeJoinOrderTotal($query, $status = [])
     {
         if(empty($status)){
-            $status = [Order::STATUS_COMPLETED, Order::STATUS_PROCESSING, Order::STATUS_PENDING];
+            $status = ['\''.Order::STATUS_COMPLETED.'\'', '\''.Order::STATUS_PROCESSING.'\'', '\''.Order::STATUS_PENDING.'\''];
         }
 
         $customerTable = $this->orders()->getParent()->getTable();
 
         $orderQuery = Order::selectRaw('customer_id, SUM(total * conversion_rate) AS total, SUM(discount_total * conversion_rate) AS discount_total, SUM(shipping_total * conversion_rate) AS shipping_total, SUM(tax_total * conversion_rate) AS tax_total, SUM(additional_total * conversion_rate) AS additional_total')
             ->groupBy('customer_id')
-            ->whereIn('status', $status);
+            ->whereRaw('status IN ('.implode(',',$status).')');
 
         $query
             ->selectRaw($customerTable.'.*, O.*')
