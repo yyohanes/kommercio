@@ -43,49 +43,53 @@ class Stripe implements PaymentMethodInterface, PaymentMethodSettingFormInterfac
         $request = $options['request'];
         $order = $options['order'];
 
-        $order->saveData(['stripeToken' => $request->input('stripeToken')]);
+        if($order && $order->exists){
+            $order->saveData(['stripeToken' => $request->input('stripeToken')]);
+        }
     }
 
     public function finalProcessPayment($options = null)
     {
         $order = $options['order'];
 
-        \Stripe\Stripe::setApiKey($this->getSecretKey());
+        if($order && $order->exists){
+            \Stripe\Stripe::setApiKey($this->getSecretKey());
 
-        try{
-            $charge = \Stripe\Charge::create(array(
-                "amount" => $order->total * 100,
-                "currency" => $order->currency,
-                "source" => $order->getData('stripeToken'),
-                "description" => "Charge for ".$order->billingInformation->email,
-                "metadata" => [
-                    "order_reference" => $order->reference
-                ]
-            ));
+            try{
+                $charge = \Stripe\Charge::create(array(
+                    "amount" => $order->total * 100,
+                    "currency" => $order->currency,
+                    "source" => $order->getData('stripeToken'),
+                    "description" => "Charge for ".$order->billingInformation->email,
+                    "metadata" => [
+                        "order_reference" => $order->reference
+                    ]
+                ));
 
-            $paymentData = [
-                'payment_method_id' => $this->paymentMethod->id,
-                'amount' => $order->total,
-                'currency' => $order->currency,
-                'status' => Payment::STATUS_PENDING,
-                'order_id' => $order->id,
-            ];
+                $paymentData = [
+                    'payment_method_id' => $this->paymentMethod->id,
+                    'amount' => $order->total,
+                    'currency' => $order->currency,
+                    'status' => Payment::STATUS_PENDING,
+                    'order_id' => $order->id,
+                ];
 
-            $paymentData['notes'] = "Card Detail"."\r\n";
-            $paymentData['notes'] .= "Type: ".$charge->source->brand."\r\n";
-            $paymentData['notes'] .= "Country: ".$charge->source->country."\r\n";
-            $paymentData['notes'] .= "Last4: ".$charge->source->last4."\r\n";
+                $paymentData['notes'] = "Card Detail"."\r\n";
+                $paymentData['notes'] .= "Type: ".$charge->source->brand."\r\n";
+                $paymentData['notes'] .= "Country: ".$charge->source->country."\r\n";
+                $paymentData['notes'] .= "Last4: ".$charge->source->last4."\r\n";
 
-            $payment = new Payment();
-            $payment->fill($paymentData);
-            $payment->status = Payment::STATUS_SUCCESS;
-            $payment->payment_date = Carbon::now();
-            $payment->saveData(['stripe' => $charge]);
-            $payment->save();
-        }catch(\Stripe\Error\Base $e){
-            $body = $e->getJsonBody();
-            $err  = $body['error'];
-            return $err['message'];
+                $payment = new Payment();
+                $payment->fill($paymentData);
+                $payment->status = Payment::STATUS_SUCCESS;
+                $payment->payment_date = Carbon::now();
+                $payment->saveData(['stripe' => $charge]);
+                $payment->save();
+            }catch(\Stripe\Error\Base $e){
+                $body = $e->getJsonBody();
+                $err  = $body['error'];
+                return $err['message'];
+            }
         }
     }
 
