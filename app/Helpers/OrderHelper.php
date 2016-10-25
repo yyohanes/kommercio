@@ -236,7 +236,7 @@ class OrderHelper
             $existingLineItem->delete();
         }
 
-        return $lineItems;
+        return collect($lineItems);
     }
 
     public function reuseOrCreateLineItem($order, &$existingLineItems, $count)

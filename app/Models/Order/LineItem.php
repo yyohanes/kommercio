@@ -111,6 +111,7 @@ class LineItem extends Model
             $this->base_price = $data['lineitem_total_amount'];
             $this->net_price = $data['lineitem_total_amount'];
             $this->total = $data['lineitem_total_amount'];
+            $this->taxable = false;
             $this->quantity = 1;
         }elseif($data['line_item_type'] == 'rounding'){
             $this->name = 'Rounding';

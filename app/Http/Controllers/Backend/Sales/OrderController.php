@@ -437,6 +437,9 @@ class OrderController extends Controller{
         $order->saveProfile('billing', $request->input('profile'));
         $order->saveProfile('shipping', $request->input('shipping_profile'));
 
+        //Use free form line items
+        $order->setRelation('lineItems', OrderHelper::processLineItems($request, $order, true, true));
+
         OrderHelper::processLineItems($request, $order);
 
         $order->load('lineItems');
@@ -645,6 +648,9 @@ class OrderController extends Controller{
 
         $order->saveProfile('billing', $request->input('profile'));
         $order->saveProfile('shipping', $request->input('shipping_profile'));
+
+        //Use free form line items
+        $order->setRelation('lineItems', OrderHelper::processLineItems($request, $order, true, true));
 
         OrderHelper::processLineItems($request, $order);
 
@@ -1084,7 +1090,8 @@ class OrderController extends Controller{
 
     public function getCartRules(Request $request, $internal = false)
     {
-        $priceRules = OrderHelper::getCartRules($request);
+        $order = OrderHelper::createDummyOrderFromRequest($request);
+        $priceRules = OrderHelper::getCartRules($request, $order);
 
         if($request->ajax() || !$internal){
             $returnedData = [];
