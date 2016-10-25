@@ -100,6 +100,13 @@ class Page extends Model implements UrlAliasInterface, SeoModelInterface
     }
 
     //Statics
+    public static function getPageBySlug($slug)
+    {
+        $page = self::whereTranslation('slug', $slug)->first();
+
+        return $page;
+    }
+
     public static function getRootPages()
     {
         return self::whereNull('parent_id')->orderBy('created_at', 'DESC')->get();
