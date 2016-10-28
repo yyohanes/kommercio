@@ -67,6 +67,7 @@ $permissions = [
         'cancel_order' => 'Cancel Order',
         'resend_order_email' => 'Resend Order Email',
         'edit_settled_order' => 'Edit Settled Order',
+        'cancel_settled_order' => 'Cancel Settled Order',
         'add_unavailable_product' => 'Add Unavailable Product',
         'add_inactive_product' => 'Add Inactive Product',
         'view_order_internal_memo' => 'View Internal Memo',

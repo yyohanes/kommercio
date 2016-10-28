@@ -835,7 +835,7 @@ class Order extends Model implements AuthorSignatureInterface
 
     public function getIsCancellableAttribute()
     {
-        return in_array($this->status, [self::STATUS_PENDING, self::STATUS_PROCESSING]);
+        return in_array($this->status, [self::STATUS_PENDING, self::STATUS_PROCESSING]) || (Gate::allows('access', ['cancel_settled_order']) && !in_array($this->status, [Order::STATUS_COMPLETED]));
     }
 
     public function getIsCompleteableAttribute()
