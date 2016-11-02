@@ -88,5 +88,10 @@ return [
     'test_ips' => [
         '127.0.0.1',
         '::1'
+    ],
+    'features' => [
+        'catalog' => [
+            'composite_product' => false
+        ]
     ]
 ];
