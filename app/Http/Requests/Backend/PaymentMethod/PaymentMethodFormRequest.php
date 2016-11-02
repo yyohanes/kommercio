@@ -4,6 +4,7 @@ namespace Kommercio\Http\Requests\Backend\PaymentMethod;
 
 use Kommercio\Http\Requests\Request;
 use Kommercio\Models\PaymentMethod\PaymentMethod;
+use Kommercio\PaymentMethods\PaymentMethodSettingFormInterface;
 
 class PaymentMethodFormRequest extends Request
 {
@@ -32,10 +33,12 @@ class PaymentMethodFormRequest extends Request
         if($this->route('id')){
             $paymentMethod = PaymentMethod::findOrFail($this->route('id'));
 
-            $additionalValidation = call_user_func(get_class($paymentMethod->getProcessor()).'::additionalSettingValidation', $this);
+            if($paymentMethod->getProcessor() instanceof PaymentMethodSettingFormInterface){
+                $additionalValidation = call_user_func(get_class($paymentMethod->getProcessor()).'::additionalSettingValidation', $this);
 
-            if(is_array($additionalValidation)){
-                $rules += $additionalValidation;
+                if(is_array($additionalValidation)){
+                    $rules += $additionalValidation;
+                }
             }
         }
 
