@@ -32,36 +32,36 @@
         </div>
     </div>
 
+    @if(count($managedStores) > 1)
     <div class="col-md-3">
-        @if(count($managedStores) > 1)
-            <?php
-            $storeOptions = [];
-            foreach($managedStores as $managedStore){
-                $storeOptions[$managedStore->id] = $managedStore->name;
-            }
-            ?>
-            <div class="portlet light bordered">
-                <div class="portlet-title">
-                    <div class="caption">
-                        <i class="fa fa-shopping-cart"></i>
-                        <span class="caption-subject">Store</span>
-                    </div>
+        <?php
+        $storeOptions = [];
+        foreach($managedStores as $managedStore){
+            $storeOptions[$managedStore->id] = $managedStore->name;
+        }
+        ?>
+        <div class="portlet light bordered">
+            <div class="portlet-title">
+                <div class="caption">
+                    <i class="fa fa-shopping-cart"></i>
+                    <span class="caption-subject">Store</span>
                 </div>
-                <div class="portlet-body" id="store-selection-wrapper">
-                    <div class="form-group">
-                        <div class="col-md-12">
-                            {!! Form::select('store_id', $storeOptions, [$order->store_id?:ProjectHelper::getActiveStore()->id], ['id' => 'store-option', 'class' => 'form-control']) !!}
-                        </div>
+            </div>
+            <div class="portlet-body" id="store-selection-wrapper">
+                <div class="form-group">
+                    <div class="col-md-12">
+                        {!! Form::select('store_id', $storeOptions, [$order->store_id?:ProjectHelper::getActiveStore()->id], ['id' => 'store-option', 'class' => 'form-control']) !!}
                     </div>
                 </div>
             </div>
-        @else
-            <?php
-            $onlyStore = $managedStores->get(0);
-            ?>
-            {!! Form::hidden('store_id', $order->store_id?$order->store_id:$onlyStore->id) !!}
-        @endif
+        </div>
     </div>
+    @else
+        <?php
+        $onlyStore = $managedStores->get(0);
+        ?>
+        {!! Form::hidden('store_id', $order->store_id?$order->store_id:$onlyStore->id) !!}
+    @endif
 
     <div class="col-md-3">
         <div class="portlet light bordered">

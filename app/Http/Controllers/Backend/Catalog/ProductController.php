@@ -23,6 +23,8 @@ use Kommercio\Models\Product;
 use Kommercio\Models\ProductAttribute\ProductAttribute;
 use Kommercio\Models\ProductAttribute\ProductAttributeValue;
 use Kommercio\Models\ProductCategory;
+use Kommercio\Models\ProductComposite\ProductComposite;
+use Kommercio\Models\ProductComposite\ProductCompositeConfiguration;
 use Kommercio\Models\ProductDetail;
 use Kommercio\Models\ProductFeature\ProductFeature;
 use Kommercio\Models\ProductFeature\ProductFeatureValue;
@@ -314,6 +316,68 @@ class ProductController extends Controller{
         }
         $product->productFeatureValues()->sync($syncFeatures);
 
+        //Composite Configurations
+        $count = 0;
+        $existingComposites = $product->composites->pluck('id', 'id')->all();
+
+        foreach($request->input('compositeConfigurations', []) as $idx => $compositeConfigurationData){
+            $compositeConfiguration = null;
+            $updatePivotFlag = false;
+
+            $compositeConfiguration = ProductComposite::where('name', $compositeConfigurationData['name'])->first();
+
+            if($compositeConfiguration && isset($existingComposites[$compositeConfiguration->id])){
+                unset($existingComposites[$compositeConfiguration->id]);
+                $updatePivotFlag = true;
+            }
+
+            if(!$compositeConfiguration){
+                $compositeConfiguration = new ProductComposite();
+            }
+
+            $compositeConfiguration->fill($compositeConfigurationData);
+            $compositeConfiguration->save();
+
+            $pivotData = [
+                'minimum' => $compositeConfigurationData['minimum'],
+                'maximum' => $compositeConfigurationData['maximum'],
+                'sort_order' => $count
+            ];
+
+            if($updatePivotFlag){
+                $product->composites()->updateExistingPivot($compositeConfiguration->id, $pivotData);
+            }else{
+                $product->composites()->attach($compositeConfiguration, $pivotData);
+            }
+
+            $configuredProductsData = [];
+
+            $productCompositeConfiguration = $product->composites()->where('product_composite_id', $compositeConfiguration->id)->first()->pivot;
+
+            $productCompositeConfiguration->configuredProducts()->detach();
+            foreach($request->input('composite_products_'.$idx.'_product') as $idy => $configuredProduct){
+                $configuredProductsData[$configuredProduct] = [
+                    'sort_order' => $idy
+                ];
+            }
+
+            $productCompositeConfiguration->configuredProducts()->sync($configuredProductsData);
+
+            $count += 1;
+        }
+
+        //Remove unused composites
+        foreach($existingComposites as $existingComposite){
+            $existingComposite = ProductComposite::find($existingComposite);
+
+            $checkIfCompositeIsUsed = $existingComposite->products()->where('products.id', '<>', $product->id)->count() > 0;
+            if($checkIfCompositeIsUsed){
+                $product->composites()->detach($existingComposite);
+            }else{
+                $existingComposite->delete();
+            }
+        }
+
         //Cross Sell
         $product->crossSellTo()->detach();
         foreach($request->input('cross_sell_product', []) as $idx=>$crossSellProduct){
@@ -503,7 +567,6 @@ class ProductController extends Controller{
             $product->combination_type = Product::COMBINATION_TYPE_VARIATION;
 
             $new = TRUE;
-
         }
 
         $product->fill($request->input('variation'));
@@ -589,6 +652,147 @@ class ProductController extends Controller{
 
         return response()->json([
             'message' => $message,
+            '_token' => csrf_token(),
+            'result' => 'success'
+        ]);
+    }
+
+    public function variationBulkForm($id)
+    {
+        $product = Product::findOrFail($id);
+
+        $attributes = ProductAttribute::orderBy('sort_order', 'ASC')->get();
+
+        $form = view('backend.catalog.product.product_variation_bulk_form', [
+            'attributes' => $attributes,
+            'product' => $product,
+        ])->render();
+
+        return response()->json([
+            'html' => $form,
+            '_token' => csrf_token()
+        ]);
+    }
+
+    public function variationBulkSave(Request $request, $id)
+    {
+        $this->validate($request, [
+            '_bulkAttribute' => 'required|array'
+        ]);
+
+        $requestAttributes = $request->all();
+        if(!$request->has('variation.productDetail.retail_price')){
+            $requestAttributes['variation']['productDetail']['retail_price'] = null;
+        }
+
+        $request->replace($requestAttributes);
+
+        $attributesData = $request->input('_bulkAttribute');
+
+        $parentProduct = Product::findOrFail($id);
+
+        $combinations = $this->getCombinationsFromArray($attributesData);
+
+        foreach($attributesData as $attributeId => $attributesValues){
+            $attributes[] = $attributeId;
+        }
+
+        foreach($combinations as $combination){
+            if(count($combination) == count($attributesData)){
+                //Check if variation exists
+                $attributeValues = [];
+
+                foreach($combination as $attributeValue){
+                    $attributeValues[$this->_searchAttributeId($attributesData, $attributeValue)] = $attributeValue;
+                }
+
+                $existingVariations = $parentProduct->getVariationsByAttributes($attributes, $attributeValues);
+
+                if($existingVariations->count() < 1){
+                    $product = new Product();
+                    $product->combination_type = Product::COMBINATION_TYPE_VARIATION;
+
+                    $product->name = $parentProduct->name;
+                    $product->sku = $parentProduct->sku;
+
+                    $loadedAttributeValues = [];
+                    $toSyncAttributeValues = [];
+
+                    foreach($combination as $attributeValue){
+                        $loadedAttributeValue = ProductAttributeValue::findOrFail($attributeValue);
+                        $product->name .= ' '.$loadedAttributeValue->name;
+                        $product->sku .= ' '.$loadedAttributeValue->id;
+
+                        $toSyncAttributeValues[$attributeValue] = [
+                            'product_attribute_id' => $loadedAttributeValue->product_attribute_id
+                        ];
+                    }
+
+                    $product->parent()->associate($parentProduct);
+
+                    //Update manufacturer
+                    $product->manufacturer_id = $parentProduct->manufacturer_id;
+
+                    $product->save();
+
+                    //Update children product categories
+                    $product->categories()->sync($parentProduct->categories->pluck('id')->all());
+
+                    //Update children features
+                    $features = [];
+
+                    foreach($parentProduct->productFeatureValues as $parentProductFeature){
+                        $features[$parentProductFeature->id] = [
+                            'product_feature_id' => $parentProductFeature->pivot->product_feature_id
+                        ];
+                    }
+
+                    $product->productFeatureValues()->sync($features);
+
+                    $product->productAttributeValues()->sync($toSyncAttributeValues);
+
+                    $images = [];
+
+                    if($request->has('variation.images')){
+                        foreach($request->input('variation.images', []) as $idx=>$image){
+                            $images[$image] = [
+                                'type' => 'image',
+                                'locale' => $product->getTranslation()->locale
+                            ];
+                        }
+                    }
+
+                    $product->getTranslation()->syncMedia($images, 'image');
+
+                    $thumbnails = [];
+
+                    if($request->has('variation.thumbnails')){
+                        foreach($request->input('variation.thumbnails', []) as $idx=>$image){
+                            $thumbnails[$image] = [
+                                'type' => 'thumbnail',
+                                'locale' => $product->getTranslation()->locale
+                            ];
+                        }
+                    }
+
+                    $product->getTranslation()->syncMedia($thumbnails, 'thumbnail');
+
+                    $productDetail = $product->productDetail;
+
+                    if(!$productDetail->exists){
+                        $productDetail->product()->associate($product);
+                    }
+
+                    $productDetail->fill($request->input('variation.productDetail'));
+                    $productDetail->store_id = $request->input('variation.store_id');
+                    $productDetail->taxable = $parentProduct->productDetail->taxable;
+                    $productDetail->save();
+                }
+            }
+        }
+
+        return response()->json([
+            'message' => 'Variations have been created.',
             '_token' => csrf_token(),
             'result' => 'success'
         ]);
@@ -837,5 +1041,30 @@ class ProductController extends Controller{
         $orderCount = Order::checkout()->whereHasLineItem($id, 'product')->count();
 
         return $orderCount < 1;
+    }
+
+    protected function getCombinationsFromArray($arrays, $i = 0) {
+        $result = array(array());
+        foreach ($arrays as $property => $property_values) {
+            $tmp = array();
+            foreach ($result as $result_item) {
+                foreach ($property_values as $property_key => $property_value) {
+                    $tmp[] = $result_item + array($property_key => $property_value);
+                }
+            }
+            $result = $tmp;
+        }
+        return $result;
+    }
+
+    private function _searchAttributeId($array, $value)
+    {
+        foreach($array as $idx => $arrayItem){
+            if(array_search($value, $arrayItem) !== false){
+                return $idx;
+            }
+        }
+
+        return null;
     }
 }

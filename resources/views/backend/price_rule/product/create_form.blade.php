@@ -2,7 +2,7 @@
     @parent
 
     <script>
-        var $priceRuleOptionGroupMockup = {!! json_encode(view('backend.price_rule.product.price_rule_option_group')->render()) !!};
+        var $priceRuleOptionGroupMockup = '{!! json_encode(view('backend.price_rule.product.price_rule_option_group')->render()) !!}';
     </script>
     <script src="{{ asset('backend/assets/scripts/pages/price_rule_form.js') }}" type="text/javascript"></script>
 @stop

@@ -414,6 +414,18 @@ Route::group(['middleware' => ['web']], function () {
                         'permissions' => ['edit_product']
                     ]);
 
+                    Route::post('{id}/variation/bulk-form', [
+                        'as' => 'backend.catalog.product.variation_bulk_form',
+                        'uses' => 'ProductController@variationBulkForm',
+                        'permissions' => ['edit_product']
+                    ]);
+
+                    Route::post('{id}/variation/bulk-save', [
+                        'as' => 'backend.catalog.product.variation_bulk_save',
+                        'uses' => 'ProductController@variationBulkSave',
+                        'permissions' => ['edit_product']
+                    ]);
+
                     Route::get('autocomplete', [
                         'as' => 'backend.catalog.product.autocomplete',
                         'uses' => 'ProductController@autocomplete',

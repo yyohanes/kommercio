@@ -437,9 +437,10 @@ class OrderController extends Controller{
         $order->saveProfile('billing', $request->input('profile'));
         $order->saveProfile('shipping', $request->input('shipping_profile'));
 
-        //Use free form line items
+        //Use free form line items to pre-filled order Line items
         $order->setRelation('lineItems', OrderHelper::processLineItems($request, $order, true, true));
 
+        //Based on filled line items, process order
         OrderHelper::processLineItems($request, $order);
 
         $order->load('lineItems');

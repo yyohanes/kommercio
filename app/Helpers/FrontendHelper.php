@@ -232,14 +232,14 @@ class FrontendHelper
             $order->user_agent = RequestFacade::header('User-Agent');
             $order->status = Order::STATUS_CART;
 
-            if($context == 'save'){
-                $order->save();
-
-                $cookie = Cookie::make($cookieKey, $order->id, 25200);
-                Cookie::queue($cookie);
-            }
-
             $this->_currentOrder = $order;
+        }
+
+        if($context == 'save' && !$this->_currentOrder->exists){
+            $this->_currentOrder->save();
+
+            $cookie = Cookie::make($cookieKey, $this->_currentOrder->id, 25200);
+            Cookie::queue($cookie);
         }
 
         return $this->_currentOrder;

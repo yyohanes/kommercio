@@ -1,6 +1,14 @@
 <tr class="line-item" data-line_item="shipping" data-line_item_key="{{ $key }}">
     <td>
-        {{ $lineItem->name }}
+        <div>{{ $lineItem->name }}</div>
+        @if(!empty($lineItem->notes))
+            <br/>
+            <blockquote>
+                <small>
+                    {!! nl2br($lineItem->notes) !!}
+                </small>
+            </blockquote>
+        @endif
     </td>
     <td>
         {{ PriceFormatter::formatNumber($lineItem->net_price, $lineItem->order->currency) }}

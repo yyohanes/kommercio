@@ -19,6 +19,20 @@
             'required' => TRUE,
             'defaultValue' => isset($product)?$product->sku:null
         ])
+        @if(ProjectHelper::isFeatureEnabled('order.line_item_notes'))
+        @include('backend.master.form.fields.textarea', [
+            'name' => 'line_items['.$key.'][notes]',
+            'label' => FALSE,
+            'key' => 'line_items.'.$key.'.notes',
+            'attr' => [
+                'class' => 'form-control input-sm',
+                'id' => 'line_items['.$key.'][notes]',
+                'placeholder' => 'Notes',
+                'rows' => 2
+            ],
+            'required' => TRUE,
+        ])
+        @endif
     </td>
     <td class="availability">
         <div class="order-limit-info">Limit: <span class="ordered-total">0</span>/<span class="limit-total">0</span></div>

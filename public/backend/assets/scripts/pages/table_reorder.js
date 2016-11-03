@@ -29,10 +29,12 @@ var DatasetReorder = function () {
             var $rowValue = $(obj).data('row_value');
             var $dataset = $table.DataTable({
                 ordering: false,
+                lengthMenu: [[50, 100, -1], [50, 100, 'All']],
+                pageLength: -1,
                 rowReorder: {
-                    selector: '.fa-reorder',
+                    selector: 'tr',
                     update: false,
-                    snapX: true
+                    snapX: false
                 }
             });
 

@@ -1,7 +1,15 @@
 <tr class="line-item" data-taxable="{{ $lineItem->taxable }}" data-line_item="product" data-line_item_key="{{ $key }}">
     <td>
-        {!! $lineItem->product->getThumbnail()?'<img style="width: 80px; height: auto;" class="product-image" src="'.asset($lineItem->product->getThumbnail()->getImagePath('backend_thumbnail')).'" />':'' !!}
-        {{ $lineItem->name }}
+        <div>{!! $lineItem->product->getThumbnail()?'<img style="width: 80px; height: auto;" class="product-image" src="'.asset($lineItem->product->getThumbnail()->getImagePath('backend_thumbnail')).'" />':'' !!}
+        {{ $lineItem->name }}</div>
+        @if(!empty($lineItem->notes))
+        <br/>
+        <blockquote>
+            <small>
+                {!! nl2br($lineItem->notes) !!}
+            </small>
+        </blockquote>
+        @endif
     </td>
     <!--
     <td>

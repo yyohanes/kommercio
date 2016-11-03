@@ -47,7 +47,7 @@ class Order extends Model implements AuthorSignatureInterface
     //Relations
     public function lineItems()
     {
-        return $this->hasMany('Kommercio\Models\Order\LineItem')->orderBy('sort_order', 'ASC');
+        return $this->hasMany('Kommercio\Models\Order\LineItem')->where('temporary', false)->whereNull('parent_id')->orderBy('sort_order', 'ASC');
     }
 
     public function customer()

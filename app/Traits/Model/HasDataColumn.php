@@ -18,6 +18,24 @@ trait HasDataColumn
         }
     }
 
+    public function hasData($key)
+    {
+        $data = unserialize($this->data);
+
+        return !empty(array_get($data, $key));
+    }
+
+    public function setData($key, $value)
+    {
+        $data = unserialize($this->data);
+
+        array_set($data, $key, $value);
+
+        $this->data = serialize($data);
+
+        return $data;
+    }
+
     public function getData($attribute=null, $default=null)
     {
         $data = unserialize($this->data);

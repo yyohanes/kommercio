@@ -1,5 +1,6 @@
-@foreach($variations as $variation)
+@foreach($variations as $idx => $variation)
     <tr>
+        <td> {{ $idx + 1 }} </td>
         <td> {{ $variation->sku }} </td>
         <td> {{ PriceFormatter::formatNumber($variation->getRetailPrice()) }} </td>
         <td> {{ PriceFormatter::formatNumber($variation->getNetPrice()) }} </td>

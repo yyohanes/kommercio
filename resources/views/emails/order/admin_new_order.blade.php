@@ -94,7 +94,10 @@
         <table>
             <tbody><tr>
                 <td>
-                    @include('emails.order.order_table', ['lineItems' => $order->lineItems])
+                    <?php
+                    $viewTemplate = ProjectHelper::getViewTemplate('emails.order.order_table');
+                    ?>
+                    @include($viewTemplate, ['lineItems' => $order->lineItems])
                 </td>
             </tr>
             </tbody></table>

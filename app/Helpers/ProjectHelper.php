@@ -196,9 +196,9 @@ class ProjectHelper
         return config('project.'.$key, config('kommercio.'.$key, $default));
     }
 
-    public function isFeatureEnabled($key)
+    public function isFeatureEnabled($key, $default = false)
     {
-        return $this->getConfig('features', false);
+        return config('project.features.'.$key, config('features.'.$key, $default));
     }
 
     public function getClientName()

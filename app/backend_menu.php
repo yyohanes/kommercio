@@ -33,7 +33,8 @@ $menus['catalog'] = [
             'active_path' => 'catalog/product-feature',
             'name' => 'Product Feature',
             'route' => 'backend.catalog.product_feature.index',
-            'permissions' => 'view_product_feature'
+            'permissions' => 'view_product_feature',
+            'feature' => 'product_features'
         ],
         'manufacturer' => [
             'active_path' => 'catalog/manufacturer',
