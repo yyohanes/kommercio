@@ -53,6 +53,17 @@ class ProductFormRequest extends Request
             'variation.*.productDetail.manage_stock' => 'boolean',
         ];
 
+        if($this->has('compositeConfigurations')){
+            $rules['compositeConfigurations.*.name'] = 'required';
+            $rules['compositeConfigurations.*.minimum'] = 'required|numeric|min:0';
+            $rules['compositeConfigurations.*.maximum'] = 'required|numeric|min:0';
+
+            foreach($this->input('compositeConfigurations', []) as $idx => $compositeConfiguration){
+                $rules['composite_products_'.$idx.'_product'] = 'required|array';
+                $rules['composite_products_'.$idx.'_product.*'] = 'numeric|exists:products,id';
+            }
+        }
+
         return $rules;
     }
 

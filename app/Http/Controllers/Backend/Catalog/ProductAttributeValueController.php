@@ -2,11 +2,13 @@
 
 namespace Kommercio\Http\Controllers\Backend\Catalog;
 
+use Illuminate\Support\Facades\DB;
 use Kommercio\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Kommercio\Http\Requests\Backend\Catalog\ProductAttributeValueFormRequest;
 use Kommercio\Models\ProductAttribute\ProductAttribute;
 use Kommercio\Models\ProductAttribute\ProductAttributeValue;
+use Kommercio\Models\ProductAttribute\ProductAttributeValueTranslation;
 
 class ProductAttributeValueController extends Controller{
     public function index(Request $request, $attribute_id)

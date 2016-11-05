@@ -134,6 +134,11 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
         return $this->belongsToMany('Kommercio\Models\Product', 'related_products', 'target_id', 'product_id')->withPivot(['sort_order', 'type'])->orderBy('sort_order', 'ASC')->wherePivot('type', 'cross_sell');
     }
 
+    public function composites()
+    {
+        return $this->belongsToMany('Kommercio\Models\ProductComposite\ProductComposite', 'product_composite_configurations')->withPivot(['id', 'minimum', 'maximum', 'sort_order'])->withTimestamps()->orderBy('sort_order', 'ASC');
+    }
+
     //Methods
     public function getStoreProductDetailOrNew($store_id)
     {
@@ -218,27 +223,83 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
 
     public function hasProductAttribute($productAttribute)
     {
-        if(is_int($productAttribute)){
-            foreach($this->productAttributes as $productAttributeObj){
-                if($productAttributeObj->id == $productAttribute){
-                    return true;
+        if($this->isVariation){
+            if(is_int($productAttribute)){
+                foreach($this->productAttributes as $productAttributeObj){
+                    if($productAttributeObj->id == $productAttribute){
+                        return true;
+                    }
+                }
+            }elseif(is_string($productAttribute)){
+                foreach($this->productAttributes as $productAttributeObj){
+                    if($productAttributeObj->slug == $productAttribute){
+                        return true;
+                    }
+                }
+            }else{
+                foreach($this->productAttributes as $productAttributeObj){
+                    if($productAttributeObj->id == $productAttribute->id){
+                        return true;
+                    }
                 }
             }
-        }elseif(is_string($productAttribute)){
-            foreach($this->productAttributes as $productAttributeObj){
-                if($productAttributeObj->slug == $productAttribute){
-                    return true;
-                }
-            }
-        }else{
-            foreach($this->productAttributes as $productAttributeObj){
-                if($productAttributeObj->id == $productAttribute->id){
-                    return true;
-                }
-            }
-        }
 
-        return false;
+            return true;
+        }else{
+            $availableAttributeValues = $this->getAvailableAttributeValues();
+
+            if(is_int($productAttribute)){
+                $identifier = $productAttribute;
+            }elseif(is_string($productAttribute)){
+                $object = ProductAttribute::whereTranslation('slug', $productAttribute)->first();
+                $identifier = $object->id;
+            }else{
+                $identifier = $productAttribute->id;
+            }
+
+            return isset($availableAttributeValues[$identifier]);
+        }
+    }
+
+    public function hasProductAttributeValue($productAttributeValue)
+    {
+        if($this->isVariation){
+            if(is_int($productAttributeValue)){
+                foreach($this->productAttributeValues as $productAttributeValueObj){
+                    if($productAttributeValueObj->id == $productAttributeValue){
+                        return true;
+                    }
+                }
+            }elseif(is_string($productAttributeValue)){
+                foreach($this->productAttributeValues as $productAttributeValueObj){
+                    if($productAttributeValueObj->slug == $productAttributeValue){
+                        return true;
+                    }
+                }
+            }else{
+                foreach($this->productAttributeValues as $productAttributeValueObj){
+                    if($productAttributeValueObj->id == $productAttributeValue->id){
+                        return true;
+                    }
+                }
+            }
+
+            return true;
+        }else{
+            $availableAttributeValues = $this->getAvailableAttributeValues();
+
+            if(is_int($productAttributeValue)){
+                $identifier = $productAttributeValue;
+            }elseif(is_string($productAttributeValue)){
+                $object = ProductAttributeValue::whereTranslation('slug', $productAttributeValue)->first();
+                $identifier = $object->id;
+            }else{
+                $identifier = $productAttributeValue->id;
+            }
+
+            $flattened = array_flatten($availableAttributeValues);
+            return isset($flattened[$identifier]);
+        }
     }
 
     public function getRetailPrice($tax = false)
@@ -343,6 +404,13 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
     {
         $productAttributeValue = null;
 
+        if(is_string($attribute)){
+            $attribute = $this->attributes->where('slug', $attribute)->first();
+            $attribute = $attribute->id;
+        }elseif(is_object($attribute)){
+            $attribute = $attribute->id;
+        }
+
         foreach($this->productAttributeValues as $productAttributeValue){
             if($attribute == $productAttributeValue->product_attribute_id){
                 return $productAttributeValue;
@@ -352,7 +420,7 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
         return $productAttributeValue;
     }
 
-    public function getSiblingByAttribute($attribute, $attributeValue)
+    public function getSiblingByAttribute($attribute, $attributeValue, $isActive = true)
     {
         if($this->combination_type == self::COMBINATION_TYPE_VARIATION){
             $variations = $this->parent->variations;
@@ -402,7 +470,7 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
     public function getVariationsByAttribute($attribute)
     {
         if(is_string($attribute)){
-            $attribute = ProductAttribute::where('slug', $attribute)->firstOrFail();
+            $attribute = ProductAttribute::whereTranslation('slug', $attribute)->firstOrFail();
         }elseif(is_int($attribute)){
             $attribute = ProductAttribute::findOrFail($attribute);
         }
@@ -429,6 +497,26 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
             $variationsQb->leftJoin($join->getTable().' AS A'.$attribute, 'A'.$attribute.'.product_id', '=', $join->getQualifiedParentKeyName());
             $variationsQb->where('A'.$attribute.'.product_attribute_value_id', $attributeValues[$attribute]);
         }
+
+        $variations = $variationsQb->get();
+
+        return $variations;
+    }
+
+    public function getVariationsByAttributeValue($attributeValue)
+    {
+        if(is_string($attributeValue)){
+            $attributeValue = ProductAttributeValue::whereTranslation('slug', $attributeValue)->firstOrFail();
+        }elseif(is_int($attributeValue)){
+            $attributeValue = ProductAttributeValue::findOrFail($attributeValue);
+        }
+
+        $variationsQb = $this->variations();
+
+        $join = with(new self())->productAttributeValues();
+
+        $variationsQb->join($join->getTable().' AS A'.$attributeValue->id, 'A'.$attributeValue->id.'.product_id', '=', $join->getQualifiedParentKeyName());
+        $variationsQb->where('A'.$attributeValue->id.'.product_attribute_value_id', $attributeValue->id);
 
         $variations = $variationsQb->get();
 
@@ -778,6 +866,40 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
         }
 
         return $disabledDates;
+    }
+
+    public function getCompositeConfiguration($composite)
+    {
+        if(is_string($composite)){
+            $composite = $this->composites->where('slug', $composite)->first();
+        }elseif(is_int($composite)){
+            $composite = $this->composites->where('id', $composite)->first();
+        }
+
+        return $composite;
+    }
+
+    public function hasCompositeConfiguration($composite)
+    {
+        if(is_string($composite)){
+            $count = $this->composites->where('slug', $composite)->count();
+        }elseif(is_int($composite)){
+            $count = $this->composites->where('id', $composite)->count();
+        }
+
+        return $count > 0;
+    }
+
+    /*
+     *
+     */
+    public function getCompositeConfigurationRules($configs)
+    {
+        $rules = [];
+
+        foreach($this->composites as $composite){
+
+        }
     }
 
     public function getViewSuggestions()

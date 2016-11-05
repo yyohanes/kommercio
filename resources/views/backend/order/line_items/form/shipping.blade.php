@@ -15,6 +15,20 @@
             ],
             'required' => TRUE,
         ])
+        @if(ProjectHelper::isFeatureEnabled('order.line_item_notes'))
+        @include('backend.master.form.fields.textarea', [
+            'name' => 'line_items['.$key.'][notes]',
+            'label' => FALSE,
+            'key' => 'line_items.'.$key.'.notes',
+            'attr' => [
+                'class' => 'form-control input-sm',
+                'id' => 'line_items['.$key.'][notes]',
+                'placeholder' => 'Notes',
+                'rows' => 2
+            ],
+            'required' => TRUE,
+        ])
+        @endif
     </td>
     <td>
         @include('backend.master.form.fields.number', [

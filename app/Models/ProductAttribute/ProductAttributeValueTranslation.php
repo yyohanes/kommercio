@@ -17,4 +17,10 @@ class ProductAttributeValueTranslation extends Model implements SluggableInterfa
     ];
 
     public $timestamps = FALSE;
+
+    //Relations
+    public function productAttributeValue()
+    {
+        return $this->belongsTo('Kommercio\Models\ProductAttribute\ProductAttributeValue');
+    }
 }

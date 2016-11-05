@@ -14,10 +14,13 @@ class LineItem extends Model
 {
     use HasDataColumn;
 
-    protected $fillable = ['line_item_id', 'line_item_type', 'name', 'base_price', 'quantity', 'taxable', 'net_price', 'discount_total', 'tax_total', 'total', 'sort_order', 'data'];
+    protected $fillable = ['line_item_id', 'line_item_type', 'name', 'base_price', 'quantity', 'taxable', 'notes', 'net_price', 'discount_total', 'tax_total', 'total', 'sort_order', 'data', 'temporary'];
     protected $casts = [
-        'taxable' => 'boolean'
+        'taxable' => 'boolean',
+        'temporary' => 'boolean'
     ];
+
+    private $_compositeConfiguration;
 
     //Methods
     public function getPrintName()
@@ -39,6 +42,10 @@ class LineItem extends Model
             $total += $this->tax_total;
         }
 
+        foreach($this->children as $child){
+            $total += $child->calculateNet($withTax);
+        }
+
         return round($total, config('project.line_item_total_precision'));
     }
 
@@ -46,7 +53,13 @@ class LineItem extends Model
     {
         $rate = $this->taxable?$this->tax_rate:0;
 
-        return round($this->net_price + $this->net_price * $rate/100, config('project.line_item_total_precision'));
+        $total = $this->net_price + $this->net_price * $rate/100;
+
+        foreach($this->children as $child){
+            $total += $child->calculateSubNet();
+        }
+
+        return round($total, config('project.line_item_total_precision'));
     }
 
     public function calculateTotal($withTax = true)
@@ -58,7 +71,12 @@ class LineItem extends Model
 
     public function calculateSubtotal()
     {
-        return round($this->net_price * $this->quantity, config('project.line_item_total_precision'));
+        $net = $this->net_price;
+        foreach($this->children as $child){
+            $net += $child->net_price;
+        }
+
+        return round($net * $this->quantity, config('project.line_item_total_precision'));
     }
 
     public function calculateSubtotalWithTax()
@@ -71,6 +89,19 @@ class LineItem extends Model
         return round(($this->base_price - $this->net_price) * $this->quantity, config('project.line_item_total_precision'));
     }
 
+    public function calculateTotalWithChildren($withTax = true)
+    {
+        $total = $this->calculateNet($withTax) * $this->quantity;
+
+        foreach($this->children as $childLineItem){
+            $total +=$childLineItem->calculateTotal($withTax);
+        }
+
+        $total = round($total, config('project.line_item_total_precision'));
+
+        return $total;
+    }
+
     public function processData($data, $sort_order = 0)
     {
         if($data['line_item_type'] == 'product'){
@@ -78,6 +109,8 @@ class LineItem extends Model
                 $this->linkProductBySKU($data['sku']);
             }elseif(!empty($data['line_item_id'])){
                 $this->linkProductById($data['line_item_id']);
+            }elseif(!empty($data['product'])){
+                $this->linkProduct($data['product']);
             }
             $this->net_price = $data['net_price'];
             $this->quantity = $data['quantity'];
@@ -121,6 +154,10 @@ class LineItem extends Model
             $this->quantity = 1;
         }
 
+        if(isset($data['notes'])){
+            $this->notes = $data['notes'];
+        }
+
         if(is_null($this->taxable)){
             $this->taxable = false;
         }
@@ -138,16 +175,17 @@ class LineItem extends Model
     public function linkProductBySKU($sku)
     {
         $product = Product::where('sku', $sku)->firstOrFail();
-        $this->name = $product->name;
-        $this->taxable = $product->productDetail->taxable;
-        $this->line_item_id = $product->id;
-        $this->line_item_type = 'product';
-        $this->base_price = $product->getRetailPrice();
+        $this->linkProduct($product);
     }
 
     public function linkProductById($id)
     {
         $product = Product::findOrFail($id);
+        $this->linkProduct($product);
+    }
+
+    public function linkProduct($product)
+    {
         $this->name = $product->name;
         $this->taxable = $product->productDetail->taxable;
         $this->line_item_id = $product->id;
@@ -180,6 +218,16 @@ class LineItem extends Model
         if($priceRule->isCoupon){
             $this->saveData(['coupon_code' => $priceRule->coupon_code]);
         }
+    }
+
+    public function getCompositeConfiguration()
+    {
+        if(!isset($this->_compositeConfiguration)){
+            $product = $this->parent->product->isVariation?$this->parent->product->parent:$this->parent->product;
+            $this->_compositeConfiguration = $product->getCompositeConfiguration($this->product_composite_id);
+        }
+
+        return $this->_compositeConfiguration;
     }
 
     //Accessors
@@ -257,6 +305,16 @@ class LineItem extends Model
     }
 
     //Relations
+    public function parent()
+    {
+        return $this->belongsTo('Kommercio\Models\Order\LineItem', 'parent_id');
+    }
+
+    public function children()
+    {
+        return $this->hasMany('Kommercio\Models\Order\LineItem', 'parent_id')->orderBy('sort_order', 'ASC');
+    }
+
     public function order()
     {
         return $this->belongsTo('Kommercio\Models\Order\Order');
@@ -280,6 +338,11 @@ class LineItem extends Model
     public function shippingMethod()
     {
         return $this->belongsTo('Kommercio\Models\ShippingMethod\ShippingMethod', 'line_item_id');
+    }
+
+    public function productComposite()
+    {
+        return $this->belongsTo('Kommercio\Models\ProductComposite\ProductComposite');
     }
 
     //Shipping Specifics

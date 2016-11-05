@@ -1,10 +1,18 @@
+@section('top_page_styles')
+    @parent
+
+    <link href="{{ asset('backend/assets/template/global/plugins/jquery-nestable/jquery.nestable.css') }}" rel="stylesheet" type="text/css" />
+@stop
+
 @section('bottom_page_scripts')
     @parent
 
     <script>
+        var $compositeConfigurationMockup = '{!! json_encode(view('backend.catalog.product.composite.configuration', ['product' => $product, 'compositeConfiguration' => null])->render()) !!}';
         global_vars.get_related_product = '{{ route('backend.catalog.product.get_related') }}';
     </script>
 
+    <script src="{{ asset('backend/assets/template/global/plugins/jquery-nestable/jquery.nestable.js') }}" type="text/javascript"></script>
     <script src="{{ asset('backend/assets/scripts/pages/product_form.js') }}" type="text/javascript"></script>
     <script src="{{ asset('backend/assets/scripts/pages/product_form_price.js') }}" type="text/javascript"></script>
     <script src="{{ asset('backend/assets/scripts/pages/product_form_features.js') }}" type="text/javascript"></script>
@@ -26,15 +34,22 @@
         <li data-tab_context="variations" role="presentation">
             <a href="#tab_variations" data-toggle="tab"> Variations </a>
         </li>
+        @if(ProjectHelper::isFeatureEnabled('catalog.composite_product'))
+            <li role="presentation">
+                <a href="#tab_composite" data-toggle="tab"> Composites </a>
+            </li>
+        @endif
         <li role="presentation">
             <a href="#tab_category" data-toggle="tab"> Category </a>
         </li>
         <li role="presentation">
             <a href="#tab_images" data-toggle="tab"> Images </a>
         </li>
+        @if(ProjectHelper::isFeatureEnabled('product_features'))
         <li role="presentation">
             <a href="#tab_features" data-toggle="tab"> Features </a>
         </li>
+        @endif
         <li role="presentation">
             <a href="#tab_inventory" data-toggle="tab"> Inventory </a>
         </li>
@@ -390,6 +405,10 @@
                         <a class="btn btn-default" id="product-variation-add-btn" href="#">
                             <i class="icon-plus"></i> Add Variation
                         </a>
+
+                        <a class="btn btn-default" id="bulk-variation-add-btn" data-variation_bulk_form="{{ route('backend.catalog.product.variation_bulk_form', ['id' => $product->id]) }}" href="#">
+                            <i class="icon-plus"></i> Add Bulk Variation
+                        </a>
                     </div>
 
                     <div id="product-variation-form-wrapper"
@@ -401,6 +420,7 @@
                         <table class="table table-hover">
                             <thead>
                             <tr>
+                                <th> # </th>
                                 <th> SKU </th>
                                 <th> Price </th>
                                 <th> Net Price </th>
@@ -417,6 +437,31 @@
                 @endif
             </div>
         </div>
+
+        @if(ProjectHelper::isFeatureEnabled('catalog.composite_product'))
+            <div class="tab-pane" role="tabpanel" id="tab_composite">
+                <div class="form-body">
+                    @if(!$product->exists)
+                        You need to save this product first to create composite configurations.
+                    @else
+                        <div class="margin-bottom-10">
+                            <a class="btn btn-default" id="product-configuration-add-btn" href="#">
+                                <i class="icon-plus"></i> Add Configuration
+                            </a>
+                        </div>
+
+                        <div id="composite-configurations-wrapper">
+                            <?php
+                            $compositeConfigurations = old('compositeConfigurations', $product->composites);
+                            ?>
+                            @foreach($compositeConfigurations as $idx=>$compositeConfiguration)
+                                @include('backend.catalog.product.composite.configuration', ['index' => $idx, 'compositeConfiguration' => $compositeConfiguration])
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
+            </div>
+        @endif
 
         <div class="tab-pane" role="tabpanel" id="tab_category">
             <div class="form-body">
@@ -475,6 +520,7 @@
             </div>
         </div>
 
+        @if(ProjectHelper::isFeatureEnabled('product_features'))
         <div class="tab-pane" role="tabpanel" id="tab_features">
             <div class="form-body">
                 @if(!$product->exists)
@@ -490,6 +536,7 @@
                 @endif
             </div>
         </div>
+        @endif
 
         <div class="tab-pane" role="tabpanel" id="tab_shipping">
             <div class="form-body">
