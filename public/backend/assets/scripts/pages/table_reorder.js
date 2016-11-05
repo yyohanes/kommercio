@@ -32,7 +32,7 @@ var DatasetReorder = function () {
                 lengthMenu: [[50, 100, -1], [50, 100, 'All']],
                 pageLength: -1,
                 rowReorder: {
-                    selector: 'tr',
+                    selector: '.fa-reorder',
                     update: false,
                     snapX: false
                 }

@@ -404,6 +404,13 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
     {
         $productAttributeValue = null;
 
+        if(is_string($attribute)){
+            $attribute = $this->attributes->where('slug', $attribute)->first();
+            $attribute = $attribute->id;
+        }elseif(is_object($attribute)){
+            $attribute = $attribute->id;
+        }
+
         foreach($this->productAttributeValues as $productAttributeValue){
             if($attribute == $productAttributeValue->product_attribute_id){
                 return $productAttributeValue;
@@ -413,7 +420,7 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
         return $productAttributeValue;
     }
 
-    public function getSiblingByAttribute($attribute, $attributeValue)
+    public function getSiblingByAttribute($attribute, $attributeValue, $isActive = true)
     {
         if($this->combination_type == self::COMBINATION_TYPE_VARIATION){
             $variations = $this->parent->variations;
@@ -490,6 +497,26 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
             $variationsQb->leftJoin($join->getTable().' AS A'.$attribute, 'A'.$attribute.'.product_id', '=', $join->getQualifiedParentKeyName());
             $variationsQb->where('A'.$attribute.'.product_attribute_value_id', $attributeValues[$attribute]);
         }
+
+        $variations = $variationsQb->get();
+
+        return $variations;
+    }
+
+    public function getVariationsByAttributeValue($attributeValue)
+    {
+        if(is_string($attributeValue)){
+            $attributeValue = ProductAttributeValue::whereTranslation('slug', $attributeValue)->firstOrFail();
+        }elseif(is_int($attributeValue)){
+            $attributeValue = ProductAttributeValue::findOrFail($attributeValue);
+        }
+
+        $variationsQb = $this->variations();
+
+        $join = with(new self())->productAttributeValues();
+
+        $variationsQb->join($join->getTable().' AS A'.$attributeValue->id, 'A'.$attributeValue->id.'.product_id', '=', $join->getQualifiedParentKeyName());
+        $variationsQb->where('A'.$attributeValue->id.'.product_attribute_value_id', $attributeValue->id);
 
         $variations = $variationsQb->get();
 
@@ -850,6 +877,17 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
         }
 
         return $composite;
+    }
+
+    public function hasCompositeConfiguration($composite)
+    {
+        if(is_string($composite)){
+            $count = $this->composites->where('slug', $composite)->count();
+        }elseif(is_int($composite)){
+            $count = $this->composites->where('id', $composite)->count();
+        }
+
+        return $count > 0;
     }
 
     /*
