@@ -19,11 +19,11 @@
         <i class="fa fa-circle"></i>
     </li>
     <li>
-        <a href="{{ route('backend.cms.post.index') }}"><span>Post</span></a>
+        <a href="{{ route('backend.cms.gallery.index') }}"><span>Gallery</span></a>
         <i class="fa fa-circle"></i>
     </li>
     <li>
-        <span>Post Category</span>
+        <span>Gallery Category</span>
     </li>
 @stop
 
@@ -32,45 +32,45 @@
         <div class="portlet light portlet-fit portlet-datatable bordered">
             <div class="portlet-title">
                 <div class="caption">
-                    <span class="caption-subject sbold uppercase"> {{ $parentCategory?$parentCategory->name:'Post Categories' }} </span>
+                    <span class="caption-subject sbold uppercase"> {{ $parentCategory?$parentCategory->name:'Gallery Categories' }} </span>
                 </div>
                 <div class="actions">
-                    @can('access', ['create_post_category'])
-                    <a href="{{ route('backend.cms.post.category.create', ['parent_id' => $parentCategory?$parentCategory->id:null, 'backUrl' => Request::fullUrl()]) }}" class="btn btn-sm btn-info">
+                    @can('access', ['create_gallery_category'])
+                    <a href="{{ route('backend.cms.gallery.category.create', ['parent_id' => $parentCategory?$parentCategory->id:null, 'backUrl' => Request::fullUrl()]) }}" class="btn btn-sm btn-info">
                         <i class="fa fa-plus"></i> Add </a>
                     @endcan
                 </div>
             </div>
 
             <div class="portlet-body">
-                <table class="table table-striped table-bordered table-advance dataset-reorder" id="categories-dataset" data-form_token="{{ csrf_token() }}" data-row_class="category-name" data-row_value="category_id"\ data-reorder_action="{{ route('backend.cms.post.category.reorder') }}">
+                <table class="table table-striped table-bordered table-advance dataset-reorder" id="categories-dataset" data-form_token="{{ csrf_token() }}" data-row_class="category-name" data-row_value="category_id"\ data-reorder_action="{{ route('backend.cms.gallery.category.reorder') }}">
                     <thead>
                     <tr>
                         <th>Name</th>
                         <th>Body</th>
-                        <th style="width: 10%;">Posts</th>
+                        <th style="width: 10%;">Galleries</th>
                         <th style="width: 10%;">Subcategories</th>
                         <th>Action</th>
                     </tr>
                     </thead>
                     <tbody>
-                    @foreach($postCategories as $category)
+                    @foreach($galleryCategories as $category)
                         <tr>
                             <td>
-                                @can('access', ['edit_post_category'])
+                                @can('access', ['edit_gallery_category'])
                                 <i class="fa fa-reorder"></i>
                                 @endcan
-                                <a class="category-name btn btn-sm blue-madison" data-category_id="{{ $category->id }}" href="{{ route('backend.cms.post.category.index', ['parent' => $category->id]) }}">{{ $category->name }} (ID: {{ $category->id }})</a></td>
+                                <a class="category-name btn btn-sm blue-madison" data-category_id="{{ $category->id }}" href="{{ route('backend.cms.gallery.category.index', ['parent' => $category->id]) }}">{{ $category->name }} (ID: {{ $category->id }})</a></td>
                             <td>{!! $category->description !!}</td>
-                            <td>{{ $category->postCount }}</td>
+                            <td>{{ $category->galleryCount }}</td>
                             <td>{{ $category->childrenCount }}</td>
                             <td class="text-center">
-                                {!! Form::open(['route' => ['backend.cms.post.category.delete', 'id' => $category->id]]) !!}
+                                {!! Form::open(['route' => ['backend.cms.gallery.category.delete', 'id' => $category->id]]) !!}
                                 <div class="btn-group btn-group-sm">
-                                    @can('access', ['edit_post_category'])
-                                    <a class="btn btn-default" href="{{ route('backend.cms.post.category.edit', ['id' => $category->id, 'backUrl' => Request::fullUrl()]) }}"><i class="fa fa-pencil"></i> Edit</a>
+                                    @can('access', ['edit_gallery_category'])
+                                    <a class="btn btn-default" href="{{ route('backend.cms.gallery.category.edit', ['id' => $category->id, 'backUrl' => Request::fullUrl()]) }}"><i class="fa fa-pencil"></i> Edit</a>
                                     @endcan
-                                    @can('access', ['delete_post_category'])
+                                    @can('access', ['delete_gallery_category'])
                                     <button class="btn btn-default" data-toggle="confirmation" data-original-title="Are you sure?" title=""><i class="fa fa-trash-o"></i> Delete</button>
                                     @endcan
                                 </div>
@@ -84,7 +84,7 @@
         </div>
 
         @if($parentCategory)
-            <a href="{{ route('backend.cms.post.category.index', ['parent' => $parentCategory->parent_id]) }}" class="btn btn-default btn-sm"><i class="fa fa-arrow-left"></i> Back</a>
+            <a href="{{ route('backend.cms.gallery.category.index', ['parent' => $parentCategory->parent_id]) }}" class="btn btn-default btn-sm"><i class="fa fa-arrow-left"></i> Back</a>
         @endif
     </div>
 @stop

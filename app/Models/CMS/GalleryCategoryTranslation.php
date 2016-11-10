@@ -17,10 +17,4 @@ class GalleryCategoryTranslation extends Model
         'save_to'    => 'slug',
         'on_update' => TRUE,
     ];
-
-    //Relations
-    public function images()
-    {
-        return $this->media('image')->where('locale', $this->locale);
-    }
 }

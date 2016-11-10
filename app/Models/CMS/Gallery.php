@@ -22,7 +22,7 @@ class Gallery extends Model implements UrlAliasInterface, SeoModelInterface
         'active' => 'boolean',
     ];
 
-    public $fillable = ['name', 'slug', 'body', 'meta_title', 'meta_description', 'active', 'created_at'];
+    public $fillable = ['name', 'slug', 'body', 'meta_title', 'meta_description', 'active', 'created_at', 'sort_order'];
     public $translatedAttributes = ['name', 'slug', 'body', 'teaser', 'meta_title', 'meta_description', 'thumbnail', 'images'];
     protected $toggleFields = ['active'];
     protected $seoDefaultFields = [

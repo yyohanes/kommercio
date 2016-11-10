@@ -1477,15 +1477,21 @@ Route::group(['middleware' => ['web']], function () {
                         ]);
 
                         Route::post('update/{id}', [
-                            'as' => 'backend.cms.post.category.update',
-                            'uses' => 'PostCategoryController@update',
-                            'permissions' => ['edit_post_category']
+                            'as' => 'backend.cms.gallery.category.update',
+                            'uses' => 'GalleryCategoryController@update',
+                            'permissions' => ['edit_gallery_category']
                         ]);
 
                         Route::post('delete/{id}', [
                             'as' => 'backend.cms.gallery.category.delete',
                             'uses' => 'GalleryCategoryController@delete',
                             'permissions' => ['delete_gallery_category']
+                        ]);
+
+                        Route::post('reorder', [
+                            'as' => 'backend.cms.gallery.category.reorder',
+                            'uses' => 'GalleryCategoryController@reorder',
+                            'permissions' => ['edit_gallery_category']
                         ]);
                     });
 
@@ -1563,6 +1569,12 @@ Route::group(['middleware' => ['web']], function () {
                             'as' => 'backend.cms.post.category.delete',
                             'uses' => 'PostCategoryController@delete',
                             'permissions' => ['delete_post_category']
+                        ]);
+
+                        Route::post('reorder', [
+                            'as' => 'backend.cms.post.category.reorder',
+                            'uses' => 'PostCategoryController@reorder',
+                            'permissions' => ['edit_post_category']
                         ]);
                     });
 
