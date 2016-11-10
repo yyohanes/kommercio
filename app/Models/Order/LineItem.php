@@ -162,6 +162,10 @@ class LineItem extends Model
             $this->taxable = false;
         }
 
+        if(is_null($this->temporary)){
+            $this->temporary = false;
+        }
+
         $this->sort_order = $sort_order;
     }
 

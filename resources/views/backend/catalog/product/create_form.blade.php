@@ -31,9 +31,11 @@
         <li>
             <a href="#tab_price" data-toggle="tab"> Price </a>
         </li>
+        @if(ProjectHelper::isFeatureEnabled('catalog.product_attributes'))
         <li data-tab_context="variations" role="presentation">
             <a href="#tab_variations" data-toggle="tab"> Variations </a>
         </li>
+        @endif
         @if(ProjectHelper::isFeatureEnabled('catalog.composite_product'))
             <li role="presentation">
                 <a href="#tab_composite" data-toggle="tab"> Composites </a>
@@ -45,7 +47,7 @@
         <li role="presentation">
             <a href="#tab_images" data-toggle="tab"> Images </a>
         </li>
-        @if(ProjectHelper::isFeatureEnabled('product_features'))
+        @if(ProjectHelper::isFeatureEnabled('catalog.product_features'))
         <li role="presentation">
             <a href="#tab_features" data-toggle="tab"> Features </a>
         </li>
@@ -70,6 +72,12 @@
         <div class="tab-pane active" id="tab_general">
             <div class="form-body">
                 <?php
+                    $combinationTypeOptions = $product->getCombinationTypeOptions();
+
+                    if(!ProjectHelper::isFeatureEnabled('catalog.product_attributes')){
+                        unset($combinationTypeOptions[\Kommercio\Models\Product::COMBINATION_TYPE_VARIABLE]);
+                    }
+
                     $combinationSelectOptions = [
                         'name' => 'combination_type',
                         'label' => 'Type',
@@ -78,7 +86,7 @@
                                 'class' => 'form-control',
                                 'id' => 'combination_type',
                         ],
-                        'options' => $product->getCombinationTypeOptions(),
+                        'options' => $combinationTypeOptions,
                         'required' => TRUE,
                         'valueColumnClass' => 'col-md-4'
                     ];

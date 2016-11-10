@@ -1187,7 +1187,7 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
         return (isset($array[$option]))?$array[$option]:$array;
     }
 
-    public static function getCombinationTypeOptions($option=null)
+    public static function getCombinationTypeOptions($option=null, $all = true)
     {
         $array = [
             self::COMBINATION_TYPE_SINGLE => 'Single Product',

@@ -395,11 +395,7 @@ class Order extends Model implements AuthorSignatureInterface
 
     public function processStocks()
     {
-        foreach($this->lineItems as $lineItem){
-            if($lineItem->isProduct){
-                $lineItem->product->reduceStock($lineItem->quantity);
-            }
-        }
+        $this->_processStocks($this->lineItems);
     }
 
     public function returnStocks()
@@ -407,6 +403,19 @@ class Order extends Model implements AuthorSignatureInterface
         foreach($this->lineItems as $lineItem){
             if($lineItem->isProduct){
                 $lineItem->product->increaseStock($lineItem->quantity);
+            }
+        }
+    }
+
+    protected function _processStocks($lineItems)
+    {
+        foreach($lineItems as $lineItem){
+            if($lineItem->isProduct){
+                $lineItem->product->reduceStock($lineItem->quantity);
+            }
+
+            if($lineItem->children->count() > 0){
+                $this->_processStocks($lineItem->children);
             }
         }
     }

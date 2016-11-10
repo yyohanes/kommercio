@@ -27,14 +27,15 @@ $menus['catalog'] = [
             'active_path' => 'catalog/product-attribute',
             'name' => 'Product Attribute',
             'route' => 'backend.catalog.product_attribute.index',
-            'permissions' => 'view_product_attribute'
+            'permissions' => 'view_product_attribute',
+            'feature' => 'catalog.product_attributes'
         ],
         'product_feature' => [
             'active_path' => 'catalog/product-feature',
             'name' => 'Product Feature',
             'route' => 'backend.catalog.product_feature.index',
             'permissions' => 'view_product_feature',
-            'feature' => 'product_features'
+            'feature' => 'catalog.product_features'
         ],
         'manufacturer' => [
             'active_path' => 'catalog/manufacturer',
@@ -190,7 +191,8 @@ $menus['cms'] = [
             'active_path' => 'menu',
             'name' => 'Menu',
             'route' => 'backend.cms.menu.index',
-            'permissions' => 'view_menu'
+            'permissions' => 'view_menu',
+            'feature' => 'cms.menu',
         ],
         'page' => [
             'active_path' => 'cms/page',
@@ -204,10 +206,31 @@ $menus['cms'] = [
             'route' => 'backend.cms.banner_group.index',
             'permissions' => 'view_banner'
         ],
+        'gallery' => [
+            'active_path' => 'cms/gallery',
+            'name' => 'Gallery',
+            'permissions' => 'view_gallery',
+            'feature' => 'cms.gallery',
+            'children' => [
+                'gallery' => [
+                    'active_path' => 'cms/gallery',
+                    'name' => 'Gallery',
+                    'route' => 'backend.cms.gallery.index',
+                    'permissions' => 'view_gallery',
+                ],
+                'gallery_category' => [
+                    'active_path' => 'cms/gallery/category',
+                    'name' => 'Gallery Category',
+                    'route' => 'backend.cms.gallery.category.index',
+                    'permissions' => 'view_gallery_category'
+                ],
+            ]
+        ],
         'post' => [
             'active_path' => 'cms/post',
             'name' => 'Post',
             'permissions' => 'view_post',
+            'feature' => 'cms.post',
             'children' => [
                 'post' => [
                     'active_path' => 'cms/post',

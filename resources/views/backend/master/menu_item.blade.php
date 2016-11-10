@@ -5,7 +5,7 @@ $count += 1;
 $featureEnabled = isset($newMenu['feature'])?ProjectHelper::isFeatureEnabled($newMenu['feature']):true;
 $childPermissions = isset($newMenu['children'])?array_pluck($newMenu['children'], 'permissions'):[];
 ?>
-@if((isset($newMenu['permissions']) && Gate::allows('access', [$newMenu['permissions']]) && $featureEnabled) || ($childPermissions && Gate::allows('access', [$childPermissions])) || (!isset($newMenu['permissions']) && !isset($newMenu['children'])))
+@if($featureEnabled && ((isset($newMenu['permissions']) && Gate::allows('access', [$newMenu['permissions']])) || ($childPermissions && Gate::allows('access', [$childPermissions])) || (!isset($newMenu['permissions']) && !isset($newMenu['children']))))
 <li class="nav-item {{ $count==0?'start':'' }} {{ $newDepth == 0?'open':'' }} {{ isset($newMenu['active_path'])?(NavigationHelper::activeClass($newMenu['active_path'])?'active':''):'' }}">
     @if(isset($newMenu['children']))
         <a href="javascript:;" class="nav-link nav-toggle">

@@ -42,6 +42,7 @@ $index = isset($index)?$index:0;
         ])
         </div>
 
+        @if(ProjectHelper::isFeatureEnabled('catalog.product_attributes'))
         <div class="col-md-6">
         @include('backend.master.form.fields.select', [
             'name' => 'options['.$index.'][attributeValues][]',
@@ -56,8 +57,9 @@ $index = isset($index)?$index:0;
             'options' => \Kommercio\Models\ProductAttribute\ProductAttribute::getProductAttributeWithValueOptions(),
         ])
         </div>
+        @endif
 
-        @if(ProjectHelper::isFeatureEnabled('product_features'))
+        @if(ProjectHelper::isFeatureEnabled('catalog.product_features'))
         <div class="col-md-6">
         @include('backend.master.form.fields.select', [
             'name' => 'options['.$index.'][featureValues][]',

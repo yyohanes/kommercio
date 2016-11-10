@@ -1449,6 +1449,83 @@ Route::group(['middleware' => ['web']], function () {
                     ]);
                 });
 
+                //Gallery
+                Route::group(['prefix' => 'gallery'], function(){
+                    Route::group(['prefix' => 'category'], function(){
+                        Route::get('index/{parent?}', [
+                            'as' => 'backend.cms.gallery.category.index',
+                            'uses' => 'GalleryCategoryController@index',
+                            'permissions' => ['view_gallery_category']
+                        ]);
+
+                        Route::get('create', [
+                            'as' => 'backend.cms.gallery.category.create',
+                            'uses' => 'GalleryCategoryController@create',
+                            'permissions' => ['create_gallery_category']
+                        ]);
+
+                        Route::post('store', [
+                            'as' => 'backend.cms.gallery.category.store',
+                            'uses' => 'GalleryCategoryController@store',
+                            'permissions' => ['create_gallery_category']
+                        ]);
+
+                        Route::get('edit/{id}', [
+                            'as' => 'backend.cms.gallery.category.edit',
+                            'uses' => 'GalleryCategoryController@edit',
+                            'permissions' => ['edit_gallery_category']
+                        ]);
+
+                        Route::post('update/{id}', [
+                            'as' => 'backend.cms.post.category.update',
+                            'uses' => 'PostCategoryController@update',
+                            'permissions' => ['edit_post_category']
+                        ]);
+
+                        Route::post('delete/{id}', [
+                            'as' => 'backend.cms.gallery.category.delete',
+                            'uses' => 'GalleryCategoryController@delete',
+                            'permissions' => ['delete_gallery_category']
+                        ]);
+                    });
+
+                    Route::any('index', [
+                        'as' => 'backend.cms.gallery.index',
+                        'uses' => 'GalleryController@index',
+                        'permissions' => ['view_gallery']
+                    ]);
+
+                    Route::get('create', [
+                        'as' => 'backend.cms.gallery.create',
+                        'uses' => 'GalleryController@create',
+                        'permissions' => ['create_gallery']
+                    ]);
+
+                    Route::post('store', [
+                        'as' => 'backend.cms.gallery.store',
+                        'uses' => 'GalleryController@store',
+                        'permissions' => ['create_gallery']
+                    ]);
+
+                    Route::get('edit/{id}', [
+                        'as' => 'backend.cms.gallery.edit',
+                        'uses' => 'GalleryController@edit',
+                        'permissions' => ['edit_gallery']
+                    ]);
+
+                    Route::post('update/{id}', [
+                        'as' => 'backend.cms.gallery.update',
+                        'uses' => 'GalleryController@update',
+                        'permissions' => ['edit_gallery']
+                    ]);
+
+                    Route::post('delete/{id}', [
+                        'as' => 'backend.cms.gallery.delete',
+                        'uses' => 'GalleryController@delete',
+                        'permissions' => ['delete_gallery']
+                    ]);
+                });
+
                 //Post
                 Route::group(['prefix' => 'post'], function(){
                     Route::group(['prefix' => 'category'], function(){

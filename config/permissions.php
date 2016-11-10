@@ -165,6 +165,18 @@ $permissions = [
         'edit_post_category' => 'Edit Post Category',
         'delete_post_category' => 'Delete Post Category',
     ],
+    'Gallery' => [
+        'view_gallery' => 'View Gallery',
+        'create_gallery' => 'Create Gallery',
+        'edit_gallery' => 'Edit Gallery',
+        'delete_gallery' => 'Delete Gallery',
+    ],
+    'Gallery Categories' => [
+        'view_gallery_category' => 'View Gallery Category',
+        'create_gallery_category' => 'Create Gallery Category',
+        'edit_gallery_category' => 'Edit Gallery Category',
+        'delete_gallery_category' => 'Delete Gallery Category',
+    ],
     'Menus' => [
         'view_menu' => 'View Menu',
         'create_menu' => 'Create Menu',
