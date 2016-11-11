@@ -8,7 +8,7 @@ use Kommercio\Traits\Model\MediaAttachable;
 
 class GalleryCategoryTranslation extends Model
 {
-    use MediaAttachable, SluggableTrait;
+    use SluggableTrait;
 
     public $timestamps = FALSE;
 

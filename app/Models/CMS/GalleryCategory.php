@@ -14,7 +14,7 @@ class GalleryCategory extends Model implements UrlAliasInterface, SeoModelInterf
     use Translatable, SeoTrait;
 
     protected $fillable = ['name', 'body', 'parent_id', 'sort_order', 'slug', 'meta_title', 'meta_description'];
-    public $translatedAttributes = ['name', 'slug', 'body', 'meta_title', 'meta_description', 'images'];
+    public $translatedAttributes = ['name', 'slug', 'body', 'meta_title', 'meta_description'];
 
     private $_rootCategory;
 
@@ -102,7 +102,7 @@ class GalleryCategory extends Model implements UrlAliasInterface, SeoModelInterf
 
     public function getMetaImage()
     {
-        return $this->images->count() > 0?$this->images->get(0)->getImagePath('original'):null;
+        return ($this->galleries->count() > 0 && $this->galleries->get(0)->thumbnail)?$this->galleries->get(0)->thumbnail->getImagePath('original'):null;
     }
 
     //Accessors

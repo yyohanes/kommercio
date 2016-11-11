@@ -34,12 +34,12 @@ class GalleryController extends Controller{
         $gallery->save();
 
         $gallery->galleryCategories()->sync($request->input('categories', []));
-        
+
         if($request->has('images')){
             foreach($request->input('images', []) as $idx=>$image){
                 $images[$image] = [
                     'type' => 'image',
-                    'caption' => $request->input('image_caption.'.$idx, null),
+                    'caption' => $request->input('images_caption.'.$idx, null),
                     'locale' => $gallery->getTranslation()->locale
                 ];
             }
@@ -81,7 +81,7 @@ class GalleryController extends Controller{
         foreach($request->input('images', []) as $idx=>$image){
             $images[$image] = [
                 'type' => 'image',
-                'caption' => $request->input('image_caption.'.$idx, null),
+                'caption' => $request->input('images_caption.'.$idx, null),
                 'locale' => $gallery->getTranslation()->locale
             ];
         }

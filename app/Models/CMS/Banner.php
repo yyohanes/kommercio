@@ -18,7 +18,7 @@ class Banner extends Model
         'active' => 'boolean',
     ];
 
-    public $fillable = ['name', 'body', 'banner_group_id', 'images', 'menu_class', 'active', 'sort_order'];
+    public $fillable = ['name', 'body', 'banner_group_id', 'menu_class', 'active', 'sort_order'];
     public $translatedAttributes = ['name', 'body', 'image', 'images'];
     protected $toggleFields = ['active'];
 

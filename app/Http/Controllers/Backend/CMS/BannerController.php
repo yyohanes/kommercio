@@ -42,11 +42,11 @@ class BannerController extends Controller{
         $banner->saveData($request->input('data'));
         $banner->save();
 
-        if($request->has('image')){
-            foreach($request->input('image', []) as $idx=>$image){
+        if($request->has('images')){
+            foreach($request->input('images', []) as $idx=>$image){
                 $images[$image] = [
                     'type' => 'image',
-                    'caption' => $request->input('image_caption.'.$idx, null),
+                    'caption' => $request->input('images_caption.'.$idx, null),
                     'locale' => $banner->getTranslation()->locale
                 ];
             }
@@ -77,10 +77,10 @@ class BannerController extends Controller{
         $banner->save();
 
         $images = [];
-        foreach($request->input('image', []) as $idx=>$image){
+        foreach($request->input('images', []) as $idx=>$image){
             $images[$image] = [
                 'type' => 'image',
-                'caption' => $request->input('image_caption.'.$idx, null),
+                'caption' => $request->input('images_caption.'.$idx, null),
                 'locale' => $banner->getTranslation()->locale
             ];
         }

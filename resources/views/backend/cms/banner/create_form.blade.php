@@ -32,14 +32,15 @@
 ])
 
 @include('backend.master.form.fields.images', [
-    'name' => 'image',
+    'name' => 'images',
     'label' => 'Banner Image',
-    'key' => 'image',
+    'key' => 'images',
     'attr' => [
         'class' => 'form-control',
-        'id' => 'image'
+        'id' => 'images'
     ],
-    'multiple' => FALSE,
+    'multiple' => TRUE,
+    'limit' => 2,
     'existing' => $banner->images
 ])
 

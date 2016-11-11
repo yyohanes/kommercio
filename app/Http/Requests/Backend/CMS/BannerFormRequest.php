@@ -23,11 +23,9 @@ class BannerFormRequest extends Request
      */
     public function rules()
     {
-        $pageId = $this->route('id');
-
         $rules = [
             'name' => 'required',
-            'image' => 'required',
+            'images' => 'required',
             'banner_group_id' => 'required|integer',
         ];
 

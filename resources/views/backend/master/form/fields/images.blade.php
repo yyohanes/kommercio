@@ -3,7 +3,7 @@
 <?php
 $attr = array_merge(['multiple' => TRUE], $attr);
 $attr['class'] = ($attr['class']?$attr['class']:'').' files-upload';
-$limit = 999999;
+$limit = isset($limit)?$limit:999999;
 $multiple = isset($multiple)?$multiple:true;
 $caption = isset($caption)?$caption:true;
 $existingImages = [];

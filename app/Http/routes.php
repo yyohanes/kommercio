@@ -134,6 +134,17 @@ Route::group(['middleware' => ['web']], function () {
             'uses' => 'PageController@view'
         ]);
 
+        //Gallery
+        Route::get('gallery-category/{id}', [
+            'as' => 'frontend.gallery.category.view',
+            'uses' => 'GalleryController@viewCategory'
+        ]);
+
+        Route::get('gallery/{id}', [
+            'as' => 'frontend.gallery.view',
+            'uses' => 'GalleryController@viewGallery'
+        ]);
+
         //Posts
         Route::get('post-category/{id}', [
             'as' => 'frontend.post.category.view',
