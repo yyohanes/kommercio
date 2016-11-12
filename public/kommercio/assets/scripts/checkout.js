@@ -115,6 +115,12 @@
                     'success' : function(data){
                         var $options = KommercioFrontend.selectHelper.convertToOptions(data, 'State');
 
+                        if(data.length < 1){
+                            $stateSelect.hide();
+                        }else{
+                            $stateSelect.show();
+                        }
+
                         $stateSelect.html($options);
 
                         $stateSelect.trigger('change');
@@ -130,6 +136,12 @@
                     'dataType' : 'json',
                     'success' : function(data){
                         var $options = KommercioFrontend.selectHelper.convertToOptions(data, 'City');
+
+                        if(data.length < 1){
+                            $citySelect.hide();
+                        }else{
+                            $citySelect.show();
+                        }
 
                         $citySelect.html($options);
 
@@ -147,6 +159,12 @@
                     'success' : function(data){
                         var $options = KommercioFrontend.selectHelper.convertToOptions(data, 'District');
 
+                        if(data.length < 1){
+                            $districtSelect.hide();
+                        }else{
+                            $districtSelect.show();
+                        }
+
                         $districtSelect.html($options);
 
                         $districtSelect.trigger('change');
@@ -155,6 +173,10 @@
                     }
                 });
             });
+
+            if($countrySelect.find('option').length <= 2 && $countrySelect.val() == ''){
+                $countrySelect.val($countrySelect.find('option:eq(1)').val());
+            }
 
             if($stateSelect.find('option').length < 2){
                 $countrySelect.trigger('change');
