@@ -106,3 +106,8 @@
   font-size: 12px !important;
   line-height: 1.25em;
 }
+
+/* line 131, sass/app.scss */
+.child-line-item-header td:first-child, .child-line-item td:first-child {
+  padding-left: 2em;
+}

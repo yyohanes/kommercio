@@ -583,6 +583,20 @@ class OrderController extends Controller{
                 if($lineItem->isProduct){
                     $lineItemData['id'] = $lineItem->product->id;
                     $lineItemData['sku'] = $lineItem->product->sku;
+
+                    $lineItemData['children'] = [];
+
+                    foreach($lineItem->children as $lineItemChild){
+                        if(!isset($lineItemData['children'][$lineItemChild->product_composite_id])){
+                            $lineItemData['children'][$lineItemChild->product_composite_id] = [];
+                        }
+
+                        $lineItemChildData = $lineItemChild->toArray();
+                        $lineItemChildData['id'] = $lineItemChild->product->id;
+                        $lineItemChildData['sku'] = $lineItemChild->product->sku;
+
+                        $lineItemData['children'][$lineItemChild->product_composite_id][] = $lineItemChildData;
+                    }
                 }
 
                 if($lineItem->isShipping){
@@ -1058,10 +1072,21 @@ class OrderController extends Controller{
                 break;
         }
 
-        $render = view('backend.order.line_items.form.product', [
-            'product' => $model,
-            'key' => $request->get('product_index')
-        ])->render();
+        if($request->input('isParent')){
+            $render = view('backend.order.line_items.form.product', [
+                'product' => $model,
+                'key' => $request->get('product_index')
+            ])->render();
+        }else{
+            $parentProduct = Product::findOrFail($request->get('parent_product'));
+            $render = view('backend.order.line_items.form.product_child', [
+                'parent' => $parentProduct,
+                'parentKey' => $request->get('parent_index'),
+                'childKey' => $request->get('product_index'),
+                'composite' => $parentProduct->getCompositeConfiguration((int) $request->get('composite')),
+                'product' => $model
+            ])->render();
+        }
 
         return response()->json(['data' => $render, '_token' => csrf_token()]);
     }

@@ -1,7 +1,8 @@
-<tr class="line-item" data-taxable="{{ $lineItem->taxable }}" data-line_item="product" data-line_item_key="{{ $key }}">
+<tr class="line-item">
     <td>
         <div>{!! $lineItem->product->getThumbnail()?'<img style="width: 80px; height: auto;" class="product-image" src="'.asset($lineItem->product->getThumbnail()->getImagePath('backend_thumbnail')).'" />':'' !!}
-        {{ $lineItem->name }}</div>
+            {{ $lineItem->name }}
+        </div>
         @if(!empty($lineItem->notes))
         <br/>
         <blockquote>
@@ -17,12 +18,28 @@
     </td>
     -->
     <td>
+        @if(!$child)
         {{ PriceFormatter::formatNumber($lineItem->net_price, $lineItem->order->currency) }}
+        @endif
     </td>
     <td>
         {{ $lineItem->quantity }}
     </td>
     <td>
+        @if(!$child)
         {{ PriceFormatter::formatNumber($lineItem->calculateSubtotal(), $lineItem->order->currency) }}
+        @endif
     </td>
 </tr>
+
+@foreach($lineItem->product->composites as $composite)
+    <tr class="child-line-item-header">
+        <td colspan="100">
+            {{ $composite->name }}
+        </td>
+    </tr>
+
+    @foreach($lineItem->getChildrenByComposite($composite) as $child)
+        @include('backend.order.line_items.view.product', ['composite' => $composite, 'lineItem' => $child, 'child' => true])
+    @endforeach
+@endforeach

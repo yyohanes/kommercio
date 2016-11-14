@@ -847,30 +847,61 @@ class ProductController extends Controller{
         $search = $request->get('query', '');
 
         if(!empty($search)){
-            $qb = Product::with('parent')->joinTranslation()->joinDetail()->selectSelf();
+            $qb = $this->getAutocompleteQuery($request, $search);
 
-            if($request->input('entity_only') == '1'){
-                $qb->productEntity();
-            }else{
-                $qb->productSelection();
+            $results = $qb->get();
+
+            foreach($results as $result){
+                $name = $result->name.' ('.$result->sku.')';
+
+                if($result->parent && $result->parent->defaultCategory){
+                    $name .= ' - '.$result->parent->defaultCategory->name;
+                }elseif($result->defaultCategory){
+                    $name .= ' - '.$result->defaultCategory->name;
+                }
+
+                $return[] = [
+                    'id' => $result->id,
+                    'name' => $name,
+                    'sku' => $result->sku,
+                    'thumbnail' => $result->hasThumbnail()?asset($result->getThumbnail()->getImagePath('backend_thumbnail')):'',
+                    'tokens' => [
+                        $name,
+                        $result->sku
+                    ]
+                ];
+            }
+        }
+
+        return response()->json(['data' => $return, '_token' => csrf_token()]);
+    }
+
+    public function compositeAutocomplete(Request $request, $id, $composite_id)
+    {
+        $return = [];
+        $search = $request->get('query', '');
+
+        if(!empty($search)){
+            $includedProductIds = [];
+
+            $product = Product::findOrFail($id);
+            $compositeConfiguration = $product->getCompositeConfiguration((int) $composite_id);
+
+            foreach($compositeConfiguration->pivot->configuredProducts as $configuredProduct){
+                if($configuredProduct->isPurchaseable){
+                    $includedProductIds[] = $configuredProduct->id;
+                }else{
+                    $includedProductIds += $configuredProduct->variations->pluck('id')->all();
+                }
             }
 
-            if($request->input('exclude', null)){
-                $qb->where('products.id', '<>', $request->input('exclude'));
-            }
+            $qb = $this->getAutocompleteQuery($request, $search);
 
-            if(!$request->user()->can('access', ['add_inactive_product'])){
-                $qb->where('D.active', 1);
-            }
+            $qb->where('products.id', '<>', $id);
 
-            if(!$request->user()->can('access', ['add_unavailable_product'])){
-                $qb->where('D.available', 1);
+            if($includedProductIds){
+                $qb->whereIn('products.id', $includedProductIds);
             }
-
-            $qb->where(function($query) use ($search){
-                $query->where('name', 'LIKE', '%'.$search.'%')
-                    ->orWhere('sku', 'LIKE', '%'.$search.'%');
-            });
 
             $results = $qb->get();
 
@@ -1055,6 +1086,36 @@ class ProductController extends Controller{
             $result = $tmp;
         }
         return $result;
+    }
+
+    protected function getAutocompleteQuery(Request $request, $search)
+    {
+        $qb = Product::with('parent')->joinTranslation()->joinDetail()->selectSelf();
+
+        if($request->input('entity_only') == '1'){
+            $qb->productEntity();
+        }else{
+            $qb->productSelection();
+        }
+
+        if($request->input('exclude', null)){
+            $qb->where('products.id', '<>', $request->input('exclude'));
+        }
+
+        if(!$request->user()->can('access', ['add_inactive_product'])){
+            $qb->where('D.active', 1);
+        }
+
+        if(!$request->user()->can('access', ['add_unavailable_product'])){
+            $qb->where('D.available', 1);
+        }
+
+        $qb->where(function($query) use ($search){
+            $query->where('name', 'LIKE', '%'.$search.'%')
+                ->orWhere('sku', 'LIKE', '%'.$search.'%');
+        });
+
+        return $qb;
     }
 
     private function _searchAttributeId($array, $value)

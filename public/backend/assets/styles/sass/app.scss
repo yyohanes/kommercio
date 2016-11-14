@@ -125,3 +125,10 @@
     line-height: 1.25em;
   }
 }
+
+//Composite
+.child-line-item-header, .child-line-item{
+  td:first-child{
+    padding-left: 2em;
+  }
+}

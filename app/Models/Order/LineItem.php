@@ -3,6 +3,7 @@
 namespace Kommercio\Models\Order;
 
 use Illuminate\Database\Eloquent\Model;
+use Kommercio\Facades\OrderHelper;
 use Kommercio\Facades\ProjectHelper;
 use Kommercio\Models\PriceRule\CartPriceRule;
 use Kommercio\Models\Product;
@@ -21,6 +22,19 @@ class LineItem extends Model
     ];
 
     private $_compositeConfiguration;
+
+    //Override
+    public function save(array $options = [])
+    {
+        $saved = parent::save($options);
+
+        foreach($this->children as $child){
+            $child->parent()->associate($this);
+            $child->save();
+        }
+
+        return $saved;
+    }
 
     //Methods
     public function getPrintName()
@@ -104,6 +118,16 @@ class LineItem extends Model
 
     public function processData($data, $sort_order = 0)
     {
+        //Set defaults
+        if(!isset($data['net_price'])){
+            $data['net_price'] = 0;
+        }
+
+        if(!isset($data['quantity'])){
+            $data['quantity'] = 1;
+        }
+
+        //Process
         if($data['line_item_type'] == 'product'){
             if(!empty($data['sku'])){
                 $this->linkProductBySKU($data['sku']);
@@ -158,6 +182,10 @@ class LineItem extends Model
             $this->notes = $data['notes'];
         }
 
+        if(isset($data['product_composite_id'])){
+            $this->productComposite()->associate($data['product_composite_id']);
+        }
+
         if(is_null($this->taxable)){
             $this->taxable = false;
         }
@@ -167,6 +195,10 @@ class LineItem extends Model
         }
 
         $this->sort_order = $sort_order;
+
+        if(!empty($data['children'])){
+            $this->processChildren($data['children']);
+        }
     }
 
     public function clearData()
@@ -232,6 +264,59 @@ class LineItem extends Model
         }
 
         return $this->_compositeConfiguration;
+    }
+
+    public function getChildrenByComposite($composite)
+    {
+        if(is_object($composite)){
+            $composite = $composite->id;
+        }
+
+        return $this->children->where('product_composite_id', $composite);
+    }
+
+    public function processChildren($children)
+    {
+        $childrenData = [];
+
+        if($this->isProduct && $this->product->composites->count() > 0){
+            foreach($children as $compositeId => $compositeData){
+                foreach($compositeData as $compositeDatum){
+                    $childrenData[] = $compositeDatum;
+                }
+            }
+
+            foreach($this->product->composites as $composite){
+                if($composite->pivot->isSingle){
+                    $childrenData[] = [
+                        'product' => $composite->pivot->configuredProduct,
+                        'quantity' => $composite->pivot->minimum,
+                        'line_item_type' => 'product',
+                        'product_composite_id' => $composite->id
+                    ];
+                }
+            }
+        }
+
+        $existingLineItems = $this->children;
+
+        $count = 0;
+
+        $lineItems = [];
+
+        foreach($childrenData as $child){
+            $lineItem = OrderHelper::reuseOrCreateLineItem($this->order, $existingLineItems, $count);
+            $lineItem->processData($child, $count);
+            $lineItems[] = $lineItem;
+            $count += 1;
+        }
+
+        //Delete unused line items
+        foreach($existingLineItems as $existingLineItem){
+            $existingLineItem->delete();
+        }
+
+        $this->setRelation('children', $lineItems);
     }
 
     //Accessors

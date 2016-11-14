@@ -287,7 +287,7 @@
                                                             @if($lineItem['line_item_type'] == 'fee')
                                                                 @include('backend.order.line_items.view.fee', ['key' => $idx, 'lineItem' => $lineItem])
                                                             @elseif($lineItem['line_item_type'] == 'product')
-                                                                @include('backend.order.line_items.view.product', ['key' => $idx, 'lineItem' => $lineItem])
+                                                                @include('backend.order.line_items.view.product', ['key' => $idx, 'lineItem' => $lineItem, 'child' => false])
                                                             @endif
                                                         @endforeach
                                                     @endif

@@ -15,6 +15,7 @@
                 'data-typeahead_remote' => route('backend.catalog.product.autocomplete'),
                 'data-typeahead_display' => 'sku',
                 'data-typeahead_label'=> 'name',
+                'data-isParent' => true
             ],
             'required' => TRUE,
             'defaultValue' => isset($product)?$product->sku:null
@@ -88,7 +89,7 @@
         @include('backend.master.form.fields.number', [
             'name' => 'line_items['.$key.'][lineitem_total_amount]',
             'label' => FALSE,
-            'key' => 'line_items.lineitem_total_amount.'.$key,
+            'key' => 'line_items.'.$key.'.lineitem_total_amount',
             'attr' => [
                 'class' => 'form-control input-sm lineitem-total-amount',
                 'id' => 'line_items['.$key.'][lineitem_total_amount]',
@@ -103,3 +104,29 @@
         <a href="#" class="line-item-remove"><span class="text-danger"><i class="fa fa-remove"></i></span></a>
     </td>
 </tr>
+
+<?php
+if(old('line_items.'.$key.'.children')){
+    $product = \Kommercio\Models\Product::where('sku', old('line_items.'.$key.'.sku'))->firstOrFail();
+}
+?>
+
+@if(!empty($product))
+    @foreach($product->composites as $composite)
+        <tr class="child-line-item-header" data-composite_id="{{ $composite->id }}" data-parent_line_item_key="{{ $key }}">
+            <td colspan="100">
+                {{ $composite->name }}
+                @if($composite->pivot->configuredProducts->count() > 1)
+                <script id="lineitem-product-{{ $key }}-child-{{ $composite->id }}-template" type="text/x-handlebars-template">
+                @include('backend.order.line_items.form.product_child', ['parentKey' => $key, 'childKey' => '@{{childKey}}', 'composite' => $composite, 'parent' => $product, 'product' => null])
+                </script>
+                <a href="#" class="configured-product-add btn btn-xs btn-default"><i class="fa fa-plus"></i></a>
+                @endif
+            </td>
+        </tr>
+
+        @foreach(old('line_items.'.$key.'.children.'.$composite->id, [0]) as $idx=>$child)
+        @include('backend.order.line_items.form.product_child', ['parentKey' => $key, 'childKey' => $idx, 'composite' => $composite, 'parent' => $product, 'product' => null])
+        @endforeach
+    @endforeach
+@endif

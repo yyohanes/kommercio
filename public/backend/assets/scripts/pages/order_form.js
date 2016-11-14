@@ -258,9 +258,13 @@ var OrderForm = function () {
         return calculatedAmount - amount;
     }
 
-    var getNextIndex = function()
+    var getNextIndex = function($context)
     {
-        $lastLineItem = $('.line-item:last-child', '#line-items-table tbody');
+        if(typeof $context == 'undefined'){
+            $context = $('.line-item', '#line-items-table tbody');
+        }
+
+        $lastLineItem = $context.last();
 
         if($lastLineItem.length > 0){
             $nextIndex = $lastLineItem.data('line_item_key') + 1;
@@ -592,6 +596,33 @@ var OrderForm = function () {
         formBehaviors.handleModalAjaxBtn($('#order-form'));
     }
 
+    var handleChildButtons = function(context)
+    {
+        $('.configured-product-add', context).click(function(e){
+            e.preventDefault();
+
+            var $childLineItemHeader = $(this).parents('.child-line-item-header');
+            var $key = $childLineItemHeader.data('parent_line_item_key');
+            var $composite = $childLineItemHeader.data('composite_id');
+            var $childProductLineItemPrototypeSource = $('#lineitem-product-'+$key+'-child-'+$composite+'-template').html();
+            var $childProductLineItemPrototype = Handlebars.compile($childProductLineItemPrototypeSource);
+
+            var $childProductLineItems = $('[data-parent_line_item_key="'+$key+'"][data-composite="'+$composite+'"]');
+            $nextIndex = getNextIndex($childProductLineItems);
+
+            var $newChildProductLineItem = $($childProductLineItemPrototype({childKey: $nextIndex}));
+
+            if($childProductLineItems.length > 0){
+                $childProductLineItems.last().after($newChildProductLineItem);
+            }else{
+                $childLineItemHeader.after($newChildProductLineItem);
+            }
+
+            formBehaviors.init($newChildProductLineItem);
+            OrderForm.lineItemInit($newChildProductLineItem);
+        });
+    }
+
     var toggleAddShippingButton = function()
     {
         if($totalShippingLineItems > 0){
@@ -777,7 +808,7 @@ var OrderForm = function () {
             $totalShippingLineItems = $('.line-item[data-line_item="shipping"]', '#line-items-table').length;
             toggleAddShippingButton();
 
-            $('.line-item', '#line-items-table').each(function(idx, obj){
+            $('.line-item, .child-line-item-header, .child-line-item', '#line-items-table').each(function(idx, obj){
                 OrderForm.lineItemInit($(obj));
             });
 
@@ -790,114 +821,131 @@ var OrderForm = function () {
         },
         lineItemInit: function(lineItem)
         {
-            var $lineItem = lineItem;
-            var $lineItemType = $lineItem.data('line_item');
-            var $timestamp = generateUUID();
-            $lineItem.attr('data-uid', $timestamp);
-            $lineItems[$timestamp] = {
-                uid: $timestamp,
-                object: $lineItem,
-                cartPriceRules: [],
-                taxes: {},
-                total: 0,
-                net: 0,
-                calculated: 0,
-                base: Number(lineItem.find('.net-price-field').inputmask('unmaskedvalue'))
-            };
+            var $lineItem = lineItem.filter('.line-item, .child-line-item-header, .child-line-item');
 
-            $('.product-search', lineItem).bind('typeahead:select', function(e, suggestion){
-                App.blockUI({
-                    target: $lineItem,
-                    boxed: true,
-                    message: 'Loading product...'
+            if($lineItem.length > 1){
+                $lineItem.each(function(idx, obj){
+                    OrderForm.lineItemInit($(obj));
                 });
+            }else{
+                var $lineItemType = $lineItem.data('line_item');
+                var $timestamp = generateUUID();
+                $lineItem.attr('data-uid', $timestamp);
+                $lineItems[$timestamp] = {
+                    uid: $timestamp,
+                    object: $lineItem,
+                    cartPriceRules: [],
+                    taxes: {},
+                    total: 0,
+                    net: 0,
+                    calculated: 0,
+                    base: Number($lineItem.find('.net-price-field').inputmask('unmaskedvalue'))
+                };
 
-                $.ajax(global_vars.product_line_item + '/' + suggestion.id, {
-                    method: 'POST',
-                    data: 'product_index=' + $lineItem.data('line_item_key'),
-                    success: function(data){
-                        App.unblockUI($lineItem);
-
-                        var $row = $(data.data);
-                        $lineItem.replaceWith($row);
-
-                        formBehaviors.init($row);
-                        OrderForm.lineItemInit($row);
-
-                        $row.find('.quantity-field').focus();
-
-                        $row.find('.net-price-field').trigger('change');
-
-                        //Get availability
-                        $.ajax(global_vars.get_product_availability + '/' + suggestion.id, {
-                            method: 'POST',
-                            data: $('#order-form').serialize(),
-                            success: function(data){
-                                handleLoadedAvailability(data.data.ordered_total, data.data.order_limit, data.data.stock, $row);
-                            }
-                        });
-
-                        $('#order-form').trigger('order.major_change');
-                    }
-                });
-            });
-
-            $('.line-item-remove', $lineItem).on('click', function(e){
-                e.preventDefault();
-
-                for(var i in $cartPriceRules){
-                    $cartPriceRules[i].applied_line_items = $.grep($cartPriceRules[i].applied_line_items, function(n, i){
-                        return n.uid != $lineItem.data('uid');
+                $('.product-search', $lineItem).bind('typeahead:select', function(e, suggestion){
+                    App.blockUI({
+                        target: $lineItem,
+                        boxed: true,
+                        message: 'Loading product...'
                     });
-                }
 
-                delete $lineItems[$lineItem.data('uid')];
-                $lineItem.remove();
+                    $.ajax(global_vars.product_line_item + '/' + suggestion.id, {
+                        method: 'POST',
+                        data: 'product_index=' + $lineItem.data('line_item_key') + '&isParent=' + (typeof $lineItem.data('parent_line_item_key') == 'undefined'?1:0) + '&parent_index=' + $lineItem.data('parent_line_item_key') + '&parent_product='+$lineItem.data('parent_product')+'&composite=' + $lineItem.data('composite'),
+                        success: function(data){
+                            App.unblockUI($lineItem);
 
-                if($lineItemType == 'shipping'){
-                    $totalShippingLineItems -= 1;
-                    toggleAddShippingButton();
-                }
+                            var $row = $(data.data);
 
-                $('#order-form').trigger('order.major_change');
-            });
+                            if($lineItem.hasClass('.line-item')){
+                                $($('[data-parent_line_item_key="'+$lineItem.data('line_item_key')+'"]'), '#line-items-table').remove();
+                            }
+                            $lineItem.replaceWith($row);
 
-            $('.quantity-field, .net-price-field', $lineItem).each(function(idx, obj){
-                var $totalAmount;
-                var $netPrice;
+                            formBehaviors.init($row);
+                            OrderForm.lineItemInit($row);
 
-                $(obj).on('change', function(e, stopImmediateTrigger){
-                    $netPrice = Number($lineItem.find('.net-price-field').inputmask('unmaskedvalue'));
-                    calculateLineItemNetPrice($lineItems[$lineItem.data('uid')], $netPrice, $lineItem.find('.quantity-field').val());
-                    $totalAmount = $lineItem.find('.quantity-field').val() * $netPrice;
-                    $totalAmount = formHelper.roundNumber($totalAmount);
+                            $row.find('.quantity-field').focus();
 
-                    $lineItem.find('.lineitem-total-amount').val($totalAmount);
+                            $row.find('.net-price-field').trigger('change');
 
-                    if(!stopImmediateTrigger){
-                        $lineItem.find('.lineitem-total-amount').trigger('change');
-                    }
+                            //Get availability
+                            $.ajax(global_vars.get_product_availability + '/' + suggestion.id, {
+                                method: 'POST',
+                                data: $('#order-form').serialize(),
+                                success: function(data){
+                                    handleLoadedAvailability(data.data.ordered_total, data.data.order_limit, data.data.stock, $row);
+                                }
+                            });
+
+                            $('#order-form').trigger('order.major_change');
+                        }
+                    });
                 });
-            });
 
-            $('.quantity-field', $lineItem).each(function(idx, obj){
-                var newQuantity, newStock;
+                $('.line-item-remove', $lineItem).on('click', function(e){
+                    e.preventDefault();
 
-                $(obj).on('change', function(e){
-                    if(typeof $orderedTotal[$lineItem.find('.line-item-id').val()] != 'undefined'){
-                        newQuantity = $orderedTotal[$lineItem.find('.line-item-id').val()].ordered_total + Number($(obj).val());
-                        $lineItem.find('.ordered-total').text(formHelper.roundNumber(newQuantity));
-
-                        newStock = $orderedTotal[$lineItem.find('.line-item-id').val()].stock - Number($(obj).val());
-                        $lineItem.find('.stock-total').text(formHelper.roundNumber(newStock));
+                    if($lineItem.hasClass('.line-item')){
+                        $($('[data-parent_line_item_key="'+$lineItem.data('line_item_key')+'"]'), '#line-items-table').remove();
                     }
-                });
-            });
 
-            $lineItem.find('.lineitem-total-amount').change(function(e){
-                calculateOrderSummary();
-                printOrderSummary();
-            });
+                    for(var i in $cartPriceRules){
+                        $cartPriceRules[i].applied_line_items = $.grep($cartPriceRules[i].applied_line_items, function(n, i){
+                            return n.uid != $lineItem.data('uid');
+                        });
+                    }
+
+                    delete $lineItems[$lineItem.data('uid')];
+                    $lineItem.remove();
+
+                    if($lineItemType == 'shipping'){
+                        $totalShippingLineItems -= 1;
+                        toggleAddShippingButton();
+                    }
+
+                    $('#order-form').trigger('order.major_change');
+                });
+
+                $('.quantity-field, .net-price-field', $lineItem).each(function(idx, obj){
+                    var $totalAmount;
+                    var $netPrice;
+
+                    $(obj).on('change', function(e, stopImmediateTrigger){
+                        $netPrice = Number($lineItem.find('.net-price-field').inputmask('unmaskedvalue'));
+                        calculateLineItemNetPrice($lineItems[$lineItem.data('uid')], $netPrice, $lineItem.find('.quantity-field').val());
+                        $totalAmount = $lineItem.find('.quantity-field').val() * $netPrice;
+                        $totalAmount = formHelper.roundNumber($totalAmount);
+
+                        $lineItem.find('.lineitem-total-amount').val($totalAmount);
+
+                        if(!stopImmediateTrigger){
+                            $lineItem.find('.lineitem-total-amount').trigger('change');
+                        }
+                    });
+                });
+
+                $('.quantity-field', $lineItem).each(function(idx, obj){
+                    var newQuantity, newStock;
+
+                    $(obj).on('change', function(e){
+                        if(typeof $orderedTotal[$lineItem.find('.line-item-id').val()] != 'undefined'){
+                            newQuantity = $orderedTotal[$lineItem.find('.line-item-id').val()].ordered_total + Number($(obj).val());
+                            $lineItem.find('.ordered-total').text(formHelper.roundNumber(newQuantity));
+
+                            newStock = $orderedTotal[$lineItem.find('.line-item-id').val()].stock - Number($(obj).val());
+                            $lineItem.find('.stock-total').text(formHelper.roundNumber(newStock));
+                        }
+                    });
+                });
+
+                $lineItem.find('.lineitem-total-amount').change(function(e){
+                    calculateOrderSummary();
+                    printOrderSummary();
+                });
+
+                handleChildButtons($lineItem);
+            }
         }
 
     };

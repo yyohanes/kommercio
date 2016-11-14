@@ -6,12 +6,28 @@
         {{ $lineItem->name }}
     </td>
     <td>
+        @if(!$child)
         {{ PriceFormatter::formatNumber($lineItem->net_price, $lineItem->order->currency) }}
+        @endif
     </td>
     <td>
         {{ $lineItem->quantity }}
     </td>
     <td>
+        @if(!$child)
         {{ PriceFormatter::formatNumber($lineItem->calculateSubtotalWithTax(), $lineItem->order->currency) }}
+        @endif
     </td>
 </tr>
+
+@foreach($lineItem->product->composites as $composite)
+    <tr class="child-line-item-header">
+        <td colspan="100">
+            {{ $composite->name }}
+        </td>
+    </tr>
+
+    @foreach($lineItem->getChildrenByComposite($composite) as $child)
+        @include('emails.order.line_items.product', ['composite' => $composite, 'lineItem' => $child, 'child' => true])
+    @endforeach
+@endforeach

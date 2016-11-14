@@ -454,6 +454,12 @@ Route::group(['middleware' => ['web']], function () {
                         'uses' => 'ProductController@availability',
                         'permissions' => ['view_product']
                     ]);
+
+                    Route::get('{id}/composite/{composite_id}/autocomplete', [
+                        'as' => 'backend.catalog.product.composite.autocomplete',
+                        'uses' => 'ProductController@compositeAutocomplete',
+                        'permissions' => ['view_product']
+                    ]);
                 });
 
                 Route::group(['prefix' => 'product-attribute'], function(){

@@ -15,7 +15,7 @@
             @if($lineItem['line_item_type'] == 'fee')
                 @include('emails.order.line_items.fee', ['key' => $idx, 'lineItem' => $lineItem])
             @elseif($lineItem['line_item_type'] == 'product')
-                @include('emails.order.line_items.product', ['key' => $idx, 'lineItem' => $lineItem])
+                @include('emails.order.line_items.product', ['key' => $idx, 'lineItem' => $lineItem, 'child' => false])
             @endif
         @endforeach
     @endif
