@@ -72,16 +72,7 @@ class OrderController extends Controller
 
     public function cartUpdate(Request $request)
     {
-        $order = FrontendHelper::getCurrentOrder('save');
-
-        //On update, reset checkout_step and delete everything but product, coupon & shipping
-        $order->unsetData('checkout_step', true);
-
-        foreach($order->lineItems as $lineItem){
-            if(!$lineItem->isShipping && !$lineItem->isProduct && !$lineItem){
-                $lineItem->delete();
-            }
-        }
+        $order = FrontendHelper::getCurrentOrder();
 
         if($request->has('product_remove')){
             $rules = [
@@ -566,8 +557,6 @@ class OrderController extends Controller
                     //$order->setRelation('shippingProfile', $savedShippingProfile);
 
                     $nextStep = 'customer_information';
-                }elseif($process == 'select_shipping_method'){
-                    $nextStep = 'customer_information';
                 }else{
                     $this->validate($request, $this->getCheckoutRuleBook('customer_information', $request, $order));
 
@@ -648,7 +637,6 @@ class OrderController extends Controller
                     $this->validate($request, $paymentMethodRules);
 
                     $order->paymentMethod()->associate($request->input('payment_method'));
-                    $order->load('paymentMethod');
 
                     $order->paymentMethod->getProcessor()->processPayment([
                         'order' => $order,
@@ -678,10 +666,6 @@ class OrderController extends Controller
                     $viewData['success'][] = trans(LanguageHelper::getTranslationKey('frontend.order.coupon_removed'), ['coupon_code' => $coupon->coupon_code]);
                 }elseif($process == 'select_shipping_method'){
 
-                }
-
-                if($request->has('notes')){
-                    $order->notes = $request->input('notes');
                 }
 
                 $order->currency = $request->input('currency');
@@ -1188,12 +1172,6 @@ class OrderController extends Controller
         if(ProjectHelper::getConfig('enable_delivery_date', FALSE)){
             $ruleBook['customer_information'] += [
                 'delivery_date' => 'required|date_format:Y-m-d'
-            ];
-        }
-
-        if(ProjectHelper::getConfig('checkout_options.shipping_method_position', 'review') == 'before_shipping_address'){
-            $ruleBook['customer_information'] += [
-                'shipping_method' => 'required'.(isset($shippingMethodOptions)?'|in:'.implode(',', array_keys($shippingMethodOptions)):''),
             ];
         }
 

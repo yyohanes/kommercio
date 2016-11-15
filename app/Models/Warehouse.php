@@ -25,6 +25,20 @@ class Warehouse extends Model
         return $this->products()->wherePivot('stock', '>', 0)->count();
     }
 
+    public function getLocationAttribute()
+    {
+        return [
+            'address_1' => $this->address_1,
+            'address_2' => $this->address_2,
+            'country_id' => $this->country_id,
+            'state_id' => $this->state_id,
+            'city_id' => $this->city_id,
+            'district_id' => $this->district_id,
+            'area_id' => $this->area_id,
+            'postal_code' => $this->postal_code,
+        ];
+    }
+
     //Statics
     public static function getWarehouseOptions()
     {

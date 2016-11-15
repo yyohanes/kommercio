@@ -103,13 +103,15 @@ class JNE implements ShippingMethodInterface
             $res = $client->post('http://pro.rajaongkir.com/api/cost', [
                 'http_errors' => false,
                 'form_params' =>  [
-                    'key' => '195fa4351871a434f7d9fefaadedef05',
                     'origin' => $origin->master_id,
                     'originType' => 'city',
                     'destination' => $destination->master_id,
                     'destinationType' => $destinationType,
-                    'weight' => $order->getTotalWeight(),
+                    'weight' => (int) $order->getTotalWeight(),
                     'courier' => 'jne',
+                ],
+                'headers' =>  [
+                    'key' => '195fa4351871a434f7d9fefaadedef05',
                 ]
             ]);
 
@@ -117,6 +119,7 @@ class JNE implements ShippingMethodInterface
                 $body = $res->getBody();
 
                 $results = json_decode($body);
+                dd($results->rajaongkir->results);
 
                 if($results && $results->rajaongkir->results){
                     foreach(array_shift($results->rajaongkir->results)->costs as $cost){
