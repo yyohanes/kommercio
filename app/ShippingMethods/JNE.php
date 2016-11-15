@@ -119,7 +119,6 @@ class JNE implements ShippingMethodInterface
                 $body = $res->getBody();
 
                 $results = json_decode($body);
-                dd($results->rajaongkir->results);
 
                 if($results && $results->rajaongkir->results){
                     foreach(array_shift($results->rajaongkir->results)->costs as $cost){
