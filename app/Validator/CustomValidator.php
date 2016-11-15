@@ -212,6 +212,44 @@ class CustomValidator extends Validator
         return $message;
     }
 
+    public function validateCompositeQuantity($attribute, $value, $parameters)
+    {
+        $sku = $value;
+
+        if(!$sku){
+            return true;
+        }
+
+        $product = Product::where('sku', $parameters[0])->firstOrFail();
+
+        $composite = $parameters[1];
+        $composite = $product->getCompositeConfiguration((int) $composite);
+
+        static::$_storage['composite_'.$product->sku.'_'.$composite->id] = $composite;
+
+        $quantity = floatval($parameters[2]);
+
+        return $composite->pivot->minimum <= $quantity && $composite->pivot->maximum >= $quantity;
+    }
+
+    public function replaceCompositeQuantity($message, $attribute, $rule, $parameters)
+    {
+        $product = Product::where('sku', $parameters[0])->firstOrFail();
+
+        $message = str_replace(':product', $product->name, $message);
+        $message = str_replace(':composite', static::$_storage['composite_'.$parameters[0].'_'.$parameters[1]]->name, $message);
+
+        if(static::$_storage['composite_'.$parameters[0].'_'.$parameters[1]]->pivot->minimum == static::$_storage['composite_'.$parameters[0].'_'.$parameters[1]]->pivot->maximum){
+            $quantity = static::$_storage['composite_'.$parameters[0].'_'.$parameters[1]]->pivot->minimum + 0;
+        }else{
+            $quantity = static::$_storage['composite_'.$parameters[0].'_'.$parameters[1]]->pivot->minimum+0 .' - '.static::$_storage['composite_'.$parameters[0].'_'.$parameters[1]]->pivot->maximum+0;
+        }
+
+        $message = str_replace(':quantity', $quantity, $message);
+
+        return $message;
+    }
+
     public function validateOldPassword($attribute, $value, $parameters)
     {
         return Hash::check($value, current($parameters));

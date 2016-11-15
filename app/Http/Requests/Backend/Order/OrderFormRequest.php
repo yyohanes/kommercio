@@ -47,6 +47,14 @@ class OrderFormRequest extends Request
                 $rules['line_items.'.$idx.'.sku'] = 'product_sku|required_with:line_items.'.$idx.'.net_price,line_items.'.$idx.'.quantity';
                 $rules['line_items.'.$idx.'.net_price'] = 'numeric|required_with:line_items.'.$idx.'.sku,line_items.'.$idx.'.quantity';
                 $rules['line_items.'.$idx.'.quantity'] = 'numeric|min:0,required_with:line_items.'.$idx.'.sku,line_items.'.$idx.'.net_price';
+
+                foreach($this->input('line_items.'.$idx.'.children', []) as $compositeId => $compositeLineItems){
+                    $quantity = 0;
+                    foreach($compositeLineItems as $compositeLineItemIdx => $compositeLineItem){
+                        $quantity += $compositeLineItem['quantity'];
+                        $rules['line_items.'.$idx.'.children.'.$compositeId.'.'.$compositeLineItemIdx.'.sku'] = 'required|composite_quantity:'.$this->input('line_items.'.$idx.'.sku').','.$compositeId.','.$quantity.'|product_sku';
+                    }
+                }
             }elseif($lineItem['line_item_type'] == 'fee'){
                 $rules['line_items.'.$idx.'.name'] = 'required_with:line_items.'.$idx.'.lineitem_total_amount';
                 $rules['line_items.'.$idx.'.lineitem_total_amount'] = 'numeric|required_with:line_items.'.$idx.'.name';
