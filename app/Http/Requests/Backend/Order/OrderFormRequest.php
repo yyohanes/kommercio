@@ -52,7 +52,8 @@ class OrderFormRequest extends Request
                     $quantity = 0;
                     foreach($compositeLineItems as $compositeLineItemIdx => $compositeLineItem){
                         $quantity += $compositeLineItem['quantity'];
-                        $rules['line_items.'.$idx.'.children.'.$compositeId.'.'.$compositeLineItemIdx.'.sku'] = 'required|composite_quantity:'.$this->input('line_items.'.$idx.'.sku').','.$compositeId.','.$quantity.'|product_sku';
+                        $rules['line_items.'.$idx.'.children.'.$compositeId.'.'.$compositeLineItemIdx.'.sku'] = 'required|product_sku';
+                        //$rules['line_items.'.$idx.'.children.'.$compositeId.'.'.$compositeLineItemIdx.'.sku'] .= '|composite_quantity:'.$this->input('line_items.'.$idx.'.sku').','.$compositeId.','.$quantity;
                     }
                 }
             }elseif($lineItem['line_item_type'] == 'fee'){
