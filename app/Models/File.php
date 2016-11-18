@@ -80,7 +80,8 @@ class File extends Model implements AuthorSignatureInterface
 
     public function isUsed()
     {
-        //temporarily not used
+        //temporarily only check if temp
+        return !$this->temp;
     }
 
     //Accessors

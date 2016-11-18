@@ -284,7 +284,7 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
                 }
             }
 
-            return true;
+            return false;
         }else{
             $availableAttributeValues = $this->getAvailableAttributeValues();
 
