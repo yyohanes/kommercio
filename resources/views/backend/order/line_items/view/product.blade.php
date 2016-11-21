@@ -18,7 +18,7 @@
     </td>
     -->
     <td>
-        @if(!$child)
+        @if(!empty($child))
         {{ PriceFormatter::formatNumber($lineItem->net_price, $lineItem->order->currency) }}
         @endif
     </td>
@@ -26,7 +26,7 @@
         {{ $lineItem->quantity }}
     </td>
     <td>
-        @if(!$child)
+        @if(!empty($child))
         {{ PriceFormatter::formatNumber($lineItem->calculateSubtotal(), $lineItem->order->currency) }}
         @endif
     </td>
