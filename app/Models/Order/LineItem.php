@@ -5,15 +5,17 @@ namespace Kommercio\Models\Order;
 use Illuminate\Database\Eloquent\Model;
 use Kommercio\Facades\OrderHelper;
 use Kommercio\Facades\ProjectHelper;
+use Kommercio\Models\File;
 use Kommercio\Models\PriceRule\CartPriceRule;
 use Kommercio\Models\Product;
 use Kommercio\Models\ProductDetail;
 use Kommercio\Models\Tax;
 use Kommercio\Traits\Model\HasDataColumn;
+use Kommercio\Traits\Model\MediaAttachable;
 
 class LineItem extends Model
 {
-    use HasDataColumn;
+    use HasDataColumn, MediaAttachable;
 
     protected $fillable = ['line_item_id', 'line_item_type', 'name', 'base_price', 'quantity', 'taxable', 'notes', 'net_price', 'discount_total', 'tax_total', 'total', 'sort_order', 'data', 'temporary'];
     protected $casts = [
@@ -203,6 +205,14 @@ class LineItem extends Model
 
     public function clearData()
     {
+        //Delete attachment file if any
+        foreach($this->getData('attachments', []) as $attachmendId){
+            $file = File::find($attachmendId);
+            if($file){
+                $file->delete();
+            }
+        }
+
         foreach($this->fillable as $fillableAttribute){
             $this->setAttribute($fillableAttribute, NULL);
         }

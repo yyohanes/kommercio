@@ -14,7 +14,7 @@ class Media extends File
     {
         $useCount = DB::table($this->attachable_table)->where('media_id', $this->id)->count();
 
-        return $useCount > 0;
+        return $useCount > 0 && !$this->temp;
     }
 
     public function getImagePath($size)

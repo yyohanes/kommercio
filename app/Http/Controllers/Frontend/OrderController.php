@@ -212,8 +212,8 @@ class OrderController extends Controller
         $oldValues = old();
 
         if(!$oldValues){
-            $oldValues['billingProfile'] = $order->billingProfile?$order->billingProfile->getDetails():[];
-            $oldValues['shippingProfile'] = $order->shippingProfile?$order->shippingProfile->getDetails():[];
+            $oldValues['billingProfile'] = $order->billingInformation?$order->billingInformation->getDetails():[];
+            $oldValues['shippingProfile'] = $order->shippingInformation?$order->shippingInformation->getDetails():[];
             $oldValues['shipping_method'] = $order->getSelectedShippingMethod();
             $oldValues['payment_method'] = $order->payment_method_id;
             $oldValues['delivery_date'] = $order->delivery_date?$order->delivery_date->format('Y-m-d'):null;
@@ -411,10 +411,10 @@ class OrderController extends Controller
                 $billingProfile = $oldValues['saved_billing_profile']?Profile::find($oldValues['saved_billing_profile']):$order->billingProfile;
 
                 $oldValues['saved_shipping_profile'] = $order->getData('saved_shipping_profile', $customer->defaultShippingProfile?$customer->defaultShippingProfile->id:null);
-                $shippingProfile = $oldValues['saved_shipping_profile']?Profile::find($oldValues['saved_shipping_profile']):$order->shippingProfile;
+                $shippingProfile = $oldValues['saved_shipping_profile']?Profile::find($oldValues['saved_shipping_profile']):$order->shippingInformation;
             }else{
-                $billingProfile = $order->billingProfile?:null;
-                $shippingProfile = $order->shippingProfile?:null;
+                $billingProfile = $order->billingInformation?:null;
+                $shippingProfile = $order->shippingInformation?:null;
             }
 
             $oldValues['billingProfile'] = $billingProfile?$billingProfile->getDetails():[];
@@ -692,8 +692,8 @@ class OrderController extends Controller
                     }
 
                     $validator = Validator::make([
-                        'billingProfile' => $order->billingProfile->getDetails(),
-                        'shippingProfile' => $order->shippingProfile->getDetails(),
+                        'billingProfile' => $order->billingInformation->getDetails(),
+                        'shippingProfile' => $order->shippingInformation->getDetails(),
                         'delivery_date' => $order->delivery_date?$order->delivery_date->format('Y-m-d'):null,
                         'shipping_method' => $order->getSelectedShippingMethod(),
                         'payment_method' => $order->paymentMethod?$order->paymentMethod->id:null,
@@ -719,7 +719,7 @@ class OrderController extends Controller
 
                     if(!ProjectHelper::getConfig('require_billing_information')){
                         //Copy Shipping info to Billing
-                        $order->saveProfile('billing', $order->shippingProfile->getDetails());
+                        $order->saveProfile('billing', $order->shippingInformation->getDetails());
                     }
 
                     $profileData = $order->billingInformation->getDetails();
@@ -786,12 +786,12 @@ class OrderController extends Controller
 
         if($request->ajax()){
             //Pre-populate profile
-            if($order->billingProfile){
-                $order->billingProfile->fillDetails();
+            if($order->billingInformation){
+                $order->billingInformation->fillDetails();
             }
 
-            if($order->shippingProfile){
-                $order->shippingProfile->fillDetails();
+            if($order->shippingInformation){
+                $order->shippingInformation->fillDetails();
             }
 
             if($errors){

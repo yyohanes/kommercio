@@ -144,6 +144,7 @@ class Order extends Model implements AuthorSignatureInterface
         $this->unsetData('checkout_step', true);
 
         foreach($this->lineItems as $lineItem){
+            $lineItem->clearData();
             $lineItem->delete();
             if(!$lineItem->isShipping){
 

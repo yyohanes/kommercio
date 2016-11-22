@@ -34,14 +34,14 @@ trait MediaAttachable{
         }
     }
 
-    public function syncMedia($media, $type=null)
+    public function syncMedia($media, $type=null, $markPermanent=true)
     {
         $existingMedia = $this->media($type)->pluck('id')->all();
         foreach($existingMedia as $existingMedium){
             $this->media($type)->newPivotStatementForId($existingMedium)->where('type', $type)->delete();
         }
 
-        $this->attachMedia($media, $type);
+        $this->attachMedia($media, $type, $markPermanent);
 
         $newMedia = array_keys($media);
         $expiredMedia = array_diff($existingMedia, array_keys($newMedia));
