@@ -925,7 +925,7 @@ class OrderController extends Controller
                 $file = $request->file('attachment');
                 $uploadFile = new File();
 
-                if($uploadFile->saveFile($file, false, 'payment_confirmation', ['width' => 2000, 'height' => 2000, 'crop' => 'default'])){
+                if($uploadFile->saveFile($file, false, 'payment_confirmation', 2000)){
                     $uploadedFiles[] = [
                         'id' => $uploadFile->id,
                         'filename' => $uploadFile->filename,
