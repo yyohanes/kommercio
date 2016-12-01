@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Request as RequestFacade;
 use Kommercio\Facades\ProjectHelper as ProjectHelperFacade;
+use Kommercio\Facades\CurrencyHelper as CurrencyHelperFacade;
 use Illuminate\Http\Request;
 use Kommercio\Models\CMS\BannerGroup;
 use Kommercio\Models\CMS\Block;
@@ -231,6 +232,7 @@ class FrontendHelper
             $order->ip_address = RequestFacade::ip();
             $order->user_agent = RequestFacade::header('User-Agent');
             $order->status = Order::STATUS_CART;
+            $order->currency = CurrencyHelperFacade::getCurrentCurrency()['code'];
 
             $this->_currentOrder = $order;
         }

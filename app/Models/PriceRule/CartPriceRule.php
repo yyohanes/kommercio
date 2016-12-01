@@ -372,7 +372,7 @@ class CartPriceRule extends Model implements StoreManagedInterface
 
         $options = [
             'subtotal' => $subtotal,
-            'currency' => $order->currency,
+            'currency' => empty($order->currency)?null:$order->currency,
             'store_id' => $order->store_id,
             'customer_email' => $order->customer?$order->customer->getProfile()->email:null,
             'shippings' => $shippings,
