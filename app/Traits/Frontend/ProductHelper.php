@@ -14,7 +14,7 @@ trait ProductHelper
         $name = $this->name;
 
         if($this->combination_type == Product::COMBINATION_TYPE_VARIATION){
-            $name = $this->parent->name;
+            $name = $this->parent->name.' '.$this->printProductAttributes(false);
         }
 
         return $name;
@@ -189,5 +189,16 @@ trait ProductHelper
         }
 
         return $return;
+    }
+
+    public function printProductAttributes($withLabel = true)
+    {
+        $returns = [];
+
+        foreach($this->getProductAttributeForPrint() as $attribute){
+            $returns[] = ($withLabel?$attribute['label'].': ':'').$attribute['value'];
+        }
+
+        return implode(' ', $returns);
     }
 }

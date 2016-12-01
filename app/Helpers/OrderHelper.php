@@ -128,9 +128,9 @@ class OrderHelper
             $lineItem->discount_total = 0;
             foreach($cartPriceRules as $cartPriceRule){
                 if($cartPriceRule->offer_type == CartPriceRule::OFFER_TYPE_PRODUCT_DISCOUNT){
-                    $productCartPriceRuleProducts = $cartPriceRule->getProducts();
+                    $productCartPriceRuleProducts = collect($cartPriceRule->getProducts())->pluck('id');
 
-                    if((!empty($productCartPriceRuleProducts) && !isset($productCartPriceRuleProducts[$lineItem->line_item_id])) || !$lineItem->isProduct){
+                    if((!empty($productCartPriceRuleProducts) && !$productCartPriceRuleProducts->contains($lineItem->line_item_id)) || !$lineItem->isProduct){
                         continue;
                     }
                 }elseif($cartPriceRule->modification_type == CartPriceRule::MODIFICATION_TYPE_PERCENT){
