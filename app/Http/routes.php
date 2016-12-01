@@ -1341,6 +1341,44 @@ Route::group(['middleware' => ['web']], function () {
                     'uses' => 'CustomerController@addressDelete',
                     'permissions' => ['edit_customer']
                 ]);
+
+                Route::get('{customer_id}/reward-point/form/{type}', [
+                    'as' => 'backend.customer.reward_point.mini_form',
+                    'uses' => 'CustomerController@rewardPointForm',
+                    'permissions' => ['add_reward_points']
+                ]);
+
+                Route::get('{customer_id}/reward-point/index', [
+                    'as' => 'backend.customer.reward_point.mini_index',
+                    'uses' => 'CustomerController@rewardPointIndex',
+                    'permissions' => ['view_reward_points']
+                ]);
+
+                Route::post('{customer_id}/reward-point/save', [
+                    'as' => 'backend.customer.reward_point.mini_save',
+                    'uses' => 'CustomerController@rewardPointSave',
+                    'permissions' => ['add_reward_points']
+                ]);
+
+                Route::group(['prefix' => 'reward-point'], function(){
+                    Route::any('index', [
+                        'as' => 'backend.customer.reward_point.index',
+                        'uses' => 'RewardPointController@index',
+                        'permissions' => ['view_reward_points']
+                    ]);
+
+                    Route::post('{id}/approve', [
+                        'as' => 'backend.customer.reward_point.approve',
+                        'uses' => 'RewardPointController@approve',
+                        'permissions' => ['approve_reward_points']
+                    ]);
+
+                    Route::post('{id}/reject', [
+                        'as' => 'backend.customer.reward_point.reject',
+                        'uses' => 'RewardPointController@reject',
+                        'permissions' => ['reject_reward_points']
+                    ]);
+                });
             });
 
             //CMS

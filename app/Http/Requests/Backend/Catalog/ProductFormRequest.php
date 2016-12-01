@@ -77,6 +77,9 @@ class ProductFormRequest extends Request
         if(!$this->has('productDetail.available')){
             $attributes['productDetail']['available'] = 0;
         }
+        if(!$this->has('productDetail.new')){
+            $attributes['productDetail']['new'] = 0;
+        }
         if(!$this->has('manufacturer_id')){
             $attributes['manufacturer_id'] = NULL;
         }

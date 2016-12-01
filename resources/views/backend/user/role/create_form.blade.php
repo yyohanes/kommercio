@@ -13,15 +13,17 @@
     <label class="control-label col-md-3">Permissions</label>
     <div class="col-md-9">
         @foreach(\Kommercio\Models\Role\Role::getAvailablePermissions() as $permissionGroupName => $permissionGroup)
+            @if(ProjectHelper::isFeatureEnabled((isset($permissionGroup['feature'])?$permissionGroup['feature']:$permissionGroupName), true))
             <h4 class="block">{{ $permissionGroupName }} <a href="#" class="permissions-check-all">Check All</a> / <a href="#" class="permissions-uncheck-all">Uncheck All</a></h4>
             <div class="row permissions-group">
-                @foreach($permissionGroup as $permissionId => $permissionName)
+                @foreach($permissionGroup['permissions'] as $permissionId => $permissionName)
                     <div class="col-sm-3 col-xs-4">
                         <label>{!! Form::checkbox('permissions['.$permissionId.']', 1, old('permissions.'.$permissionId, $role->hasPermission($permissionId))) !!} {{ $permissionName }}</label>
                     </div>
                 @endforeach
             </div>
             <hr/>
+            @endif
         @endforeach
     </div>
 </div>

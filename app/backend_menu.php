@@ -103,8 +103,21 @@ $menus['customer'] = [
     'prepend' => '<i class="fa fa-users"></i>',
     'active_path' => 'customer',
     'name' => 'Customer',
-    'route' => 'backend.customer.index',
-    'permissions' => 'view_customer'
+    'children' => [
+        'customer' => [
+            'active_path' => 'customer/index',
+            'name' => 'Customer List',
+            'route' => 'backend.customer.index',
+            'permissions' => 'view_customer'
+        ],
+        'points' => [
+            'active_path' => 'customer/points',
+            'name' => 'Reward Points',
+            'route' => 'backend.customer.reward_point.index',
+            'permissions' => 'view_reward_points',
+            'feature' => 'customer.reward_points'
+        ],
+    ]
 ];
 
 $menus['report'] = [

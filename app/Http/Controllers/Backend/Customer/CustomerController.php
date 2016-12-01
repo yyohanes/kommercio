@@ -3,8 +3,10 @@
 namespace Kommercio\Http\Controllers\Backend\Customer;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Session;
+use Kommercio\Events\RewardPointEvent;
 use Kommercio\Facades\PriceFormatter;
 use Kommercio\Http\Controllers\Controller;
 use Kommercio\Models\Customer;
@@ -12,6 +14,7 @@ use Kommercio\Http\Requests\Backend\Customer\CustomerFormRequest;
 use Collective\Html\FormFacade;
 use Illuminate\Support\Facades\Request as RequestFacade;
 use Kommercio\Models\Profile\Profile;
+use Kommercio\Models\RewardPoint\RewardPointTransaction;
 use Kommercio\Models\User;
 
 class CustomerController extends Controller{
@@ -388,6 +391,92 @@ class CustomerController extends Controller{
             'result' => 'success',
             'message' => $message
         ]);
+    }
+
+    public function rewardPointIndex($customer_id)
+    {
+        $customer = Customer::findOrFail($customer_id);
+
+        $rewardPointTransactions = $customer->rewardPointTransactions;
+
+        $index = view('backend.customer.reward_point.mini_index', [
+            'rewardPointTransactions' => $rewardPointTransactions,
+            'customer' => $customer
+        ])->render();
+
+        return response()->json([
+            'html' => $index,
+            'current_reward_points' => $customer->reward_points + 0,
+            '_token' => csrf_token()
+        ]);
+    }
+
+    public function rewardPointForm($customer_id, $type)
+    {
+        $customer = Customer::findOrFail($customer_id);
+
+        $form = view('backend.customer.reward_point.mini_form', [
+            'customer' => $customer,
+            'type' => $type
+        ])->render();
+
+        //Clear flashed input
+        Session::pull('_old_input');
+
+        return response()->json([
+            'html' => $form,
+            '_token' => csrf_token()
+        ]);
+    }
+
+    public function rewardPointSave(Request $request, $customer_id)
+    {
+        $customer = Customer::findOrFail($customer_id);
+
+        $rules = [
+            'type' => 'required|in:'.implode(',', array_keys(RewardPointTransaction::getTypeOptions())),
+            'amount' => 'required|numeric|min:0',
+            'reason' => 'required',
+        ];
+
+        if($request->input('type') == RewardPointTransaction::TYPE_DEDUCT){
+            $rules['amount'] .= '|max:'.$customer->reward_points;
+        }
+
+        $this->validate($request, $rules);
+
+        $rewardPointTransaction = new RewardPointTransaction([
+            'type' => $request->input('type'),
+            'amount' => $request->input('amount'),
+            'reason' => $request->input('reason'),
+            'notes' => $request->input('notes'),
+            'status' => RewardPointTransaction::STATUS_REVIEW
+        ]);
+
+        $rewardPointTransaction->customer()->associate($customer);
+
+        $rewardPointTransaction->save();
+
+        $message = 'Reward point is saved and will be reviewed.';
+
+        if(Gate::allows('access', ['skip_approval_reward_points'])){
+            $rewardPointTransaction->status = RewardPointTransaction::STATUS_APPROVED;
+            $rewardPointTransaction->save();
+
+            $message = 'Reward point is successfully saved.';
+
+            Event::fire(new RewardPointEvent('approve', $rewardPointTransaction));
+        }
+
+        return response()->json([
+            'result' => 'success',
+            'message' => $message
+        ]);
+    }
+
+    public function rewardPointApprove(Request $request, $customer_id)
+    {
+
     }
 
     protected function deleteable(Customer $customer)

@@ -47,6 +47,11 @@ class Customer extends Model
         return $this->belongsToMany('Kommercio\Models\Profile\Profile', 'customer_profile')->withPivot(['name', 'billing', 'shipping']);
     }
 
+    public function rewardPointTransactions()
+    {
+        return $this->hasMany('Kommercio\Models\RewardPoint\RewardPointTransaction')->orderBy('created_at', 'DESC');
+    }
+
     //Methods
     public function saveAddress($data, $billing = false, $shipping = false)
     {

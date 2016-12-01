@@ -22,6 +22,9 @@ class EventServiceProvider extends ServiceProvider
         'Kommercio\Events\Cron' => [
             'Kommercio\Listeners\CronListener'
         ],
+        'Kommercio\Events\RewardPointEvent' => [
+            'Kommercio\Listeners\RewardPointListener'
+        ],
         'Kommercio\Events\StoreEvent' => [],
         'Kommercio\Events\CatalogQueryBuilder' => []
     ];

@@ -12,5 +12,8 @@ return [
         'gallery' => true,
         'post' => true,
         'menu' => true
+    ],
+    'customer' => [
+        'reward_points' => false
     ]
 ];

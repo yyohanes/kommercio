@@ -16,6 +16,15 @@ class ProjectHelper
 {
     private $_url_alias_searched = false;
 
+    public function formatNumber($number)
+    {
+        $activeCurrency = \CurrencyHelper::getCurrentCurrency();
+
+        $currency = $activeCurrency;
+
+        return str_replace($currency['decimal_separator'].'00', '',number_format($number, 2, $currency['decimal_separator'], $currency['thousand_separator']));
+    }
+
     public function setUrlAliasSearched($value)
     {
         $this->_url_alias_searched = $value;

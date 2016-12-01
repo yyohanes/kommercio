@@ -42,6 +42,12 @@
                             <li role="presentation">
                                 <a href="#tab_address" data-toggle="tab"> Address </a>
                             </li>
+
+                            @if(Gate::allows('access', ['view_reward_points']) && ProjectHelper::isFeatureEnabled('customer.reward_points'))
+                                <li role="presentation">
+                                    <a href="#tab_reward_points" data-toggle="tab"> Reward Points </a>
+                                </li>
+                            @endif
                         </ul>
 
                         <div class="tab-content">
@@ -124,6 +130,23 @@
                                                 </div>
                                             </div>
                                         </div>
+
+                                        @if(Gate::allows('access', ['view_reward_points']) && ProjectHelper::isFeatureEnabled('customer.reward_points'))
+                                        <div class="portlet light bordered">
+                                            <div class="portlet-title">
+                                                <div class="caption">
+                                                    <i class="fa fa-shopping-cart"></i>
+                                                    <span class="caption-subject">Reward Points</span>
+                                                </div>
+                                            </div>
+                                            <div class="portlet-body">
+                                                <div class="row static-info">
+                                                    <div class="col-md-5 name"> Points: </div>
+                                                    <div class="col-md-7 value"> <span class="current-reward-point">{{ $customer->reward_points + 0 }}</span> </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        @endif
                                     </div>
 
                                     <div class="clearfix"></div>
@@ -188,6 +211,34 @@
                                     </div>
                                 </div>
                             </div>
+
+                            @if(Gate::allows('access', ['view_reward_points']) && ProjectHelper::isFeatureEnabled('customer.reward_points'))
+                                <div class="tab-pane" id="tab_reward_points">
+                                    <div class="form-body">
+                                        <div class="well well-large">Current Reward Points: <strong class="current-reward-point">{{ $customer->reward_points + 0 }}</strong></div>
+
+                                        <div class="margin-bottom-10">
+                                            @can('access', ['add_reward_points'])
+                                            <a class="btn btn-default reward-point-action-button" data-form="{{ route('backend.customer.reward_point.mini_form', ['customer_id' => $customer->id, 'type' => \Kommercio\Models\RewardPoint\RewardPointTransaction::TYPE_ADD]) }}" href="#">
+                                                <i class="fa fa-plus"></i> Add Reward Point
+                                            </a>
+                                            @endcan
+                                            @can('access', ['deduct_reward_points'])
+                                            <a class="btn btn-default reward-point-action-button" data-form="{{ route('backend.customer.reward_point.mini_form', ['customer_id' => $customer->id, 'type' => \Kommercio\Models\RewardPoint\RewardPointTransaction::TYPE_DEDUCT]) }}" href="#">
+                                                <i class="fa fa-minus"></i> Deduct Reward Point
+                                            </a>
+                                            @endcan
+                                        </div>
+
+                                        <div id="reward-point-form-wrapper"
+                                             data-reward_point_index="{{ route('backend.customer.reward_point.mini_index', ['customer_id' => $customer->id]) }}"></div>
+
+                                        <div id="reward-point-index-wrapper">
+                                            @include('backend.customer.reward_point.mini_index', ['rewardPointTransactions' => $customer->rewardPointTransactions])
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
                         </div>
                     </div>
                 </div>
