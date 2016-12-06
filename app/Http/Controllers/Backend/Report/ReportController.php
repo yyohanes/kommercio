@@ -218,6 +218,7 @@ class ReportController extends Controller
             ->orderBy('PD.sort_order', 'ASC');
 
         $orderedProducts = [];
+
         foreach($orderedProductsQb->get() as $lineItem){
             if(!isset($orderedProducts[$lineItem->line_item_id])){
                 $orderedProducts[$lineItem->line_item_id] = [

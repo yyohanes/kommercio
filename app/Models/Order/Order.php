@@ -50,6 +50,11 @@ class Order extends Model implements AuthorSignatureInterface
         return $this->hasMany('Kommercio\Models\Order\LineItem')->where('temporary', false)->whereNull('parent_id')->orderBy('sort_order', 'ASC');
     }
 
+    public function allLineItems()
+    {
+        return $this->hasMany('Kommercio\Models\Order\LineItem')->where('temporary', false)->orderBy('sort_order', 'ASC');
+    }
+
     public function customer()
     {
         return $this->belongsTo('Kommercio\Models\Customer');
@@ -632,11 +637,13 @@ class Order extends Model implements AuthorSignatureInterface
         return abs($this->total - $paidAmount);
     }
 
-    public function getProductLineItems()
+    public function getProductLineItems($include_children = false)
     {
         $lineItems = [];
 
-        foreach($this->lineItems as $lineItem){
+        $queriedLineItems = $include_children?$this->allLineItems:$this->lineItems;
+
+        foreach($queriedLineItems as $lineItem){
             if($lineItem->isProduct){
                 $lineItems[] = $lineItem;
             }
@@ -645,11 +652,11 @@ class Order extends Model implements AuthorSignatureInterface
         return $lineItems;
     }
 
-    public function getProductQuantity($product_id)
+    public function getProductQuantity($product_id, $include_children = false)
     {
         $count = 0;
 
-        foreach($this->getProductLineItems() as $lineItem){
+        foreach($this->getProductLineItems($include_children) as $lineItem){
             if($lineItem->line_item_id == $product_id){
                 $count += $lineItem->quantity;
             }
