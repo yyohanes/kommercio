@@ -122,6 +122,11 @@ class FrontendHelper
         return false;
     }
 
+    public function checkCatalogSort($sort_by, $sort_dir)
+    {
+        return RequestFacade::get('sort_by') == $sort_by && RequestFacade::get('sort_dir') == $sort_dir;
+    }
+
     //Menus
     public function getRootMenuItems($menu_slug)
     {

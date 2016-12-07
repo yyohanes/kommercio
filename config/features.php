@@ -1,7 +1,8 @@
 <?php
 return [
     'order' => [
-        'line_item_notes' => false
+        'line_item_notes' => false,
+        'order_limit' => false
     ],
     'catalog' => [
         'product_attributes' => true,

@@ -110,7 +110,8 @@ $permissions = [
             'create_order_limit' => 'Create Order Limit',
             'edit_order_limit' => 'Edit Order Limit',
             'delete_order_limit' => 'Delete Order Limit',
-        ]
+        ],
+        'feature' => 'order.order_limit'
     ],
     'Store' => [
         'permissions' => [

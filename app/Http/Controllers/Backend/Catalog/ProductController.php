@@ -142,6 +142,8 @@ class ProductController extends Controller{
             $product->setRelation('translations', $referencedProduct->translations);
             $product->setRelation('defaultCategory', $referencedProduct->defaultCategory);
             $product->setRelation('categories', $referencedProduct->categories);
+            $product->setRelation('productAttributes', $referencedProduct->productAttributes);
+            $product->setRelation('productAttributeValues', $referencedProduct->productAttributeValues);
 
             $product->productDetail = $referencedProduct->productDetail;
         }else{
@@ -152,11 +154,14 @@ class ProductController extends Controller{
             ]);
         }
 
+        $productAttributes = ProductAttribute::withTranslation()->orderBy('sort_order', 'ASC')->get();
+
         $currencyOptions = CurrencyHelper::getCurrencyOptions();
 
         return view('backend.catalog.product.create', [
             'product' => $product,
-            'currencyOptions' => $currencyOptions
+            'currencyOptions' => $currencyOptions,
+            'productAttributes' => $productAttributes
         ]);
     }
 
@@ -192,6 +197,18 @@ class ProductController extends Controller{
             ];
         }
         $product->getTranslation()->syncMedia($thumbnails, 'thumbnail');
+
+        $toSyncAttributeValues = [];
+
+        if($product->combination_type != Product::COMBINATION_TYPE_VARIABLE){
+            foreach($request->input('product_attributes', []) as $attributeId => $attributeValue){
+                $toSyncAttributeValues[$attributeValue] = [
+                    'product_attribute_id' => $attributeId
+                ];
+            }
+        }
+
+        $product->productAttributeValues()->sync($toSyncAttributeValues);
 
         $productDetail = new ProductDetail();
         $productDetail->fill($request->input('productDetail'));
@@ -238,12 +255,15 @@ class ProductController extends Controller{
             }
         }
 
+        $productAttributes = ProductAttribute::withTranslation()->orderBy('sort_order', 'ASC')->get();
+
         $currencyOptions = CurrencyHelper::getCurrencyOptions();
 
         return view('backend.catalog.product.edit', [
             'product' => $product,
             'featureOptions' => $featureOptions,
             'features' => $features,
+            'productAttributes' => $productAttributes,
             'currencyOptions' => $currencyOptions
         ]);
     }
@@ -281,6 +301,18 @@ class ProductController extends Controller{
             ];
         }
         $product->getTranslation()->syncMedia($thumbnails, 'thumbnail');
+
+        $toSyncAttributeValues = [];
+
+        if($product->combination_type != Product::COMBINATION_TYPE_VARIABLE){
+            foreach($request->input('product_attributes', []) as $attributeId => $attributeValue){
+                $toSyncAttributeValues[$attributeValue] = [
+                    'product_attribute_id' => $attributeId
+                ];
+            }
+        }
+
+        $product->productAttributeValues()->sync($toSyncAttributeValues);
 
         $productDetail = $product->getStoreProductDetailOrNew($request->input('store_id'));
 

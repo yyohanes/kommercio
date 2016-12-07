@@ -142,9 +142,14 @@ class CatalogController extends Controller
             $view_name = ProjectHelper::findViewTemplate($views);
         }
 
+        $seoData = [
+            'meta_title' => trans(LanguageHelper::getTranslationKey('frontend.seo.catalog.search.meta_title'), ['keyword' => $request->input('keyword')])
+        ];
+
         return view($view_name, [
             'products' => $products,
             'options' => $options,
+            'seoData' => $seoData
         ]);
     }
 
@@ -246,6 +251,7 @@ class CatalogController extends Controller
         return view($view_name, [
             'products' => $products,
             'options' => $options,
+            'seoData' => $seoData
         ]);
     }
 

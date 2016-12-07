@@ -36,6 +36,11 @@
             <a href="#tab_variations" data-toggle="tab"> Variations </a>
         </li>
         @endif
+        @if(ProjectHelper::isFeatureEnabled('catalog.product_attributes'))
+            <li data-tab_context="attributes" role="presentation">
+                <a href="#tab_attributes" data-toggle="tab"> Attributes </a>
+            </li>
+        @endif
         @if(ProjectHelper::isFeatureEnabled('catalog.composite_product'))
             <li role="presentation">
                 <a href="#tab_composite" data-toggle="tab"> Composites </a>
@@ -528,7 +533,29 @@
             </div>
         </div>
 
-        @if(ProjectHelper::isFeatureEnabled('product_features'))
+        @if(ProjectHelper::isFeatureEnabled('catalog.product_attributes'))
+            <div class="tab-pane" role="tabpanel" id="tab_attributes">
+                <div class="form-body">
+                    @foreach($productAttributes as $productAttribute)
+                        <?php $productAttributeValue = $product->getProductAttributeValue($productAttribute->id); ?>
+                        @include('backend.master.form.fields.select', [
+                            'name' => 'product_attributes['.$productAttribute->id.']',
+                            'label' => $productAttribute->name,
+                            'key' => 'product_attributes.'.$productAttribute->id,
+                            'attr' => [
+                                'class' => 'form-control select2',
+                                'id' => 'product_attributes['.$productAttribute->id.']',
+                            ],
+                            'defaultOptions' => old('product_attributes.'.$productAttribute->id, $productAttributeValue?$productAttributeValue->id:null),
+                            'options' => ['' => 'Select '.$productAttribute->name] + $productAttribute->values->pluck('name', 'id')->all(),
+                            'valueColumnClass' => 'col-md-4'
+                        ])
+                    @endforeach
+                </div>
+            </div>
+        @endif
+
+        @if(ProjectHelper::isFeatureEnabled('catalog.product_features'))
         <div class="tab-pane" role="tabpanel" id="tab_features">
             <div class="form-body">
                 @if(!$product->exists)

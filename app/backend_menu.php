@@ -61,6 +61,7 @@ $menus['sales'] = [
             'active_path' => 'sales/order-limit',
             'name' => 'Order Limit',
             'permissions' => 'view_order_limit',
+            'feature' => 'order.order_limit',
             'children' => [
                 'order_limit_'.\Kommercio\Models\Order\OrderLimit::TYPE_PRODUCT => [
                     'name' => 'Product Order Limit',

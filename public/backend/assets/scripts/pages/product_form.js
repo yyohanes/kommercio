@@ -138,41 +138,44 @@ var ProductForm = function () {
 
         //main function to initiate the module
         init: function () {
-            var $variationContext = $('[data-tab_context="variations"]');
+          var $variationContext = $('[data-tab_context="variations"]');
+          var $attributesContext = $('[data-tab_context="attributes"]');
 
-            $('#combination_type').on('change', function(){
-                if($(this).val() == 'variable'){
-                    $variationContext.show();
-                }else{
-                    $variationContext.hide();
-                }
-            }).change();
+          $('#combination_type').on('change', function(){
+            if($(this).val() == 'variable'){
+              $variationContext.show();
+              $attributesContext.hide();
+            }else{
+              $variationContext.hide();
+              $attributesContext.show();
+            }
+          }).change();
 
-            $('#product-variation-add-btn').click(function(e){
-                e.preventDefault();
-                e.stopPropagation();
+          $('#product-variation-add-btn').click(function(e){
+            e.preventDefault();
+            e.stopPropagation();
 
-                variationFormBehaviors.loadForm('?new_form');
-            });
+            variationFormBehaviors.loadForm('?new_form');
+          });
 
-            $('#bulk-variation-add-btn').click(function(e){
-                e.preventDefault();
-                e.stopPropagation();
+          $('#bulk-variation-add-btn').click(function(e){
+            e.preventDefault();
+            e.stopPropagation();
 
-                variationFormBehaviors.loadForm('?edit_form', 'Loading edit form...', $(this).data('variation_bulk_form'));
-            });
+            variationFormBehaviors.loadForm('?edit_form', 'Loading edit form...', $(this).data('variation_bulk_form'));
+          });
 
-            handleCompositeProducts();
+          handleCompositeProducts();
 
-            refreshDefaultCategory();
+          refreshDefaultCategory();
 
-            categoriesCheckbox();
+          categoriesCheckbox();
 
-            handleProductRelation();
+          handleProductRelation();
 
-            variationFormBehaviors.init();
+          variationFormBehaviors.init();
 
-            $("#composite-configurations-wrapper").sortable();
+          $("#composite-configurations-wrapper").sortable();
         }
 
     };

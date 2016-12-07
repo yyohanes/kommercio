@@ -51,7 +51,7 @@
                     <tbody>
                     @foreach($manufacturers as $manufacturer)
                         <tr>
-                            <td>@if($manufacturer->logo)<img style="width: 100px; height: auto;" src={{ asset($manufacturer->logo->getImagePath('small_logo')) }} />@endif</td>
+                            <td>@if($manufacturer->logo)<img style="width: 100px; height: auto;" src="{{ asset($manufacturer->logo->getImagePath('small_logo')) }}" />@endif</td>
                             <td>{{ $manufacturer->name }}</td>
                             <td>{{ $manufacturer->productCount }}</td>
                             <td class="text-center">

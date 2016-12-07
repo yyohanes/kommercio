@@ -99,7 +99,10 @@ return [
             ],
             'new_arrival' => [
                 'meta_title' => 'New Arrival'
-            ]
+            ],
+            'search' => [
+                'meta_title' => 'Search: :keyword'
+            ],
         ],
         'order' => [
             'cart' => [
