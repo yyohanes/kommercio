@@ -119,7 +119,10 @@
                     </tr>
                     </thead>
                     <tbody>
-                    <?php $total = 0; ?>
+                    <?php
+                    $total = 0;
+                    $totalOutstanding = 0;
+                    ?>
                     @foreach($orders as $idx=>$order)
                         <tr>
                             <td><input type="checkbox" class="checkboxes" name="id[]" value="{{ $order->id }}" /></td>
@@ -188,7 +191,7 @@
                             <td>{{ $order->shippingInformation->email }}</td>
                             <td>{!! AddressHelper::printAddress($order->shippingInformation->getDetails()) !!}</td>
                             @foreach($orderedProducts as $orderedProductIdx=>$orderedProduct)
-                                <td>{{ $order->getProductQuantity($orderedProductIdx) + 0 }}</td>
+                                <td>{{ $order->getProductQuantity($orderedProductIdx, true) + 0 }}</td>
                             @endforeach
                             <td>{!! '<label class="label label-sm label-'.($order->outstanding > 0?'warning':'success').'">'.PriceFormatter::formatNumber($order->outstanding).'</label>' !!}</td>
                             <td>{{ PriceFormatter::formatNumber($order->total, $order->currency) }}</td>
@@ -208,7 +211,10 @@
                                 <td>{{ $order->getShippingLineItem()->getSelectedMethod('name') }}</td>
                             @endif
                         </tr>
-                        <?php $total += CurrencyHelper::convert($order->total, $order->currency); ?>
+                        <?php
+                        $total += CurrencyHelper::convert($order->total, $order->currency);
+                        $totalOutstanding += CurrencyHelper::convert($order->outstanding, $order->currency);
+                        ?>
                     @endforeach
                     </tbody>
                     <tfoot>
@@ -221,11 +227,12 @@
                     <td></td>
                     <td></td>
                     <td></td>
+                    <td></td>
                     @foreach($orderedProducts as $orderedProductIdx=>$orderedProduct)
                         <td>{{ $orderedProduct['quantity'] + 0 }}</td>
                     @endforeach
+                    <td>{{ PriceFormatter::formatNumber($totalOutstanding) }}</td>
                     <td>{{ PriceFormatter::formatNumber($total) }}</td>
-                    <td></td>
                     <td></td>
                     @if($filter['shipping_method'] == 'all')
                         <td></td>
