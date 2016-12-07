@@ -1,0 +1,3 @@
+<div><small>Step Amount: {{ PriceFormatter::formatNumber($rewardRule->getData('rule.order_step_amount'), $rewardRule->currency) }}</small></div>
+<div><small>Include Shipping: <i class="fa fa-{{ $rewardRule->getData('rule.include_shipping')?'check text-success':'remove text-danger' }}"></i></small></div>
+<div><small>Include Tax: <i class="fa fa-{{ $rewardRule->getData('rule.include_tax')?'check text-success':'remove text-danger' }}"></i></small></div>

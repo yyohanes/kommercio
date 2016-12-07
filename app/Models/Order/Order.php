@@ -12,6 +12,8 @@ use Kommercio\Models\Interfaces\AuthorSignatureInterface;
 use Kommercio\Models\PriceRule\CartPriceRule;
 use Kommercio\Models\Product;
 use Kommercio\Models\Profile\Profile;
+use Kommercio\Models\RewardPoint\RewardPointTransaction;
+use Kommercio\Models\RewardPoint\RewardRule;
 use Kommercio\Models\ShippingMethod\ShippingMethod;
 use Kommercio\Models\Tax;
 use Kommercio\Traits\Model\AuthorSignature;
@@ -93,6 +95,11 @@ class Order extends Model implements AuthorSignatureInterface
     public function internalMemos()
     {
         return $this->comments()->internalMemo()->orderBy('created_at', 'DESC');
+    }
+
+    public function rewardPointTransactions()
+    {
+        return $this->hasMany('Kommercio\Models\RewardPoint\RewardPointTransaction')->orderBy('created_at', 'DESC');
     }
 
     //Methods
@@ -440,6 +447,50 @@ class Order extends Model implements AuthorSignatureInterface
         return $taxes;
     }
 
+    public function calculateRewardRules()
+    {
+        $data = [
+            'currency' => $this->currency,
+            'store_id' => $this->store?$this->store->id:null,
+        ];
+
+        $rewardRules = RewardRule::getRewardRules($data);
+
+        $rewardPoints = 0;
+
+        foreach($rewardRules as $rewardRule){
+            $rewardPoints += $rewardRule->calculateRewardPoint($this);
+        }
+
+        return $rewardPoints;
+    }
+
+    public function deleteReviewRewardPointTransactions()
+    {
+        $existingReviewRewardPoints = $this->rewardPointTransactions()->where('status', RewardPointTransaction::STATUS_REVIEW)->get();
+        foreach($existingReviewRewardPoints as $existingReviewRewardPoint){
+            $existingReviewRewardPoint->delete();
+        }
+    }
+
+    public function addRewardPoint($data = [])
+    {
+        $data += [
+            'reason' => isset($data['reason'])?$data['reason']:'Reward Point for Order #'.$this->reference,
+            'notes' => isset($data['notes'])?$data['notes']:null,
+        ];
+
+        $rewardPoints = $this->calculateRewardRules();
+
+        if($rewardPoints > 0){
+            $rewardPointTransaction = $this->customer->addRewardPoint($rewardPoints, $data, $this);
+
+            return $rewardPointTransaction;
+        }
+
+        return false;
+    }
+
     public function saveProfile($type, $data)
     {
         $profile = $this->getProfileOrNew($type);
@@ -535,12 +586,17 @@ class Order extends Model implements AuthorSignatureInterface
         return $this->additional_total;
     }
 
+    public function getTotalBeforeExtras()
+    {
+        return $this->subtotal + $this->additional_total + $this->discount_total;
+    }
+
     public function calculateTotal()
     {
         $subtotal = $this->calculateSubtotal();
+        $additionalTotal = $this->calculateAdditionalTotal();
         $shippingTotal = $this->calculateShippingTotal();
         $discountTotal = $this->calculateDiscountTotal();
-        $additionalTotal = $this->calculateAdditionalTotal();
         $taxTotal = $this->calculateTaxTotal();
         $taxError = $this->calculateTaxError();
 

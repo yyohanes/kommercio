@@ -418,7 +418,7 @@ class OrderController extends Controller{
         $order = new Order();
         $originalStatus = null;
 
-        $customer = null;
+        $customer = Customer::getByEmail($request->input('profile.email'));
 
         $order->notes = $request->input('notes');
         $order->delivery_date = $request->input('delivery_date', null);
@@ -464,7 +464,7 @@ class OrderController extends Controller{
 
             $profileData = $request->input('profile');
 
-            $customer = Customer::saveCustomer($profileData);
+            $customer = Customer::saveCustomer($profileData, null, false);
         }else{
             $order->status = Order::STATUS_ADMIN_CART;
         }
@@ -476,6 +476,10 @@ class OrderController extends Controller{
         $order->save();
 
         Event::fire(new OrderUpdate($order, $originalStatus, $request->input('send_notification')));
+
+        if($request->input('action') == 'place_order'){
+            Event::fire(new OrderEvent('internal_place_order', $order));
+        }
 
         return redirect()->route('backend.sales.order.index')->with('success', ['This '.Order::getStatusOptions($order->status, true).' order has successfully been created.']);
     }
@@ -575,6 +579,7 @@ class OrderController extends Controller{
             $oldValues['shipping_profile'] = $order->shippingProfile?$order->shippingProfile->getDetails():[];
             $oldValues['payment_method'] = $order->payment_method_id;
             $oldValues['store_id'] = $order->store_id;
+            $oldValues['user_id'] = $order->customer && $order->customer->user?$order->customer->user->id:null;
 
             foreach($lineItems as $lineItem){
                 $lineItemData = $lineItem->toArray();
@@ -646,7 +651,7 @@ class OrderController extends Controller{
         $order = Order::findOrFail($id);
         $originalStatus = $order->status;
 
-        $customer = null;
+        $customer = Customer::getByEmail($request->input('profile.email'));
 
         $order->delivery_date = $request->input('delivery_date', null);
         $order->notes = $request->input('notes');
@@ -693,7 +698,7 @@ class OrderController extends Controller{
 
             $profileData = $request->input('profile');
 
-            $customer = Customer::saveCustomer($profileData);
+            $customer = Customer::saveCustomer($profileData, null, false);
         }else{
 
         }
@@ -705,6 +710,12 @@ class OrderController extends Controller{
         $order->save();
 
         Event::fire(new OrderUpdate($order, $originalStatus, $request->input('send_notification')));
+
+        if($request->input('action') == 'place_order'){
+            Event::fire(new OrderEvent('internal_place_order', $order));
+        }elseif($order->isCheckout){
+            Event::fire(new OrderEvent('placed_order_updated', $order));
+        }
 
         return redirect($request->input('backUrl', route('backend.sales.order.index')))->with('success', ['This '.Order::getStatusOptions($order->status, true).' order has successfully been updated.']);
     }
@@ -830,6 +841,7 @@ class OrderController extends Controller{
             $order->save();
 
             Event::fire(new OrderUpdate($order, $originalStatus, $request->input('send_notification')));
+            Event::fire(new OrderEvent('internal_place_order', $order));
 
             if(!$internal){
                 return redirect($request->input('backUrl', route('backend.sales.order.index')))->with('success', [$message]);

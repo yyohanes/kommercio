@@ -251,6 +251,7 @@ class CustomerController extends Controller{
             foreach($results as $result){
                 $return[] = [
                     'id' => $result->id,
+                    'user_id' => $result->user?$result->user->id:null,
                     'profile_id' => $result->profile?$result->profile->id:null,
                     'name' => $result->fullName.' ('.$result->getProfile()->email.')',
                     'email' => $result->getProfile()->email,
@@ -445,17 +446,17 @@ class CustomerController extends Controller{
 
         $this->validate($request, $rules);
 
-        $rewardPointTransaction = new RewardPointTransaction([
-            'type' => $request->input('type'),
-            'amount' => $request->input('amount'),
+        $data = [
             'reason' => $request->input('reason'),
             'notes' => $request->input('notes'),
             'status' => RewardPointTransaction::STATUS_REVIEW
-        ]);
+        ];
 
-        $rewardPointTransaction->customer()->associate($customer);
-
-        $rewardPointTransaction->save();
+        if($request->input('type') == RewardPointTransaction::TYPE_ADD){
+            $rewardPointTransaction = $customer->addRewardPoint($request->input('amount'), $data);
+        }else{
+            $rewardPointTransaction = $customer->deductRewardPoint($request->input('amount'), $data);
+        }
 
         $message = 'Reward point is saved and will be reviewed.';
 

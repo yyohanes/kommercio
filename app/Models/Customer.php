@@ -5,6 +5,7 @@ namespace Kommercio\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Kommercio\Models\Order\Order;
+use Kommercio\Models\RewardPoint\RewardPointTransaction;
 use Kommercio\Traits\Model\Profileable;
 
 class Customer extends Model
@@ -71,6 +72,44 @@ class Customer extends Model
     public function getDefaultProfiles()
     {
         return $this->savedProfiles()->wherePivot('billing', 1)->orWherePivot('shipping', 1)->get();
+    }
+
+    public function addRewardPoint($amount, $data, $order = null)
+    {
+        return $this->newRewardPoint($amount, RewardPointTransaction::TYPE_ADD, $data, $order);
+    }
+
+    public function deductRewardPoint($amount, $data, $order = null)
+    {
+        return $this->newRewardPoint($amount, RewardPointTransaction::TYPE_DEDUCT, $data, $order);
+    }
+
+    protected function newRewardPoint($amount, $type, $data, $order)
+    {
+        $data = array_merge($data, [
+            'amount' => $amount,
+            'type' => $type,
+            'status' => isset($data['status'])?$data['status']:RewardPointTransaction::STATUS_REVIEW
+        ]);
+
+        $rewardPointTransaction = new RewardPointTransaction($data);
+
+        $rewardPointTransaction->customer()->associate($this);
+        if($order){
+            $rewardPointTransaction->order()->associate($order);
+        }
+
+        $rewardPointTransaction->save();
+
+        if($rewardPointTransaction->status == RewardPointTransaction::STATUS_APPROVED){
+            if($rewardPointTransaction->type == RewardPointTransaction::TYPE_ADD){
+                $this->increment('reward_points', $rewardPointTransaction->amount);
+            }elseif($rewardPointTransaction->type == RewardPointTransaction::TYPE_DEDUCT){
+                $this->decrement('reward_points', $rewardPointTransaction->amount);
+            }
+        }
+
+        return $rewardPointTransaction;
     }
 
     //Scopes

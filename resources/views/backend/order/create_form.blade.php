@@ -11,6 +11,8 @@
                 <div id="billing-information-wrapper" data-profile_source="{{ route('backend.sales.order.copy_customer_information', ['type' => 'profile']) }}">
                     @include('backend.order.customer_information', ['type' => 'profile'])
                 </div>
+
+                {!! Form::hidden('user_id', null, ['id' => 'user-id-value']) !!}
             </div>
         </div>
     </div>
@@ -219,6 +221,20 @@
                 @endforeach
             </div>
         </div>
+
+        @if(ProjectHelper::isFeatureEnabled('customer.reward_points'))
+            <div class="portlet light bordered" id="reward-points-wrapper">
+                <div class="portlet-title">
+                    <div class="caption">
+                        <i class="fa fa-gift"></i>
+                        <span class="caption-subject">Reward Points</span>
+                    </div>
+                </div>
+                <div class="portlet-body">
+
+                </div>
+            </div>
+        @endif
     </div>
 
     <div class="col-md-5">
@@ -263,7 +279,7 @@
     </div>
 </div>
 
-{!! Form::hidden('currency', CurrencyHelper::getCurrentCurrency()['code']) !!}
+{!! Form::hidden('currency', CurrencyHelper::getCurrentCurrency()['code'], ['id' => 'currency-input']) !!}
 {!! Form::hidden('backUrl', Request::input('backUrl')) !!}
 
 <div class="modal fade" id="place_order_modal" role="basic" aria-hidden="true">
@@ -283,6 +299,7 @@
     <script>
         global_vars.product_line_item = '{{ route('backend.sales.order.line_item.row', ['type' => 'product']) }}';
         global_vars.get_order_cart_rules_path = '{{ route('backend.sales.order.get_cart_rules') }}';
+        global_vars.get_reward_points_path = '{{ route('backend.customer.reward_rule.get') }}';
         global_vars.get_tax_path = '{{ route('backend.tax.get') }}';
         global_vars.get_product_availability = '{{ route('backend.catalog.product.availability', ['id' => null]) }}';
         global_vars.get_availability_calendar = '{{ route('catalog.product.availability_calendar') }}';
@@ -306,6 +323,13 @@
 
     <script id="lineitem-cart-price-rule-template" type="text/x-handlebars-template">
         @include('backend.order.line_items.form.cart_price_rule', ['key' => '@{{key}}','label' => '@{{{label}}}', 'value' => '@{{value}}', 'is_coupon' => '@{{is_coupon}}', 'cart_price_rule_id' => '@{{cart_price_rule_id}}'])
+    </script>
+
+    <script id="reward-rule-template" type="text/x-handlebars-template">
+        <div class="row static-info reward-rule" data-reward_rule_id="@{{id}}">
+            <div class="col-md-7 name"> @{{name}}: </div>
+            <div class="col-md-5 value"> <span class="amount">@{{reward}}</span> </div>
+        </div>
     </script>
 
     <script src="{{ asset('backend/assets/scripts/pages/order_form.js') }}" type="text/javascript"></script>

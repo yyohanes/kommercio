@@ -7,6 +7,7 @@ use Kommercio\Facades\EmailHelper;
 use Kommercio\Facades\ProjectHelper;
 use Kommercio\Models\Order\Order;
 use Kommercio\Models\PaymentMethod\PaymentMethod;
+use Kommercio\Models\RewardPoint\RewardPointTransaction;
 
 class OrderListener
 {
@@ -36,10 +37,14 @@ class OrderListener
             $this->beforeOrderPlaced($order);
         }elseif($event->type == 'customer_place_order'){
             $this->customerPlaceOrder($order);
+        }elseif($event->type == 'internal_place_order'){
+            $this->internalPlaceOrder($order);
         }elseif($event->type == 'shipping_method_changed'){
             $this->shippingMethodChanged($order);
         }elseif($event->type == 'process_payment'){
             $this->processPayment($order);
+        }elseif($event->type == 'placed_order_updated'){
+            $this->placedOrderUpdated($order);
         }
     }
 
@@ -50,11 +55,30 @@ class OrderListener
 
     protected function customerPlaceOrder(Order $order)
     {
+        if(ProjectHelper::isFeatureEnabled('customer.reward_points')){
+            $existingReviewRewardPoints = $order->rewardPointTransactions()->where('status', RewardPointTransaction::STATUS_REVIEW)->get();
+            foreach($existingReviewRewardPoints as $existingReviewRewardPoint){
+                $existingReviewRewardPoint->delete();
+            }
+
+            $order->addRewardPoint();
+        }
+
         $subject = 'There is new order #'.$order->reference;
 
         $orderEmail = ProjectHelper::getConfig('contacts.order.email');
 
         EmailHelper::sendMail($orderEmail, $subject, 'order.admin_new_order', ['order' => $order], 'general');
+    }
+
+    protected function placedOrderUpdated(Order $order)
+    {
+
+    }
+
+    protected function internalPlaceOrder(Order $order)
+    {
+        
     }
 
     protected function shippingMethodChanged(Order $order)

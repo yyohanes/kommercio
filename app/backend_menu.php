@@ -110,11 +110,18 @@ $menus['customer'] = [
             'route' => 'backend.customer.index',
             'permissions' => 'view_customer'
         ],
-        'points' => [
-            'active_path' => 'customer/points',
+        'reward_point' => [
+            'active_path' => 'customer/reward-point',
             'name' => 'Reward Points',
             'route' => 'backend.customer.reward_point.index',
             'permissions' => 'view_reward_points',
+            'feature' => 'customer.reward_points'
+        ],
+        'reward_rule' => [
+            'active_path' => 'customer/reward-rule',
+            'name' => 'Reward Rules',
+            'route' => 'backend.customer.reward_rule.index',
+            'permissions' => 'view_reward_points_rules',
             'feature' => 'customer.reward_points'
         ],
     ]

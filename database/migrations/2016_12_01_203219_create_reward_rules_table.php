@@ -18,15 +18,20 @@ class CreateRewardRulesTable extends Migration
             $table->string('type');
             $table->decimal('reward', 14, 2)->default(0);
             $table->string('currency')->nullable();
-            $table->timestamp('date_from')->nullable();
-            $table->timestamp('date_to')->nullable();
             $table->integer('store_id')->unsigned()->nullable();
+            $table->boolean('member')->default(TRUE);
+            $table->integer('created_by')->unsigned()->nullable();
+            $table->integer('updated_by')->unsigned()->nullable();
             $table->boolean('active')->default(TRUE);
+            $table->timestamp('active_date_from')->nullable();
+            $table->timestamp('active_date_to')->nullable();
             $table->integer('sort_order')->default(0);
             $table->text('data');
             $table->timestamps();
 
             $table->foreign('store_id')->references('id')->on('stores')->onDelete('CASCADE');
+            $table->foreign('created_by')->references('id')->on('users')->onDelete('SET NULL');
+            $table->foreign('updated_by')->references('id')->on('users')->onDelete('SET NULL');
         });
     }
 

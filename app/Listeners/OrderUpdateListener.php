@@ -8,7 +8,9 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Kommercio\Facades\EmailHelper;
 use Kommercio\Facades\OrderHelper;
+use Kommercio\Facades\ProjectHelper;
 use Kommercio\Models\Order\Order;
+use Kommercio\Models\RewardPoint\RewardPointTransaction;
 
 class OrderUpdateListener
 {
@@ -53,6 +55,12 @@ class OrderUpdateListener
 
     public function onCompletedOrder(OrderUpdate $event)
     {
+        if(ProjectHelper::isFeatureEnabled('customer.reward_points')){
+            $event->order->addRewardPoint([
+                'status' => RewardPointTransaction::STATUS_APPROVED
+            ]);
+        }
+
         OrderHelper::saveOrderComment('Order is completed.', 'completed', $event->order, $this->request->user());
 
         if($event->notify_customer){

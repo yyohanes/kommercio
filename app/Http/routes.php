@@ -1379,6 +1379,56 @@ Route::group(['middleware' => ['web']], function () {
                         'permissions' => ['reject_reward_points']
                     ]);
                 });
+
+                //Reward Rules
+                Route::group(['prefix' => 'reward-rule'], function(){
+                    Route::get('index', [
+                        'as' => 'backend.customer.reward_rule.index',
+                        'uses' => 'RewardRuleController@index',
+                        'permissions' => ['view_reward_points_rules']
+                    ]);
+
+                    Route::get('create', [
+                        'as' => 'backend.customer.reward_rule.create',
+                        'uses' => 'RewardRuleController@create',
+                        'permissions' => ['create_reward_points_rules']
+                    ]);
+
+                    Route::post('store', [
+                        'as' => 'backend.customer.reward_rule.store',
+                        'uses' => 'RewardRuleController@store',
+                        'permissions' => ['create_reward_points_rules']
+                    ]);
+
+                    Route::get('edit/{id}', [
+                        'as' => 'backend.customer.reward_rule.edit',
+                        'uses' => 'RewardRuleController@edit',
+                        'permissions' => ['edit_reward_points_rules']
+                    ]);
+
+                    Route::post('update/{id}', [
+                        'as' => 'backend.customer.reward_rule.update',
+                        'uses' => 'RewardRuleController@update',
+                        'permissions' => ['edit_reward_points_rules']
+                    ]);
+
+                    Route::post('delete/{id}', [
+                        'as' => 'backend.customer.reward_rule.delete',
+                        'uses' => 'RewardRuleController@delete',
+                        'permissions' => ['delete_reward_points_rules']
+                    ]);
+
+                    Route::post('reorder', [
+                        'as' => 'backend.customer.reward_rule.reorder',
+                        'uses' => 'RewardRuleController@reorder',
+                        'permissions' => ['edit_reward_points_rules']
+                    ]);
+
+                    Route::get('get', [
+                        'as' => 'backend.customer.reward_rule.get',
+                        'uses' => 'RewardRuleController@get',
+                    ]);
+                });
             });
 
             //CMS
