@@ -130,7 +130,7 @@ class OrderHelper
                 if($cartPriceRule->offer_type == CartPriceRule::OFFER_TYPE_PRODUCT_DISCOUNT){
                     $productCartPriceRuleProducts = collect($cartPriceRule->getProducts())->pluck('id');
 
-                    if((!empty($productCartPriceRuleProducts) && !$productCartPriceRuleProducts->contains($lineItem->line_item_id)) || !$lineItem->isProduct){
+                    if((!$productCartPriceRuleProducts->isEmpty() && !$productCartPriceRuleProducts->contains($lineItem->line_item_id)) || !$lineItem->isProduct){
                         continue;
                     }
                 }elseif($cartPriceRule->modification_type == CartPriceRule::MODIFICATION_TYPE_PERCENT){
