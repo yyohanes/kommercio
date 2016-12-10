@@ -1,5 +1,6 @@
 <script type="text/javascript">
     var global_vars = {
+        project_name: '{{ ProjectHelper::getConfig('project_machine_name') }}',
         base_path: '{{ url('/') }}',
         images_path: '{{ config('kommercio.images_path') }}',
         asset_path: '{{ asset('/project/assets') }}',

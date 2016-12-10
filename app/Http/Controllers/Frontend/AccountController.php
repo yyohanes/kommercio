@@ -428,6 +428,13 @@ class AccountController extends Controller
 
         NewsletterSubscriptionHelper::subscribe($request->input('group'), $request->input('email'), $request->input('name', null), $request->input('last_name', null), $request->input('fields', []));
 
+        if($request->ajax()){
+            return new JsonResponse([
+                'message' => trans(LanguageHelper::getTranslationKey('frontend.member.newsletter.subscription_success_message')),
+                '_token' => csrf_token()
+            ]);
+        }
+
         return redirect()->back()->with('success', [trans(LanguageHelper::getTranslationKey('frontend.member.newsletter.subscription_success_message'))]);
     }
 }
