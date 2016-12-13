@@ -1112,11 +1112,13 @@ class ProductController extends Controller{
             $tmp = array();
             foreach ($result as $result_item) {
                 foreach ($property_values as $property_key => $property_value) {
-                    $tmp[] = $result_item + array($property_key => $property_value);
+                    $tmp[] = array_merge($result_item, array($property_key => $property_value));
                 }
             }
             $result = $tmp;
+
         }
+
         return $result;
     }
 

@@ -50,7 +50,7 @@ class UrlAlias
         }
 
         if(strlen($dupRequest->getQueryString()) > 0){
-            $path = str_replace($query, '', $request_uri_string);
+            $path = substr($dupRequest->getPathInfo(), 1);
         }else{
             $path = $request_uri_string;
             $query = '';

@@ -26,6 +26,10 @@ class FrontendHelper
 
     public function getAlias($internal_path)
     {
+        if($internal_path == '/'){
+            return $this->getHomeUrl();
+        }
+
         $locale = App::getLocale();
 
         if(isset($this->_miniAliasCache[$internal_path.':'.$locale])){

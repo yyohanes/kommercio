@@ -47,7 +47,7 @@ class MenuItem extends Model
     public function getExternalPathAttribute()
     {
         if($this->url){
-            $path = FrontendHelper::get_url($this->url);
+            $path = FrontendHelper::getUrl($this->url);
         }else{
             $path = '#';
         }
