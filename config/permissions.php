@@ -189,6 +189,15 @@ $permissions = [
         ],
         'feature' => 'customer.reward_points'
     ],
+    'Rewards' => [
+        'permissions' => [
+            'view_reward' => 'View Reward',
+            'create_reward' => 'Add Reward',
+            'edit_reward' => 'Edit Reward',
+            'delete_reward' => 'Delete Reward',
+        ],
+        'feature' => 'customer.reward_points'
+    ],
     'Report' => [
         'permissions' => [
             'view_sales_report' => 'View Sales Report',

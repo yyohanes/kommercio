@@ -769,6 +769,30 @@ Route::group(['middleware' => ['web']], function () {
                         'uses' => 'CartPriceRuleController@reorder',
                         'permissions' => ['edit_cart_price_rule']
                     ]);
+
+                    Route::get('{cart_price_rule_id}/coupons/index', [
+                        'as' => 'backend.price_rule.cart.coupon.index',
+                        'uses' => 'CartPriceRuleController@couponIndex',
+                        'permissions' => ['view_cart_price_rule']
+                    ]);
+
+                    Route::get('{cart_price_rule_id}/coupons/form/{id?}', [
+                        'as' => 'backend.price_rule.cart.coupon.form',
+                        'uses' => 'CartPriceRuleController@couponForm',
+                        'permissions' => ['create_cart_price_rule', 'edit_cart_price_rule']
+                    ]);
+
+                    Route::post('{cart_price_rule_id}/coupons/save', [
+                        'as' => 'backend.price_rule.cart.coupon.save',
+                        'uses' => 'CartPriceRuleController@couponSave',
+                        'permissions' => ['create_cart_price_rule', 'edit_cart_price_rule']
+                    ]);
+
+                    Route::post('{cart_price_rule_id}/coupons/delete/{id}', [
+                        'as' => 'backend.price_rule.cart.coupon.delete',
+                        'uses' => 'CartPriceRuleController@couponDelete',
+                        'permissions' => ['delete_cart_price_rule']
+                    ]);
                 });
             });
 
@@ -1427,6 +1451,45 @@ Route::group(['middleware' => ['web']], function () {
                     Route::get('get', [
                         'as' => 'backend.customer.reward_rule.get',
                         'uses' => 'RewardRuleController@get',
+                    ]);
+                });
+
+                //Rewards
+                Route::group(['prefix' => 'rewards'], function(){
+                    Route::get('index', [
+                        'as' => 'backend.customer.reward.index',
+                        'uses' => 'RewardController@index',
+                        'permissions' => ['view_reward']
+                    ]);
+
+                    Route::get('create', [
+                        'as' => 'backend.customer.reward.create',
+                        'uses' => 'RewardController@create',
+                        'permissions' => ['create_reward']
+                    ]);
+
+                    Route::post('store', [
+                        'as' => 'backend.customer.reward.store',
+                        'uses' => 'RewardController@store',
+                        'permissions' => ['create_reward']
+                    ]);
+
+                    Route::get('edit/{id}', [
+                        'as' => 'backend.customer.reward.edit',
+                        'uses' => 'RewardController@edit',
+                        'permissions' => ['edit_reward']
+                    ]);
+
+                    Route::post('update/{id}', [
+                        'as' => 'backend.customer.reward.update',
+                        'uses' => 'RewardController@update',
+                        'permissions' => ['edit_reward']
+                    ]);
+
+                    Route::post('delete/{id}', [
+                        'as' => 'backend.customer.reward.delete',
+                        'uses' => 'RewardController@delete',
+                        'permissions' => ['delete_reward']
                     ]);
                 });
             });

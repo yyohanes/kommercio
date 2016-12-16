@@ -12,6 +12,7 @@ use Kommercio\Models\Customer;
 use Kommercio\Models\Order\Order;
 use Kommercio\Models\PriceRule\CartPriceRule;
 use Kommercio\Models\PriceRule\CartPriceRuleOptionGroup;
+use Kommercio\Models\PriceRule\Coupon;
 use Kommercio\Models\Product;
 use Kommercio\Models\ShippingMethod\ShippingMethod;
 use Kommercio\Models\Store;
@@ -227,6 +228,98 @@ class CartPriceRuleController extends Controller
         }else{
             return redirect()->route('backend.price_rule.product.index');
         }
+    }
+
+    public function couponIndex($cart_price_rule_id)
+    {
+        $cartPriceRule = CartPriceRule::findOrFail($cart_price_rule_id);
+
+        $coupons = $cartPriceRule->coupons;
+
+        $index = view('backend.price_rule.cart.coupon.mini_index', [
+            'coupons' => $coupons,
+            'cartPriceRule' => $cartPriceRule
+        ])->render();
+
+        return response()->json([
+            'html' => $index,
+            '_token' => csrf_token()
+        ]);
+    }
+
+    public function couponForm($cart_price_rule_id, $id = null)
+    {
+        $cartPriceRule = CartPriceRule::findOrFail($cart_price_rule_id);
+        $coupon = Coupon::find($id);
+
+        $form = view('backend.price_rule.cart.coupon.mini_form', [
+            'cartPriceRule' => $cartPriceRule,
+            'coupon' => $coupon
+        ])->render();
+
+        //Clear flashed input
+        Session::pull('_old_input');
+
+        return response()->json([
+            'html' => $form,
+            '_token' => csrf_token()
+        ]);
+    }
+
+    public function couponSave(Request $request, $cart_price_rule_id)
+    {
+        $cartPriceRule = CartPriceRule::findOrFail($cart_price_rule_id);
+
+        $rules = [
+            'coupon_code' => 'required|unique:coupons,coupon_code'.($request->has('coupon_id')?','.$request->input('coupon_id'):null),
+            'customer_id' => 'integer|exists:customers,id',
+            'coupon_id' => 'integer'
+        ];
+
+        $this->validate($request, $rules);
+
+        $coupon = Coupon::find($request->input('coupon_id', null));
+
+        if(!$coupon){
+            $coupon = new Coupon();
+        }
+
+        $coupon->fill($request->all());
+        $coupon->cartPriceRule()->associate($cartPriceRule);
+
+        if($request->has('customer_id') && $request->has('customer')){
+            $coupon->customer()->associate($request->input('customer_id'));
+        }else{
+            $coupon->customer()->dissociate();
+        }
+
+        $coupon->save();
+
+        $message = 'Coupon code '.$coupon->coupon_code.' is successfully saved.';
+
+        return response()->json([
+            'result' => 'success',
+            'message' => $message
+        ]);
+    }
+
+    public function couponDelete($cart_price_rule_id, $id)
+    {
+        $cartPriceRule = CartPriceRule::findOrFail($cart_price_rule_id);
+        $coupon = Coupon::findOrFail($id);
+
+        if(!in_array($coupon->id, $cartPriceRule->coupons->pluck('id')->all())){
+            return response()->json(['Coupon doesn\'t belong to Price Rule'], 422);
+        }
+
+        $message = 'Coupon code '.$coupon->coupon_code.' is successfully deleted.';
+
+        $coupon->delete();
+
+        return response()->json([
+            'result' => 'success',
+            'message' => $message
+        ]);
     }
 
     protected function processPriceRuleOptionGroups($priceRule, $request)

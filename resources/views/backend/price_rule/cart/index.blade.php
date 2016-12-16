@@ -67,7 +67,11 @@
                             <td><i class="fa fa-reorder"></i></td>
                             <td class="price-rule-name" data-price_rule_id="{{ $priceRule->id }}">{{ $priceRule->name?$priceRule->name:'-' }}</td>
                             <td> {{ \Kommercio\Models\PriceRule\CartPriceRule::getOfferTypeOptions($priceRule->offer_type) }} </td>
-                            <td> {{ $priceRule->coupon_code }} </td>
+                            <td>
+                                @foreach($priceRule->coupons as $coupon)
+                                    {{ $coupon->coupon_code }}
+                                @endforeach
+                            </td>
                             <td> {{ $priceRule->price?PriceFormatter::formatNumber($priceRule->price, $priceRule->currency):'-' }} </td>
                             <td> {{ $priceRule->modification?$priceRule->getModificationOutput():'-' }} </td>
                             <td> {{ $priceRule->currency?CurrencyHelper::getCurrency($priceRule->currency)['iso']:'All' }} </td>

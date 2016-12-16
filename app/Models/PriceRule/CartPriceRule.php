@@ -27,12 +27,14 @@ class CartPriceRule extends Model implements StoreManagedInterface
     const OFFER_TYPE_ORDER_DISCOUNT = 'order_discount';
     const OFFER_TYPE_PRODUCT_DISCOUNT = 'product_discount';
 
-    protected $fillable = ['name', 'coupon_code', 'price', 'modification', 'modification_type', 'modification_source',
+    protected $fillable = ['name', 'price', 'modification', 'modification_type', 'modification_source',
         'currency', 'store_id', 'customer_id', 'minimum_subtotal', 'max_usage', 'max_usage_per_customer', 'offer_type', 'active', 'active_date_from', 'active_date_to', 'sort_order'];
     protected $toggleFields = ['active'];
     protected $casts = [
         'active' => 'boolean',
     ];
+
+    private $_couponCode = null;
 
     //To store calculation
     public $total = 0;
@@ -62,6 +64,11 @@ class CartPriceRule extends Model implements StoreManagedInterface
     public function productOptionGroups()
     {
         return $this->hasMany('Kommercio\Models\PriceRule\CartPriceRuleOptionGroup')->where('type', CartPriceRuleOptionGroup::TYPE_PRODUCTS);
+    }
+
+    public function coupons()
+    {
+        return $this->hasMany('Kommercio\Models\PriceRule\Coupon');
     }
 
     //Scopes
@@ -112,7 +119,9 @@ class CartPriceRule extends Model implements StoreManagedInterface
 
     public function getUsage()
     {
-        $qb = Order::whereHasLineItem($this->id, 'cart_price_rule')->usageCounted();
+        $type = $this->determineLineItemType();
+
+        $qb = Order::whereHasLineItem($this->id, $type)->usageCounted();
 
         return $qb->count();
     }
@@ -125,11 +134,16 @@ class CartPriceRule extends Model implements StoreManagedInterface
             return 0;
         }
 
-        $qb = Order::whereHasLineItem($this->id, 'cart_price_rule')->usageCounted()->where('customer_id', $customer->id);
+        $type = $this->determineLineItemType();
+
+        $qb = Order::whereHasLineItem($this->id, $type)->usageCounted()->where('customer_id', $customer->id);
 
         return $qb->count();
     }
 
+    /*
+     * TODO: Validate by coupon. Currently by cart price rule eventhough Coupon is applied
+     */
     public function validateUsage($email = null)
     {
         $valid = is_null($this->max_usage) || $this->max_usage > $this->getUsage();
@@ -194,15 +208,38 @@ class CartPriceRule extends Model implements StoreManagedInterface
         return $this->store_id && in_array($this->store_id, $user->getManagedStores()->pluck('id')->all());
     }
 
+    public function linkCouponCode($coupon_code)
+    {
+        $this->_couponCode = $coupon_code;
+    }
+
+    protected function determineLineItemType()
+    {
+        $type = 'cart_price_rule';
+
+        if($this->isCoupon){
+            $type = 'coupon';
+        }elseif($this->isFreeShipping) {
+            $type = 'free_shipping';
+        }
+
+        return $type;
+    }
+
     //Accessors
     public function getIsCouponAttribute()
     {
-        return !empty($this->coupon_code);
+        return $this->coupons->count() > 0;
     }
 
     public function getIsFreeShippingAttribute()
     {
         return $this->offer_type == self::OFFER_TYPE_FREE_SHIPPING;
+    }
+
+    public function getCouponCodeAttribute()
+    {
+        return $this->_couponCode;
     }
 
     //Statics
@@ -270,9 +307,11 @@ class CartPriceRule extends Model implements StoreManagedInterface
         $shippings = isset($options['shippings'])?$options['shippings']:null;
 
         if($coupon_code){
-            $qb->where('coupon_code', 'LIKE', $coupon_code);
+            $qb->whereHas('coupons', function($query) use ($coupon_code){
+                $query->where('coupon_code', 'LIKE', trim($coupon_code));
+            });
         }else{
-            $qb->whereNull('coupon_code');
+            $qb->whereDoesntHave('coupons');
         }
 
         $qb->where(function($qb) use ($currency){
@@ -334,9 +373,17 @@ class CartPriceRule extends Model implements StoreManagedInterface
             return false;
         }
 
-        $qb = self::where('coupon_code', trim($code));
+        $qb = self::whereHas('coupons', function($query) use ($code){
+            $query->where('coupon_code', trim($code));
+        });
 
-        return $qb->first();
+        $coupon = $qb->first();
+
+        if($coupon){
+            $coupon->linkCouponCode(trim($code));
+        }
+
+        return $coupon;
     }
 
     public static function getCoupon($couponCode, Order $currentOrder = null, $request = null)

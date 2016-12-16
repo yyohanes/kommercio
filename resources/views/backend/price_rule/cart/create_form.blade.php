@@ -10,17 +10,6 @@
     'valueColumnClass' => 'col-md-6',
 ])
 
-@include('backend.master.form.fields.text', [
-    'name' => 'coupon_code',
-    'label' => 'Coupon Code',
-    'key' => 'coupon_code',
-    'attr' => [
-        'class' => 'form-control',
-        'id' => 'coupon_code'
-    ],
-    'valueColumnClass' => 'col-md-6',
-])
-
 @include('backend.master.form.fields.select', [
     'name' => 'offer_type',
     'label' => 'Offer Type',
@@ -180,6 +169,26 @@
     'options' => $shippingMethodOptions,
     'defaultOptions' => old('shipping', $priceRule->shippingOptionGroup?$priceRule->shippingOptionGroup->shippingMethods->pluck('id')->all():null),
 ])
+
+<hr/>
+
+<div class="row">
+    <label class="control-label col-md-3">Coupons</label>
+
+    <div class="col-md-9" id="coupon-section">
+        @if(!$priceRule->exists)
+            Please save this Price Rule before creating Coupon.
+        @else
+            <div class="control-label" style="text-align: left;">
+                <a href="#" id="add-coupon-btn" data-form="{{ route('backend.price_rule.cart.coupon.form', ['cart_price_rule_id' => $priceRule->id]) }}" class="btn btn-xs btn-info">Add Coupon</a>
+            </div>
+            <div id="coupon-form-wrapper"></div>
+            <div id="coupon-wrapper" class="margin-top-15" data-coupon_index="{{ route('backend.price_rule.cart.coupon.index', ['cart_price_rule_id' => $priceRule->id]) }}">
+                @include('backend.price_rule.cart.coupon.mini_index', ['coupons' => $priceRule->coupons, 'cartPriceRule' => $priceRule])
+            </div>
+        @endif
+    </div>
+</div>
 
 <hr/>
 

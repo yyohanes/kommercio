@@ -125,6 +125,13 @@ $menus['customer'] = [
             'permissions' => 'view_reward_points_rules',
             'feature' => 'customer.reward_points'
         ],
+        'reward' => [
+            'active_path' => 'customer/rewards',
+            'name' => 'Rewards',
+            'route' => 'backend.customer.reward.index',
+            'permissions' => 'view_reward',
+            'feature' => 'customer.reward_points'
+        ],
     ]
 ];
 

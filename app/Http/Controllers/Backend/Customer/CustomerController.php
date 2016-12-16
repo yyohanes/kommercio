@@ -244,6 +244,12 @@ class CustomerController extends Controller{
                 'operator' => 'LIKE'
             ];
 
+            $filters[] = [
+                'key' => 'phone_number',
+                'value' => '%'.$search.'%',
+                'operator' => 'LIKE'
+            ];
+
             $qb->whereFields($filters, TRUE);
 
             $results = $qb->get();
@@ -253,12 +259,15 @@ class CustomerController extends Controller{
                     'id' => $result->id,
                     'user_id' => $result->user?$result->user->id:null,
                     'profile_id' => $result->profile?$result->profile->id:null,
-                    'name' => $result->fullName.' ('.$result->getProfile()->email.')',
+                    'name' => $result->fullName.' ('.($result->getProfile()->email?$result->getProfile()->email.' / ':'').$result->getProfile()->phone_number.')',
+                    'full_name' => $result->fullName,
                     'email' => $result->getProfile()->email,
+                    'phone_number' => $result->getProfile()->phone_number,
                     'tokens' => [
                         $result->getProfile()->first_name,
                         $result->getProfile()->last_name,
-                        $result->getProfile()->email
+                        $result->getProfile()->email,
+                        $result->getProfile()->phone_number
                     ]
                 ];
             }

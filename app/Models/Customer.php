@@ -53,6 +53,11 @@ class Customer extends Model
         return $this->hasMany('Kommercio\Models\RewardPoint\RewardPointTransaction')->orderBy('created_at', 'DESC');
     }
 
+    public function coupons()
+    {
+        return $this->hasMany('Kommercio\Models\PriceRule\Coupon');
+    }
+
     //Methods
     public function saveAddress($data, $billing = false, $shipping = false)
     {
