@@ -1189,6 +1189,12 @@ Route::group(['middleware' => ['web']], function () {
                         'permissions' => ['edit_address']
                     ]);
 
+                    Route::any('{type}/import-all', [
+                        'as' => 'backend.configuration.address.import_all',
+                        'uses' => 'AddressController@importAll',
+                        'permissions' => ['edit_address']
+                    ]);
+
                     Route::any('rates/{type}/{id}', [
                         'as' => 'backend.configuration.address.rates',
                         'uses' => 'AddressController@rates',

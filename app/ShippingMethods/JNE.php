@@ -102,7 +102,7 @@ class JNE implements ShippingMethodInterface
         if(!empty($country) && $country->iso_code == 'ID' && !empty($origin) && !empty($destination)){
             //Call Raja Ongkir API
             $client = new Client();
-            $res = $client->post('http://pro.rajaongkir.com/api/cost', [
+            $res = $client->request('POST', 'http://pro.rajaongkir.com/api/cost', [
                 'http_errors' => false,
                 'form_params' =>  [
                     'origin' => $origin->master_id,

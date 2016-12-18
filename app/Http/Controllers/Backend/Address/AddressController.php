@@ -298,6 +298,135 @@ class AddressController extends Controller{
         }
     }
 
+    public function importAll(Request $request, $type)
+    {
+        if($request->isMethod('GET')){
+            return view('backend.address.import_all', [
+                'type' => $type
+            ]);
+        }elseif($request->isMethod('POST')){
+            $rules = [
+                'import_url' => 'required'
+            ];
+
+            $this->validate($request, $rules);
+
+            $client = new Client();
+            $res = $client->get(KommercioAPIHelper::getAPIUrl().'/'.$request->input('import_url'), ['query' =>  ['api_token' => KommercioAPIHelper::getAPIToken()]]);
+
+            if($res->getStatusCode() == 200){
+                $body = $res->getBody();
+
+                $results = json_decode($body);
+
+                foreach($results->countries as $result){
+                    $country = Country::where('master_id', $result->id)->first();
+                    if(!$country){
+                        $country = new Country();
+                    }
+
+                    foreach ($result as $key => $value) {
+                        if($key == 'id'){
+                            $country->master_id = $value;
+                        }else{
+                            $country->$key = $value;
+                        }
+                    }
+                    $country->save();
+                }
+
+                foreach($results->states as $result){
+                    $country = Country::where('master_id', $result->country_id)->first();
+
+                    if($country){
+                        $state = State::where('master_id', $result->id)->first();
+
+                        if(!$state){
+                            $state = new State();
+                        }
+
+                        foreach ($result as $key => $value) {
+                            if($key == 'id'){
+                                $state->master_id = $value;
+                            }else{
+                                $state->$key = $value;
+                            }
+                        }
+                        $state->country_id = $country->id;
+                        $state->save();
+                    }
+                }
+
+                foreach($results->cities as $result){
+                    $state = State::where('master_id', $result->state_id)->first();
+
+                    if($state){
+                        $city = City::where('master_id', $result->id)->first();
+                        if(!$city){
+                            $city = new City();
+                        }
+
+                        foreach ($result as $key => $value) {
+                            if($key == 'id'){
+                                $city->master_id = $value;
+                            }else{
+                                $city->$key = $value;
+                            }
+                        }
+                        $city->state_id = $state->id;
+                        $city->save();
+                    }
+                }
+
+                foreach($results->districts as $result){
+                    $city = City::where('master_id', $result->city_id)->first();
+
+                    if($city){
+                        $district = District::where('master_id', $result->id)->first();
+                        if(!$district){
+                            $district = new District();
+                        }
+
+                        foreach ($result as $key => $value) {
+                            if($key == 'id'){
+                                $district->master_id = $value;
+                            }else{
+                                $district->$key = $value;
+                            }
+                        }
+
+                        $district->city_id = $city->id;
+                        $district->save();
+                    }
+                }
+
+                foreach($results->areas as $result){
+                    $district = District::where('master_id', $result->district_id)->first();
+
+                    if($district){
+                        $area = Area::where('master_id', $result->id)->first();
+                        if(!$area){
+                            $area = new Area();
+                        }
+
+                        foreach ($result as $key => $value) {
+                            if($key == 'id'){
+                                $area->master_id = $value;
+                            }else{
+                                $area->$key = $value;
+                            }
+                        }
+
+                        $area->district_id = $district->id;
+                        $area->save();
+                    }
+                }
+            }
+
+            return redirect()->back()->with('success', ['Address is successfully imported.']);
+        }
+    }
+
     public function rates(Request $request, $type, $id)
     {
         $model = $this->addressClass;

@@ -20,7 +20,7 @@ class AddressHelper
     public function getCountries($active_only=TRUE)
     {
         if(!isset($this->_countries) || $this->_alwaysRefresh){
-            $qb = Country::orderBy('sort_order', 'ASC');
+            $qb = Country::orderBy('sort_order', 'ASC')->orderBy('name', 'ASC');
 
             if($active_only){
                 $qb->active();
@@ -42,7 +42,7 @@ class AddressHelper
     public function getStates($country_id=null, $active_only=TRUE)
     {
         if(!isset($this->_states) || $this->_alwaysRefresh){
-            $qb = State::orderBy('sort_order', 'ASC');
+            $qb = State::orderBy('sort_order', 'ASC')->orderBy('name', 'ASC');
 
             if($country_id){
                 $qb->where('country_id', $country_id);
@@ -74,7 +74,7 @@ class AddressHelper
     public function getCities($state_id=null, $active_only=TRUE)
     {
         if(!isset($this->_cities) || $this->_alwaysRefresh){
-            $qb = City::orderBy('sort_order', 'ASC');
+            $qb = City::orderBy('sort_order', 'ASC')->orderBy('name', 'ASC');
 
             if($state_id){
                 $qb->where('state_id', $state_id);
@@ -106,7 +106,7 @@ class AddressHelper
     public function getDistricts($city_id=null, $active_only=TRUE)
     {
         if(!isset($this->_districts) || $this->_alwaysRefresh){
-            $qb = District::orderBy('sort_order', 'ASC');
+            $qb = District::orderBy('sort_order', 'ASC')->orderBy('name', 'ASC');
 
             if($city_id){
                 $qb->where('city_id', $city_id);
@@ -138,7 +138,7 @@ class AddressHelper
     public function getAreas($district_id=null, $active_only=TRUE)
     {
         if(!isset($this->_areas) || $this->_alwaysRefresh){
-            $qb = Area::orderBy('sort_order', 'ASC');
+            $qb = Area::orderBy('sort_order', 'ASC')->orderBy('name', 'ASC');
 
             if($district_id){
                 $qb->where('district_id', $district_id);
