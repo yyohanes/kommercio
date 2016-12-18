@@ -2,6 +2,10 @@
 
 namespace Kommercio\Helpers;
 
+use Illuminate\Support\Facades\DB;
+use Kommercio\Facades\RuntimeCache as RuntimeCacheFacade;
+use Kommercio\Models\CurrencyRate;
+
 class CurrencyHelper
 {
     public function getDefaultCurrency()
@@ -54,10 +58,16 @@ class CurrencyHelper
             $to_currency = $this->getCurrentCurrency()['code'];
         }
 
-        if($from_currency != $to_currency){
+        $rate = 1;
 
+        if($from_currency != $to_currency){
+            $rate = RuntimeCacheFacade::getOrSet('currency_rates.'.$from_currency.'_'.$to_currency, function() use ($from_currency, $to_currency){
+                $rate = CurrencyRate::getRate($from_currency, $to_currency);
+
+                return $rate;
+            });
         }
 
-        return $amount * $currencyRate;
+        return $amount * $rate;
     }
 }

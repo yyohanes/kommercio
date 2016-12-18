@@ -6,6 +6,7 @@ use GuzzleHttp\Client;
 use Kommercio\Facades\LanguageHelper;
 use Kommercio\Facades\ProjectHelper;
 use Kommercio\Models\Address\City;
+use Kommercio\Models\Address\Country;
 use Kommercio\Models\Address\District;
 use Kommercio\Models\Order\Order;
 use Kommercio\Models\ShippingMethod\ShippingMethod;
@@ -91,13 +92,14 @@ class JNE implements ShippingMethodInterface
         }
 
         //From saved order
-        if($order && $order->store && $order->shippingInformation){
+        if($order && $order->store && !empty($order->store->getDefaultWarehouse()->city_id) && $order->shippingInformation){
+            $country = Country::findOrFail($order->shippingInformation->country_id);
             $origin = City::findOrFail($order->store->getDefaultWarehouse()->city_id);
             $destination = $order->shippingInformation->district_id?District::findOrFail($order->shippingInformation->district_id):City::findOrFail($order->shippingInformation->city_id);
             $destinationType = $order->shippingInformation->district_id?'subdistrict':'city';
         }
 
-        if(!empty($origin) && !empty($destination)){
+        if(!empty($country) && $country->iso_code == 'ID' && !empty($origin) && !empty($destination)){
             //Call Raja Ongkir API
             $client = new Client();
             $res = $client->post('http://pro.rajaongkir.com/api/cost', [

@@ -153,14 +153,13 @@ class FrontendHelper
         return $menuItems;
     }
 
-    public function getMenuItemSiblings($path, $menu_slug)
+    public function getMenuItemSiblings($path, $menu_slug, $level = 1)
     {
         $menu = Menu::where('slug', $menu_slug)->firstOrFail();
-        $menuItems = $menu->menuItems()->WhereTranslation('url', $path)->pluck('parent_id')->all();
 
-        $siblings = $menu->menuItems()->whereIn('parent_id', $menuItems)->get();
+        $trails = $menu->getTrails($path);
 
-        return $siblings;
+        return isset($trails[$level-1])?$menu->getMenuItemSiblings($trails[$level-1]):collect([]);
     }
 
     public function getMenuItemChildren($menu_item_id, $menu_slug)

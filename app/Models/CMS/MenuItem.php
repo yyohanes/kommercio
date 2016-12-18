@@ -97,6 +97,13 @@ class MenuItem extends Model
         return $model;
     }
 
+    public function isTrailOf($path)
+    {
+        $trails = $this->menu->getTrails($path)->pluck('id');
+
+        return $trails->contains($this->id);
+    }
+
     //Statics
     public static function getLinkTargetOptions()
     {
