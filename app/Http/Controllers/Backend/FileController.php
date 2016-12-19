@@ -4,6 +4,7 @@ namespace Kommercio\Http\Controllers\Backend;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Kommercio\Http\Controllers\Controller;
 use Kommercio\Models\File;
 use Kommercio\Models\Media;
@@ -34,6 +35,22 @@ class FileController extends Controller{
         return response()->json([
             'files' => $uploadedFiles
         ]);
+    }
+
+    public function getFileByName($name, $id)
+    {
+        $file = File::where('id', $id)->where('filename', urldecode($name))->firstOrFail();
+
+        return $this->getFile($file);
+    }
+
+    protected function getFile($file)
+    {
+        $content = Storage::disk($file->storage)->get($file->path);
+
+        return response($content)
+            ->header('Content-Type', $file->mime)
+            ->header('Content-disposition', 'inline; filename="'.$file->filename.'"');
     }
 
     public function getRules(Request $request, $type)

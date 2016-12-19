@@ -266,6 +266,19 @@ class LineItem extends Model
         }
     }
 
+    public function getAttachments()
+    {
+        $attachments = [];
+
+        foreach($this->getData('attachments', []) as $attachment){
+            if($attachment = File::find($attachment)){
+                $attachments[] = $attachment;
+            }
+        }
+
+        return $attachments;
+    }
+
     public function getCompositeConfiguration()
     {
         if(!isset($this->_compositeConfiguration)){
@@ -283,6 +296,25 @@ class LineItem extends Model
         }
 
         return $this->children->where('product_composite_id', $composite);
+    }
+
+    public function getChildrenByProduct($product)
+    {
+        if(is_object($product)){
+            $product_id = $product->id;
+        }elseif(is_string($product)){
+            $product = Product::where('sku', $product)->first();
+
+            if(!$product){
+                return null;
+            }
+
+            $product_id = $product->id;
+        }else{
+            $product_id = $product;
+        }
+
+        return $this->children->where('line_item_id', $product_id)->where('line_item_type', 'product');
     }
 
     public function processChildren($children)
