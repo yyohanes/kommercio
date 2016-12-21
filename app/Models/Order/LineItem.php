@@ -50,7 +50,7 @@ class LineItem extends Model
         return $name;
     }
 
-    public function calculateNet($withTax = true)
+    public function calculateNet($withTax = true, $includeChildren = true)
     {
         $total = $this->net_price + $this->discount_total;
 
@@ -58,21 +58,25 @@ class LineItem extends Model
             $total += $this->tax_total;
         }
 
-        foreach($this->children as $child){
-            $total += $child->calculateNet($withTax);
+        if($includeChildren){
+            foreach($this->children as $child){
+                $total += $child->calculateTotal($withTax);
+            }
         }
 
         return round($total, config('project.line_item_total_precision'));
     }
 
-    public function calculateSubNet()
+    public function calculateSubNet($includeChildren = true)
     {
         $rate = $this->taxable?$this->tax_rate:0;
 
         $total = $this->net_price + $this->net_price * $rate/100;
 
-        foreach($this->children as $child){
-            $total += $child->calculateSubNet();
+        if($includeChildren){
+            foreach($this->children as $child){
+                $total += $child->calculateTotal();
+            }
         }
 
         return round($total, config('project.line_item_total_precision'));
@@ -85,37 +89,27 @@ class LineItem extends Model
         return $this->total;
     }
 
-    public function calculateSubtotal()
+    public function calculateSubtotal($includeChildren = true)
     {
         $net = $this->net_price;
-        foreach($this->children as $child){
-            $net += $child->net_price;
+
+        if($includeChildren){
+            foreach($this->children as $child){
+                $net += ($child->net_price * $child->quantity);
+            }
         }
 
         return round($net * $this->quantity, config('project.line_item_total_precision'));
     }
 
-    public function calculateSubtotalWithTax()
+    public function calculateSubtotalWithTax($includeChildren = true)
     {
-        return round($this->calculateSubNet() * $this->quantity, config('project.line_item_total_precision'));
+        return round($this->calculateSubNet($includeChildren) * $this->quantity, config('project.line_item_total_precision'));
     }
 
     public function calculateMargin()
     {
         return round(($this->base_price - $this->net_price) * $this->quantity, config('project.line_item_total_precision'));
-    }
-
-    public function calculateTotalWithChildren($withTax = true)
-    {
-        $total = $this->calculateNet($withTax) * $this->quantity;
-
-        foreach($this->children as $childLineItem){
-            $total +=$childLineItem->calculateTotal($withTax);
-        }
-
-        $total = round($total, config('project.line_item_total_precision'));
-
-        return $total;
     }
 
     public function processData($data, $sort_order = 0)
@@ -266,6 +260,19 @@ class LineItem extends Model
         }
     }
 
+    public function getAttachments()
+    {
+        $attachments = [];
+
+        foreach($this->getData('attachments', []) as $attachment){
+            if($attachment = File::find($attachment)){
+                $attachments[] = $attachment;
+            }
+        }
+
+        return $attachments;
+    }
+
     public function getCompositeConfiguration()
     {
         if(!isset($this->_compositeConfiguration)){
@@ -283,6 +290,25 @@ class LineItem extends Model
         }
 
         return $this->children->where('product_composite_id', $composite);
+    }
+
+    public function getChildrenByProduct($product)
+    {
+        if(is_object($product)){
+            $product_id = $product->id;
+        }elseif(is_string($product)){
+            $product = Product::where('sku', $product)->first();
+
+            if(!$product){
+                return null;
+            }
+
+            $product_id = $product->id;
+        }else{
+            $product_id = $product;
+        }
+
+        return $this->children->where('line_item_id', $product_id)->where('line_item_type', 'product');
     }
 
     public function processChildren($children)

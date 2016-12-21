@@ -33,7 +33,7 @@ class File extends Model implements AuthorSignatureInterface
 
         $finalFileName = $filename.'.'.$extension;
         $duplicateCount = 0;
-        while(Storage::exists($uploadPath.$finalFileName)){
+        while(Storage::disk($storage)->exists($uploadPath.$finalFileName)){
             $duplicateCount += 1;
             $finalFileName = $filename.($duplicateCount+1).'.'.$extension;
         }
@@ -51,7 +51,7 @@ class File extends Model implements AuthorSignatureInterface
             $realPath = $uploadedFile->getRealPath();
         }
 
-        Storage::put($uploadPath.$finalFileName, file_get_contents($realPath));
+        Storage::disk($storage)->put($uploadPath.$finalFileName, file_get_contents($realPath));
 
         //Delete after resized image is moved
         if($resizeTo){
@@ -85,6 +85,11 @@ class File extends Model implements AuthorSignatureInterface
     }
 
     //Accessors
+    public function getPublicPathAttribute()
+    {
+        return url(route('file.get', ['id' => $this->id, 'name' => urlencode($this->filename)]));
+    }
+
     public function getPathAttribute()
     {
         return $this->folder.$this->filename;

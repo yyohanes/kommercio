@@ -10,6 +10,9 @@
     <script src="{{ asset('backend/assets/template/global/plugins/datatables/datatables.min.js') }}" type="text/javascript"></script>
     <script src="{{ asset('backend/assets/template/global/plugins/datatables/plugins/bootstrap/datatables.bootstrap.js') }}" type="text/javascript"></script>
 
+    <script>
+        enable_customer_group = {{ ProjectHelper::isFeatureEnabled('customer.customer_group')?'true':'false' }};
+    </script>
     <script src="{{ asset('backend/assets/scripts/pages/customer_index.js') }}" type="text/javascript"></script>
 @stop
 
@@ -44,6 +47,9 @@
                         <th>Email</th>
                         <th>Account</th>
                         <th>Status</th>
+                        @if(ProjectHelper::isFeatureEnabled('customer.customer_group'))
+                        <th>Group</th>
+                        @endif
                         <th>Since</th>
                         <th>Last Seen</th>
                         <th>Order Total</th>
@@ -56,6 +62,9 @@
                         <td>{!! Form::text('filter[email]', null, ['class' => 'form-control form-filter input-sm']) !!}</td>
                         <td>{!! Form::select('filter[account]', ['' => 'All'] + ['1' => 'Has Account', '0' => 'No Account'], null, ['class' => 'form-control form-filter input-sm']) !!}</td>
                         <td>{!! Form::select('filter[status]', ['' => 'All'] + \Kommercio\Models\User::getStatusOptions(), null, ['class' => 'form-control form-filter input-sm']) !!}</td>
+                        @if(ProjectHelper::isFeatureEnabled('customer.customer_group'))
+                        <td>{!! Form::select('filter[customer_group]', ['' => 'All'] + \Kommercio\Models\Customer\CustomerGroup::getCustomerGroupOptions(), null, ['class' => 'form-control form-filter input-sm']) !!}</td>
+                        @endif
                         <td></td>
                         <td></td>
                         <td></td>

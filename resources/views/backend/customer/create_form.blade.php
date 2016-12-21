@@ -57,6 +57,21 @@
     ])
 </div>
 
+@if(ProjectHelper::isFeatureEnabled('customer.customer_group'))
+@include('backend.master.form.fields.select', [
+    'name' => 'customer_groups[]',
+    'label' => 'Customer Groups',
+    'key' => 'customer_groups',
+    'attr' => [
+        'class' => 'form-control select2',
+        'id' => 'customer_groups',
+        'multiple' => true
+    ],
+    'options' => $customerGroupOptions,
+    'defaultOptions' => old('customer_groups', $customer->customerGroups->pluck('id')->all())
+])
+@endif
+
 <hr/>
 
 @include('backend.master.form.fields.select', [
