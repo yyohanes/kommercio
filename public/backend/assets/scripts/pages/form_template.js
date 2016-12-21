@@ -272,13 +272,13 @@ var formBehaviors = function(){
 
         $(".form_datetime", context).each(function(idx, obj){
             $(obj).datetimepicker({
-                isRTL: App.isRTL(),
-                autoclose: true,
-                todayBtn: true,
-                pickerPosition: (App.isRTL() ? "bottom-right" : "bottom-left"),
-                minuteStep: 15,
-                format: 'yyyy-mm-dd hh:ii',
-                showClear: true
+              isRTL: App.isRTL(),
+              autoclose: true,
+              todayBtn: true,
+              pickerPosition: (App.isRTL() ? "bottom-right" : "bottom-left"),
+              minuteStep: 15,
+              format: 'yyyy-mm-dd hh:ii',
+              fontAwesome: true
             });
         });
     }
