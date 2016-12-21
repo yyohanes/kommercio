@@ -131,6 +131,7 @@ class CustomValidator extends Validator
 
         $couponCode = empty($value)?'ERRORCODE':$value;
 
+        //Call getCoupon from CartPriceRule because it has validation function
         static::$_storage[$couponCode] = CartPriceRule::getCoupon($couponCode, $order);
 
         //If above method returns string, it is returning error message

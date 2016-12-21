@@ -50,7 +50,6 @@
                         <th> Name </th>
                         <th> Type </th>
                         <th> Coupon </th>
-                        <th> Price </th>
                         <th> Modification </th>
                         <th> Currency </th>
                         <th> Store </th>
@@ -72,7 +71,6 @@
                                     {{ $coupon->coupon_code }}
                                 @endforeach
                             </td>
-                            <td> {{ $priceRule->price?PriceFormatter::formatNumber($priceRule->price, $priceRule->currency):'-' }} </td>
                             <td> {{ $priceRule->modification?$priceRule->getModificationOutput():'-' }} </td>
                             <td> {{ $priceRule->currency?CurrencyHelper::getCurrency($priceRule->currency)['iso']:'All' }} </td>
                             <td> {{ $priceRule->store?$priceRule->store->name:'All' }} </td>

@@ -154,6 +154,8 @@ class OrderHelper
                 $lineItemAmount += $valueDifference;
                 $lineItem->discount_total += $valueDifference;
 
+                $cartPriceRule->appliedLineItems[] = $lineItem;
+
                 $cartPriceRule->total += $valueDifference * $lineItem->quantity;
             }
 
@@ -190,11 +192,19 @@ class OrderHelper
         }
 
         foreach($cartPriceRules as $cartPriceRule){
-            $priceRuleLineItemDatum = [
-                'cart_price_rule_id' => $cartPriceRule->id,
-                'line_item_type' => 'cart_price_rule',
-                'lineitem_total_amount' => $cartPriceRule->total,
-            ];
+            if($cartPriceRule->isCoupon){
+                $priceRuleLineItemDatum = [
+                    'coupon_id' => $cartPriceRule->coupon->id,
+                    'line_item_type' => 'coupon',
+                    'lineitem_total_amount' => $cartPriceRule->total,
+                ];
+            }else{
+                $priceRuleLineItemDatum = [
+                    'cart_price_rule_id' => $cartPriceRule->id,
+                    'line_item_type' => 'cart_price_rule',
+                    'lineitem_total_amount' => $cartPriceRule->total,
+                ];
+            }
 
             $lineItem = $this->reuseOrCreateLineItem($order, $existingLineItems, $count);
 

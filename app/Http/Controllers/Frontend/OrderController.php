@@ -27,6 +27,7 @@ use Kommercio\Models\Order\Order;
 use Kommercio\Models\Order\Payment;
 use Kommercio\Models\PaymentMethod\PaymentMethod;
 use Kommercio\Models\PriceRule\CartPriceRule;
+use Kommercio\Models\PriceRule\Coupon;
 use Kommercio\Models\Product;
 use Kommercio\Models\Profile\Profile;
 use Kommercio\Models\ShippingMethod\ShippingMethod;
@@ -111,18 +112,18 @@ class OrderController extends Controller
             ];
 
             $this->validate($request, $rules);
-            $coupon = CartPriceRule::getCouponByCode($request->input('coupon_code'));
+            $coupon = Coupon::getCouponByCode($request->input('coupon_code'));
             $order->addCoupon($coupon);
 
             $message = trans(LanguageHelper::getTranslationKey('frontend.order.coupon_added'), ['coupon_code' => $coupon->coupon_code]);
         }elseif($request->has('coupon_remove')){
             $rules = [
-                'coupon_remove' => 'required|exists:cart_price_rules,id'
+                'coupon_remove' => 'required|exists:coupons,id'
             ];
 
             $this->validate($request, $rules);
 
-            $coupon = CartPriceRule::findOrFail($request->input('coupon_remove'));
+            $coupon = Coupon::findOrFail($request->input('coupon_remove'));
             $order->removeCoupon($coupon);
 
             $message = trans(LanguageHelper::getTranslationKey('frontend.order.coupon_removed'), ['coupon_code' => $coupon->coupon_code]);
@@ -323,18 +324,18 @@ class OrderController extends Controller
 
             $this->validate($request, $rules);
 
-            $coupon = CartPriceRule::getCouponByCode($request->input('coupon_code'));
+            $coupon = Coupon::getCouponByCode($request->input('coupon_code'));
             $order->addCoupon($coupon);
 
             $message = trans(LanguageHelper::getTranslationKey('frontend.order.coupon_added'), ['coupon_code' => $coupon->coupon_code]);
         }elseif($request->has('coupon_remove')){
             $rules = [
-                'coupon_remove' => 'required|exists:cart_price_rules,id'
+                'coupon_remove' => 'required|exists:coupons,id'
             ];
 
             $this->validate($request, $rules);
 
-            $coupon = CartPriceRule::findOrFail($request->input('coupon_remove'));
+            $coupon = Coupon::findOrFail($request->input('coupon_remove'));
             $order->removeCoupon($coupon);
 
             $message = trans(LanguageHelper::getTranslationKey('frontend.order.coupon_removed'), ['coupon_code' => $coupon->coupon_code]);
@@ -661,13 +662,13 @@ class OrderController extends Controller
 
                     $this->validate($request, $rules);
 
-                    $coupon = CartPriceRule::getCouponByCode($request->input('coupon_code'));
+                    $coupon = Coupon::getCouponByCode($request->input('coupon_code'));
 
                     $order->addCoupon($coupon);
                     $viewData['success'][] = trans(LanguageHelper::getTranslationKey('frontend.order.coupon_added'), ['coupon_code' => $coupon->coupon_code]);
                 }elseif(strpos($process, 'remove_coupon_') !== false){
                     $couponId = str_replace('remove_coupon_', '', $process);
-                    $coupon = CartPriceRule::findOrFail($couponId);
+                    $coupon = Coupon::findOrFail($couponId);
                     $order->removeCoupon($coupon);
 
                     $viewData['success'][] = trans(LanguageHelper::getTranslationKey('frontend.order.coupon_removed'), ['coupon_code' => $coupon->coupon_code]);
@@ -695,7 +696,7 @@ class OrderController extends Controller
 
                     $coupons = [];
                     foreach($order->getCouponLineItems() as $idx=>$couponLineItem){
-                        $coupons[] = $couponLineItem->cartPriceRule->coupon_code;
+                        $coupons[] = $couponLineItem->coupon->coupon_code;
                     }
 
                     $validator = Validator::make([

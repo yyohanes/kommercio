@@ -28,13 +28,13 @@ class CartPriceRule extends Model implements StoreManagedInterface
     const OFFER_TYPE_PRODUCT_DISCOUNT = 'product_discount';
 
     protected $fillable = ['name', 'price', 'modification', 'modification_type', 'modification_source',
-        'currency', 'store_id', 'customer_id', 'minimum_subtotal', 'max_usage', 'max_usage_per_customer', 'offer_type', 'active', 'active_date_from', 'active_date_to', 'sort_order'];
+        'currency', 'store_id', 'customer_id', 'minimum_subtotal', 'max_usage_per_customer', 'offer_type', 'active', 'active_date_from', 'active_date_to', 'sort_order'];
     protected $toggleFields = ['active'];
     protected $casts = [
         'active' => 'boolean',
     ];
 
-    private $_couponCode = null;
+    private $_coupon = null;
 
     //To store calculation
     public $total = 0;
@@ -121,7 +121,28 @@ class CartPriceRule extends Model implements StoreManagedInterface
     {
         $type = $this->determineLineItemType();
 
-        $qb = Order::whereHasLineItem($this->id, $type)->usageCounted();
+        if($type == 'coupon'){
+            $qb = Order::whereHasLineItem($this->coupons->pluck('id')->all(), $type);
+        }else{
+            $qb = Order::whereHasLineItem($this->id, $type);
+        }
+
+        $qb->usageCounted();
+
+        return $qb->count();
+    }
+
+    public function getUsageByCoupon($coupon_code)
+    {
+        if($coupon_code instanceof Coupon){
+            $coupon = $coupon_code;
+        }elseif(is_string($coupon_code)){
+            $coupon = $this->coupons()->where('coupon_code', $coupon_code)->firstOrFail();
+        }
+
+        $qb = Order::whereHasLineItem($coupon->id, 'coupon');
+
+        $qb->usageCounted();
 
         return $qb->count();
     }
@@ -136,18 +157,25 @@ class CartPriceRule extends Model implements StoreManagedInterface
 
         $type = $this->determineLineItemType();
 
-        $qb = Order::whereHasLineItem($this->id, $type)->usageCounted()->where('customer_id', $customer->id);
+        if($type == 'coupon'){
+            $qb = Order::whereHasLineItem($this->coupons->pluck('id')->all(), $type);
+        }else{
+            $qb = Order::whereHasLineItem($this->id, $type);
+        }
+
+        $qb->usageCounted()->where('customer_id', $customer->id);
 
         return $qb->count();
     }
 
-    /*
-     * TODO: Validate by coupon. Currently by cart price rule eventhough Coupon is applied
-     */
     public function validateUsage($email = null)
     {
-        $valid = is_null($this->max_usage) || $this->max_usage > $this->getUsage();
+        $valid = true;
         $message = 'order.coupons.successfully_added';
+
+        if($this->coupon){
+            $valid = is_null($this->coupon->max_usage) || $this->coupon->max_usage > $this->coupon->getUsage();
+        }
 
         if(!$valid){
             $message = 'order.coupons.max_usage_exceeded';
@@ -208,11 +236,6 @@ class CartPriceRule extends Model implements StoreManagedInterface
         return $this->store_id && in_array($this->store_id, $user->getManagedStores()->pluck('id')->all());
     }
 
-    public function linkCouponCode($coupon_code)
-    {
-        $this->_couponCode = $coupon_code;
-    }
-
     protected function determineLineItemType()
     {
         $type = 'cart_price_rule';
@@ -237,9 +260,15 @@ class CartPriceRule extends Model implements StoreManagedInterface
         return $this->offer_type == self::OFFER_TYPE_FREE_SHIPPING;
     }
 
-    public function getCouponCodeAttribute()
+    public function getCouponAttribute()
     {
-        return $this->_couponCode;
+        return $this->_coupon;
+    }
+
+    //Mutators
+    public function setCouponAttribute(Coupon $coupon)
+    {
+        $this->_coupon = $coupon;
     }
 
     //Statics
@@ -358,10 +387,27 @@ class CartPriceRule extends Model implements StoreManagedInterface
 
         $priceRules = $qb->get();
 
-        if($added_coupons){
-            $addedCoupons = self::whereIn('id', $added_coupons)->get();
+        /*
+         * If search with particular coupon code, it means results are tied to that coupon.
+         * Therefore, tie it here
+         */
 
-            $priceRules = $priceRules->merge($addedCoupons)->sortBy('sort_order');
+        if($coupon_code){
+            $coupon = Coupon::where('coupon_code', $coupon_code)->firstOrFail();
+            foreach($priceRules as $priceRule){
+                $priceRule->coupon = $coupon;
+            }
+        }
+
+        if($added_coupons){
+            $addedCoupons = Coupon::whereIn('id', $added_coupons)->get();
+            $couponCartPriceRules = collect([]);
+
+            foreach($addedCoupons as $addedCoupon){
+                $couponCartPriceRules->push($addedCoupon->getCartPriceRule());
+            }
+
+            $priceRules = $priceRules->merge($couponCartPriceRules)->sortBy('sort_order');
         }
 
         return $priceRules;
@@ -377,13 +423,19 @@ class CartPriceRule extends Model implements StoreManagedInterface
             $query->where('coupon_code', trim($code));
         });
 
-        $coupon = $qb->first();
+        $cartPriceRule = $qb->first();
 
-        if($coupon){
-            $coupon->linkCouponCode(trim($code));
+        foreach($cartPriceRule->coupons as $coupon){
+            if($coupon->coupon_code == $code){
+                break;
+            }
         }
 
-        return $coupon;
+        if($cartPriceRule){
+            $cartPriceRule->coupon = $coupon;
+        }
+
+        return $cartPriceRule;
     }
 
     public static function getCoupon($couponCode, Order $currentOrder = null, $request = null)
@@ -402,7 +454,7 @@ class CartPriceRule extends Model implements StoreManagedInterface
 
         $addedCoupons = array_unique(array_merge($addedCoupons, ($request?$request->input('added_coupons', []):[])));
 
-        $coupon = self::getCouponByCode($couponCode);
+        $coupon = Coupon::getCouponByCode($couponCode);
         if(!$coupon){
             return trans(LanguageHelper::getTranslationKey('order.coupons.not_exist'), ['coupon_code' => $couponCode]);
         }

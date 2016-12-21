@@ -85,7 +85,8 @@ class JNE implements ShippingMethodInterface
 
         //From request (if from backend)
         $request = isset($options['request'])?$options['request']:null;
-        if($request){
+        if($request && !empty($order->store->getDefaultWarehouse()->city_id)){
+            $country = Country::findOrFail(ProjectHelper::getStoreByRequest($request)->getDefaultWarehouse()->country_id);
             $origin = City::findOrFail(ProjectHelper::getStoreByRequest($request)->getDefaultWarehouse()->city_id);
             $destination = $request->has('shipping_profile.district_id')?District::findOrFail($request->input('shipping_profile.district_id')):City::findOrFail($request->input('shipping_profile.city_id'));
             $destinationType = $request->has('shipping_profile.district_id')?'subdistrict':'city';

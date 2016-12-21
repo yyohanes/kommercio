@@ -285,6 +285,11 @@ class CartPriceRuleController extends Controller
         }
 
         $coupon->fill($request->all());
+
+        if(!$request->has('max_usage')){
+            $coupon->max_usage = null;
+        }
+
         $coupon->cartPriceRule()->associate($cartPriceRule);
 
         if($request->has('customer_id') && $request->has('customer')){

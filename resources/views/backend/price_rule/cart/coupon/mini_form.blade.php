@@ -19,6 +19,20 @@
             'defaultValue' => $coupon?$coupon->coupon_code:null,
         ])
 
+        @include('backend.master.form.fields.number', [
+            'name' => 'max_usage',
+            'label' => 'Max Usage',
+            'key' => 'max_usage',
+            'attr' => [
+                'class' => 'form-control',
+                'id' => 'max_usage'
+            ],
+            'unitPosition' => 'front',
+            'defaultValue' => $coupon?$coupon->max_usage:null,
+            'help_text' => 'If left empty, it is considered Unlimited.'
+        ])
+
+
         @include('backend.master.form.fields.text', [
             'name' => 'customer',
             'label' => 'Customer',

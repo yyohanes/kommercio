@@ -10,6 +10,7 @@ use Kommercio\Facades\CurrencyHelper;
 use Kommercio\Facades\PriceFormatter;
 use Kommercio\Models\Interfaces\AuthorSignatureInterface;
 use Kommercio\Models\PriceRule\CartPriceRule;
+use Kommercio\Models\PriceRule\Coupon;
 use Kommercio\Models\Product;
 use Kommercio\Models\Profile\Profile;
 use Kommercio\Models\RewardPoint\RewardPointTransaction;
@@ -251,7 +252,7 @@ class Order extends Model implements AuthorSignatureInterface
         return $this;
     }
 
-    public function addCoupon(CartPriceRule $coupon)
+    public function addCoupon(Coupon $coupon)
     {
         $existingLineItems = $this->getCouponLineItems();
 
@@ -268,8 +269,8 @@ class Order extends Model implements AuthorSignatureInterface
             $lineItem = new LineItem();
             $lineItem->order()->associate($this);
             $lineItem->processData([
-                'line_item_type' => 'cart_price_rule',
-                'cart_price_rule_id' => $coupon->id,
+                'line_item_type' => 'coupon',
+                'coupon_id' => $coupon->id,
                 'lineitem_total_amount' => 0, //This is purposely set to 0 because it's not possible to calculate now. Calculation will be done later at Controller level
             ]);
             $lineItem->save();
@@ -280,7 +281,7 @@ class Order extends Model implements AuthorSignatureInterface
         return $this;
     }
 
-    public function removeCoupon(CartPriceRule $coupon)
+    public function removeCoupon(Coupon $coupon)
     {
         $existingLineItems = $this->getCouponLineItems();
 
@@ -884,7 +885,12 @@ class Order extends Model implements AuthorSignatureInterface
     public function scopeWhereHasLineItem($query, $line_item_id, $line_item_type)
     {
         $query->whereHas('lineItems', function($qb) use ($line_item_id, $line_item_type){
-            $qb->where('line_item_id', $line_item_id)->where('line_item_type', $line_item_type);
+            if(is_array($line_item_id)){
+                $qb->whereIn('line_item_id', $line_item_id);
+            }else{
+                $qb->where('line_item_id', $line_item_id);
+            }
+            $qb->where('line_item_type', $line_item_type);
         });
     }
 

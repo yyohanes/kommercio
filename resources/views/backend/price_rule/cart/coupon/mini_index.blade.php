@@ -5,6 +5,7 @@
             <tr>
                 <th> No </th>
                 <th> Code </th>
+                <th> Max Usage </th>
                 <th> Customer </th>
                 <th></th>
             </tr>
@@ -17,6 +18,9 @@
                     </td>
                     <td>
                         {{ $coupon->coupon_code }}
+                    </td>
+                    <td>
+                        {{ $coupon->max_usage }}
                     </td>
                     <td>
                         {{ $coupon->customer?$coupon->customer->fullName.' ('.$coupon->customer->getProfile()->email.')':'All customers' }}

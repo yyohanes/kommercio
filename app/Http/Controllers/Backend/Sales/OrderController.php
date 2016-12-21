@@ -1135,7 +1135,7 @@ class OrderController extends Controller{
             $returnedData = [];
 
             foreach($priceRules as $priceRule){
-                $returnedData[] = $priceRule->toArray() + ['products' => array_keys($priceRule->getProducts())];
+                $returnedData[] = $priceRule->toArray() + ['coupon' => $priceRule->coupon->toArray()] + ['products' => array_keys($priceRule->getProducts())];
             }
 
             return response()->json([
@@ -1159,13 +1159,19 @@ class OrderController extends Controller{
             ], 422);
         }
 
+        $coupons = [];
+        foreach($couponPriceRules as $couponPriceRule)
+        {
+            $coupons[] = $couponPriceRule->coupon;
+        }
+
         if($request->ajax()){
             return response()->json([
-                'data' => $couponPriceRules,
+                'data' => $coupons,
                 '_token' => csrf_token()
             ]);
         }else{
-            return $couponPriceRules;
+            return $coupons;
         }
     }
 

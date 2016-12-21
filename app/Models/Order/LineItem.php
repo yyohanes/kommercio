@@ -7,6 +7,7 @@ use Kommercio\Facades\OrderHelper;
 use Kommercio\Facades\ProjectHelper;
 use Kommercio\Models\File;
 use Kommercio\Models\PriceRule\CartPriceRule;
+use Kommercio\Models\PriceRule\Coupon;
 use Kommercio\Models\Product;
 use Kommercio\Models\ProductDetail;
 use Kommercio\Models\Tax;
@@ -44,7 +45,7 @@ class LineItem extends Model
         $name = $this->name;
 
         if($this->isCoupon){
-            $name = 'Coupon ('.$this->getData('coupon_code').')';
+            $name = 'Coupon ('.$this->coupon->coupon_code.')';
         }
 
         return $name;
@@ -165,6 +166,15 @@ class LineItem extends Model
             $this->net_price = $data['lineitem_total_amount'];
             $this->total = $data['lineitem_total_amount'];
             $this->quantity = 1;
+        }elseif($data['line_item_type'] == 'coupon') {
+            $coupon = Coupon::findOrFail($data['coupon_id']);
+            $this->name = $coupon->cartPriceRule->name;
+            $this->line_item_id = $coupon->id;
+            $this->line_item_type = 'coupon';
+            $this->base_price = $data['lineitem_total_amount'];
+            $this->net_price = $data['lineitem_total_amount'];
+            $this->total = $data['lineitem_total_amount'];
+            $this->quantity = 1;
         }elseif($data['line_item_type'] == 'rounding'){
             $this->name = 'Rounding';
             $this->line_item_type = 'rounding';
@@ -249,14 +259,8 @@ class LineItem extends Model
         $this->line_item_id = $priceRule->id;
         $this->line_item_type = 'cart_price_rule';
 
-        if($priceRule->isCoupon){
-            $this->line_item_type = 'coupon';
-        }elseif($priceRule->isFreeShipping){
+        if($priceRule->isFreeShipping){
             $this->line_item_type = 'free_shipping';
-        }
-
-        if($priceRule->isCoupon){
-            $this->saveData(['coupon_code' => $priceRule->coupon_code]);
         }
     }
 
@@ -458,6 +462,11 @@ class LineItem extends Model
     public function cartPriceRule()
     {
         return $this->belongsTo('Kommercio\Models\PriceRule\CartPriceRule', 'line_item_id');
+    }
+
+    public function coupon()
+    {
+        return $this->belongsTo('Kommercio\Models\PriceRule\Coupon', 'line_item_id');
     }
 
     public function shippingMethod()

@@ -116,19 +116,6 @@
 <hr/>
 
 @include('backend.master.form.fields.number', [
-    'name' => 'max_usage',
-    'label' => 'Max Usage',
-    'key' => 'max_usage',
-    'attr' => [
-        'class' => 'form-control',
-        'id' => 'max_usage'
-    ],
-    'unitPosition' => 'front',
-    'valueColumnClass' => 'col-md-6',
-    'help_text' => 'If left empty, it is considered Unlimited.'
-])
-
-@include('backend.master.form.fields.number', [
     'name' => 'max_usage_per_customer',
     'label' => 'Max Usage per Customer',
     'key' => 'max_usage_per_customer',

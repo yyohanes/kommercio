@@ -134,51 +134,60 @@ var OrderForm = function () {
   //Return calculated price for single product
   var calculateCartPrice = function($lineItem, $quantity)
   {
-      var calculated = {
-          base: $lineItem.net,
-          net: 0,
-          gross: 0,
-          total: $lineItem.net
-      };
+    var calculated = {
+      base: $lineItem.net,
+      net: 0,
+      gross: 0,
+      total: $lineItem.net
+    };
 
-      $product_id = ($lineItem.object.data('line_item') == 'product')?$lineItem.object.find('.line-item-id').val():false;
+    $product_id = ($lineItem.object.data('line_item') == 'product')?$lineItem.object.find('.line-item-id').val():false;
 
-      for(var i in $cartPriceRules){
-          if($cartPriceRules[i].modification_source == 0){
-              calculated.gross = calculatePriceRuleValue(calculated.base, $cartPriceRules[i].price, $cartPriceRules[i].modification, $cartPriceRules[i].modification_type);
-          }else{
-              calculated.gross = calculatePriceRuleValue(calculated.total, $cartPriceRules[i].price, $cartPriceRules[i].modification, $cartPriceRules[i].modification_type);
-          }
-
-          calculated.net = calculated.gross;
-          calculated.total += calculated.net;
-
-          if($cartPriceRules[i].offer_type == 'product_discount' && $lineItem.object.data('line_item') == 'product'){
-              if($cartPriceRules[i].products.length > 0){
-                  if($cartPriceRules[i].products.indexOf(Number($product_id)) < 0){
-                      continue;
-                  }
-              }
-          }else if($cartPriceRules[i].modification_type == 'percent'){
-
-          }else if($cartPriceRules[i].modification_type == 'amount' && $cartPriceRules[i].applied_line_items.length < 1){
-
-          }else{
+    for(var i in $cartPriceRules){
+      if($cartPriceRules[i].offer_type == 'product_discount'){
+        if($lineItem.object.data('line_item') == 'product'){
+          if($cartPriceRules[i].products.length > 0){
+            if($cartPriceRules[i].products.indexOf(Number($product_id)) < 0){
               continue;
+            }
           }
+        } else {
+          continue;
+        }
+      }else if($cartPriceRules[i].modification_type == 'percent'){
 
-          if($cartPriceRules[i].applied_line_items.indexOf($lineItem) < 0){
-              $cartPriceRules[i].applied_line_items.push($lineItem);
-          }
+      }else if($cartPriceRules[i].modification_type == 'amount' && $cartPriceRules[i].applied_line_items.length < 1){
 
-          $lineItem.cartPriceRules[i] = (formHelper.roundNumber(calculated.base + calculated.net) - calculated.base) * $quantity;
-          $lineItem.net += calculated.net;
+      }else{
+        continue;
       }
 
-      $lineItem.net = formHelper.roundNumber($lineItem.net);
-      $lineItem.total = $lineItem.net * $quantity;
+      if($cartPriceRules[i].modification_source == 0){
+        calculated.gross = calculatePriceRuleValue(calculated.base, $cartPriceRules[i].price, $cartPriceRules[i].modification, $cartPriceRules[i].modification_type);
+      }else{
+        calculated.gross = calculatePriceRuleValue(calculated.total, $cartPriceRules[i].price, $cartPriceRules[i].modification, $cartPriceRules[i].modification_type);
+      }
 
-      return calculated.net;
+      calculated.net = calculated.gross;
+      calculated.total += calculated.net;
+
+      if($cartPriceRules[i].applied_line_items.indexOf($lineItem) < 0){
+        $cartPriceRules[i].applied_line_items.push($lineItem);
+      }
+
+      if($cartPriceRules[i].offer_type == 'product_discount'){
+        $lineItem.cartPriceRules[i] = (formHelper.roundNumber(calculated.base + calculated.net) - calculated.base) * $quantity;
+      }else{
+        $lineItem.cartPriceRules[i] = (formHelper.roundNumber(calculated.base + calculated.net) - calculated.base) * 1;
+      }
+
+      $lineItem.net += calculated.net;
+    }
+
+    $lineItem.net = formHelper.roundNumber($lineItem.net);
+    $lineItem.total = $lineItem.net * $quantity;
+
+    return calculated.net;
   }
 
   var calculateOrderSummary = function()
@@ -333,9 +342,9 @@ var OrderForm = function () {
                         applied_line_items: []
                     }
 
-                    isCoupon = !($.trim(data.data[i].coupon_code).length === 0);
+                    isCoupon = typeof data.data[i].coupon != 'undefined';
 
-                    priceRuleName = isCoupon?'<a class="remove-coupon" data-coupon_id="'+data.data[i].id+'" href="#"><i class="fa fa-remove"></i></a> Coupon (' + data.data[i].coupon_code + ')':data.data[i].name;
+                    priceRuleName = isCoupon?'<a class="remove-coupon" data-coupon_id="'+data.data[i].coupon.id+'" href="#"><i class="fa fa-remove"></i></a> Coupon (' + data.data[i].coupon.coupon_code + ')':data.data[i].name;
 
                     var $cartPriceRuleRow = $($cartPriceRulePrototype({key: i, label: priceRuleName, is_coupon: (isCoupon?1:0), value:0, 'cart_price_rule_id': data.data[i].id}));
                     handleRemoveCoupon($cartPriceRuleRow);
