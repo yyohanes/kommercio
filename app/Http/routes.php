@@ -1498,6 +1498,51 @@ Route::group(['middleware' => ['web']], function () {
                         'permissions' => ['delete_reward']
                     ]);
                 });
+
+                //Customer Group
+                Route::group(['prefix' => 'group'], function(){
+                    Route::get('index', [
+                        'as' => 'backend.customer.group.index',
+                        'uses' => 'CustomerGroupController@index',
+                        'permissions' => ['view_customer_group']
+                    ]);
+
+                    Route::get('create', [
+                        'as' => 'backend.customer.group.create',
+                        'uses' => 'CustomerGroupController@create',
+                        'permissions' => ['create_customer_group']
+                    ]);
+
+                    Route::post('store', [
+                        'as' => 'backend.customer.group.store',
+                        'uses' => 'CustomerGroupController@store',
+                        'permissions' => ['create_customer_group']
+                    ]);
+
+                    Route::get('edit/{id}', [
+                        'as' => 'backend.customer.group.edit',
+                        'uses' => 'CustomerGroupController@edit',
+                        'permissions' => ['edit_customer_group']
+                    ]);
+
+                    Route::post('update/{id}', [
+                        'as' => 'backend.customer.group.update',
+                        'uses' => 'CustomerGroupController@update',
+                        'permissions' => ['edit_customer_group']
+                    ]);
+
+                    Route::post('delete/{id}', [
+                        'as' => 'backend.customer.group.delete',
+                        'uses' => 'CustomerGroupController@delete',
+                        'permissions' => ['delete_customer_group']
+                    ]);
+
+                    Route::post('reorder', [
+                        'as' => 'backend.customer.group.reorder',
+                        'uses' => 'CustomerGroupController@reorder',
+                        'permissions' => ['edit_customer_group']
+                    ]);
+                });
             });
 
             //CMS

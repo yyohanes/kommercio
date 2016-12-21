@@ -167,7 +167,16 @@ $permissions = [
             'create_customer' => 'Create Customer',
             'edit_customer' => 'Edit Customer',
             'delete_customer' => 'Delete Customer',
-        ]
+        ],
+    ],
+    'Customer Group' => [
+        'permissions' => [
+            'view_customer_group' => 'View Customer Group',
+            'create_customer_group' => 'Create Customer Group',
+            'edit_customer_group' => 'Edit Customer Group',
+            'delete_customer_group' => 'Delete Customer Group',
+        ],
+        'feature' => 'customer.customer_group'
     ],
     'Reward Points' => [
         'permissions' => [

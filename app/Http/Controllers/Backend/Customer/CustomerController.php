@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Session;
 use Kommercio\Events\RewardPointEvent;
 use Kommercio\Facades\PriceFormatter;
+use Kommercio\Facades\ProjectHelper;
 use Kommercio\Http\Controllers\Controller;
 use Kommercio\Models\Customer;
 use Kommercio\Http\Requests\Backend\Customer\CustomerFormRequest;
@@ -37,6 +38,10 @@ class CustomerController extends Controller{
                         }
                     }elseif($searchKey == 'status') {
                         $qb->whereUserStatus($search);
+                    }elseif($searchKey == 'customer_group') {
+                        $qb->whereHas('customerGroups', function($query) use ($search){
+                            $query->whereIn('id', [$search]);
+                        });
                     }elseif($searchKey == 'full_name') {
                         $qb->whereRaw('CONCAT(VFNAME.value, " ", VLNAME.value) LIKE ?', ['%'.$search.'%']);
                         $qb->orWhereRaw('VFNAME.value LIKE ?', ['%'.$search.'%']);
@@ -87,7 +92,7 @@ class CustomerController extends Controller{
 
     protected function prepareDatatables($customers, $orderingStart=0)
     {
-        $meat= [];
+        $meat = [];
 
         foreach($customers as $idx=>$customer){
             $customer->loadProfileFields();
@@ -105,18 +110,31 @@ class CustomerController extends Controller{
             endif;
             $customerAction .= FormFacade::close();
 
-            $meat[] = [
+            $rowMeat = [
                 $idx + 1 + $orderingStart,
                 $customer->salute?Customer::getSaluteOptions($customer->salute):'',
                 $customer->full_name,
                 $customer->email,
                 '<i class="fa fa-'.(isset($customer->user)?'check text-success':'remove text-danger').'"></i>',
                 isset($customer->user)?'<i class="fa fa-'.($customer->user->status == User::STATUS_ACTIVE?'check text-success':'remove text-danger').'"></i>':'',
+            ];
+
+            if(ProjectHelper::isFeatureEnabled('customer.customer_group')){
+                $customerGroups = '';
+                foreach($customer->customerGroups as $customerGroup){
+                    $customerGroups .= '<span class="badge badge-success">'.$customerGroup->name.'</span>';
+                }
+                $rowMeat[] = $customerGroups;
+            }
+
+            $rowMeat = array_merge($rowMeat, [
                 $customer->created_at?$customer->created_at->format('d M Y H:i'):'',
                 $customer->last_active?$customer->last_active->format('d M Y H:i'):'',
                 PriceFormatter::formatNumber($customer->total),
                 $customerAction
-            ];
+            ]);
+
+            $meat[] = $rowMeat;
         }
 
         return $meat;
@@ -126,8 +144,11 @@ class CustomerController extends Controller{
     {
         $customer = new Customer();
 
+        $customerGroupOptions = Customer\CustomerGroup::getCustomerGroupOptions();
+
         return view('backend.customer.create', [
-            'customer' => $customer
+            'customer' => $customer,
+            'customerGroupOptions' => $customerGroupOptions
         ]);
     }
 
@@ -147,6 +168,8 @@ class CustomerController extends Controller{
 
         $customer = Customer::saveCustomer($request->input('profile'), $accountData);
 
+        $customer->customerGroups()->sync($request->input('customer_groups', []));
+
         return redirect($request->get('backUrl', route('backend.customer.index')))->with('success', ['New Customer is successfully created.']);
     }
 
@@ -154,12 +177,15 @@ class CustomerController extends Controller{
     {
         $customer = Customer::findOrFail($id);
 
+        $customerGroupOptions = Customer\CustomerGroup::getCustomerGroupOptions();
+
         //Fill Profile Details
         $customer->load('user');
         $customer->loadProfileFields();
 
         return view('backend.customer.edit', [
-            'customer' => $customer
+            'customer' => $customer,
+            'customerGroupOptions' => $customerGroupOptions
         ]);
     }
 
@@ -177,6 +203,8 @@ class CustomerController extends Controller{
             }
         }
         $customer = Customer::saveCustomer($request->input('profile'), $accountData);
+
+        $customer->customerGroups()->sync($request->input('customer_groups', []));
 
         return redirect($request->get('backUrl', route('backend.customer.index')))->with('success', ['Customer is successfully updated.']);
     }

@@ -4,6 +4,7 @@ namespace Kommercio\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
+use Kommercio\Facades\LanguageHelper;
 use Kommercio\Models\Order\Order;
 use Kommercio\Models\RewardPoint\RewardPointTransaction;
 use Kommercio\Traits\Model\Profileable;
@@ -56,6 +57,12 @@ class Customer extends Model
     public function coupons()
     {
         return $this->hasMany('Kommercio\Models\PriceRule\Coupon');
+    }
+
+    //Relations
+    public function customerGroups()
+    {
+        return $this->belongsToMany('Kommercio\Models\Customer\CustomerGroup')->orderBy('sort_order', 'ASC')->withTimestamps();
     }
 
     //Methods
@@ -234,9 +241,9 @@ class Customer extends Model
     public static function getSaluteOptions($option=null)
     {
         $array = [
-            self::SALUTE_MR => trans('Mr'),
-            self::SALUTE_MRS => trans('Mrs'),
-            self::SALUTE_MS => trans('Ms'),
+            self::SALUTE_MR => trans(LanguageHelper::getTranslationKey('interface.salute.mr')),
+            self::SALUTE_MRS => trans(LanguageHelper::getTranslationKey('interface.salute.mrs')),
+            self::SALUTE_MS => trans(LanguageHelper::getTranslationKey('interface.salute.ms')),
         ];
 
         if(empty($option)){
@@ -249,8 +256,8 @@ class Customer extends Model
     public static function getProfileNameOptions($option=null)
     {
         $array = [
-            self::PROFILE_NAME_HOME => trans('Home'),
-            self::PROFILE_NAME_OFFICE => trans('Office'),
+            self::PROFILE_NAME_HOME => trans(LanguageHelper::getTranslationKey('interface.address.home')),
+            self::PROFILE_NAME_OFFICE => trans(LanguageHelper::getTranslationKey('interface.addres.office')),
         ];
 
         if(empty($option)){

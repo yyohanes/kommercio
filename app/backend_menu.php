@@ -111,6 +111,13 @@ $menus['customer'] = [
             'route' => 'backend.customer.index',
             'permissions' => 'view_customer'
         ],
+        'customer_group' => [
+            'active_path' => 'customer/group/index',
+            'name' => 'Customer Group',
+            'route' => 'backend.customer.group.index',
+            'permissions' => 'view_customer_group',
+            'feature' => 'customer.customer_group'
+        ],
         'reward_point' => [
             'active_path' => 'customer/reward-point',
             'name' => 'Reward Points',

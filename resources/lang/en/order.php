@@ -1,6 +1,23 @@
 <?php
 
 return [
+    'email' => [
+        'confirmation' => [
+            'subject' => 'Thank you for your order #:reference'
+        ],
+        'processing' => [
+            'subject' => 'We are processing your order #:reference'
+        ],
+        'shipped' => [
+            'subject' => 'Your order #:reference is shipped'
+        ],
+        'completed' => [
+            'subject' => 'Your order #:reference is completed'
+        ],
+        'cancelled' => [
+            'subject' => 'Your order #:reference is cancelled'
+        ]
+    ],
     'coupons' => [
         'successfully_added' => 'Coupon ":coupon_code" is successfully added.',
         'not_exist' => 'Coupon ":coupon_code" is invalid.',

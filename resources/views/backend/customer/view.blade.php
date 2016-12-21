@@ -72,6 +72,17 @@
                                                     <div class="col-md-7 value"> <i class="fa fa-{{ isset($customer->user) && $customer->user->status == \Kommercio\Models\User::STATUS_ACTIVE?'check text-success':'remove text-danger' }}"></i> </div>
                                                 </div>
 
+                                                @if(ProjectHelper::isFeatureEnabled('customer.customer_group'))
+                                                    <div class="row static-info">
+                                                        <div class="col-md-5 name"> Group: </div>
+                                                        <div class="col-md-7 value">
+                                                            @foreach($customer->customerGroups as $customerGroup)
+                                                            <div class="badge badge-success">{{ $customerGroup->name }}</div>
+                                                            @endforeach
+                                                        </div>
+                                                    </div>
+                                                @endif
+
                                                 <div class="row static-info">
                                                     <div class="col-md-5 name"> Salute: </div>
                                                     <div class="col-md-7 value"> {{ $customer->getProfile()->salute }} </div>

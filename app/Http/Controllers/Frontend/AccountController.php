@@ -171,6 +171,8 @@ class AccountController extends Controller
         $view_name = ProjectHelper::getViewTemplate('frontend.member.orders.index');
 
         return view($view_name, [
+            'user' => $this->user,
+            'customer' => $this->customer,
             'orders' => $orders,
             'options' => $options,
             'seoData' => $seoData
@@ -193,6 +195,8 @@ class AccountController extends Controller
         $view_name = ProjectHelper::getViewTemplate('frontend.member.orders.view');
 
         return view($view_name, [
+            'user' => $this->user,
+            'customer' => $this->customer,
             'order' => $order,
             'seoData' => $seoData
         ]);
@@ -210,6 +214,8 @@ class AccountController extends Controller
         $view_name = ProjectHelper::getViewTemplate('frontend.member.address.index');
 
         return view($view_name, [
+            'user' => $this->user,
+            'customer' => $this->customer,
             'profiles' => $profiles,
             'seoData' => $seoData
         ]);
@@ -231,7 +237,8 @@ class AccountController extends Controller
         $view_name = ProjectHelper::getViewTemplate('frontend.member.address.create');
 
         return view($view_name, [
-            'customer' => $customer,
+            'user' => $this->user,
+            'customer' => $this->customer,
             'profile' => $profile,
             'billingDefault' => $billingDefault,
             'shippingDefault' => $shippingDefault,
@@ -264,7 +271,8 @@ class AccountController extends Controller
         $view_name = ProjectHelper::getViewTemplate('frontend.member.address.edit');
 
         return view($view_name, [
-            'customer' => $customer,
+            'user' => $this->user,
+            'customer' => $this->customer,
             'profile' => $profile,
             'billingDefault' => $billingDefault,
             'shippingDefault' => $shippingDefault,

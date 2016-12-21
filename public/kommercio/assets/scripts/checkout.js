@@ -81,7 +81,7 @@
 
         plugin.initComponent = function(context)
         {
-            handleAddressOptions(context);
+            handleAddressSelector(context);
             handleStepButton(context);
             handleShippingMethod(context);
             handlePaymentMethod(context);
@@ -98,97 +98,6 @@
 
                 plugin.processCheckout($form, 'change');
             });
-        }
-
-        var handleAddressOptions = function(context)
-        {
-            var $shippingMethodSelect = $('#shipping_method', context);
-            var $countrySelect = $('#country-select', context);
-            var $stateSelect = $('#state-select', context);
-            var $citySelect = $('#city-select', context);
-            var $districtSelect = $('#district-select', context);
-
-            $countrySelect.on('change', function(e){
-                $.ajax(global_vars.base_path + '/address/state/options', {
-                    'data' : 'parent=' + $(e.target).val(),
-                    'dataType' : 'json',
-                    'success' : function(data){
-                        var $options = KommercioFrontend.selectHelper.convertToOptions(data, 'State');
-
-                        if(data.length < 1){
-                            $stateSelect.hide();
-                        }else{
-                            $stateSelect.show();
-                        }
-
-                        $stateSelect.html($options);
-
-                        $stateSelect.trigger('change');
-
-                        delete $options;
-                    }
-                });
-            });
-
-            $stateSelect.on('change', function(e){
-                $.ajax(global_vars.base_path + '/address/city/options', {
-                    'data' : 'parent=' + $(e.target).val(),
-                    'dataType' : 'json',
-                    'success' : function(data){
-                        var $options = KommercioFrontend.selectHelper.convertToOptions(data, 'City');
-
-                        if(data.length < 1){
-                            $citySelect.hide();
-                        }else{
-                            $citySelect.show();
-                        }
-
-                        $citySelect.html($options);
-
-                        $citySelect.trigger('change');
-
-                        delete $options;
-                    }
-                });
-            });
-
-            $citySelect.on('change', function(e){
-                $.ajax(global_vars.base_path + '/address/district/options', {
-                    'data' : 'parent=' + $(e.target).val(),
-                    'dataType' : 'json',
-                    'success' : function(data){
-                        var $options = KommercioFrontend.selectHelper.convertToOptions(data, 'District');
-
-                        if(data.length < 1){
-                            $districtSelect.hide();
-                        }else{
-                            $districtSelect.show();
-                        }
-
-                        $districtSelect.html($options);
-
-                        $districtSelect.trigger('change');
-
-                        delete $options;
-                    }
-                });
-            });
-
-            if($countrySelect.find('option').length <= 2 && $countrySelect.val() == ''){
-                $countrySelect.val($countrySelect.find('option:eq(1)').val());
-            }
-
-            if($stateSelect.find('option').length < 2){
-                $countrySelect.trigger('change');
-            }
-
-            if($citySelect.find('option').length < 2){
-                $stateSelect.trigger('change');
-            }
-
-            if($districtSelect.find('option').length < 2){
-                $citySelect.trigger('change');
-            }
         }
 
         var handleStepButton = function(context)

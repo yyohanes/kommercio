@@ -2,15 +2,15 @@
 
   $.productOrderForm = function(element, options) {
 
-    var defaults = {}
-
-    var plugin = this;
-
-    plugin.settings = {
+    var defaults = {
       data_variation_url: 'get_variation_url',
       detail_wrapper_selector: '#product-detail-wrapper',
       add_to_cart_selector: '.add-to-cart-btn'
     }
+
+    var plugin = this;
+
+    plugin.settings = {}
 
     var $element = $(element),
       element = element;

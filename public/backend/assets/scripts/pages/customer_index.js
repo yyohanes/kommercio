@@ -1,7 +1,29 @@
 var CustomerIndex = function () {
 
     var initTable = function () {
-        var $dataTable = new Datatable();
+      var $dataTable = new Datatable();
+
+      var runtimeAdditonalColumns = 0;
+      var columnDefs = [
+        {"name": "no", "targets": 0, "orderable": false},
+        {"name": "salute", "targets": 1, "orderable": false},
+        {"name": "full_name", "targets": 2},
+        {"name": "email", "targets": 3},
+        {"name": "account", "targets": 4, "orderable": false},
+        {"name": "status", "targets": 5, "orderable": false}
+      ]
+
+      if(enable_customer_group){
+        columnDefs.push({"name": "customer_group", "orderable": false, "targets": 6});
+        runtimeAdditonalColumns += 1;
+      }
+
+      columnDefs = columnDefs.concat([
+        {"name": "created_at", "targets": 6+runtimeAdditonalColumns},
+        {"name": "last_active", "targets": 7+runtimeAdditonalColumns},
+        {"name": "total", "targets": 8+runtimeAdditonalColumns},
+        {"name": "action", "orderable" : false, "targets": 9+runtimeAdditonalColumns}
+      ]);
 
         $dataTable.init({
             token: $('#customers-dataset').data('form_token'),
@@ -42,20 +64,9 @@ var CustomerIndex = function () {
                 "processing": true,
                 "serverSide": true,
                 "order": [
-                    [6, "desc"]
+                    [6+runtimeAdditonalColumns, "desc"]
                 ],
-                "columnDefs": [
-                    {"name": "no", "targets": 0, "orderable": false},
-                    {"name": "salute", "targets": 1, "orderable": false},
-                    {"name": "full_name", "targets": 2},
-                    {"name": "email", "targets": 3},
-                    {"name": "account", "targets": 4, "orderable": false},
-                    {"name": "status", "targets": 5, "orderable": false},
-                    {"name": "created_at", "targets": 6},
-                    {"name": "last_active", "targets": 7},
-                    {"name": "total", "targets": 8},
-                    {"name": "action", "orderable" : false, "targets": 9}
-                ]
+                "columnDefs": columnDefs
             }
         });
     }

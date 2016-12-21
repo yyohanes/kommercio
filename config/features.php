@@ -15,6 +15,7 @@ return [
         'menu' => true
     ],
     'customer' => [
-        'reward_points' => false
+        'reward_points' => false,
+        'customer_group' => false
     ]
 ];

@@ -165,12 +165,16 @@ class OrderController extends Controller
 
         $order = FrontendHelper::getCurrentOrder('save');
 
+        $added_products = [];
+
         foreach($productData as $productDatum){
             $product_id = $productDatum['product_id'];
 
             $product = Product::findOrFail($product_id);
 
             $order->addToCart($product, $productDatum['quantity']);
+
+            $added_products[] = $product;
 
             $messages[] = trans(LanguageHelper::getTranslationKey('frontend.order.added_to_cart'), ['product' => $product->name]);
         }
@@ -180,10 +184,13 @@ class OrderController extends Controller
         $order->save();
 
         if($request->ajax()){
+            $added_view_name = ProjectHelper::findViewTemplate(['frontend.catalog.product.added_to_cart']);
+
             return new JsonResponse([
                 'data' => [
                     'itemsCount' => $order->itemsCount,
-                    'total' => PriceFormatter::formatNumber($order->total)
+                    'total' => PriceFormatter::formatNumber($order->total),
+                    'added_to_cart' => view($added_view_name, ['added_products' => $added_products])->render()
                 ],
                 'success' => $messages,
                 '_token' => csrf_token()

@@ -85,7 +85,6 @@ class MenuItemController extends Controller{
     public function reorder(Request $request)
     {
         $this->saveNewOrder($request->input('objects', []));
-        \Log::info($request->input('objects', []));
 
         if($request->ajax()){
             return response()->json([
