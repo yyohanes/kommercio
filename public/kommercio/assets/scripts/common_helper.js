@@ -18,7 +18,7 @@ function handleAddressSelector(context)
 
                     $stateSelect.trigger('change');
 
-                    if(data.length < 1){
+                    if(data.length < 2){
                         $(obj).find('.state-select-wrapper').hide();
                     }else{
                         $(obj).find('.state-select-wrapper').show();
@@ -40,7 +40,7 @@ function handleAddressSelector(context)
 
                     $citySelect.trigger('change');
 
-                    if(data.length < 1){
+                    if(data.length < 2){
                         $(obj).find('.city-select-wrapper').hide();
                     }else{
                         $(obj).find('.city-select-wrapper').show();
@@ -62,7 +62,7 @@ function handleAddressSelector(context)
 
                     $districtSelect.trigger('change');
 
-                    if(data.length < 1){
+                    if(data.length < 2){
                         $(obj).find('.district-select-wrapper').hide();
                     }else{
                         $(obj).find('.district-select-wrapper').show();
@@ -84,7 +84,7 @@ function handleAddressSelector(context)
 
                     $areaSelect.trigger('change');
 
-                    if(data.length < 1){
+                    if(data.length < 2){
                         $(obj).find('.area-select-wrapper').hide();
                     }else{
                         $(obj).find('.area-select-wrapper').show();
