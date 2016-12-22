@@ -8,11 +8,11 @@ function handleAddressSelector(context)
         var $areaSelect = $('.area-select', obj);
 
         $countrySelect.on('change', function(e){
-            $.ajax(global_vars.base_path + '/address/state/options', {
+            $.ajax(global_vars.base_path + '/address/state/options?first_option=1', {
                 'data' : 'parent=' + $(e.target).val(),
                 'dataType' : 'json',
                 'success' : function(data){
-                    var $options = KommercioFrontend.selectHelper.convertToOptions(data, 'State');
+                    var $options = KommercioFrontend.selectHelper.convertToOptions(data);
 
                     $stateSelect.html($options);
 
@@ -30,11 +30,11 @@ function handleAddressSelector(context)
         });
 
         $stateSelect.on('change', function(e){
-            $.ajax(global_vars.base_path + '/address/city/options', {
+            $.ajax(global_vars.base_path + '/address/city/options?first_option=1', {
                 'data' : 'parent=' + $(e.target).val(),
                 'dataType' : 'json',
                 'success' : function(data){
-                    var $options = KommercioFrontend.selectHelper.convertToOptions(data, 'City');
+                    var $options = KommercioFrontend.selectHelper.convertToOptions(data);
 
                     $citySelect.html($options);
 
@@ -52,11 +52,11 @@ function handleAddressSelector(context)
         });
 
         $citySelect.on('change', function(e){
-            $.ajax(global_vars.base_path + '/address/district/options', {
+            $.ajax(global_vars.base_path + '/address/district/options?first_option=1', {
                 'data' : 'parent=' + $(e.target).val(),
                 'dataType' : 'json',
                 'success' : function(data){
-                    var $options = KommercioFrontend.selectHelper.convertToOptions(data, 'District');
+                    var $options = KommercioFrontend.selectHelper.convertToOptions(data);
 
                     $districtSelect.html($options);
 
@@ -74,11 +74,11 @@ function handleAddressSelector(context)
         });
 
         $districtSelect.on('change', function(e){
-            $.ajax(global_vars.base_path + '/address/area/options', {
+            $.ajax(global_vars.base_path + '/address/area/options?first_option=1', {
                 'data' : 'parent=' + $(e.target).val(),
                 'dataType' : 'json',
                 'success' : function(data){
-                    var $options = KommercioFrontend.selectHelper.convertToOptions(data, 'Area');
+                    var $options = KommercioFrontend.selectHelper.convertToOptions(data);
 
                     $areaSelect.html($options);
 
@@ -95,21 +95,28 @@ function handleAddressSelector(context)
             });
         });
 
-        if($stateSelect.find('option').length < 2){
-            $countrySelect.trigger('change');
-        }
+      if($countrySelect.find('option').length == 2){
+        $countrySelect.find('option').prop('selected', false);
+        $countrySelect.find('option:eq(1)').prop('selected', true);
 
-        if($citySelect.find('option').length < 2){
-            $stateSelect.trigger('change');
-        }
+        $countrySelect.trigger('change');
+      }
 
-        if($districtSelect.find('option').length < 2){
-            $citySelect.trigger('change');
-        }
+      if($stateSelect.find('option').length < 2){
+        $countrySelect.trigger('change');
+      }
 
-        if($areaSelect.find('option').length < 2){
-            $districtSelect.trigger('change');
-        }
+      if($citySelect.find('option').length < 2){
+        $stateSelect.trigger('change');
+      }
+
+      if($districtSelect.find('option').length < 2){
+        $citySelect.trigger('change');
+      }
+
+      if($areaSelect.find('option').length < 2){
+        $districtSelect.trigger('change');
+      }
     });
 }
 
