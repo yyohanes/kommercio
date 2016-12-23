@@ -21,6 +21,7 @@
         "maiorano84/shortcodes": "~1.0",
         "mews/captcha": "^2.1",
         "mailerlite/mailerlite-api-v2-php-sdk": "^0.1.6",
+        "sendgrid/sendgrid": "~5.1",
         "unisharp/laravel-filemanager": "^1.6",
         "stripe/stripe-php": "3.*"
     },

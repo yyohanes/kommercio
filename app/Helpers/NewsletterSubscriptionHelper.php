@@ -9,23 +9,65 @@ class NewsletterSubscriptionHelper
 {
     public function subscribe($group = 'default', $email, $name=null, $last_name = null, $additional = [])
     {
-        $mailerlite = new MailerLite(ProjectHelperFacade::getConfig('mailerlite_api_key'));
-        $groupsApi = $mailerlite->groups();
+        $defaultNewsletter = ProjectHelperFacade::getConfig('newsletter.default', 'mailerlite');
 
-        $data = [
-            'email' => $email,
-            'fields' => [
-                'name' => $name,
-                'last_name' => $last_name
-            ]
-        ];
+        if($defaultNewsletter == 'mailerlite'){
+            $mailerlite = new MailerLite(ProjectHelperFacade::getConfig('newsletter.'.$defaultNewsletter.'.api_key'));
+            $groupsApi = $mailerlite->groups();
 
-        $data['fields'] += $additional;
+            $data = [
+                'email' => $email,
+                'fields' => [
+                    'name' => $name,
+                    'last_name' => $last_name
+                ]
+            ];
 
-        $subscriber = $data;
+            $data['fields'] += $additional;
 
-        $group_id = ProjectHelperFacade::getConfig('mailerlite_subscriber_groups.'.$group, ProjectHelperFacade::getConfig('mailerlite_subscriber_groups.default'));
+            $subscriber = $data;
 
-        $response = $groupsApi->addSubscriber($group_id, $subscriber);
+            $group_id = ProjectHelperFacade::getConfig('newsletter.'.$defaultNewsletter.'.subscriber_groups.'.$group, ProjectHelperFacade::getConfig('newsletter.'.$defaultNewsletter.'.subscriber_groups.default'));
+
+            $response = $groupsApi->addSubscriber($group_id, $subscriber);
+        }elseif($defaultNewsletter == 'sendgrid'){
+            $sendgrid = new \SendGrid(ProjectHelperFacade::getConfig('newsletter.'.$defaultNewsletter.'.api_key'));
+
+            $first_name = $name;
+
+            if(!$last_name){
+                $exploded = explode(' ', $name);
+                if(count($exploded) > 1){
+                    $last_name = array_pop($exploded);
+                    $first_name = implode(' ', $exploded);
+                }else{
+                    $last_name = null;
+                }
+            }
+
+            $data = [
+                [
+                    'email' => $email,
+                    'first_name' => $first_name,
+                    'last_name' => $last_name
+                ]
+            ];
+
+            $response = $sendgrid->client->contactdb()->recipients()->post($data);
+            if(preg_match('/^2/', $response->statusCode())){
+                $result = json_decode($response->body());
+
+                $group_id = ProjectHelperFacade::getConfig('newsletter.'.$defaultNewsletter.'.subscriber_groups.'.$group, ProjectHelperFacade::getConfig('newsletter.'.$defaultNewsletter.'.subscriber_groups.default'));
+
+                $response = $sendgrid->client->contactdb()->lists()->_($group_id)->recipients()->post($result->persisted_recipients);
+            }
+        }
+    }
+
+    public function getAllowedGroups()
+    {
+        $defaultNewsletter = ProjectHelperFacade::getConfig('newsletter.default', 'mailerlite');
+
+        return ProjectHelperFacade::getConfig('newsletter.'.$defaultNewsletter.'.subscriber_groups', []);
     }
 }

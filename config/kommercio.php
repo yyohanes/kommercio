@@ -80,9 +80,20 @@ return [
     'checkout_options' => [
         'shipping_method_position' => 'review', //review; before_review; before_shipping_address
     ],
-    'mailerlite_api_key' => 'f27a47abc3d9162a2c987c05777322f3',
-    'mailerlite_subscriber_groups' => [
-        'default' => 4404091,
+    'newsletter' => [
+        'default' => 'mailerlite',
+        'mailerlite' => [
+            'api_key' => 'f27a47abc3d9162a2c987c05777322f3',
+            'subscriber_groups' => [
+                'default' => 4404091,
+            ],
+        ],
+        'sendgrid' => [
+            'api_key' => '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',
+            'subscriber_groups' => [
+                'default' => 851021
+            ]
+        ]
     ],
     'secret_chamber_key' => '$2y$10$/9NFya/4H/PfkkeSRNuF0Oc9fX2OV4xAHaRIhi3/VxZU/ADBSFlza',
     'test_ips' => [

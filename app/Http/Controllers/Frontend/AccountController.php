@@ -424,7 +424,7 @@ class AccountController extends Controller
 
     public function newsletterWidgetSubscribe(Request $request)
     {
-        $allowedGroups = ProjectHelper::getConfig('mailerlite_subscriber_groups', []);
+        $allowedGroups = NewsletterSubscriptionHelper::getAllowedGroups();
         $allowedGroups = implode('|', array_keys($allowedGroups));
 
         $rules = [
@@ -444,5 +444,10 @@ class AccountController extends Controller
         }
 
         return redirect()->back()->with('success', [trans(LanguageHelper::getTranslationKey('frontend.member.newsletter.subscription_success_message'))]);
+    }
+
+    public function test()
+    {
+        NewsletterSubscriptionHelper::subscribe('default', 'Yohanes@kommercio.id', 'Yohanes Zhuang Yue Han');
     }
 }
