@@ -445,9 +445,4 @@ class AccountController extends Controller
 
         return redirect()->back()->with('success', [trans(LanguageHelper::getTranslationKey('frontend.member.newsletter.subscription_success_message'))]);
     }
-
-    public function test()
-    {
-        NewsletterSubscriptionHelper::subscribe('default', 'Yohanes@kommercio.id', 'Yohanes Zhuang Yue Han');
-    }
 }
