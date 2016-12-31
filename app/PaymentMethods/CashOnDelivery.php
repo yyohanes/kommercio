@@ -16,6 +16,11 @@ class CashOnDelivery implements PaymentMethodInterface
         return $valid;
     }
 
+    public function isExternalCheckout()
+    {
+        return false;
+    }
+
     public function setPaymentMethod(PaymentMethod $paymentMethod)
     {
         $this->paymentMethod = $paymentMethod;

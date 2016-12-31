@@ -721,24 +721,26 @@ class OrderController extends Controller
                         $errors = $paymentResponse;
                     }
 
-                    $order->processStocks();
+                    if($errors){
+                        $order->processStocks();
 
-                    $this->placeOrder($order);
+                        $this->placeOrder($order);
 
-                    if(!ProjectHelper::getConfig('require_billing_information')){
-                        //Copy Shipping info to Billing
-                        $order->saveProfile('billing', $order->shippingInformation->getDetails());
+                        if(!ProjectHelper::getConfig('require_billing_information')){
+                            //Copy Shipping info to Billing
+                            $order->saveProfile('billing', $order->shippingInformation->getDetails());
+                        }
+
+                        $profileData = $order->billingInformation->getDetails();
+                        $viewData['customer'] = Customer::saveCustomer($profileData, null, FALSE);
+
+                        //Save customer to order
+                        if($viewData['customer']){
+                            $order->customer()->associate($viewData['customer']);
+                        }
+
+                        $nextStep = 'complete';
                     }
-
-                    $profileData = $order->billingInformation->getDetails();
-                    $viewData['customer'] = Customer::saveCustomer($profileData, null, FALSE);
-
-                    //Save customer to order
-                    if($viewData['customer']){
-                        $order->customer()->associate($viewData['customer']);
-                    }
-
-                    $nextStep = 'complete';
                 }
                 break;
             default:

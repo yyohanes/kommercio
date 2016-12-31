@@ -92,6 +92,9 @@ class PriceRuleFormRequest extends Request
         if(!$this->has('price_rule.variation_id')){
             $attributes['price_rule']['variation_id'] = null;
         }
+        if(!$this->has('price_rule.currency')){
+            $attributes['price_rule']['currency'] = null;
+        }
         if(!$this->has('price_rule.store_id')){
             $attributes['price_rule']['store_id'] = null;
         }

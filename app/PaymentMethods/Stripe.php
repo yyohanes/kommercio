@@ -23,6 +23,11 @@ class Stripe implements PaymentMethodInterface, PaymentMethodSettingFormInterfac
         return $valid;
     }
 
+    public function isExternalCheckout()
+    {
+        return false;
+    }
+
     public function setPaymentMethod(PaymentMethod $paymentMethod)
     {
         $this->paymentMethod = $paymentMethod;

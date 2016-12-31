@@ -11,6 +11,38 @@ class PriceRuleOptionGroup extends Model
 
     protected $guarded = [];
 
+    //Methods
+    public function getProducts()
+    {
+        $qb = Product::query();
+
+        if($this->categories->count() > 0){
+            $qb->whereHas('categories', function($query){
+                $query->whereIn('id', $this->categories->pluck('id')->all());
+            });
+        }
+
+        if($this->manufacturers->count() > 0){
+            $qb->whereHas('manufacturer', function($query){
+                $query->whereIn('id', $this->manufacturers->pluck('id')->all());
+            });
+        }
+
+        if($this->featureValues->count() > 0){
+            $qb->whereHas('productFeatureValues', function($query){
+                $query->whereIn('id', $this->featureValues->pluck('id')->all());
+            });
+        }
+
+        if($this->attributeValues->count() > 0){
+            $qb->whereHas('productAttributeValues', function($query){
+                $query->whereIn('id', $this->attributeValues->pluck('id')->all());
+            });
+        }
+
+        return $qb->get();
+    }
+
     //Relations
     public function priceRule()
     {
@@ -35,39 +67,5 @@ class PriceRuleOptionGroup extends Model
     public function featureValues()
     {
         return $this->morphedByMany('Kommercio\Models\ProductFeature\ProductFeatureValue', 'price_rule_optionable');
-    }
-
-    //Methods
-    public function validateProduct(Product $product)
-    {
-        //Validate one because it's an OR validation
-        foreach($this->optionFields as $optionField){
-            switch($optionField){
-                case 'categories':
-                    $productValues = $product->categories->pluck('id')->all();
-                    break;
-                case 'manufacturers':
-                    $productValues = $product->manufacturer_id?[$product->manufacturer_id]:null;
-                    break;
-                case 'attributeValues':
-                    $productValues = $product->productAttributeValues->pluck('id')->all();
-                    break;
-                case 'featureValues':
-                    $productValues = $product->productFeatureValues->pluck('id')->all();
-                    break;
-                default:
-                    break;
-            }
-
-            if($productValues){
-                $intersected = array_intersect($this->$optionField->pluck('id')->all(), $productValues);
-
-                if(!empty($intersected)){
-                    return TRUE;
-                }
-            }
-        }
-
-        return FALSE;
     }
 }

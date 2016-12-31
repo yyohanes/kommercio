@@ -4,16 +4,22 @@ namespace Kommercio\Http\Controllers\Frontend;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Kommercio\Events\CatalogQueryBuilder as CatalogQueryBuilderEvent;
 use Kommercio\Facades\FrontendHelper;
 use Kommercio\Facades\LanguageHelper;
 use Kommercio\Facades\PriceFormatter;
+use Kommercio\Facades\ProductIndexHelper;
+use Kommercio\Facades\RuntimeCache;
 use Kommercio\Http\Controllers\Controller;
 use Kommercio\Facades\ProjectHelper;
+use Kommercio\Models\Manufacturer;
 use Kommercio\Models\Product;
+use Kommercio\Models\ProductAttribute\ProductAttributeValue;
 use Kommercio\Models\ProductCategory;
 use Kommercio\Models\ProductDetail;
+use Kommercio\Models\ProductFeature\ProductFeatureValue;
 
 class CatalogController extends Controller
 {
@@ -83,45 +89,25 @@ class CatalogController extends Controller
 
     public function search(Request $request, $view_name = null)
     {
-        $options = [
-            'limit' => $request->input('limit', ProjectHelper::getConfig('catalog_options.limit')),
-            'sort_by' => $request->input('sort_by', ProjectHelper::getConfig('catalog_options.sort_by')),
-            'sort_dir' => $request->input('sort_dir', ProjectHelper::getConfig('catalog_options.sort_dir')),
-            'keyword' => $request->input('keyword'),
-            'new' => $request->input('new', false)
-        ];
+        $instilledRequest = $this->instillCatalogRequest($request);
+        $options = $instilledRequest['options'];
+        $facetOptions = $instilledRequest['facetOptions'];
 
         $qb = Product::productEntity();
 
+        $this->filterQuery($qb, $options, $facetOptions);
+        $this->addSortQuery($qb, $options);
+
+        if($options['new']){
+            $qb->isNew();
+        }
+
         $event_results = Event::fire(new CatalogQueryBuilderEvent('search', $qb, $request, $options));
+
+        $facetOptions['products'] = $qb->get();
 
         //If not processed, build default query here
         if(!isset($event_results[0]) || empty($event_results[0])){
-            $this->addSortQuery($qb, $options);
-
-            if($options['new']){
-                $qb->isNew();
-            }
-
-            if(!empty($options['keyword'])){
-                $qb->where(function($qb) use ($options){
-                    $qb->where('T.name', 'LIKE', '%'.$options['keyword'].'%');
-
-                    $qb->orWhere('sku', 'LIKE', '%'.$options['keyword'].'%');
-
-                    $qb->orWhereHas('variations', function($query) use ($options){
-                        $query->where('name', 'LIKE', '%'.$options['keyword'].'%')->orWhere('sku', 'LIKE', '%'.$options['keyword'].'%');
-                    });
-
-                    $qb->orWhereHas('categories', function($query) use ($options){
-                        $query->whereTranslationLike('name', '%'.$options['keyword'].'%');
-                    });
-
-                    $qb->orWhereHas('manufacturer', function($query) use ($options){
-                        $query->where('name', 'LIKE', '%'.$options['keyword'].'%');
-                    });
-                });
-            }
             $products = $qb->paginate($options['limit']);
         }else{
             $products = $event_results[0];
@@ -146,19 +132,20 @@ class CatalogController extends Controller
             'meta_title' => trans(LanguageHelper::getTranslationKey('frontend.seo.catalog.search.meta_title'), ['keyword' => $request->input('keyword')])
         ];
 
+        $facetedNavigation = $this->getFacetedNavigation($facetOptions);
+
         return view($view_name, [
             'products' => $products,
             'options' => $options,
-            'seoData' => $seoData
+            'seoData' => $seoData,
+            'facetedNavigation' => $facetedNavigation
         ]);
     }
 
     public function searchAutocomplete(Request $request)
     {
-        $options = [
-            'limit' => $request->input('limit', 5),
-            'keyword' => $request->input('keyword'),
-        ];
+        $instilledRequest = $this->instillCatalogRequest($request);
+        $options = $instilledRequest['options'];
 
         $qb = Product::productEntity();
 
@@ -203,25 +190,23 @@ class CatalogController extends Controller
 
     public function shop(Request $request)
     {
-        $options = [
-            'limit' => $request->input('limit', ProjectHelper::getConfig('catalog_options.limit')),
-            'sort_by' => $request->input('sort_by', ProjectHelper::getConfig('catalog_options.sort_by')),
-            'sort_dir' => $request->input('sort_dir', ProjectHelper::getConfig('catalog_options.sort_dir')),
-            'new' => $request->input('new', false)
-        ];
+        $instilledRequest = $this->instillCatalogRequest($request);
+        $options = $instilledRequest['options'];
+        $facetOptions = $instilledRequest['facetOptions'];
 
         $qb = Product::productEntity();
+
+        $this->filterQuery($qb, $options, $facetOptions);
+        $this->addSortQuery($qb, $options);
+
+        if($options['new']){
+            $qb->isNew();
+        }
 
         $event_results = Event::fire(new CatalogQueryBuilderEvent('products', $qb, $request, $options));
 
         //If not processed, build default query here
         if(!isset($event_results[0]) || empty($event_results[0])){
-            $this->addSortQuery($qb, $options);
-
-            if($options['new']){
-                $qb->isNew();
-            }
-
             $products = $qb->paginate($options['limit']);
         }else{
             $products = $event_results[0];
@@ -234,7 +219,7 @@ class CatalogController extends Controller
             }
         }
 
-        $products->setPath(FrontendHelper::get_url($request->path()))->appends($appendedOptions);
+        $products->setPath(FrontendHelper::getUrl($request->path()))->appends($appendedOptions);
 
         $views = ['frontend.catalog.shop'];
 
@@ -248,10 +233,13 @@ class CatalogController extends Controller
             'meta_title' => trans(LanguageHelper::getTranslationKey('frontend.seo.catalog.shop.meta_title'))
         ];
 
+        $facetedNavigation = $this->getFacetedNavigation($facetOptions);
+
         return view($view_name, [
             'products' => $products,
             'options' => $options,
-            'seoData' => $seoData
+            'seoData' => $seoData,
+            'facetedNavigation' => $facetedNavigation
         ]);
     }
 
@@ -279,20 +267,20 @@ class CatalogController extends Controller
             return redirect()->back()->withErrors([trans(LanguageHelper::getTranslationKey('frontend.product_category.not_active'))]);
         }
 
-        $options = [
-            'limit' => $request->input('limit', ProjectHelper::getConfig('catalog_options.limit')),
-            'sort_by' => $request->input('sort_by', ProjectHelper::getConfig('catalog_options.sort_by')),
-            'sort_dir' => $request->input('sort_dir', ProjectHelper::getConfig('catalog_options.sort_dir'))
-        ];
+        $instilledRequest = $this->instillCatalogRequest($request);
+        $options = $instilledRequest['options'];
+        $facetOptions = $instilledRequest['facetOptions'];
 
         $qb = $productCategory->products();
+        $this->filterQuery($qb, $options, $facetOptions);
+        $this->addSortQuery($qb, $options);
 
         $event_results = Event::fire(new CatalogQueryBuilderEvent('product_category_products', $qb, $request, $options));
 
+        $facetOptions['products'] = $qb->get();
+
         //If not processed, build default query here
         if(!isset($event_results[0]) || empty($event_results[0])){
-            $this->addSortQuery($qb, $options);
-
             $products = $qb->paginate($options['limit']);
         }else{
             $products = $event_results[0];
@@ -309,11 +297,14 @@ class CatalogController extends Controller
 
         $view_name = ProjectHelper::findViewTemplate($productCategory->getViewSuggestions());
 
+        $facetedNavigation = $this->getFacetedNavigation($facetOptions);
+
         return view($view_name, [
             'productCategory' => $productCategory,
             'products' => $products,
             'options' => $options,
-            'seoModel' => $productCategory
+            'seoModel' => $productCategory,
+            'facetedNavigation' => $facetedNavigation
         ]);
     }
 
@@ -341,5 +332,158 @@ class CatalogController extends Controller
         if(isset($options['new']) && $options['new']){
             $qb->isNew();
         }
+    }
+
+    protected function instillCatalogRequest(Request $request)
+    {
+        $options = [
+            'limit' => $request->input('limit', ProjectHelper::getConfig('catalog_options.limit')),
+            'sort_by' => $request->input('sort_by', ProjectHelper::getConfig('catalog_options.sort_by')),
+            'sort_dir' => $request->input('sort_dir', ProjectHelper::getConfig('catalog_options.sort_dir')),
+            'new' => $request->input('new', false),
+            'keyword' => $request->input('keyword', null),
+            'page' => $request->input('page', null),
+        ];
+
+        $facetOptions = array_diff_key($request->all(), $options);
+
+        return [
+            'options' => $options,
+            'facetOptions' => $facetOptions
+        ];
+    }
+
+    protected function filterQuery($qb, $options = [], $facetOptions = [])
+    {
+        if(!empty($options['keyword'])){
+            $qb->where(function($qb) use ($options){
+                $qb->where('T.name', 'LIKE', '%'.$options['keyword'].'%');
+
+                $qb->orWhere('sku', 'LIKE', '%'.$options['keyword'].'%');
+
+                $qb->orWhereHas('variations', function($query) use ($options){
+                    $query->where('name', 'LIKE', '%'.$options['keyword'].'%')->orWhere('sku', 'LIKE', '%'.$options['keyword'].'%');
+                });
+
+                $qb->orWhereHas('categories', function($query) use ($options){
+                    $query->whereTranslationLike('name', '%'.$options['keyword'].'%');
+                });
+
+                $qb->orWhereHas('manufacturer', function($query) use ($options){
+                    $query->where('name', 'LIKE', '%'.$options['keyword'].'%');
+                });
+            });
+        }
+
+        if(isset($facetOptions['manufacturer'])){
+            $manufacturers = [];
+            foreach(explode('--', $facetOptions['manufacturer']) as $manufacturerSlug){
+                $manufacturer = RuntimeCache::getOrSet('manufacturer['.$manufacturerSlug.']', function() use ($manufacturerSlug){
+                    return Manufacturer::findBySlug($manufacturerSlug);
+                });
+
+                if($manufacturer){
+                    $manufacturers[] = $manufacturer->id;
+                }else{
+                    $manufacturers[] = 'wrong filter';
+                }
+            }
+
+            $qb->whereIn('manufacturer_id', $manufacturers);
+        }
+
+        if(isset($facetOptions['category'])){
+            $categories = [];
+            foreach(explode('--', $facetOptions['category']) as $categorySlug){
+                $category = RuntimeCache::getOrSet('product_category['.$categorySlug.']', function() use ($categorySlug){
+                    return ProductCategory::whereTranslation('slug', $categorySlug)->first();
+                });
+
+                if($category){
+                    $categories[] = $category->id;
+                }else{
+                    $categories[] = 'wrong filter';
+                }
+            }
+
+            $qb->whereHas('categories', function($query) use ($categories){
+                $query->whereIn('id', $categories);
+            });
+        }
+
+        if(isset($facetOptions['attribute'])){
+            foreach($facetOptions['attribute'] as $attribute => $attributeParameter){
+                $attributeValues = [];
+
+                foreach(explode('--', $attributeParameter) as $attributeValue){
+                    $attributeValue = RuntimeCache::getOrSet('product_attribute_value['.$attributeValue.']', function() use ($attributeValue){
+                        return ProductAttributeValue::whereTranslation('slug', $attributeValue)->first();
+                    });
+
+                    if($attributeValue){
+                        $attributeValues[] = $attributeValue->id;
+                    }else{
+                        $attributeValues[] = 'wrong filter';
+                    }
+                }
+
+                if(count($attributeValues) > 0){
+                    $qb->where(function($query) use ($attributeValues){
+                        $query->whereHas('productAttributeValues', function($query) use ($attributeValues){
+                            $query->whereIn('id', $attributeValues);
+                        });
+
+                        $query->orWhereHas('variations', function($query) use ($attributeValues){
+                            $query->whereHas('productAttributeValues', function($query) use ($attributeValues){
+                                $query->whereIn('id', $attributeValues);
+                            });
+                        });
+                    });
+                }
+            }
+        }
+
+        if(isset($facetOptions['feature'])){
+            foreach($facetOptions['feature'] as $feature => $featureParameter){
+                $featureValues = [];
+
+                foreach(explode('--', $featureParameter) as $featureValue){
+                    $featureValue = RuntimeCache::getOrSet('product_feature_value['.$featureValue.']', function() use ($featureValue){
+                        return ProductFeatureValue::whereTranslation('slug', $featureValue)->first();
+                    });
+
+                    if($featureValue){
+                        $featureValues[] = $featureValue->id;
+                    }else{
+                        $featureValues[] = 'wrong filter';
+                    }
+                }
+            }
+
+            if(count($featureValues) > 0){
+                $qb->where(function($query) use ($featureValues){
+                    $query->whereHas('productFeatureValues', function($query) use ($featureValues){
+                        $query->whereIn('id', $featureValues);
+                    });
+
+                    $query->orWhereHas('variations', function($query) use ($featureValues){
+                        $query->whereHas('productFeatureValues', function($query) use ($featureValues){
+                            $query->whereIn('id', $featureValues);
+                        });
+                    });
+                });
+            }
+        }
+    }
+
+    protected function getFacetedNavigation($options = [])
+    {
+        $facetedLayers = [];
+
+        if(ProjectHelper::isFeatureEnabled('catalog.faceted_navigation')){
+            $facetedLayers = ProductIndexHelper::buildFacetedNavigation($options);
+        }
+
+        return $facetedLayers;
     }
 }

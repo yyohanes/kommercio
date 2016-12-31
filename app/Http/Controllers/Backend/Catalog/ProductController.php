@@ -216,6 +216,9 @@ class ProductController extends Controller{
         $productDetail->product()->associate($product);
         $productDetail->save();
 
+        //Save product to index
+        $product->saveToIndex();
+
         $message = 'New product '.$product->name.' is successfully created.';
 
         //Cross Sell
@@ -416,7 +419,7 @@ class ProductController extends Controller{
             $product->crossSellTo()->attach($crossSellProduct, ['type' => 'cross_sell', 'sort_order' => $idx]);
         }
 
-        //Inventory
+        //Update variation
         if($product->variations->count() > 0){
             foreach($product->variations as $variation){
                 $variation->productDetail->manage_stock = $request->input('variation.'.$variation->id.'.productDetail.manage_stock', false);
@@ -437,12 +440,18 @@ class ProductController extends Controller{
                 }
 
                 $variation->save();
+
+                //Save variation to index
+                $variation->saveToIndex();
             }
         }else{
             if($productDetail->manage_stock){
                 $product->saveStock($request->input('stock'), $request->input('warehouse_id'));
             }
         }
+
+        //Save product to index
+        $product->saveToIndex();
 
         $message = $product->name.' has successfully been updated.';
 
@@ -676,6 +685,9 @@ class ProductController extends Controller{
         $productDetail->taxable = $parentProduct->productDetail->taxable;
         $productDetail->save();
 
+        //Save to index
+        $product->saveToIndex();
+
         if($new){
             $message = $product->name.' is successfully created.';
         }else{
@@ -816,9 +828,12 @@ class ProductController extends Controller{
                     }
 
                     $productDetail->fill($request->input('variation.productDetail'));
+                    $productDetail->currency = $parentProduct->productDetail->currency;
                     $productDetail->store_id = $request->input('variation.store_id');
                     $productDetail->taxable = $parentProduct->productDetail->taxable;
                     $productDetail->save();
+
+                    $product->saveToIndex();
                 }
             }
         }

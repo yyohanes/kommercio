@@ -3,7 +3,12 @@
 return [
     'general' => [
         'not_allowed' => 'You are not allowed to do this',
-        'token_expired' => 'Your session is expired. Please login agin.'
+        'token_expired' => 'Your session is expired. Please login agin.',
+        'manufacturer' => 'Brand'
+    ],
+    'catalog' => [
+        'manufacturer' => 'Brand',
+        'product_category' => 'Category'
     ],
     'product' => [
         'not_active' => 'This item is not accessible.'

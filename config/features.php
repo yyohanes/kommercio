@@ -7,7 +7,8 @@ return [
     'catalog' => [
         'product_attributes' => true,
         'product_features' => false,
-        'composite_product' => false
+        'composite_product' => false,
+        'faceted_navigation' => false
     ],
     'cms' => [
         'gallery' => true,

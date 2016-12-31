@@ -5,12 +5,13 @@ namespace Kommercio\Models;
 use Dimsav\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Model;
 use Kommercio\Facades\FrontendHelper;
+use Kommercio\Models\Interfaces\ProductIndexInterface;
 use Kommercio\Models\Interfaces\SeoModelInterface;
 use Kommercio\Models\Interfaces\UrlAliasInterface;
 use Kommercio\Traits\AuthorSignature;
 use Kommercio\Traits\Model\SeoTrait;
 
-class ProductCategory extends Model implements UrlAliasInterface, SeoModelInterface
+class ProductCategory extends Model implements UrlAliasInterface, SeoModelInterface, ProductIndexInterface
 {
     use Translatable, SeoTrait;
 
@@ -81,6 +82,19 @@ class ProductCategory extends Model implements UrlAliasInterface, SeoModelInterf
         $breadcrumbs = array_reverse($breadcrumbs);
 
         return $breadcrumbs;
+    }
+
+    public function getProductIndexType()
+    {
+        return 'product_category';
+    }
+
+    public function getProductIndexRows()
+    {
+        $rows = collect([$this]);
+        $rows->merge($this->children);
+
+        return $rows;
     }
 
     //Relations

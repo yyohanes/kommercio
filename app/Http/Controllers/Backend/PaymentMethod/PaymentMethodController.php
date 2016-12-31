@@ -47,7 +47,7 @@ class PaymentMethodController extends Controller{
         $additionalFieldsForm = null;
 
         if($paymentMethod->getProcessor() instanceof PaymentMethodSettingFormInterface){
-           $additionalFieldsForm = ProjectHelper::getViewTemplate('backend.payment_method.'.$paymentMethod->class.'.additional_setting_form');
+           $additionalFieldsForm = ProjectHelper::getViewTemplate($paymentMethod->getProcessor()->settingForm());
         }
 
         return view('backend.payment_method.edit', [

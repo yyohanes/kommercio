@@ -4,10 +4,11 @@ namespace Kommercio\Models\ProductFeature;
 
 use Dimsav\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Model;
+use Kommercio\Models\Interfaces\ProductIndexInterface;
 use Kommercio\Models\Product;
 use Kommercio\Models\ProductFeature\FeatureValuePivot;
 
-class ProductFeature extends Model
+class ProductFeature extends Model implements ProductIndexInterface
 {
     use Translatable;
 
@@ -36,6 +37,18 @@ class ProductFeature extends Model
         }
 
         return $options;
+    }
+
+    public function getProductIndexType()
+    {
+        return 'product_feature';
+    }
+
+    public function getProductIndexRows()
+    {
+        $rows = $this->values;
+
+        return $rows;
     }
 
     //Relations

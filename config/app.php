@@ -238,6 +238,7 @@ return [
         'LanguageHelper' => \Kommercio\Facades\LanguageHelper::class,
         'KommercioAPIHelper' => \Kommercio\Facades\KommercioAPIHelper::class,
         'RuntimeCache' => \Kommercio\Facades\RuntimeCache::class,
+        'ProductIndexHelper' => \Kommercio\Facades\ProductIndexHelper::class,
     ],
 
 ];

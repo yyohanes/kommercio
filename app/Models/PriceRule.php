@@ -22,6 +22,26 @@ class PriceRule extends Model implements StoreManagedInterface
         'is_discount' => 'boolean'
     ];
 
+    private $_products;
+
+    //Methods
+    public function getProducts()
+    {
+        if(!isset($this->_products)){
+            if($this->product){
+                $this->_products = [$this->product];
+            }else{
+                foreach($this->priceRuleOptionGroups as $priceRuleOptionGroup){
+                    foreach($priceRuleOptionGroup->getProducts() as $product){
+                        $this->_products[$product->id] = $product;
+                    }
+                }
+            }
+        }
+
+        return $this->_products;
+    }
+
     //Relations
     public function product()
     {
@@ -67,32 +87,6 @@ class PriceRule extends Model implements StoreManagedInterface
     }
 
     //Methods
-    public function validateProduct(Product $product, $options = [])
-    {
-        //If not specific price rule
-        if(empty($this->product_id)){
-            $validateResults = [];
-
-            foreach($this->priceRuleOptionGroups as $priceRuleOptionGroup){
-                $validateResults[] = $priceRuleOptionGroup->validateProduct($product);
-            }
-
-            if(count(array_unique($validateResults)) === 1){
-                return current($validateResults);
-            }
-        }else{
-            if(!empty($this->currency) && isset($options['currency']) && $this->currency != $options['currency']){
-                return false;
-            }
-
-            if(!empty($this->store_id) && isset($options['store_id']) && $this->store_id != $options['store_id']){
-                return false;
-            }
-        }
-
-        return TRUE;
-    }
-
     public function getValue($price = null)
     {
         $return = 0;

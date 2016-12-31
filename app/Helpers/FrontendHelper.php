@@ -70,7 +70,9 @@ class FrontendHelper
     {
         $path = RequestFacade::path();
 
-        $query = array_merge(RequestFacade::query(), $query);
+        $query = array_replace_recursive(RequestFacade::query(), $query);
+
+        $this->clearEmpty($query);
 
         return $this->get_url($path).(!empty($query)?'?'.http_build_query($query):'');
     }
@@ -266,5 +268,15 @@ class FrontendHelper
         }
 
         return $title;
+    }
+
+    //Protected
+    protected function clearEmpty(&$array) {
+        foreach ( $array as $key => $item ) {
+            is_array ( $item ) && $array [$key] = $this->clearEmpty ( $item );
+            if (empty ( $array [$key] ))
+                unset ( $array [$key] );
+        }
+        return $array;
     }
 }

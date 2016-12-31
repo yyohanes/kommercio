@@ -4,6 +4,7 @@ namespace Kommercio\Models\ProductFeature;
 
 use Illuminate\Database\Eloquent\Model;
 use Dimsav\Translatable\Translatable;
+use Kommercio\Facades\ProductIndexHelper;
 use Kommercio\Models\Product;
 
 class ProductFeatureValue extends Model

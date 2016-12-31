@@ -7,7 +7,9 @@ use Dimsav\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
+use Kommercio\Facades\CurrencyHelper;
 use Kommercio\Facades\FrontendHelper;
+use Kommercio\Facades\ProductIndexHelper;
 use Kommercio\Facades\ProjectHelper;
 use Kommercio\Models\Interfaces\SeoModelInterface;
 use Kommercio\Models\Interfaces\UrlAliasInterface;
@@ -39,6 +41,7 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
     protected $dates = ['deleted_at'];
     private $_warehouse;
     private $_store;
+    private $_currency;
     private $_productDetail;
     private $_retailPrice;
     private $_retailPriceWithTax;
@@ -314,9 +317,7 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
             $priceRules = $this->getSpecificPriceRules(FALSE);
 
             foreach($priceRules as $priceRule){
-                if($priceRule->validateProduct($this)){
-                    $price = $priceRule->getValue($price);
-                }
+                $price = $priceRule->getValue($price);
             }
 
             $this->_retailPrice = $price;
@@ -336,25 +337,7 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
     public function getNetPrice($tax = false)
     {
         if(!isset($this->_netPrice)){
-            $catalogPriceRules = $this->getCatalogPriceRules();
-
-            $price = $this->getRetailPrice();
-
-            $specificDiscountPriceRules = $this->getSpecificPriceRules(TRUE);
-
-            foreach($specificDiscountPriceRules as $specificDiscountPriceRule){
-                if($specificDiscountPriceRule->validateProduct($this)){
-                    $price = $specificDiscountPriceRule->getValue($price);
-                }
-            }
-
-            foreach($catalogPriceRules as $catalogPriceRule){
-                if($catalogPriceRule->validateProduct($this)){
-                    $price = $catalogPriceRule->getValue($price);
-                }
-            }
-
-            $this->_netPrice = $price;
+            $this->_netPrice = $this->_calculateNetPrice();
         }
 
         if(!isset($this->_netPriceWithTax)){
@@ -366,6 +349,25 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
         }
 
         return $tax?$this->_netPriceWithTax:$this->_netPrice;
+    }
+
+    private function _calculateNetPrice()
+    {
+        $catalogPriceRules = $this->getCatalogPriceRules();
+
+        $price = $this->getRetailPrice();
+
+        $specificDiscountPriceRules = $this->getSpecificPriceRules(TRUE);
+
+        foreach($catalogPriceRules as $catalogPriceRule){
+            $price = $catalogPriceRule->getValue($price);
+        }
+
+        foreach($specificDiscountPriceRules as $specificDiscountPriceRule){
+            $price = $specificDiscountPriceRule->getValue($price);
+        }
+
+        return $price;
     }
 
     public function getOldPrice($tax = false)
@@ -644,7 +646,19 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
     {
         //Get parent all attributes price rules if variation
         if($this->combination_type == self::COMBINATION_TYPE_VARIATION){
-            $qb = $this->parent->priceRules()->whereNull('variation_id')->active();
+            $qb = $this->parent->priceRules()
+                ->whereNull('variation_id')
+                ->where(function($query){
+                    $query->whereNull('currency');
+
+                    $query->orWhere('currency', $this->currency['code']);
+                })
+                ->where(function($query){
+                    $query->whereNull('store_id');
+
+                    $query->orWhere('store_id', $this->store->id);
+                })
+                ->active();
 
             if($is_discount === TRUE){
                 $qb->isDiscount();
@@ -655,7 +669,18 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
             $parentPriceRules = $qb->get();
         }
 
-        $qb = $this->priceRules()->active();
+        $qb = $this->priceRules()
+            ->where(function($query){
+                $query->whereNull('currency');
+
+                $query->orWhere('currency', $this->currency['code']);
+            })
+            ->where(function($query){
+                $query->whereNull('store_id');
+
+                $query->orWhere('store_id', $this->store->id);
+            })
+            ->active();
 
         if($is_discount === TRUE){
             $qb->isDiscount();
@@ -674,8 +699,90 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
 
     public function getCatalogPriceRules()
     {
-        $qb = PriceRule::notProductSpecific()->active()->orderBy('sort_order', 'ASC');
+        /*
+         * OR per Option Group
+         */
+        $qb = PriceRuleOptionGroup::query();
 
+        $categories = $this->categories;
+        $manufacturer = $this->manufacturer_id;
+        $features = $this->productFeatureValues;
+        $attributeValueIds = [];
+
+        if($this->isVariation){
+            $attributeValues = $this->productAttributeValues;
+            $attributeValueIds = $attributeValues->pluck('id')->all();
+        }else{
+            if($this->variations->count() > 0){
+                $attributeValues = ProductAttributeValue::whereHas('products', function($query){
+                    $query->whereIn('product_id', $this->variations->pluck('id')->all());
+                })->get();
+                $attributeValueIds = $attributeValues->pluck('id')->all();
+            }
+        }
+
+        $qb->where(function($query) use ($categories){
+            $query->whereDoesntHave('categories');
+
+            if($categories->count() > 0){
+                $query->orWhereHas('categories', function($query) use ($categories){
+                    $query->whereIn('id', $categories->pluck('id')->all());
+                });
+            }
+        });
+
+        $qb->where(function($query) use ($manufacturer){
+            $query->whereDoesntHave('manufacturers');
+
+            if($manufacturer){
+                $query->orWhereHas('manufacturers', function($query) use ($manufacturer){
+                    $query->whereIn('id', [$manufacturer]);
+                });
+            }
+        });
+
+        $qb->where(function($query) use ($attributeValueIds){
+            $query->whereDoesntHave('attributeValues');
+
+            if(count($attributeValueIds) > 0){
+                $query->orWhereHas('attributeValues', function($query) use ($attributeValueIds){
+                    $query->whereIn('id', $attributeValueIds);
+                });
+            }
+        });
+
+        $qb->where(function($query) use ($features){
+            $query->whereDoesntHave('featureValues');
+
+            if($features->count() > 0){
+                $query->orWhereHas('featureValues', function($query) use ($features){
+                    $query->whereIn('id', $features->pluck('id')->all());
+                });
+            }
+        });
+
+        $priceRules = PriceRule::whereIn('id', $qb->pluck('price_rule_id')->all())
+            ->where(function($query){
+                $query->whereNull('currency');
+
+                $query->orWhere('currency', $this->currency['code']);
+            })
+            ->where(function($query){
+                $query->whereNull('store_id');
+
+                $query->orWhere('store_id', $this->store->id);
+            })
+            ->notProductSpecific()
+            ->active()
+            ->orderBy('sort_order', 'ASC')
+            ->get();
+
+        return $priceRules;
+
+        /*
+         * AND per Option Group
+         */
+        /*$qb = PriceRule::notProductSpecific()->active()->orderBy('sort_order', 'ASC');
         $qb->where(function($qb){
             $categories = $this->categories;
             $manufacturer = $this->manufacturer_id;
@@ -735,7 +842,7 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
 
         $includedPriceRules = $qb->get();
 
-        return $includedPriceRules;
+        return $includedPriceRules;*/
     }
 
     public function getOrderCount($options = [])
@@ -1041,6 +1148,15 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
         return $this->_store;
     }
 
+    public function getCurrencyAttribute()
+    {
+        if(!$this->_currency){
+            $this->_currency = CurrencyHelper::getCurrentCurrency();
+        }
+
+        return $this->_currency;
+    }
+
     public function getWarehouseAttribute()
     {
         if(!$this->_warehouse){
@@ -1050,6 +1166,95 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
         }
 
         return $this->_warehouse;
+    }
+
+    /*
+     * Save product to index for search
+     *
+     * @boolean $to_parent flag to determine whether to save child attributes & features to parent
+     */
+    public function saveToIndex($to_parent = false)
+    {
+        //Clear old index
+        if(!$to_parent){
+            ProductIndexHelper::getProductIndexQuery(false)->where('product_id', $this->id)->where('store_id', $this->store->id)->delete();
+        }
+
+        if(!$to_parent){
+            $categoryIndex = [];
+            foreach($this->categories as $category){
+                $categoryIndex[] = [
+                    'root_product_id' => $this->parent?$this->parent->id:$this->id,
+                    'product_id' => $this->id,
+                    'type' => $category->getProductIndexType(),
+                    'value' => $category->id,
+                    'store_id' => $this->store->id
+                ];
+            }
+
+            ProductIndexHelper::getProductIndexQuery(false)->insert($categoryIndex);
+
+            if($this->manufacturer){
+                $manufacturerIndex = [
+                    'root_product_id' => $this->parent?$this->parent->id:$this->id,
+                    'product_id' => $this->id,
+                    'type' => $this->manufacturer->getProductIndexType(),
+                    'value' => $this->manufacturer->id,
+                    'store_id' => $this->store->id
+                ];
+
+                ProductIndexHelper::getProductIndexQuery(false)->insert($manufacturerIndex);
+            }
+        }
+
+        $attributeIndex = [];
+        foreach($this->productAttributeValues as $attributeValue){
+            $attributeIndex[] = [
+                'root_product_id' => $this->parent?$this->parent->id:$this->id,
+                'product_id' => $to_parent?$this->parent->id:$this->id,
+                'type' => $attributeValue->productAttribute->getProductIndexType(),
+                'value' => $attributeValue->id,
+                'pivot' => $attributeValue->productAttribute->id,
+                'store_id' => $this->store->id
+            ];
+        }
+
+        ProductIndexHelper::getProductIndexQuery(false)->insert($attributeIndex);
+
+        $featureIndex = [];
+        foreach($this->productFeatureValues as $featureValue){
+            $featureIndex[] = [
+                'root_product_id' => $this->parent?$this->parent->id:$this->id,
+                'product_id' => $to_parent?$this->parent->id:$this->id,
+                'type' => $featureValue->productFeature->getProductIndexType(),
+                'value' => $featureValue->id,
+                'pivot' => $featureValue->productFeature->id,
+                'store_id' => $this->store->id
+            ];
+        }
+
+        ProductIndexHelper::getProductIndexQuery(false)->insert($featureIndex);
+
+        if(!$to_parent){
+            $this->saveToPriceIndex();
+
+            foreach($this->variations as $variation){
+                $variation->saveToIndex(true);
+            }
+        }
+    }
+
+    public function saveToPriceIndex()
+    {
+        ProductIndexHelper::getProductIndexPriceQuery(false)->where('product_id', $this->id)->where('store_id', $this->store->id)->delete();
+
+        ProductIndexHelper::getProductIndexPriceQuery(false)->insert([
+            'root_product_id' => $this->parent?$this->parent->id:$this->id,
+            'product_id' => $this->id,
+            'value' => $this->_calculateNetPrice(),
+            'currency' => $this->productDetail->currency,
+            'store_id' => $this->store->id
+        ]);
     }
 
     //Mutators

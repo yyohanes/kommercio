@@ -98,6 +98,9 @@ class ProductPriceRuleController extends Controller
         $priceRule->fill($request->input('price_rule'));
         $product->priceRules()->save($priceRule);
 
+        $priceRule->product->saveToPriceIndex();
+        $priceRule->variation->saveToPriceIndex();
+
         if($new){
             $message = 'Price rule is successfully created.';
         }else{
@@ -151,6 +154,10 @@ class ProductPriceRuleController extends Controller
         $priceRule->save();
 
         $this->processPriceRuleOptionGroups($priceRule, $request);
+
+        foreach($priceRule->getProducts() as $product){
+            $product->saveToPriceIndex();
+        }
 
         return redirect()->route('backend.price_rule.product.index')->with('success', [$priceRule->name.' has successfully been created.']);
     }
@@ -207,6 +214,10 @@ class ProductPriceRuleController extends Controller
         $priceRule->save();
 
         $this->processPriceRuleOptionGroups($priceRule, $request);
+
+        foreach($priceRule->getProducts() as $product){
+            $product->saveToPriceIndex();
+        }
 
         return redirect()->route('backend.price_rule.product.index')->with('success', [$priceRule->name.' has successfully been updated.']);
     }
@@ -285,5 +296,7 @@ class ProductPriceRuleController extends Controller
         if($toBeDeleted){
             PriceRuleOptionGroup::destroy($toBeDeleted);
         }
+
+        $priceRule->load('priceRuleOptionGroups');
     }
 }

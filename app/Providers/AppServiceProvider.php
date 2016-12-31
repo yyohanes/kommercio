@@ -28,6 +28,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton('kommercio_api_helper', 'Kommercio\Helpers\KommercioAPIHelper');
         $this->app->singleton('runtime_cache', 'Kommercio\Helpers\RuntimeCache');
         $this->app->singleton('frontend_helper', 'Kommercio\Helpers\FrontendHelper');
+        $this->app->singleton('product_index_helper', 'Kommercio\Helpers\ProductIndexHelper');
 
         $this->app['validator']->resolver(function($translator, $data, $rules, $messages)
         {

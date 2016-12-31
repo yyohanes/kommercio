@@ -5,9 +5,10 @@ namespace Kommercio\Models;
 use Cviebrock\EloquentSluggable\SluggableInterface;
 use Cviebrock\EloquentSluggable\SluggableTrait;
 use Illuminate\Database\Eloquent\Model;
+use Kommercio\Models\Interfaces\ProductIndexInterface;
 use Kommercio\Traits\Model\MediaAttachable;
 
-class Manufacturer extends Model implements SluggableInterface
+class Manufacturer extends Model implements SluggableInterface, ProductIndexInterface
 {
     use MediaAttachable, SluggableTrait;
 
@@ -34,11 +35,23 @@ class Manufacturer extends Model implements SluggableInterface
         return $this->hasMany('Kommercio\Models\Product');
     }
 
-    //Relations
+    //Methods
     public function getLogoAttribute()
     {
         $qb = $this->media('logo');
         return $qb->first();
+    }
+
+    public function getProductIndexType()
+    {
+        return 'manufacturer';
+    }
+
+    public function getProductIndexRows()
+    {
+        $rows = collect([$this]);
+
+        return $rows;
     }
 
     //Static

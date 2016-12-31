@@ -4,10 +4,12 @@ namespace Kommercio\Providers;
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\ServiceProvider;
+use Kommercio\Facades\ProductIndexHelper;
 use Kommercio\Facades\ProjectHelper;
 use Kommercio\Models\File;
 use Kommercio\Models\Interfaces\AuthorSignatureInterface;
 use Illuminate\Support\Facades\Storage;
+use Kommercio\Models\Interfaces\ProductIndexInterface;
 use Kommercio\Models\Interfaces\UrlAliasInterface;
 use Kommercio\Models\UrlAlias;
 
@@ -53,6 +55,12 @@ class BackendServiceProvider extends ServiceProvider
 
                 if(Storage::disk($storage)->exists($folder.$model->filename)){
                     Storage::disk($storage)->delete($folder.$model->filename);
+                }
+            }
+
+            if ($model instanceof ProductIndexInterface) {
+                foreach($model->getProductIndexRows() as $row){
+                    ProductIndexHelper::getProductIndexQuery()->where('type', $model->getProductIndexType())->where('value', $row->id)->delete();
                 }
             }
         });
