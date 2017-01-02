@@ -202,14 +202,22 @@ trait ProductHelper
         return implode(' ', $returns);
     }
 
-    public function getSimilarProducts($limit = 0)
+    public function getSimilarProducts($options = [])
     {
         $qb = self::whereNotIn('id', [$this->id])->productEntity()->active()->catalogVisible()->whereHas('categories', function($query){
             $query->whereIn('id', $this->categories->pluck('id')->all());
         });
 
-        if($limit){
-            $qb->take($limit);
+        if(isset($options['limit'])){
+            $qb->take($options['limit']);
+        }
+
+        if(isset($options['order_by'])){
+            $qb->orderBy($options['order_by']);
+        }
+
+        if(isset($options['order_dir'])){
+            $qb->orderBy($options['order_diro']);
         }
 
         return $qb->get();
