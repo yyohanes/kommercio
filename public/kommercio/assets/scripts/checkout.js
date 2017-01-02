@@ -3,7 +3,7 @@
     $.checkoutForm = function(element, options) {
 
         var defaults = {
-            errorMessageClass: 'messages alert alert-danger'
+          errorMessageClass: 'messages alert alert-danger'
         }
 
         var plugin = this;
@@ -43,8 +43,6 @@
                 success: function(data){
                     var $html = null;
 
-                    $element.trigger('after_step_change', [data.step, checkoutData.step]);
-
                     for(var i in data.data){
                         $html = $(data.data[i]);
 
@@ -57,6 +55,8 @@
                         plugin.initComponent($('#'+ i +'-wrapper', element));
                         checkoutData.step = data.step;
                     }
+
+                  $element.trigger('after_step_change', [data.step, checkoutData.step]);
                 },
                 complete: function(){
                     $element.find('.loading-overlay').remove();
@@ -81,14 +81,15 @@
 
         plugin.initComponent = function(context)
         {
-            handleAddressSelector(context);
-            handleStepButton(context);
-            handleShippingMethod(context);
-            handlePaymentMethod(context);
-            if(global_vars.enable_delivery_date){
-                handleAvailability(context);
-            }
-            handleSavedAddress(context);
+          handleAddressSelector(context);
+          handleStepButton(context);
+          handleOrderButton(context);
+          handleShippingMethod(context);
+          handlePaymentMethod(context);
+          if(global_vars.enable_delivery_date){
+            handleAvailability(context);
+          }
+          handleSavedAddress(context);
         }
 
         var handleSavedAddress = function(context)
@@ -112,6 +113,13 @@
                 });
             });
         }
+
+      var handleOrderButton = function(context)
+      {
+        $('#place-order-btn', context).on('click', function(e){
+          $element.append('<div class="loading-overlay" />');
+        });
+      }
 
         var handleShippingMethod = function(context)
         {

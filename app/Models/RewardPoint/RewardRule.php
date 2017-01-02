@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Kommercio\Models\Interfaces\AuthorSignatureInterface;
 use Kommercio\Models\Interfaces\StoreManagedInterface;
 use Kommercio\Models\Order\Order;
+use Kommercio\Models\Product;
 use Kommercio\Models\User;
 use Kommercio\Traits\Model\AuthorSignature;
 use Kommercio\Traits\Model\HasDataColumn;
@@ -32,7 +33,24 @@ class RewardRule extends Model implements AuthorSignatureInterface, StoreManaged
         return $this->store_id && in_array($this->store_id, $user->getManagedStores()->pluck('id')->all());
     }
 
-    public function calculateRewardPoint(Order $order)
+    public function calculateProductRewardPoint(Product $product)
+    {
+        $rule = $this->getData('rule');
+
+        switch($this->type){
+            case 'per_order':
+                if($rule['include_tax']){
+                    $gross = $product->getNetPrice(true);
+                }else{
+                    $gross = $product->getNetPrice();
+                }
+
+                return floor($gross / $rule['order_step_amount']) * $this->reward;
+                break;
+        }
+    }
+
+    public function calculateOrderRewardPoint(Order $order)
     {
         if($this->member && !($order->customer && $order->customer->user)){
             return 0;

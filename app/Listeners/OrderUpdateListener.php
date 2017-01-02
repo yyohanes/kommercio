@@ -55,12 +55,6 @@ class OrderUpdateListener
 
     public function onCompletedOrder(OrderUpdate $event)
     {
-        if(ProjectHelper::isFeatureEnabled('customer.reward_points')){
-            $event->order->addRewardPoint([
-                'status' => RewardPointTransaction::STATUS_APPROVED
-            ]);
-        }
-
         OrderHelper::saveOrderComment('Order is completed.', 'completed', $event->order, $this->request->user());
 
         if($event->notify_customer){

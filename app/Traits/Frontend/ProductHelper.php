@@ -201,4 +201,17 @@ trait ProductHelper
 
         return implode(' ', $returns);
     }
+
+    public function getSimilarProducts($limit = 0)
+    {
+        $qb = self::whereNotIn('id', [$this->id])->productEntity()->active()->catalogVisible()->whereHas('categories', function($query){
+            $query->whereIn('id', $this->categories->pluck('id')->all());
+        });
+
+        if($limit){
+            $qb->take($limit);
+        }
+
+        return $qb->get();
+    }
 }

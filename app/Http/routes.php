@@ -119,6 +119,13 @@ Route::group(['middleware' => ['web']], function () {
                         'uses' => 'AccountController@addressDelete'
                     ]);
                 });
+
+                Route::group(['prefix' => 'reward'], function(){
+                    Route::get('points', [
+                        'as' => 'frontend.member.reward.points',
+                        'uses' => 'AccountController@rewardPoints'
+                    ]);
+                });
             });
         });
 
@@ -201,6 +208,11 @@ Route::group(['middleware' => ['web']], function () {
         Route::get('cart', [
             'as' => 'frontend.order.cart',
             'uses' => 'OrderController@cart'
+        ]);
+
+        Route::get('cart/mini', [
+            'as' => 'frontend.order.cart.mini',
+            'uses' => 'OrderController@mini_cart'
         ]);
 
         Route::get('cart/clear', [

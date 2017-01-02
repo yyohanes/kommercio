@@ -2,6 +2,7 @@ var KommercioFrontend = function(){
   return {
     init: function () {
       this.csrfHeaderSetup(global_vars.csrf_token);
+      this.confirmBtns(document);
 
       $(document).ajaxComplete(function (event, request, settings) {
         if (typeof request.responseJSON !== 'undefined' && typeof request.responseJSON._token !== 'undefined') {
@@ -9,6 +10,15 @@ var KommercioFrontend = function(){
 
           $('input[name="_token"]').val(request.responseJSON._token);
         }
+      });
+    },
+    confirmBtns: function(context){
+      $('[data-confirm]', context).each(function(idx, obj){
+        var $message = $(obj).data('confirm');
+
+        $(obj).on('click', function(){
+          return confirm($message);
+        });
       });
     },
     csrfHeaderSetup: function (token) {

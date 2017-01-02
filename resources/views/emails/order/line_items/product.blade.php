@@ -12,7 +12,7 @@
         @endforeach
     </td>
     <td>
-        @if(!$child)
+        @if(isset($child) && !$child)
         {{ PriceFormatter::formatNumber($lineItem->net_price, $lineItem->order->currency) }}
         @endif
     </td>
@@ -20,7 +20,7 @@
         {{ $lineItem->quantity }}
     </td>
     <td>
-        @if(!$child)
+        @if(isset($child) && !$child)
         {{ PriceFormatter::formatNumber($lineItem->calculateSubtotalWithTax(), $lineItem->order->currency) }}
         @endif
     </td>

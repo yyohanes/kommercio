@@ -19,7 +19,9 @@ class ProductDetail extends Model implements AuthorSignatureInterface
     protected $fillable = ['visibility', 'new', 'available', 'available_date', 'active', 'active_date', 'retail_price', 'currency', 'tax_group_id', 'store_id', 'product_id', 'taxable','manage_stock', 'sort_order', 'sticky_line_item'];
     protected $casts = [
         'manage_stock' => 'boolean',
-        'taxable' => 'boolean'
+        'taxable' => 'boolean',
+        'active' => 'boolean',
+        'available' => 'boolean',
     ];
     protected $toggleFields = ['available', 'active', 'new'];
 

@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Validator;
 use Kommercio\Events\OrderUpdate;
+use Kommercio\Events\PaymentEvent;
 use Kommercio\Facades\CurrencyHelper;
 use Kommercio\Facades\OrderHelper;
 use Kommercio\Facades\PriceFormatter;
@@ -155,6 +156,10 @@ class PaymentController extends Controller{
             $payment->status = $status;
             $payment->recordStatusChange($status, Auth::user()->email, $request->input('reason'));
             $payment->save();
+
+            if($process == 'accept'){
+                Event::fire(new PaymentEvent('accept', $payment));
+            }
 
             return redirect($request->input('backUrl', route('backend.sales.order.view', ['id' => $payment->order->id])))->with('success', [$message]);
         }

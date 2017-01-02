@@ -95,7 +95,7 @@ function handleAddressSelector(context)
             });
         });
 
-      if($countrySelect.find('option').length == 2){
+      if($countrySelect.find('option').length == 2 && $countrySelect.val().length < 1){
         $countrySelect.find('option').prop('selected', false);
         $countrySelect.find('option:eq(1)').prop('selected', true);
 

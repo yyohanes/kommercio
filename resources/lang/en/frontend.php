@@ -78,6 +78,9 @@ return [
             'account' => [
                 'meta_title' => 'Update Account',
             ],
+            'reward_points' => [
+                'meta_title' => 'Reward Points',
+            ],
             'order' => [
                 'history' => [
                     'meta_title' => 'Order History',

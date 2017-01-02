@@ -465,7 +465,7 @@ class Order extends Model implements AuthorSignatureInterface
         $rewardPoints = 0;
 
         foreach($rewardRules as $rewardRule){
-            $rewardPoints += $rewardRule->calculateRewardPoint($this);
+            $rewardPoints += $rewardRule->calculateOrderRewardPoint($this);
         }
 
         return $rewardPoints;

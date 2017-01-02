@@ -203,6 +203,21 @@ class OrderController extends Controller
         }
     }
 
+    public function mini_cart(Request $request)
+    {
+        $view_name = ProjectHelper::getViewTemplate('frontend.order.mini_cart');
+        $productLineItems = FrontendHelper::getCurrentOrder()->getProductLineItems();
+
+        if($request->ajax()){
+            return new JsonResponse([
+                'data' => [
+                    'content' => view($view_name, ['productLineItems' => $productLineItems])->render(),
+                ],
+                '_token' => csrf_token()
+            ]);
+        }
+    }
+
     public function checkout(Request $request)
     {
         $order = FrontendHelper::getCurrentOrder();
@@ -411,6 +426,8 @@ class OrderController extends Controller
         $paymentMethodOptions = $this->getPaymentMethodOptions($request, $order);
         $shippingMethodOptions = $this->getShippingMethodOptions($request, $order);
 
+        $rewardPoints = $order->calculateRewardRules();
+
         $oldValues = old();
 
         if(!$oldValues){
@@ -450,6 +467,7 @@ class OrderController extends Controller
             'canLogin' => $canLogin,
             'canRegister' => $canRegister,
             'savedAddressOptions' => $savedAddressOptions,
+            'rewardPoints' => $rewardPoints,
             'seoData' => $seoData,
         ] + $addressOptions + $shippingMethodOptions + $paymentMethodOptions);
     }
@@ -473,7 +491,8 @@ class OrderController extends Controller
             'canRegister' => FALSE,
             'step' => $order->getData('checkout_step', 'account'),
             'previous_step' => $order->getData('checkout_step', 'account'),
-            'success' => []
+            'success' => [],
+            'rewardPoints' => $order->calculateRewardRules()
         ];
 
         $shippingMethodOptions = $this->getShippingMethodOptions($request, $order)['shippingMethodOptions'];
@@ -562,7 +581,13 @@ class OrderController extends Controller
                         'saved_shipping_profile' => $savedShippingProfile->id
                     ]);
 
-                    //$order->setRelation('shippingProfile', $savedShippingProfile);
+                    $order->setRelation('shippingProfile', $savedShippingProfile);
+
+                    $nextStep = 'customer_information';
+                }elseif($process == 'select_shipping_method'){
+                    $shippingMethodRules = $this->getCheckoutRuleBook('shipping_method', $request, $order);
+
+                    $this->validate($request, $shippingMethodRules);
 
                     $nextStep = 'customer_information';
                 }else{
@@ -721,7 +746,7 @@ class OrderController extends Controller
                         $errors = $paymentResponse;
                     }
 
-                    if($errors){
+                    if(!$errors){
                         $order->processStocks();
 
                         $this->placeOrder($order);
@@ -733,11 +758,6 @@ class OrderController extends Controller
 
                         $profileData = $order->billingInformation->getDetails();
                         $viewData['customer'] = Customer::saveCustomer($profileData, null, FALSE);
-
-                        //Save customer to order
-                        if($viewData['customer']){
-                            $order->customer()->associate($viewData['customer']);
-                        }
 
                         $nextStep = 'complete';
                     }
@@ -755,6 +775,11 @@ class OrderController extends Controller
         }
 
         if(!$errors){
+            //Save customer to order
+            if($viewData['customer']){
+                $order->customer()->associate($viewData['customer']);
+            }
+
             //Process shipping
             if($request->has('shipping_method')){
                 $rules = [

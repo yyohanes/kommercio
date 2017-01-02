@@ -177,7 +177,7 @@ class FrontendHelper
     {
         $bannerGroup = BannerGroup::with('banners')->where('slug', $banner_group_slug)->first();
 
-        $banners = $bannerGroup?$bannerGroup->banners:[];
+        $banners = $bannerGroup?$bannerGroup->banners:collect([]);
 
         return $banners;
     }

@@ -18,6 +18,7 @@ use Kommercio\Models\Order\Order;
 use Kommercio\Models\Order\OrderLimit;
 use Kommercio\Models\ProductAttribute\ProductAttribute;
 use Kommercio\Models\ProductAttribute\ProductAttributeValue;
+use Kommercio\Models\RewardPoint\RewardRule;
 use Kommercio\Traits\Frontend\ProductHelper as FrontendProductHelper;
 use Kommercio\Traits\Model\SeoTrait;
 use Kommercio\Facades\PriceFormatter;
@@ -34,10 +35,6 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
 
     protected $fillable = ['name', 'description_short', 'description', 'slug', 'manufacturer_id', 'meta_title', 'meta_description', 'locale',
         'sku', 'type', 'width', 'length', 'depth', 'weight'];
-    protected $casts = [
-        'active' => 'boolean',
-        'available' => 'boolean',
-    ];
     protected $dates = ['deleted_at'];
     private $_warehouse;
     private $_store;
@@ -47,6 +44,7 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
     private $_retailPriceWithTax;
     private $_netPrice;
     private $_netPriceWithTax;
+    private $_rewardPoints;
 
     public $translatedAttributes = ['name', 'description_short', 'description', 'slug', 'meta_title', 'meta_description', 'locale', 'thumbnail', 'thumbnails', 'images'];
 
@@ -377,6 +375,28 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
         }
 
         return $this->getRetailPrice($tax);
+    }
+
+    public function getRewardPoints()
+    {
+        if(!isset($this->_rewardPoints)){
+            $data = [
+                'currency' => $this->currency['code'],
+                'store_id' => $this->store->id,
+            ];
+
+            $rewardRules = RewardRule::getRewardRules($data);
+
+            $rewardPoints = 0;
+
+            foreach($rewardRules as $rewardRule){
+                $rewardPoints += $rewardRule->calculateProductRewardPoint($this);
+            }
+
+            $this->_rewardPoints = $rewardPoints;
+        }
+
+        return $this->_rewardPoints;
     }
 
     public function getAvailableAttributeValues()

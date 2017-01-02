@@ -422,6 +422,21 @@ class AccountController extends Controller
         }
     }
 
+    public function rewardPoints()
+    {
+        $viewName = ProjectHelper::getViewTemplate('frontend.member.reward.points');
+
+        $seoData = [
+            'meta_title' => trans(LanguageHelper::getTranslationKey('frontend.seo.member.reward_points.meta_title'))
+        ];
+
+        return view($viewName, [
+            'user' => $this->user,
+            'customer' => $this->customer,
+            'seoData' => $seoData,
+        ]);
+    }
+
     public function newsletterWidgetSubscribe(Request $request)
     {
         $allowedGroups = NewsletterSubscriptionHelper::getAllowedGroups();

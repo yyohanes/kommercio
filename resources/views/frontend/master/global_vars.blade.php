@@ -16,6 +16,12 @@
         auth: {
             login_path: '{{ route('frontend.login_form') }}',
             logout_path: '{{ route('frontend.logout') }}'
-        }
-    };
+        },
+        cart_clear_path: '{{ route('frontend.order.cart.clear') }}',
+        mini_cart_path: '{{ route('frontend.order.cart.mini') }}',
+        @if(config('project.enable_delivery_date'))
+        soonest_delivery_day: new Date('{{ FrontendHelper::getSoonestDeliveryDay() }}'),
+        @endif
+        get_availability_calendar: '{{ route('catalog.product.availability_calendar') }}'
+};
 </script>

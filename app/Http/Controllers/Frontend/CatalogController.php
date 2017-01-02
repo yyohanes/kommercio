@@ -147,7 +147,7 @@ class CatalogController extends Controller
         $instilledRequest = $this->instillCatalogRequest($request);
         $options = $instilledRequest['options'];
 
-        $qb = Product::productEntity();
+        $qb = Product::productEntity()->earch;
 
         $qb->joinTranslation()->joinDetail()->selectSelf()
             ->where('D.active', true)
@@ -355,6 +355,8 @@ class CatalogController extends Controller
 
     protected function filterQuery($qb, $options = [], $facetOptions = [])
     {
+        $qb->active()->catalogVisible();
+
         if(!empty($options['keyword'])){
             $qb->where(function($qb) use ($options){
                 $qb->where('T.name', 'LIKE', '%'.$options['keyword'].'%');

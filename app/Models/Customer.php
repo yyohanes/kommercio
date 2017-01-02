@@ -257,7 +257,7 @@ class Customer extends Model
     {
         $array = [
             self::PROFILE_NAME_HOME => trans(LanguageHelper::getTranslationKey('interface.address.home')),
-            self::PROFILE_NAME_OFFICE => trans(LanguageHelper::getTranslationKey('interface.addres.office')),
+            self::PROFILE_NAME_OFFICE => trans(LanguageHelper::getTranslationKey('interface.address.office')),
         ];
 
         if(empty($option)){
