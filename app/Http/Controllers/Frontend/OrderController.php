@@ -584,13 +584,15 @@ class OrderController extends Controller
                     $order->setRelation('shippingProfile', $savedShippingProfile);
 
                     $nextStep = 'customer_information';
+                }elseif($process == 'select_shipping_method'){
+                    $shippingMethodRules = $this->getCheckoutRuleBook('shipping_method', $request, $order);
+
+                    $this->validate($request, $shippingMethodRules);
+
+                    Session::flashInput($request->all());
+
+                    $nextStep = 'customer_information';
                 }else{
-                    if($process == 'select_shipping_method'){
-                        $shippingMethodRules = $this->getCheckoutRuleBook('shipping_method', $request, $order);
-
-                        $this->validate($request, $shippingMethodRules);
-                    }
-
                     $this->validate($request, $this->getCheckoutRuleBook('customer_information', $request, $order));
 
                     //Save address
@@ -639,8 +641,6 @@ class OrderController extends Controller
 
                     if(ProjectHelper::getConfig('checkout_options.shipping_method_position', 'review') == 'before_review'){
                         $nextStep = 'shipping_method';
-                    }elseif($process == 'select_shipping_method') {
-                        $nextStep = 'customer_information';
                     }else{
                         $nextStep = 'payment_method';
                     }
