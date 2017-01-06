@@ -452,25 +452,25 @@ Route::group(['middleware' => ['web']], function () {
                     Route::get('autocomplete', [
                         'as' => 'backend.catalog.product.autocomplete',
                         'uses' => 'ProductController@autocomplete',
-                        'permissions' => ['view_product']
+                        //'permissions' => ['view_product']
                     ]);
 
                     Route::get('get-related-product/{id?}/{type?}', [
                         'as' => 'backend.catalog.product.get_related',
                         'uses' => 'ProductController@getRelatedProduct',
-                        'permissions' => ['view_product']
+                        //'permissions' => ['view_product']
                     ]);
 
                     Route::post('availability/{id}', [
                         'as' => 'backend.catalog.product.availability',
                         'uses' => 'ProductController@availability',
-                        'permissions' => ['view_product']
+                        //'permissions' => ['view_product']
                     ]);
 
                     Route::get('{id}/composite/{composite_id}/autocomplete', [
                         'as' => 'backend.catalog.product.composite.autocomplete',
                         'uses' => 'ProductController@compositeAutocomplete',
-                        'permissions' => ['view_product']
+                        //'permissions' => ['view_product']
                     ]);
                 });
 

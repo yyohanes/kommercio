@@ -1135,7 +1135,7 @@ class OrderController extends Controller{
             $returnedData = [];
 
             foreach($priceRules as $priceRule){
-                $returnedData[] = $priceRule->toArray() + ['coupon' => $priceRule->coupon->toArray()] + ['products' => array_keys($priceRule->getProducts())];
+                $returnedData[] = $priceRule->toArray() + ($priceRule->coupon?['coupon' => $priceRule->coupon->toArray()]:[]) + ['products' => array_keys($priceRule->getProducts())];
             }
 
             return response()->json([
