@@ -9,12 +9,15 @@ use Illuminate\Support\Facades\Session;
 use Kommercio\Events\RewardPointEvent;
 use Kommercio\Facades\PriceFormatter;
 use Kommercio\Facades\ProjectHelper;
+use Kommercio\Facades\RuntimeCache;
 use Kommercio\Http\Controllers\Controller;
 use Kommercio\Models\Customer;
 use Kommercio\Http\Requests\Backend\Customer\CustomerFormRequest;
 use Collective\Html\FormFacade;
 use Illuminate\Support\Facades\Request as RequestFacade;
 use Kommercio\Models\Profile\Profile;
+use Kommercio\Models\RewardPoint\Redemption;
+use Kommercio\Models\RewardPoint\Reward;
 use Kommercio\Models\RewardPoint\RewardPointTransaction;
 use Kommercio\Models\User;
 
@@ -217,8 +220,17 @@ class CustomerController extends Controller{
         $customer->load(['user', 'orders']);
         $customer->loadProfileFields();
 
+        $rewards = Reward::orderBy('created_at', 'DESC')->active()->get();
+
+        $rewardOptions = [];
+        foreach($rewards as $reward){
+            $rewardOptions[$reward->id] = $reward->name.' ('.($reward->points + 0).' Points)';
+        }
+
         return view('backend.customer.view', [
-            'customer' => $customer
+            'customer' => $customer,
+            'rewards' => $rewards,
+            'rewardOptions' => $rewardOptions
         ]);
     }
 
@@ -512,9 +524,23 @@ class CustomerController extends Controller{
         ]);
     }
 
-    public function rewardPointApprove(Request $request, $customer_id)
+    public function redeem(Request $request, $customer_id)
     {
+        $customer = Customer::findOrFail($customer_id);
 
+        $rules = [
+            'reward' => 'required|exists:rewards,id|redemption:'.$customer_id,
+        ];
+
+        $this->validate($request, $rules);
+
+        $reward = RuntimeCache::getOrSet('reward_'.$request->input('reward'), function() use ($request){
+            return Reward::findOrFail($request->input('reward'));
+        });
+
+        $redemption = Redemption::redeem($customer, $reward);
+
+        return redirect()->back()->with('success', ['Reward '.$reward->name.' has been redeemed.']);
     }
 
     protected function deleteable(Customer $customer)

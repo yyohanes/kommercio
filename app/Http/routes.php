@@ -1402,6 +1402,12 @@ Route::group(['middleware' => ['web']], function () {
                     'permissions' => ['add_reward_points']
                 ]);
 
+                Route::post('{customer_id}/redeem', [
+                    'as' => 'backend.customer.reward_point.redeem',
+                    'uses' => 'CustomerController@redeem',
+                    'permissions' => ['create_redemptions']
+                ]);
+
                 Route::group(['prefix' => 'reward-point'], function(){
                     Route::any('index', [
                         'as' => 'backend.customer.reward_point.index',
@@ -1508,6 +1514,15 @@ Route::group(['middleware' => ['web']], function () {
                         'as' => 'backend.customer.reward.delete',
                         'uses' => 'RewardController@delete',
                         'permissions' => ['delete_reward']
+                    ]);
+                });
+
+                //Redemptions
+                Route::group(['prefix' => 'redemptions'], function(){
+                    Route::post('{id}/mark/used', [
+                        'as' => 'backend.customer.redemption.mark_used',
+                        'uses' => 'RedemptionController@markUsed',
+                        'permissions' => ['mark_used_redemptions']
                     ]);
                 });
 

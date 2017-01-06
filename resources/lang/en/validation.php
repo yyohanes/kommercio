@@ -91,6 +91,7 @@ return [
     'step_payment_method' => 'Payment information is invalid.',
     'payment_method' => 'Payment failed. Please check your Payment information.',
     'composite_quantity' => ':composite quantity of :product must be :quantity',
+    'redemption' => 'Your point is not enough to redeem :reward',
 
     /*
     |--------------------------------------------------------------------------

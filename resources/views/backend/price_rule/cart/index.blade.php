@@ -68,7 +68,7 @@
                             <td> {{ \Kommercio\Models\PriceRule\CartPriceRule::getOfferTypeOptions($priceRule->offer_type) }} </td>
                             <td>
                                 @foreach($priceRule->coupons as $coupon)
-                                    {{ $coupon->coupon_code }}
+                                    <div>{{ $coupon->coupon_code }}</div>
                                 @endforeach
                             </td>
                             <td> {{ $priceRule->modification?$priceRule->getModificationOutput():'-' }} </td>

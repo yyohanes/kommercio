@@ -59,10 +59,14 @@ class Customer extends Model
         return $this->hasMany('Kommercio\Models\PriceRule\Coupon');
     }
 
-    //Relations
     public function customerGroups()
     {
         return $this->belongsToMany('Kommercio\Models\Customer\CustomerGroup')->orderBy('sort_order', 'ASC')->withTimestamps();
+    }
+
+    public function redemptions()
+    {
+        return $this->hasMany('Kommercio\Models\RewardPoint\Redemption')->orderBy('created_at', 'DESC');
     }
 
     //Methods

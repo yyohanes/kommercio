@@ -207,6 +207,14 @@ $permissions = [
         ],
         'feature' => 'customer.reward_points'
     ],
+    'Redemptions' => [
+        'permissions' => [
+            'view_redemptions' => 'View Redemptions',
+            'create_redemptions' => 'Create Redemptions',
+            'mark_used_redemptions' => 'Mark as Used',
+        ],
+        'feature' => 'customer.reward_points'
+    ],
     'Report' => [
         'permissions' => [
             'view_sales_report' => 'View Sales Report',

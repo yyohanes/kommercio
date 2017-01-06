@@ -5,11 +5,14 @@ namespace Kommercio\Validator;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Validator;
+use Kommercio\Facades\RuntimeCache;
 use Kommercio\Models\Address\Address;
+use Kommercio\Models\Customer;
 use Kommercio\Models\Order\Order;
 use Kommercio\Models\PaymentMethod\PaymentMethod;
 use Kommercio\Models\PriceRule\CartPriceRule;
 use Kommercio\Models\Product;
+use Kommercio\Models\RewardPoint\Reward;
 use Symfony\Component\Translation\TranslatorInterface;
 
 class CustomValidator extends Validator
@@ -216,6 +219,25 @@ class CustomValidator extends Validator
     public function validateOldPassword($attribute, $value, $parameters)
     {
         return Hash::check($value, current($parameters));
+    }
+
+    public function validateRedemption($attribute, $value, $parameters)
+    {
+        $customer = Customer::findOrFail($parameters[0]);
+        $reward = RuntimeCache::getOrSet('reward_'.$value, function() use ($value){
+            return Reward::findOrFail($value);
+        });
+
+        return $customer->reward_points >= $reward->points;
+    }
+
+    public function replaceRedemption($message, $attribute, $rule, $parameters)
+    {
+        $reward = RuntimeCache::get('reward_'.$this->getValue($attribute));
+
+        $message = str_replace(':reward', $reward->name, $message);
+
+        return $message;
     }
 
     protected function replaceProductAttribute($message, $attribute, $rule, $parameters)

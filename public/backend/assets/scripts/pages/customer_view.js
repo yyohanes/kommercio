@@ -1,4 +1,19 @@
 var CustomerView = function () {
+  var handleRedemption = function()
+  {
+    $('#redeem-cancel').on('click', function(e){
+      e.preventDefault();
+
+      $('#redeem-form').hide();
+    });
+
+    $('#redeem-btn').on('click', function(e){
+      e.preventDefault();
+
+      $('#redeem-form').show();
+    });
+  }
+
   var handleAddressForm = function()
   {
       $('#address-add-btn').on('click', function(e){
@@ -22,6 +37,7 @@ var CustomerView = function () {
     init: function () {
       handleAddressForm();
       handleRewardPointForm();
+      handleRedemption();
 
       addressFormBehaviors.handleEditAddress('#address-index-wrapper');
 

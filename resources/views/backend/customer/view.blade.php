@@ -47,6 +47,10 @@
                                 <li role="presentation">
                                     <a href="#tab_reward_points" data-toggle="tab"> Reward Points </a>
                                 </li>
+
+                                <li role="presentation">
+                                    <a href="#tab_redemptions" data-toggle="tab"> Redemptions </a>
+                                </li>
                             @endif
                         </ul>
 
@@ -246,6 +250,28 @@
 
                                         <div id="reward-point-index-wrapper">
                                             @include('backend.customer.reward_point.mini_index', ['rewardPointTransactions' => $customer->rewardPointTransactions])
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="tab-pane" id="tab_redemptions">
+                                    <div class="form-body">
+                                        <div class="well well-large">Current Reward Points: <strong class="current-reward-point">{{ $customer->reward_points + 0 }}</strong></div>
+
+                                        @can('access', ['create_redemptions'])
+                                        <div class="margin-bottom-10">
+                                            <a class="btn btn-default" id="redeem-btn" href="#">
+                                                <i class="fa fa-plus"></i> Redeem Coupon
+                                            </a>
+                                        </div>
+
+                                        <div id="redeem-form" style="display: none;">
+                                            @include('backend.customer.reward_point.coupon_mini_form')
+                                        </div>
+                                        @endcan
+
+                                        <div id="coupons-index-wrapper">
+                                            @include('backend.customer.reward_point.coupon_mini_index', ['redemptions' => $customer->redemptions])
                                         </div>
                                     </div>
                                 </div>
