@@ -37,6 +37,12 @@ class AddCouponTables extends Migration
                 ]);
                 $coupon->cartPriceRule()->associate($cartRule);
                 $coupon->save();
+
+                $couponLineItems = \Kommercio\Models\Order\LineItem::lineItemType('coupon')->where('line_item_id', $cartRule->id)->get();
+                foreach($couponLineItems as $couponLineItem){
+                    $couponLineItem->line_item_id = $coupon->id;
+                    $couponLineItem->save();
+                }
             }
         }
 
@@ -54,6 +60,27 @@ class AddCouponTables extends Migration
      */
     public function down()
     {
+        if (!Schema::hasColumn('cart_price_rules', 'coupon_code')) {
+            Schema::table('cart_price_rules', function(Blueprint $table){
+                $table->string('coupon_code')->nullable();
+            });
+        }
+
+        //Migrate back coupons to cart price rule
+        $coupons = \Kommercio\Models\PriceRule\Coupon::all();
+        foreach($coupons as $coupon){
+            if($coupon->cartPriceRule){
+                $coupon->cartPriceRule->coupon_code = $coupon->coupon_code;
+                $coupon->cartPriceRule->save();
+
+                $couponLineItems = \Kommercio\Models\Order\LineItem::lineItemType('coupon')->where('line_item_id', $coupon->id)->get();
+                foreach($couponLineItems as $couponLineItem){
+                    $couponLineItem->line_item_id = $coupon->cartPriceRule->id;
+                    $couponLineItem->save();
+                }
+            }
+        }
+
         Schema::drop('coupons');
     }
 }

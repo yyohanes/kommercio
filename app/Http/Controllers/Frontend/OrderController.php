@@ -73,7 +73,7 @@ class OrderController extends Controller
 
     public function cartUpdate(Request $request)
     {
-        $order = FrontendHelper::getCurrentOrder();
+        $order = FrontendHelper::getCurrentOrder('save');
 
         if($request->has('product_remove')){
             $rules = [
