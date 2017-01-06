@@ -44,7 +44,7 @@ class Page extends Model implements UrlAliasInterface, SeoModelInterface
     {
         $path = $this->getInternalPathSlug().'/'.$this->id;
 
-        return FrontendHelper::get_url($path);
+        return FrontendHelper::getUrl($path);
     }
 
     public function getUrlAlias()

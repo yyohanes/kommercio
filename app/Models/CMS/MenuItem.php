@@ -27,6 +27,12 @@ class MenuItem extends Model
 
     public $translatedAttributes = ['name', 'url', 'data'];
 
+    //Scope
+    public function scopeActive($query)
+    {
+        $query->where('active', true);
+    }
+
     //Relations
     public function menu()
     {

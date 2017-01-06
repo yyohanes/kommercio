@@ -146,8 +146,9 @@ class FrontendHelper
 
         foreach($menu_slugs as $menu_slug){
             $menu = Menu::with('rootMenuItems')->where('slug', $menu_slug)->first();
+            $rootMenuItems = $menu->rootMenuItems()->active()->get();
 
-            $menuItems += ($menu->rootMenuItems->count() > 0)?$menu->rootMenuItems->all():[];
+            $menuItems += ($rootMenuItems->count() > 0)?$rootMenuItems->all():[];
         }
 
         $menuItems = new Collection($menuItems);
@@ -167,7 +168,7 @@ class FrontendHelper
     public function getMenuItemChildren($menu_item_id, $menu_slug)
     {
         $menu = Menu::where('slug', $menu_slug)->firstOrFail();
-        $menuItem = $menu->menuItems()->findOrFail($menu_item_id);
+        $menuItem = $menu->menuItems()->active()->findOrFail($menu_item_id);
 
         return $menuItem->children;
     }
@@ -177,7 +178,7 @@ class FrontendHelper
     {
         $bannerGroup = BannerGroup::with('banners')->where('slug', $banner_group_slug)->first();
 
-        $banners = $bannerGroup?$bannerGroup->banners:collect([]);
+        $banners = $bannerGroup?$bannerGroup->getBanners():collect([]);
 
         return $banners;
     }

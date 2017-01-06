@@ -54,12 +54,12 @@ class Menu extends Model implements SluggableInterface
         $menu = $this;
 
         if(is_null($menuitem->parent_id)){
-            $menuItems = $menu->rootMenuItems->pluck('parent_id')->all();
+            $menuItems = $menu->rootMenuItems()->active()->pluck('parent_id')->all();
         }else{
             $menuItems = [$menuitem->parent_id];
         }
 
-        $siblings = $menu->menuItems()->whereIn('parent_id', $menuItems)->get();
+        $siblings = $menu->menuItems()->active()->whereIn('parent_id', $menuItems)->get();
 
         return $siblings;
     }
@@ -79,6 +79,12 @@ class Menu extends Model implements SluggableInterface
         }
 
         return null;
+    }
+
+    //Scope
+    public function scopeActive($query)
+    {
+        $query->where('active', true);
     }
 
     //Relations

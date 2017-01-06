@@ -27,4 +27,10 @@ class Banner extends Model
     {
         return $this->belongsTo('Kommercio\Models\CMS\BannerGroup');
     }
+
+    //Scopes
+    public function scopeActive($query)
+    {
+        $query->where('active', true);
+    }
 }
