@@ -79,7 +79,7 @@
                                 <input type="checkbox" class="group-checkable" />
                             </th>
                             <th style="width: 10px;"></th>
-                            <th>Order #</th>
+                            <th style="min-width: 120px;">Order #</th>
                             <th>Purchased On</th>
                             @if(config('project.enable_delivery_date', FALSE))
                                 <th>Delivery Date</th>
