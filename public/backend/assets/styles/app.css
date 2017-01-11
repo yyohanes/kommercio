@@ -47,25 +47,26 @@
   vertical-align: middle;
 }
 
-/* line 63, sass/app.scss */
-table.floatThead-table {
+/* line 64, sass/app.scss */
+.floatThead-container table.table.floatThead-table {
   border-top: none;
   border-bottom: none;
   background-color: #FFF;
+  margin-top: 0 !important;
 }
 
-/* line 69, sass/app.scss */
+/* line 72, sass/app.scss */
 .form-in-btn-group {
   display: inline-block;
 }
 
-/* line 74, sass/app.scss */
+/* line 77, sass/app.scss */
 .sortable-placeholder {
   border: 2px dashed #ccc;
   height: 150px;
 }
 
-/* line 82, sass/app.scss */
+/* line 85, sass/app.scss */
 .datepicker.loading:after {
   content: 'Loading calendar...';
   position: absolute;
@@ -78,43 +79,43 @@ table.floatThead-table {
   right: 0;
   text-align: center;
 }
-/* line 96, sass/app.scss */
+/* line 99, sass/app.scss */
 .datepicker .day.disabled-date {
   text-decoration: line-through;
   color: #ccc !important;
 }
 
-/* line 104, sass/app.scss */
+/* line 107, sass/app.scss */
 #products-dataset .product-image {
   width: 40px;
 }
 
-/* line 111, sass/app.scss */
+/* line 114, sass/app.scss */
 #line-items-table .availability div {
   display: none;
 }
 
-/* line 117, sass/app.scss */
+/* line 120, sass/app.scss */
 .permissions-check-all, .permissions-uncheck-all {
   font-size: 12px;
 }
 
-/* line 121, sass/app.scss */
+/* line 124, sass/app.scss */
 .expanded-detail {
   font-size: 12px !important;
   line-height: 1.25em;
 }
-/* line 122, sass/app.scss */
+/* line 125, sass/app.scss */
 .expanded-detail .product-image {
   width: 60px !important;
 }
-/* line 129, sass/app.scss */
+/* line 132, sass/app.scss */
 .expanded-detail th, .expanded-detail td, .expanded-detail div, .expanded-detail p {
   font-size: 12px !important;
   line-height: 1.25em;
 }
 
-/* line 137, sass/app.scss */
+/* line 140, sass/app.scss */
 .child-line-item-header td:first-child, .child-line-item td:first-child {
   padding-left: 2em;
 }

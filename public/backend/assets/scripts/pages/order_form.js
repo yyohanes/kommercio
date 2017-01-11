@@ -897,15 +897,6 @@ var OrderForm = function () {
     }
   }
 
-  var handleFixedHeaderTable = function() {
-    $("#line-items-table").floatThead('destroy');
-
-    $("#line-items-table").floatThead({
-      position: 'fixed',
-      top: $(window).width() > 990?50:0
-    });
-  }
-
   return {
     //main function to initiate the module
     resize: function(){
@@ -916,7 +907,6 @@ var OrderForm = function () {
       handleButtons();
       handleTaxPriceRuleRewardRules();
       handleAvailability();
-      handleFixedHeaderTable();
 
       $totalShippingLineItems = $('.line-item[data-line_item="shipping"]', '#line-items-table').length;
       toggleAddShippingButton();

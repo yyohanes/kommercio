@@ -276,6 +276,7 @@
     <!-- END THEME LAYOUT SCRIPTS -->
 
     <!-- BEGIN MODIFIED SCRIPTS -->
+    <script src="{{ asset('backend/assets/scripts/plugins/jquery.floatThead/dist/jquery.floatThead.min.js') }}" type="text/javascript"></script>
     <script src="{{ asset('backend/assets/scripts/plugins/jquery-migrate/jquery-migrate.min.js') }}" type="text/javascript"></script>
     <script src="{{ asset('backend/assets/scripts/plugins/jquery.ba-bbq/jquery.ba-bbq.min.js') }}" type="text/javascript"></script>
     <script src="{{ asset('backend/assets/scripts/plugins/mathjs/math.min.js') }}" type="text/javascript"></script>

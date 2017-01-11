@@ -72,7 +72,7 @@
                         <button class="btn btn-sm btn-default table-group-action-submit">
                             <i class="fa fa-check"></i> Submit</button>
                     </div>
-                    <table class="table table-striped table-bordered table-advance" id="orders-dataset" data-src="{{ Request::fullUrl() }}" data-form_token="{{ csrf_token() }}">
+                    <table class="table table-striped table-bordered table-advance fixed-header-table" id="orders-dataset" data-src="{{ Request::fullUrl() }}" data-form_token="{{ csrf_token() }}">
                         <thead>
                         <tr role="row" class="heading">
                             <th style="width: 10px;">

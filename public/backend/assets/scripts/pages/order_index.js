@@ -97,7 +97,7 @@ var OrderIndex = function () {
                 "order": [
                     [3, "desc"]
                 ],
-                "columnDefs": columnDefs,
+                "columnDefs": columnDefs
 
                 /*//Scroller
                 scrollY: 450,

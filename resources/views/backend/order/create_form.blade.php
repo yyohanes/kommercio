@@ -129,7 +129,7 @@
                 </div>
             </div>
             <div class="portlet-body" id="order-content-wrapper" data-order_edit="{{ isset($editOrder)?$editOrder:false }}">
-                <table id="line-items-table" class="table table-hover table-bordered table-striped">
+                <table id="line-items-table" class="table table-hover table-bordered table-striped fixed-header-table">
                     <thead>
                     <tr>
                         <th> Item </th>
@@ -332,6 +332,5 @@
         </div>
     </script>
 
-    <script src="{{ asset('backend/assets/scripts/plugins/jquery.floatThead/dist/jquery.floatThead.min.js') }}" type="text/javascript"></script>
     <script src="{{ asset('backend/assets/scripts/pages/order_form.js') }}" type="text/javascript"></script>
 @stop
