@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Session;
+use Kommercio\Events\CouponEvent;
 use Kommercio\Events\OrderEvent;
 use Kommercio\Events\OrderUpdate;
 use Kommercio\Facades\AddressHelper;
@@ -334,10 +335,12 @@ class OrderController extends Controller{
             $rowMeat = array_merge($rowMeat, [$orderTotal]);
 
             if(Gate::allows('access', ['view_payment'])):
-                $rowMeat = array_merge($rowMeat, [
-                    $order->paymentMethod->name,
-                    '<label class="label label-sm label-'.($order->outstanding > 0?'warning':'success').'">'.PriceFormatter::formatNumber($order->outstanding).'</label>',
-                ]);
+                $rowMeat[] = $order->paymentMethod->name;
+                $outstanding = '<label class="label label-sm label-'.($order->outstanding > 0?'warning':'success').'">'.PriceFormatter::formatNumber($order->outstanding).'</label>';
+                if($order->payments->count() > 0){
+                    $outstanding .= '<div class="expanded-detail" data-ajax_load="'.route('backend.sales.order.quick_payment_view', ['id' => $order->id]).'"></div>';
+                }
+                $rowMeat[] = $outstanding;
             endif;
 
             $rowMeat = array_merge($rowMeat, ['<label class="label label-sm bg-'.OrderHelper::getOrderStatusLabelClass($order->status).' bg-font-'.OrderHelper::getOrderStatusLabelClass($order->status).'">'.Order::getStatusOptions($order->status, TRUE).'</label>']);
@@ -475,11 +478,11 @@ class OrderController extends Controller{
 
         $order->save();
 
-        Event::fire(new OrderUpdate($order, $originalStatus, $request->input('send_notification')));
-
         if($request->input('action') == 'place_order'){
             Event::fire(new OrderEvent('internal_place_order', $order));
         }
+
+        Event::fire(new OrderUpdate($order, $originalStatus, $request->input('send_notification')));
 
         return redirect()->route('backend.sales.order.index')->with('success', ['This '.Order::getStatusOptions($order->status, true).' order has successfully been created.']);
     }
@@ -508,6 +511,17 @@ class OrderController extends Controller{
         return view('backend.order.quick_content_view', [
             'order' => $order,
             'lineItems' => $lineItems,
+        ]);
+    }
+
+    public function quickPaymentView($id)
+    {
+        $order = Order::findOrFail($id);
+        $payments = $order->payments;
+
+        return view('backend.order.quick_payment_view', [
+            'order' => $order,
+            'payments' => $payments,
         ]);
     }
 
@@ -1185,7 +1199,18 @@ class OrderController extends Controller{
 
         Event::fire(new OrderEvent('before_place_order', $order));
 
+        $this->throwCouponEvents($order);
+
         return $order;
+    }
+
+    protected function throwCouponEvents(Order $order)
+    {
+        foreach($order->getCouponLineItems() as $couponLineItem){
+            if($couponLineItem->coupon){
+                Event::fire(new CouponEvent('used', $couponLineItem->coupon));
+            }
+        }
     }
 
     protected function processFinalPayment(Order $order, PaymentMethod $paymentMethod, Request $request)

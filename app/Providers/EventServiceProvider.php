@@ -22,6 +22,9 @@ class EventServiceProvider extends ServiceProvider
         'Kommercio\Events\PaymentEvent' => [
             'Kommercio\Listeners\PaymentListener',
         ],
+        'Kommercio\Events\CouponEvent' => [
+            'Kommercio\Listeners\CouponListener',
+        ],
         'Kommercio\Events\Cron' => [
             'Kommercio\Listeners\CronListener'
         ],
@@ -49,6 +52,11 @@ class EventServiceProvider extends ServiceProvider
         //Add package Order Update Event Listener
         if(file_exists(base_path('packages/project/src/Project/Listeners/OrderUpdateListener.php'))){
             $this->listen['Kommercio\Events\OrderUpdate'][] = 'Project\Project\Listeners\OrderUpdateListener';
+        }
+
+        //Add package Coupon Event Listener
+        if(file_exists(base_path('packages/project/src/Project/Listeners/CouponListener.php'))){
+            $this->listen['Kommercio\Events\CouponEvent'][] = 'Project\Project\Listeners\CouponListener';
         }
 
         //Add package Order Event Listener

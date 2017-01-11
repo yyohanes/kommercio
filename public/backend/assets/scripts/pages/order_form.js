@@ -897,27 +897,40 @@ var OrderForm = function () {
     }
   }
 
+  var handleFixedHeaderTable = function() {
+    $("#line-items-table").floatThead('destroy');
+
+    $("#line-items-table").floatThead({
+      position: 'fixed',
+      top: $(window).width() > 990?50:0
+    });
+  }
+
   return {
     //main function to initiate the module
+    resize: function(){
+      handleFixedHeaderTable();
+    },
     init: function () {
       handleBillingEmail();
       handleButtons();
       handleTaxPriceRuleRewardRules();
       handleAvailability();
+      handleFixedHeaderTable();
 
-        $totalShippingLineItems = $('.line-item[data-line_item="shipping"]', '#line-items-table').length;
-        toggleAddShippingButton();
+      $totalShippingLineItems = $('.line-item[data-line_item="shipping"]', '#line-items-table').length;
+      toggleAddShippingButton();
 
-        $('.line-item, .child-line-item-header, .child-line-item', '#line-items-table').each(function(idx, obj){
-            OrderForm.lineItemInit($(obj));
-        });
+      $('.line-item, .child-line-item-header, .child-line-item', '#line-items-table').each(function(idx, obj){
+          OrderForm.lineItemInit($(obj));
+      });
 
-        $('#billing-information-wrapper').on('address.change', function(){
-            $('#order-form').trigger('order.major_change');
-        });
+      $('#billing-information-wrapper').on('address.change', function(){
+          $('#order-form').trigger('order.major_change');
+      });
 
-        $('#order-form').trigger('order.major_change');
-        $('#order-form').trigger('order.delivery_date_change');
+      $('#order-form').trigger('order.major_change');
+      $('#order-form').trigger('order.delivery_date_change');
     },
     lineItemInit: function(lineItem)
     {
@@ -1056,4 +1069,8 @@ var OrderForm = function () {
 
 jQuery(document).ready(function() {
     OrderForm.init();
+});
+
+jQuery(window).resize(function() {
+    OrderForm.resize();
 });

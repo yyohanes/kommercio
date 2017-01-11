@@ -93,6 +93,8 @@ class OrderHelper
                     continue;
                 }
 
+                $lineItemDatum['net_price'] = floatval($lineItemDatum);
+
                 $lineItem = $this->reuseOrCreateLineItem($order, $existingLineItems, $count);
 
                 $lineItem->processData($lineItemDatum, $count);

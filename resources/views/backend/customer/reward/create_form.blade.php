@@ -15,10 +15,23 @@
     'label' => 'Description',
     'key' => 'description',
     'attr' => [
-        'class' => 'form-control',
+        'class' => 'form-control wysiwyg-editor',
         'id' => 'description',
         'rows' => 3
     ],
+    'valueColumnClass' => 'col-md-6',
+])
+
+@include('backend.master.form.fields.images', [
+    'name' => 'images',
+    'label' => 'Images',
+    'key' => 'images',
+    'attr' => [
+        'class' => 'form-control',
+        'id' => 'images'
+    ],
+    'multiple' => TRUE,
+    'existing' => $reward->images?:[],
     'valueColumnClass' => 'col-md-6',
 ])
 

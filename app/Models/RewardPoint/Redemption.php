@@ -8,10 +8,7 @@ use Kommercio\Models\PriceRule\Coupon;
 
 class Redemption extends Model
 {
-    const STATUS_UNUSED = 'unused';
-    const STATUS_USED = 'used';
-
-    protected $fillable = ['points', 'status'];
+    protected $fillable = ['points'];
 
     //Relations
     public function reward()
@@ -35,8 +32,7 @@ class Redemption extends Model
         $rewardObject = $reward->generateReward($customer);
 
         $redemption = new self([
-            'points' => $reward->points,
-            'status' => self::STATUS_UNUSED
+            'points' => $reward->points
         ]);
 
         $redemption->reward()->associate($reward);
@@ -54,19 +50,5 @@ class Redemption extends Model
         ]);
 
         return $redemption;
-    }
-
-    public static function getStatusOptions($option=null)
-    {
-        $array = [
-            self::STATUS_USED => 'Used',
-            self::STATUS_UNUSED => 'Unused',
-        ];
-
-        if(empty($option)){
-            return $array;
-        }
-
-        return (isset($array[$option]))?$array[$option]:$array;
     }
 }

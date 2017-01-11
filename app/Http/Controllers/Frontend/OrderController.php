@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Request as RequestFacade;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
+use Kommercio\Events\CouponEvent;
 use Kommercio\Events\OrderEvent;
 use Kommercio\Events\OrderUpdate;
 use Kommercio\Facades\AddressHelper;
@@ -474,7 +475,7 @@ class OrderController extends Controller
 
     public function onePageCheckoutProcess(Request $request, $type = 'account')
     {
-        $order = FrontendHelper::getCurrentOrder();
+        $order = FrontendHelper::getCurrentOrder('save');
         $user = Auth::user();
 
         $errorCode = 422;
@@ -495,13 +496,13 @@ class OrderController extends Controller
             'rewardPoints' => $order->calculateRewardRules()
         ];
 
+        $process = $request->input('process');
+
         $shippingMethodOptions = $this->getShippingMethodOptions($request, $order)['shippingMethodOptions'];
 
         if($request->has('billingProfile.email') && (!isset($viewData['customer']->user) || !isset($viewData['customer']))){
             $viewData['canRegister'] = TRUE;
         }
-
-        $process = $request->input('process');
 
         if($viewData['customer']){
             if($viewData['customer']->user && Auth::check() && Auth::user()->id == $viewData['customer']->user_id){
@@ -718,12 +719,12 @@ class OrderController extends Controller
 
                     $products = [];
                     foreach($order->getProductLineItems() as $idx=>$productLineItem){
-                        $products[] = $productLineItem->line_item_id;
+                        $products[$idx] = $productLineItem->line_item_id;
                     }
 
                     $coupons = [];
                     foreach($order->getCouponLineItems() as $idx=>$couponLineItem){
-                        $coupons[] = $couponLineItem->coupon->coupon_code;
+                        $coupons[$idx] = $couponLineItem->coupon->coupon_code;
                     }
 
                     $validator = Validator::make([
@@ -733,7 +734,8 @@ class OrderController extends Controller
                         'shipping_method' => $order->getSelectedShippingMethod(),
                         'payment_method' => $order->paymentMethod?$order->paymentMethod->id:null,
                         'product' => $products,
-                        'coupon' => $coupons
+                        'coupon' => $coupons,
+                        'step' => $order->getData('checkout_step')
                     ], $placeOrderRules);
 
                     Event::fire(new OrderEvent('frontend_rules_built', $order, ['rules' => &$rules]));
@@ -792,8 +794,7 @@ class OrderController extends Controller
 
                 foreach($shippingMethodOptions as $idx => $shippingMethodOption){
                     if($request->input('shipping_method') == $idx){
-
-                        $order->updateShippingMethod($request->input('shipping_method'), $shippingMethodOption);
+                        $order->updateShippingMethod($request->input('shipping_method'));
 
                         OrderHelper::processLineItems($request, $order, false);
 
@@ -817,8 +818,8 @@ class OrderController extends Controller
         }
 
         if($viewData['step'] == 'complete'){
-            Event::fire(new OrderUpdate($order, Order::STATUS_CART, true));
             Event::fire(new OrderEvent('customer_place_order', $order));
+            Event::fire(new OrderUpdate($order, Order::STATUS_CART, true));
         }
 
         if($request->ajax()){
@@ -1075,6 +1076,12 @@ class OrderController extends Controller
 
         Event::fire(new OrderEvent('before_order_placed', $order));
 
+        foreach($order->getCouponLineItems() as $couponLineItem){
+            if($couponLineItem->coupon){
+                Event::fire(new CouponEvent('used', $couponLineItem->coupon));
+            }
+        }
+
         return $order;
     }
 
@@ -1194,6 +1201,7 @@ class OrderController extends Controller
                 'shipping_method' => 'required'.(isset($shippingMethodOptions)?'|in:'.implode(',', array_keys($shippingMethodOptions)):''),
             ],
             'place_order' => [
+                'step' => 'in:checkout_summary',
                 'billingProfile.email' => 'required|email',
                 'shippingProfile.full_name' => 'required',
                 'shippingProfile.phone_number' => 'required',

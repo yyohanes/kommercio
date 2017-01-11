@@ -461,6 +461,10 @@ class CartPriceRule extends Model implements StoreManagedInterface
 
         $order = $currentOrder?clone $currentOrder:OrderHelper::createDummyOrderFromRequest($request);
 
+        if(!$coupon->validateCustomer($order->customer)){
+            return trans(LanguageHelper::getTranslationKey('order.coupons.invalid'), ['coupon_code' => $couponCode]);
+        }
+
         $subtotal = $order->calculateProductTotal() + $order->calculateAdditionalTotal();
 
         $shippings = [];

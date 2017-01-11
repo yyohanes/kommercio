@@ -58,7 +58,7 @@
                         <tr>
                             <td><i class="fa fa-reorder"></i></td>
                             <td>{{ $reward->name }}</td>
-                            <td>{!! nl2br($reward->description) !!}</td>
+                            <td>{!! $reward->description !!}</td>
                             <td> {{ $reward->points + 0 }} </td>
                             <td> {{ \Kommercio\Models\RewardPoint\Reward::getTypeOptions($reward->type) }} </td>
                             <td> {{ $reward->store?$reward->store->name:'All' }} </td>

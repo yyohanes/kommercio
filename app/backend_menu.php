@@ -118,6 +118,13 @@ $menus['customer'] = [
             'permissions' => 'view_customer_group',
             'feature' => 'customer.customer_group'
         ],
+        'redemption' => [
+            'active_path' => 'customer/redemptions',
+            'name' => 'Redemptions',
+            'route' => 'backend.customer.redemption.index',
+            'permissions' => 'view_redemptions',
+            'feature' => 'customer.reward_points'
+        ],
         'reward_point' => [
             'active_path' => 'customer/reward-point',
             'name' => 'Reward Points',

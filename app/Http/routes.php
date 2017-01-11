@@ -125,6 +125,11 @@ Route::group(['middleware' => ['web']], function () {
                         'as' => 'frontend.member.reward.points',
                         'uses' => 'AccountController@rewardPoints'
                     ]);
+
+                    Route::post('redeem', [
+                        'as' => 'frontend.member.reward.redeem',
+                        'uses' => 'AccountController@rewardRedeem'
+                    ]);
                 });
             });
         });
@@ -835,10 +840,16 @@ Route::group(['middleware' => ['web']], function () {
                         'permissions' => ['view_order']
                     ]);
 
-                    Route::get('quick_content_view/{id}', [
+                    Route::get('quick-content-view/{id}', [
                         'as' => 'backend.sales.order.quick_content_view',
                         'uses' => 'OrderController@quickContentView',
                         'permissions' => ['view_order']
+                    ]);
+
+                    Route::get('quick-payment-view/{id}', [
+                        'as' => 'backend.sales.order.quick_payment_view',
+                        'uses' => 'OrderController@quickPaymentView',
+                        'permissions' => ['view_payment']
                     ]);
 
                     Route::get('print/{id}/{type?}', [
@@ -1519,6 +1530,12 @@ Route::group(['middleware' => ['web']], function () {
 
                 //Redemptions
                 Route::group(['prefix' => 'redemptions'], function(){
+                    Route::any('index', [
+                        'as' => 'backend.customer.redemption.index',
+                        'uses' => 'RedemptionController@index',
+                        'permissions' => ['view_redemptions']
+                    ]);
+
                     Route::post('{id}/mark/used', [
                         'as' => 'backend.customer.redemption.mark_used',
                         'uses' => 'RedemptionController@markUsed',

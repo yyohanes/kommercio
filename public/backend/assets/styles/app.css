@@ -48,17 +48,24 @@
 }
 
 /* line 63, sass/app.scss */
+table.floatThead-table {
+  border-top: none;
+  border-bottom: none;
+  background-color: #FFF;
+}
+
+/* line 69, sass/app.scss */
 .form-in-btn-group {
   display: inline-block;
 }
 
-/* line 68, sass/app.scss */
+/* line 74, sass/app.scss */
 .sortable-placeholder {
   border: 2px dashed #ccc;
   height: 150px;
 }
 
-/* line 76, sass/app.scss */
+/* line 82, sass/app.scss */
 .datepicker.loading:after {
   content: 'Loading calendar...';
   position: absolute;
@@ -71,43 +78,43 @@
   right: 0;
   text-align: center;
 }
-/* line 90, sass/app.scss */
+/* line 96, sass/app.scss */
 .datepicker .day.disabled-date {
   text-decoration: line-through;
   color: #ccc !important;
 }
 
-/* line 98, sass/app.scss */
+/* line 104, sass/app.scss */
 #products-dataset .product-image {
   width: 40px;
 }
 
-/* line 105, sass/app.scss */
+/* line 111, sass/app.scss */
 #line-items-table .availability div {
   display: none;
 }
 
-/* line 111, sass/app.scss */
+/* line 117, sass/app.scss */
 .permissions-check-all, .permissions-uncheck-all {
   font-size: 12px;
 }
 
-/* line 115, sass/app.scss */
+/* line 121, sass/app.scss */
 .expanded-detail {
   font-size: 12px !important;
   line-height: 1.25em;
 }
-/* line 116, sass/app.scss */
+/* line 122, sass/app.scss */
 .expanded-detail .product-image {
   width: 60px !important;
 }
-/* line 123, sass/app.scss */
+/* line 129, sass/app.scss */
 .expanded-detail th, .expanded-detail td, .expanded-detail div, .expanded-detail p {
   font-size: 12px !important;
   line-height: 1.25em;
 }
 
-/* line 131, sass/app.scss */
+/* line 137, sass/app.scss */
 .child-line-item-header td:first-child, .child-line-item td:first-child {
   padding-left: 2em;
 }

@@ -5,6 +5,7 @@ namespace Kommercio\Helpers;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Request as RequestFacade;
 use Kommercio\Facades\ProjectHelper as ProjectHelperFacade;
@@ -248,7 +249,13 @@ class FrontendHelper
             $this->_currentOrder = $order;
         }
 
-        if($context == 'save' && !$this->_currentOrder->exists){
+        //Tie order to logged in customer
+        $user = Auth::user();
+        if($user && $user->customer){
+            $this->_currentOrder->customer()->associate($user->customer);
+        }
+
+        if($context == 'save'){
             $this->_currentOrder->save();
 
             $cookie = Cookie::make($cookieKey, $this->_currentOrder->id, 25200);

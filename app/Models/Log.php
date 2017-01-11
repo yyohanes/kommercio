@@ -18,6 +18,16 @@ class Log extends Model implements AuthorSignatureInterface
         return $this->morphTo();
     }
 
+    //Scopes
+    public function scopeWhereTag($query, $tags)
+    {
+        if(is_string($tags)){
+            $tags = [$tags];
+        }
+
+        $query->whereIn('tag', $tags);
+    }
+
     //Statics
     public static function log($tag, $message, Model $model, $userName = null)
     {

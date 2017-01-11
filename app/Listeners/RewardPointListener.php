@@ -41,7 +41,7 @@ class RewardPointListener
             $rewardPointTransaction->customer->decrement('reward_points', $rewardPointTransaction->amount);
         }
 
-        Log::log('reward_point.reject', 'Reward point transaction is approved.', $rewardPointTransaction);
+        Log::log('reward_point.approve', 'Reward point transaction is approved.', $rewardPointTransaction);
     }
 
     protected function rejectRewardPointTransaction(RewardPointTransaction $rewardPointTransaction)

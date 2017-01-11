@@ -51,6 +51,9 @@ return [
             'delete_success_message' => 'Address is successfully deleted.',
             'create_new_address' => 'Create New Address',
             'set_default_success_message' => ':address is successfully set as default :type'
+        ],
+        'reward' => [
+            'redeem_successful' => 'You have successfully redeemed :reward.'
         ]
     ],
     'seo' => [

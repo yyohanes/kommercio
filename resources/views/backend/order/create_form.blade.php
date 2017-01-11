@@ -332,5 +332,6 @@
         </div>
     </script>
 
+    <script src="{{ asset('backend/assets/scripts/plugins/jquery.floatThead/dist/jquery.floatThead.min.js') }}" type="text/javascript"></script>
     <script src="{{ asset('backend/assets/scripts/pages/order_form.js') }}" type="text/javascript"></script>
 @stop

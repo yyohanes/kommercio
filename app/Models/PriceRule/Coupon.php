@@ -4,11 +4,13 @@ namespace Kommercio\Models\PriceRule;
 
 use Illuminate\Database\Eloquent\Model;
 use Kommercio\Models\Interfaces\AuthorSignatureInterface;
+use Kommercio\Models\Interfaces\RewardObjectInterface;
+use Kommercio\Models\Log;
 use Kommercio\Models\Order\Order;
 use Kommercio\Traits\Model\AuthorSignature;
 use Kommercio\Traits\Model\HasDataColumn;
 
-class Coupon extends Model implements AuthorSignatureInterface
+class Coupon extends Model implements AuthorSignatureInterface, RewardObjectInterface
 {
     use AuthorSignature, HasDataColumn;
 
@@ -21,6 +23,16 @@ class Coupon extends Model implements AuthorSignatureInterface
     public function getUsage()
     {
         return $this->cartPriceRule->getUsageByCoupon($this);
+    }
+
+    public function getRewardUsageCount()
+    {
+        return $this->rewardUsageLogs->count();
+    }
+
+    public function markRewardUsed()
+    {
+        Log::log('redemption.used', 'Coupon is mark as used', $this);
     }
 
     //Get cart price rule and tie it with specific Coupon
@@ -49,6 +61,17 @@ class Coupon extends Model implements AuthorSignatureInterface
         return $randomString;
     }
 
+    public function validateCustomer($customer)
+    {
+        $valid = empty($this->customer);
+
+        if(!empty($this->customer) && !empty($customer)){
+            $valid = $customer->id == $this->customer->id;
+        }
+
+        return $valid;
+    }
+
     //Relations
     public function cartPriceRule()
     {
@@ -65,10 +88,15 @@ class Coupon extends Model implements AuthorSignatureInterface
         return $this->hasOne('Kommercio\Models\RewardPoint\Redemption');
     }
 
+    public function rewardUsageLogs()
+    {
+        return $this->morphMany('Kommercio\Models\Log', 'loggable')->whereTag('redemption.used');
+    }
+
     //Statics
     public static function getCouponByCode($coupon_code)
     {
-        $qb = self::where('coupon_code', $coupon_code);
+        $qb = self::where('coupon_code', $coupon_code)->where('type', Coupon::TYPE_ONLINE);
 
         return $qb->first();
     }

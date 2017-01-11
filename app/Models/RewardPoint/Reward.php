@@ -23,7 +23,7 @@ class Reward extends Model implements StoreManagedInterface
     const TYPE_ONLINE_COUPON = 'online_coupon';
     const TYPE_OFFLINE_COUPON = 'offline_coupon';
 
-    public $translatedAttributes = ['name', 'description'];
+    public $translatedAttributes = ['name', 'description', 'images'];
     protected $fillable = ['name', 'description', 'type', 'points', 'active', 'data'];
     protected $toggleFields = ['active'];
     protected $casts = [

@@ -277,4 +277,18 @@ class Customer extends Model
 
         return $qb->first();
     }
+
+    public static function searchCustomers($keyword)
+    {
+        $qb = self::with('profile')
+            ->joinFullName()
+            ->joinFields(['email']);
+
+        $qb->whereRaw('CONCAT(VFNAME.value, " ", VLNAME.value) LIKE ?', ['%'.$keyword.'%']);
+        $qb->orWhereRaw('VFNAME.value LIKE ?', ['%'.$keyword.'%']);
+        $qb->orWhereRaw('VLNAME.value LIKE ?', ['%'.$keyword.'%']);
+        $qb->orWhereRaw('JOIN_email.value LIKE ?', ['%'.$keyword.'%']);
+
+        return $qb->get();
+    }
 }

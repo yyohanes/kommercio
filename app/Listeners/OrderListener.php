@@ -2,6 +2,8 @@
 
 namespace Kommercio\Listeners;
 
+use Illuminate\Support\Facades\Event;
+use Kommercio\Events\CouponEvent;
 use Kommercio\Events\OrderEvent;
 use Kommercio\Facades\EmailHelper;
 use Kommercio\Facades\ProjectHelper;
@@ -12,16 +14,6 @@ use Kommercio\Models\RewardPoint\RewardPointTransaction;
 class OrderListener
 {
     protected $order;
-
-    /**
-     * Create the event listener.
-     *
-     * @return void
-     */
-    public function __construct(Order $order)
-    {
-        $this->order = $order;
-    }
 
     /**
      * Handle the event.
@@ -36,9 +28,9 @@ class OrderListener
         if($event->type == 'before_order_placed'){
             $this->beforeOrderPlaced($order);
         }elseif($event->type == 'customer_place_order'){
-            $this->customerPlaceOrder($order);
+            $this->placeOrder($order);
         }elseif($event->type == 'internal_place_order'){
-            $this->internalPlaceOrder($order);
+            $this->placeOrder($order, true);
         }elseif($event->type == 'shipping_method_changed'){
             $this->shippingMethodChanged($order);
         }elseif($event->type == 'process_payment'){
@@ -53,32 +45,29 @@ class OrderListener
 
     }
 
-    protected function customerPlaceOrder(Order $order)
+    protected function placeOrder(Order $order, $internal = false)
     {
-        if(ProjectHelper::isFeatureEnabled('customer.reward_points')){
-            $existingReviewRewardPoints = $order->rewardPointTransactions()->where('status', RewardPointTransaction::STATUS_REVIEW)->get();
-            foreach($existingReviewRewardPoints as $existingReviewRewardPoint){
-                $existingReviewRewardPoint->delete();
+        if(!$internal){
+            if(ProjectHelper::isFeatureEnabled('customer.reward_points')){
+                $existingReviewRewardPoints = $order->rewardPointTransactions()->where('status', RewardPointTransaction::STATUS_REVIEW)->get();
+                foreach($existingReviewRewardPoints as $existingReviewRewardPoint){
+                    $existingReviewRewardPoint->delete();
+                }
+
+                $order->addRewardPoint();
             }
 
-            $order->addRewardPoint();
+            $subject = 'There is new order #'.$order->reference;
+
+            $orderEmail = ProjectHelper::getConfig('contacts.order.email');
+
+            EmailHelper::sendMail($orderEmail, $subject, 'order.admin_new_order', ['order' => $order], 'general');
         }
-
-        $subject = 'There is new order #'.$order->reference;
-
-        $orderEmail = ProjectHelper::getConfig('contacts.order.email');
-
-        EmailHelper::sendMail($orderEmail, $subject, 'order.admin_new_order', ['order' => $order], 'general');
     }
 
     protected function placedOrderUpdated(Order $order)
     {
 
-    }
-
-    protected function internalPlaceOrder(Order $order)
-    {
-        
     }
 
     protected function shippingMethodChanged(Order $order)

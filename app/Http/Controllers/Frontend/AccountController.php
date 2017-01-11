@@ -10,10 +10,13 @@ use Illuminate\Support\Facades\Validator;
 use Kommercio\Facades\LanguageHelper;
 use Kommercio\Facades\NewsletterSubscriptionHelper;
 use Kommercio\Facades\ProjectHelper;
+use Kommercio\Facades\RuntimeCache;
 use Kommercio\Http\Controllers\Controller;
 use Kommercio\Models\Customer;
 use Kommercio\Models\Order\Order;
 use Kommercio\Models\Profile\Profile;
+use Kommercio\Models\RewardPoint\Redemption;
+use Kommercio\Models\RewardPoint\Reward;
 
 class AccountController extends Controller
 {
@@ -430,11 +433,31 @@ class AccountController extends Controller
             'meta_title' => trans(LanguageHelper::getTranslationKey('frontend.seo.member.reward_points.meta_title'))
         ];
 
+        $rewards = Reward::active()->get();
+
         return view($viewName, [
             'user' => $this->user,
             'customer' => $this->customer,
+            'rewards' => $rewards,
             'seoData' => $seoData,
         ]);
+    }
+
+    public function rewardRedeem(Request $request)
+    {
+        $rules = [
+            'reward' => 'required|exists:rewards,id|redemption:'.$this->customer->id
+        ];
+
+        $this->validate($request, $rules);
+
+        $reward = RuntimeCache::getOrSet('reward_'.$request->input('reward'), function() use ($request){
+            return Reward::findOrFail($request->input('reward'));
+        });
+
+        $redemption = Redemption::redeem($this->customer, $reward);
+
+        return redirect()->back()->with('success', [trans(LanguageHelper::getTranslationKey('frontend.member.reward.redeem_successful'), ['reward' => $reward->name])]);
     }
 
     public function newsletterWidgetSubscribe(Request $request)

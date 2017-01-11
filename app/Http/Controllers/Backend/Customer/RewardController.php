@@ -63,6 +63,17 @@ class RewardController extends Controller
 
         $reward->save();
 
+        if($request->has('images')){
+            foreach($request->input('images', []) as $idx=>$image){
+                $images[$image] = [
+                    'type' => 'image',
+                    'caption' => $request->input('images_caption.'.$idx, null),
+                    'locale' => $reward->getTranslation()->locale
+                ];
+            }
+            $reward->getTranslation()->attachMedia($images, 'image');
+        }
+
         return redirect()->route('backend.customer.reward.index')->with('success', [$reward->name.' has successfully been created.']);
     }
 
@@ -113,6 +124,16 @@ class RewardController extends Controller
 
         $reward->save();
 
+        $images = [];
+        foreach($request->input('images', []) as $idx=>$image){
+            $images[$image] = [
+                'type' => 'image',
+                'caption' => $request->input('images_caption.'.$idx, null),
+                'locale' => $reward->getTranslation()->locale
+            ];
+        }
+        $reward->getTranslation()->syncMedia($images, 'image');
+
         return redirect()->route('backend.customer.reward.index')->with('success', [$reward->name.' has successfully been updated.']);
     }
 
@@ -127,6 +148,11 @@ class RewardController extends Controller
         }
 
         $reward->delete();
+
+        //Remove all media first. We do it manually because Translation model is cascaded, so we can't do this on Translation delete
+        foreach($reward->translations as $translation){
+            $translation->deleteMedia('image');
+        }
 
         $name = 'Reward '.$reward->name;
 

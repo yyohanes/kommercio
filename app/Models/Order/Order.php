@@ -326,8 +326,8 @@ class Order extends Model implements AuthorSignatureInterface
             ]);
 
             if(!empty($shippingOptions)){
-                foreach($shippingOptions as $selectedMethod => $shippingOption){
-                    if($selectedMethod == $selected_method){
+                foreach($shippingOptions as $shippingOptionId => $shippingOption){
+                    if($shippingOptionId == $selected_method){
                         $shipping_method = ShippingMethod::findOrFail($shippingOption['shipping_method_id']);
                         $price = CurrencyHelper::convert($shippingOption['price']['amount'], $shippingOption['price']['currency']);
                         break;
