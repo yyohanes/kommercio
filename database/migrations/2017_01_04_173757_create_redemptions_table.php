@@ -19,7 +19,7 @@ class CreateRedemptionsTable extends Migration
             $table->integer('customer_id')->unsigned()->nullable();
             $table->integer('coupon_id')->unsigned()->nullable();
 
-            $table->string('status')->default(\Kommercio\Models\RewardPoint\Redemption::STATUS_UNUSED);
+            $table->string('status')->nullable();
             $table->timestamps();
 
             $table->foreign('coupon_id')->references('id')->on('coupons');

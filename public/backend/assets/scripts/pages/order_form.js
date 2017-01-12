@@ -900,7 +900,7 @@ var OrderForm = function () {
   return {
     //main function to initiate the module
     resize: function(){
-      handleFixedHeaderTable();
+
     },
     init: function () {
       handleBillingEmail();
