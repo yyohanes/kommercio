@@ -63,14 +63,14 @@ class RajaOngkirInternational implements ShippingMethodInterface
         //From request (if from backend)
         $request = isset($options['request'])?$options['request']:null;
         if($request){
-            $origin = City::findOrFail(ProjectHelper::getStoreByRequest($request)->getDefaultWarehouse()->city_id);
-            $destination = Country::findOrFail($request->input('shipping_profile.country_id'));
+            $origin = City::find(ProjectHelper::getStoreByRequest($request)->getDefaultWarehouse()->city_id);
+            $destination = Country::find($request->input('shipping_profile.country_id'));
         }
 
         //From saved order
         if($order && $order->store && !empty($order->store->getDefaultWarehouse()->city_id) && $order->shippingInformation){
-            $origin = City::findOrFail($order->store->getDefaultWarehouse()->city_id);
-            $destination = Country::findOrFail($order->shippingInformation->country_id);
+            $origin = City::find($order->store->getDefaultWarehouse()->city_id);
+            $destination = Country::find($order->shippingInformation->country_id);
         }
 
         if($destination->iso_code != 'ID' && !empty($origin) && !empty($destination)){

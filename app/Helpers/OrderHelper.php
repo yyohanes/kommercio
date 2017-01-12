@@ -62,7 +62,10 @@ class OrderHelper
             }
         }
 
-        $order->delivery_date = $request->input('delivery_date', null);
+        if($request->has('delivery_date')){
+            $order->delivery_date = $request->input('delivery_date', null);
+        }
+
         $order->store_id = $request->input('store_id');
         $order->payment_method_id = $request->input('payment_method', null);
         $order->currency = $request->input('currency');
