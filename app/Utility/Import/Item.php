@@ -10,6 +10,7 @@ class Item extends Model
     const STATUS_PENDING = 'pending';
     const STATUS_SUCCESS = 'success';
     const STATUS_ERROR = 'error';
+    const STATUS_SKIPPED = 'skipped';
 
     protected $table = 'import_items';
     protected $fillable = ['name', 'status', 'notes'];
@@ -29,6 +30,11 @@ class Item extends Model
                 $this->update([
                     'status' => self::STATUS_ERROR,
                     'notes' => $process
+                ]);
+            }elseif(is_array($process)){
+                $this->update([
+                    'status' => isset($process['status'])?$process['status']:self::STATUS_ERROR,
+                    'notes' => isset($process['notes'])?$process['notes']:null,
                 ]);
             }else{
                 $this->update([

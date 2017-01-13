@@ -17,6 +17,7 @@ use Kommercio\Models\ProductAttribute\ProductAttributeValue;
 use Kommercio\Models\ProductCategory;
 use Kommercio\Models\ProductDetail;
 use Kommercio\Utility\Import\Batch;
+use Kommercio\Utility\Import\Item;
 
 class ImportController extends Controller
 {
@@ -99,6 +100,13 @@ class ImportController extends Controller
         $return = $this->processBatch($request, [], function($result){
             $product = Product::where('sku', $result->sku)->first();
 
+            if($product && Session::get('import.skip_existing', false)){
+                return [
+                    Item::STATUS_SKIPPED,
+                    'Skipped.'
+                ];
+            }
+
             $manufacturer = null;
 
             if(!empty($result->manufacturer)){
@@ -174,7 +182,10 @@ class ImportController extends Controller
             }
 
             $product->save();
-            $productDetail = new ProductDetail([
+
+            $productDetail = $product->productDetail;
+
+            $productDetail->fill([
                 'new' => (!empty($result->new) && $result->new),
                 'active' => (!empty($result->active) && $result->active),
                 'retail_price' => floatval($result->price),

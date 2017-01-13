@@ -47,6 +47,19 @@
                 ])
             </div>
 
+            <div class="form-body">
+                @include('backend.master.form.fields.checkbox', [
+                    'name' => 'import[skip_existing]',
+                    'label' => 'Skip Existing',
+                    'key' => 'import.skip_existing',
+                    'attr' => [
+                        'class' => 'form-control',
+                        'id' => 'import[skip_existing]',
+                    ],
+                    'help_text' => 'Skip product if it already exists',
+                ])
+            </div>
+
             <div class="form-actions text-center">
                 <button class="btn btn-primary"><i class="fa fa-save"></i> Import </button>
                 <button class="btn btn-link" href="{{ NavigationHelper::getBackUrl() }}"><i class="fa fa-remove"></i> Cancel </button>
