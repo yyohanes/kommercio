@@ -49,16 +49,16 @@
 
             <div class="form-body">
                 @include('backend.master.form.fields.checkbox', [
-                    'name' => 'import[skip_existing]',
-                    'label' => 'Skip Existing',
-                    'key' => 'import.skip_existing',
+                    'name' => 'import[override_existing]',
+                    'label' => 'Override Existing',
+                    'key' => 'import.override_existing',
                     'attr' => [
                         'class' => 'form-control',
-                        'id' => 'import[skip_existing]',
+                        'id' => 'import[override_existing]',
                     ],
                     'value' => true,
-                    'checked' => old('import.skip_existing'),
-                    'help_text' => 'Skip product if it already exists',
+                    'checked' => old('import.override_existing'),
+                    'help_text' => 'Override product if it already exists',
                 ])
             </div>
 
@@ -72,7 +72,7 @@
                         'id' => 'import[redownload_images]',
                     ],
                     'value' => true,
-                    'checked' => old('import.skip_existing'),
+                    'checked' => old('import.redownload_images'),
                     'help_text' => 'Redownload Images for existing product',
                 ])
             </div>

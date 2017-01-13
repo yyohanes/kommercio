@@ -101,7 +101,7 @@ class ImportController extends Controller
         $return = $this->processBatch($request, [], function($result){
             $product = Product::where('sku', $result->sku)->first();
 
-            if($product && Session::get('import.skip_existing', false)){
+            if($product && !Session::get('import.override_existing', true)){
                 return [
                     'status' => Item::STATUS_SKIPPED,
                     'notes' => 'Skipped.'
@@ -192,7 +192,7 @@ class ImportController extends Controller
                 'retail_price' => floatval($result->price),
                 'weight' => $result->weight?:null,
                 'manage_stock' => (!empty($result->manage_stock) && $result->manage_stock),
-                'currency' => CurrencyHelper::getDefaultCurrency()['code']
+                'currency' => CurrencyHelper::getDefaultCurrency()
             ]);
 
             $store = ProjectHelper::getDefaultStore();
