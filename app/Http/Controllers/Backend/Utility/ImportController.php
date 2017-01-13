@@ -231,43 +231,45 @@ class ImportController extends Controller
 
             $product->save();
 
-            $newMedia = [];
-            if($result->images){
-                $images = explode(';', $result->images);
+            if(Session::get('import.redownload_images', false)){
+                $newMedia = [];
+                if($result->images){
+                    $images = explode(';', $result->images);
 
-                foreach($images as $image){
-                    $downloadedImage = \Kommercio\Models\File::downloadFromUrl($image);
+                    foreach($images as $image){
+                        $downloadedImage = \Kommercio\Models\File::downloadFromUrl($image);
 
-                    if($downloadedImage){
-                        $newMedia[$downloadedImage->id] = [
-                            'type' => 'image',
-                            'locale' => $product->getTranslation()->locale
-                        ];
+                        if($downloadedImage){
+                            $newMedia[$downloadedImage->id] = [
+                                'type' => 'image',
+                                'locale' => $product->getTranslation()->locale
+                            ];
+                        }
                     }
                 }
-            }
 
-            $product->getTranslation()->syncMedia($newMedia, 'image');
+                $product->getTranslation()->syncMedia($newMedia, 'image');
 
-            $newThumbnail = [];
-            if($result->images){
-                $images = explode(';', $result->images);
+                $newThumbnail = [];
+                if($result->images){
+                    $images = explode(';', $result->images);
 
-                foreach($images as $image){
-                    $downloadedImage = \Kommercio\Models\File::downloadFromUrl($image);
+                    foreach($images as $image){
+                        $downloadedImage = \Kommercio\Models\File::downloadFromUrl($image);
 
-                    if($downloadedImage){
-                        $newThumbnail[$downloadedImage->id] = [
-                            'type' => 'thumbnail',
-                            'locale' => $product->getTranslation()->locale
-                        ];
+                        if($downloadedImage){
+                            $newThumbnail[$downloadedImage->id] = [
+                                'type' => 'thumbnail',
+                                'locale' => $product->getTranslation()->locale
+                            ];
 
-                        break;
+                            break;
+                        }
                     }
                 }
-            }
 
-            $product->getTranslation()->syncMedia($newThumbnail, 'thumbnail');
+                $product->getTranslation()->syncMedia($newThumbnail, 'thumbnail');
+            }
 
             //Save product to index
             $product->saveToIndex();

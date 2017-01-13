@@ -62,6 +62,21 @@
                 ])
             </div>
 
+            <div class="form-body">
+                @include('backend.master.form.fields.checkbox', [
+                    'name' => 'import[redownload_images]',
+                    'label' => 'Redownload Images',
+                    'key' => 'import.redownload_images',
+                    'attr' => [
+                        'class' => 'form-control',
+                        'id' => 'import[redownload_images]',
+                    ],
+                    'value' => true,
+                    'checked' => old('import.skip_existing'),
+                    'help_text' => 'Redownload Images for existing product',
+                ])
+            </div>
+
             <div class="form-actions text-center">
                 <button class="btn btn-primary"><i class="fa fa-save"></i> Import </button>
                 <button class="btn btn-link" href="{{ NavigationHelper::getBackUrl() }}"><i class="fa fa-remove"></i> Cancel </button>
