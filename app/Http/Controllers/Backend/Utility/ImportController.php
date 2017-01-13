@@ -52,7 +52,7 @@ class ImportController extends Controller
 
     public function productAttribute(Request $request)
     {
-        $return = $this->processBatch($request, ['product_attribute' => 'required|exists:product_attributes,id'], function($result){
+        $return = $this->processBatch($request, ['import.product_attribute' => 'required|exists:product_attributes,id'], function($result){
             $productAttribute = ProductAttribute::findOrFail(Session::get('import.product_attribute'));
 
             $productAttributeValue = ProductAttributeValue::whereTranslation('name', $result->name)->first();
