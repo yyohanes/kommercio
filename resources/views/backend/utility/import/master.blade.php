@@ -18,7 +18,7 @@
     @if($runUrl)
         <script>
             jQuery(document).ready(function() {
-                ImportPage.init('{!! $runUrl !!}', $('.form-body', '#import-wrapper'));
+                ImportPage.init('{!! $runUrl !!}', $('#import-wrapper'));
             });
         </script>
     @endif

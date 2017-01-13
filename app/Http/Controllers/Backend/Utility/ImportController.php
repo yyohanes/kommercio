@@ -266,6 +266,9 @@ class ImportController extends Controller
             }
 
             $product->getTranslation()->syncMedia($newThumbnail, 'thumbnail');
+
+            //Save product to index
+            $product->saveToIndex();
         });
 
         return $this->processResponse('backend.utility.import.form.product', $return, $request);
