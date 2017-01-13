@@ -127,7 +127,7 @@ class ImportController extends Controller
             $productAttributeValues = [];
 
             foreach($result->all() as $key => $value){
-                if(preg_match('/attribute/', $key)){
+                if(preg_match('/attribute/', $key) && !empty($value)){
                     $attributeSlug = str_replace('attribute', '', $key);
 
                     $productAttribute = ProductAttribute::whereTranslation('slug', $attributeSlug)->first();
