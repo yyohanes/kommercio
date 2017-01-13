@@ -1322,6 +1322,29 @@ Route::group(['middleware' => ['web']], function () {
                 });
             });
 
+            //Utility
+            Route::group(['prefix' => 'utility', 'namespace' => 'Utility'], function(){
+                Route::group(['prefix' => 'import'], function(){
+                    Route::any('manufacturer', [
+                        'as' => 'backend.utility.import.manufacturer',
+                        'uses' => 'ImportController@manufacturer',
+                        'permissions' => ['import_manufacturer']
+                    ]);
+
+                    Route::any('product-attribute', [
+                        'as' => 'backend.utility.import.product_attribute',
+                        'uses' => 'ImportController@productAttribute',
+                        'permissions' => ['import_product_attribute']
+                    ]);
+
+                    Route::any('product', [
+                        'as' => 'backend.utility.import.product',
+                        'uses' => 'ImportController@product',
+                        'permissions' => ['import_product']
+                    ]);
+                });
+            });
+
             //Customers
             Route::group(['prefix' => 'customer', 'namespace' => 'Customer'], function(){
                 Route::any('index', [

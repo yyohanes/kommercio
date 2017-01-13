@@ -2,6 +2,7 @@
 
 namespace Kommercio\Models;
 
+use GuzzleHttp\Client;
 use Illuminate\Database\Eloquent\Model;
 use Intervention\Image\ImageManagerStatic;
 use Kommercio\Models\Interfaces\AuthorSignatureInterface;
@@ -93,5 +94,31 @@ class File extends Model implements AuthorSignatureInterface
     public function getPathAttribute()
     {
         return $this->folder.$this->filename;
+    }
+
+    //Statics
+    public static function downloadFromUrl($url)
+    {
+        $pathInfo = pathinfo($url);
+        $basename = urldecode($pathInfo['basename']);
+        $downloadTmpName = storage_path('tmp').'/'.$basename;
+
+        try{
+            $downloadImage = new Client();
+            $downloadImage->request('GET', $url, [
+                'sink' => $downloadTmpName
+            ]);
+        }catch(\Exception $e){
+            return false;
+        }
+
+        $newImage = new UploadedFile($downloadTmpName, $basename, \Illuminate\Support\Facades\File::mimeType($downloadTmpName), \Illuminate\Support\Facades\File::size($downloadTmpName));
+
+        $image = new \Kommercio\Models\File();
+        $image->saveFile($newImage);
+
+        unlink($downloadTmpName);
+
+        return $image;
     }
 }

@@ -220,7 +220,31 @@ $menus['configuration'] = [
             'name' => 'Warehouse',
             'route' => 'backend.warehouse.index',
             'permissions' => 'view_warehouse'
-        ]
+        ],
+        'import' => [
+            'active_path' => 'utility/import',
+            'name' => 'Import',
+            'children' => [
+                'import_product' => [
+                    'active_path' => 'utility/import/product',
+                    'name' => 'Product',
+                    'route' => 'backend.utility.import.product',
+                    'permissions' => 'import_product',
+                ],
+                'import_product_attribute' => [
+                    'active_path' => 'utility/import/product-attribute',
+                    'name' => 'Product Attribute',
+                    'route' => 'backend.utility.import.product_attribute',
+                    'permissions' => 'import_product_attribute',
+                ],
+                'import_manufacturer' => [
+                    'active_path' => 'utility/import/manufacturer',
+                    'name' => 'Manufacturer',
+                    'route' => 'backend.utility.import.manufacturer',
+                    'permissions' => 'import_manufacturer',
+                ],
+            ]
+        ],
     ]
 ];
 
@@ -255,13 +279,13 @@ $menus['cms'] = [
             'feature' => 'cms.gallery',
             'children' => [
                 'gallery' => [
-                    'active_path' => 'cms/gallery',
+                    'active_path' => 'cms/gallery/index',
                     'name' => 'Gallery',
                     'route' => 'backend.cms.gallery.index',
                     'permissions' => 'view_gallery',
                 ],
                 'gallery_category' => [
-                    'active_path' => 'cms/gallery/category',
+                    'active_path' => 'cms/gallery/category/index',
                     'name' => 'Gallery Category',
                     'route' => 'backend.cms.gallery.category.index',
                     'permissions' => 'view_gallery_category'

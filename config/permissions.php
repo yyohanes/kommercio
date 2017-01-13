@@ -302,6 +302,13 @@ $permissions = [
         ],
         'feature' => 'cms.menu'
     ],
+    'Import' => [
+        'permissions' => [
+            'import_product' => 'Import Product',
+            'import_product_attribute' => 'Import Product Attribute',
+            'import_manufacturer' => 'Import Manufacturer',
+        ]
+    ],
 ];
 
 if(file_exists(base_path('packages/project/src/Project/config/permissions.php'))){
