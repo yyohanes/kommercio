@@ -7,6 +7,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
+use Kommercio\Facades\CurrencyHelper;
 use Kommercio\Facades\ProjectHelper;
 use Kommercio\Http\Requests;
 use Kommercio\Http\Controllers\Controller;
@@ -191,6 +192,7 @@ class ImportController extends Controller
                 'retail_price' => floatval($result->price),
                 'weight' => $result->weight?:null,
                 'manage_stock' => (!empty($result->manage_stock) && $result->manage_stock),
+                'currency' => CurrencyHelper::getDefaultCurrency()['code']
             ]);
 
             $store = ProjectHelper::getDefaultStore();
