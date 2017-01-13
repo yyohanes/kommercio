@@ -96,7 +96,7 @@ class OrderHelper
                     continue;
                 }
 
-                $lineItemDatum['net_price'] = floatval($lineItemDatum);
+                $lineItemDatum['net_price'] = floatval($lineItemDatum['net_price']);
 
                 $lineItem = $this->reuseOrCreateLineItem($order, $existingLineItems, $count);
 
