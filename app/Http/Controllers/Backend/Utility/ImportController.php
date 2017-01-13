@@ -102,8 +102,8 @@ class ImportController extends Controller
 
             if($product && Session::get('import.skip_existing', false)){
                 return [
-                    Item::STATUS_SKIPPED,
-                    'Skipped.'
+                    'status' => Item::STATUS_SKIPPED,
+                    'notes' => 'Skipped.'
                 ];
             }
 

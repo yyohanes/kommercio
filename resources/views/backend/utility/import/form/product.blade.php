@@ -56,6 +56,8 @@
                         'class' => 'form-control',
                         'id' => 'import[skip_existing]',
                     ],
+                    'value' => true,
+                    'checked' => old('import.skip_existing'),
                     'help_text' => 'Skip product if it already exists',
                 ])
             </div>
