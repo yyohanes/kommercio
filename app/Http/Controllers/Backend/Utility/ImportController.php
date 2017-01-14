@@ -99,6 +99,7 @@ class ImportController extends Controller
     public function product(Request $request)
     {
         $return = $this->processBatch($request, [], function($result){
+            \Log::info(Session::get('import.redownload_images', false));
             $product = Product::where('sku', $result->sku)->first();
 
             if($product && !Session::get('import.override_existing', true)){
@@ -231,15 +232,15 @@ class ImportController extends Controller
 
             $product->save();
 
-            if(Session::get('import.redownload_images', false)){
+            if($product->images->count() > 0 && Session::get('import.redownload_images', false)) {
                 $newMedia = [];
-                if($result->images){
+                if ($result->images) {
                     $images = explode(';', $result->images);
 
-                    foreach($images as $image){
+                    foreach ($images as $image) {
                         $downloadedImage = \Kommercio\Models\File::downloadFromUrl($image);
 
-                        if($downloadedImage){
+                        if ($downloadedImage) {
                             $newMedia[$downloadedImage->id] = [
                                 'type' => 'image',
                                 'locale' => $product->getTranslation()->locale
@@ -249,7 +250,9 @@ class ImportController extends Controller
                 }
 
                 $product->getTranslation()->syncMedia($newMedia, 'image');
+            }
 
+            if($product->thumbnails->count() > 0 && Session::get('import.redownload_images', false)){
                 $newThumbnail = [];
                 if($result->images){
                     $images = explode(';', $result->images);
