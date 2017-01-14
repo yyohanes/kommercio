@@ -232,7 +232,7 @@ class ImportController extends Controller
 
             $product->save();
 
-            if($product->images->count() > 0 && Session::get('import.redownload_images', false)) {
+            if($product->images->count() < 1 || ($product->images->count() > 0 && Session::get('import.redownload_images', false))) {
                 $newMedia = [];
                 if ($result->images) {
                     $images = explode(';', $result->images);
@@ -252,7 +252,7 @@ class ImportController extends Controller
                 $product->getTranslation()->syncMedia($newMedia, 'image');
             }
 
-            if($product->thumbnails->count() > 0 && Session::get('import.redownload_images', false)){
+            if($product->thumbnails->count() < 1 || ($product->thumbnails->count() > 0 && Session::get('import.redownload_images', false))) {
                 $newThumbnail = [];
                 if($result->images){
                     $images = explode(';', $result->images);
