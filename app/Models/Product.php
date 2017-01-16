@@ -101,6 +101,11 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
         return $this->belongsToMany('Kommercio\Models\ProductFeature\ProductFeatureValue', 'product_product_feature')->withPivot(['product_feature_id'])->orderBy('sort_order', 'ASC');
     }
 
+    public function productConfigurationGroups()
+    {
+        return $this->belongsToMany('Kommercio\Models\Product\Configuration\ProductConfigurationGroup')->withPivot('sort_order')->orderBy('sort_order', 'ASC');
+    }
+
     public function priceRules()
     {
         if($this->combination_type == self::COMBINATION_TYPE_VARIATION){
@@ -137,7 +142,7 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
 
     public function composites()
     {
-        return $this->belongsToMany('Kommercio\Models\ProductComposite\ProductComposite', 'product_composite_configurations')->withPivot(['id', 'minimum', 'maximum', 'sort_order'])->withTimestamps()->orderBy('sort_order', 'ASC');
+        return $this->belongsToMany('Kommercio\Models\Product\Composite\ProductComposite');
     }
 
     //Methods

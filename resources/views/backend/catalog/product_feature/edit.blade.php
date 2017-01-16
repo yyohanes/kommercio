@@ -6,7 +6,7 @@
         <i class="fa fa-circle"></i>
     </li>
     <li>
-        <a href="{{ route('backend.catalog.product_feature.index') }}"><span>Product Feature</span></a>
+        <a href="{{ route('backend.catalog.product_feature.index') }}"><span>Feature</span></a>
         <i class="fa fa-circle"></i>
     </li>
     <li>

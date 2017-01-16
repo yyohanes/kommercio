@@ -25,17 +25,31 @@ $menus['catalog'] = [
         ],
         'product_attribute' => [
             'active_path' => 'catalog/product-attribute',
-            'name' => 'Product Attribute',
+            'name' => 'Attribute',
             'route' => 'backend.catalog.product_attribute.index',
             'permissions' => 'view_product_attribute',
             'feature' => 'catalog.product_attributes'
         ],
         'product_feature' => [
             'active_path' => 'catalog/product-feature',
-            'name' => 'Product Feature',
+            'name' => 'Feature',
             'route' => 'backend.catalog.product_feature.index',
             'permissions' => 'view_product_feature',
             'feature' => 'catalog.product_features'
+        ],
+        'product_configuration' => [
+            'active_path' => 'catalog/product-configuration/group',
+            'name' => 'Configuration',
+            'route' => 'backend.catalog.product_configuration.group.index',
+            'permissions' => 'view_product_configuration_group',
+            'feature' => 'catalog.product_configuration'
+        ],
+        'product_composite' => [
+            'active_path' => 'catalog/product-composite/group',
+            'name' => 'Composite',
+            'route' => 'backend.catalog.product_composite.group.index',
+            'permissions' => 'view_product_composite',
+            'feature' => 'catalog.composite_product'
         ],
         'manufacturer' => [
             'active_path' => 'catalog/manufacturer',

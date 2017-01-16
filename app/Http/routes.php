@@ -641,6 +641,170 @@ Route::group(['middleware' => ['web']], function () {
                     });
                 });
 
+                Route::group(['prefix' => 'product-configuration'], function() {
+                    Route::group(['prefix' => 'group'], function(){
+                        Route::any('index', [
+                            'as' => 'backend.catalog.product_configuration.group.index',
+                            'uses' => 'ProductConfigurationGroupController@index',
+                            'permissions' => ['view_product_configuration_group']
+                        ]);
+
+                        Route::get('create', [
+                            'as' => 'backend.catalog.product_configuration.group.create',
+                            'uses' => 'ProductConfigurationGroupController@create',
+                            'permissions' => ['create_product_configuration_group']
+                        ]);
+
+                        Route::post('store', [
+                            'as' => 'backend.catalog.product_configuration.group.store',
+                            'uses' => 'ProductConfigurationGroupController@store',
+                            'permissions' => ['create_product_configuration_group']
+                        ]);
+
+                        Route::get('edit/{id}', [
+                            'as' => 'backend.catalog.product_configuration.group.edit',
+                            'uses' => 'ProductConfigurationGroupController@edit',
+                            'permissions' => ['edit_product_configuration_group']
+                        ]);
+
+                        Route::post('update/{id}', [
+                            'as' => 'backend.catalog.product_configuration.group.update',
+                            'uses' => 'ProductConfigurationGroupController@update',
+                            'permissions' => ['edit_product_configuration_group']
+                        ]);
+
+                        Route::post('delete/{id}', [
+                            'as' => 'backend.catalog.product_configuration.group.delete',
+                            'uses' => 'ProductConfigurationGroupController@delete',
+                            'permissions' => ['delete_product_configuration_group']
+                        ]);
+                    });
+
+                    Route::get('{group_id}/index', [
+                        'as' => 'backend.catalog.product_configuration.index',
+                        'uses' => 'ProductConfigurationController@index',
+                        'permissions' => ['view_product_configuration_group']
+                    ]);
+
+                    Route::get('{group_id}/create', [
+                        'as' => 'backend.catalog.product_configuration.create',
+                        'uses' => 'ProductConfigurationController@create',
+                        'permissions' => ['create_product_configuration_group']
+                    ]);
+
+                    Route::post('{group_id}/store', [
+                        'as' => 'backend.catalog.product_configuration.store',
+                        'uses' => 'ProductConfigurationController@store',
+                        'permissions' => ['create_product_configuration_group']
+                    ]);
+
+                    Route::get('{group_id}/edit/{id}', [
+                        'as' => 'backend.catalog.product_configuration.edit',
+                        'uses' => 'ProductConfigurationController@edit',
+                        'permissions' => ['edit_product_configuration_group']
+                    ]);
+
+                    Route::post('{group_id}/update/{id}', [
+                        'as' => 'backend.catalog.product_configuration.update',
+                        'uses' => 'ProductConfigurationController@update',
+                        'permissions' => ['edit_product_configuration_group']
+                    ]);
+
+                    Route::post('{group_id}/delete/{id}', [
+                        'as' => 'backend.catalog.product_configuration.delete',
+                        'uses' => 'ProductConfigurationController@delete',
+                        'permissions' => ['delete_product_configuration_group']
+                    ]);
+
+                    Route::post('{group_id}/reorder', [
+                        'as' => 'backend.catalog.product_configuration.reorder',
+                        'uses' => 'ProductConfigurationController@reorder',
+                        'permissions' => ['edit_product_configuration_group']
+                    ]);
+                });
+
+                Route::group(['prefix' => 'product-composite'], function() {
+                    Route::group(['prefix' => 'group'], function(){
+                        Route::any('index', [
+                            'as' => 'backend.catalog.product_composite.group.index',
+                            'uses' => 'ProductCompositeGroupController@index',
+                            'permissions' => ['view_product_composite']
+                        ]);
+
+                        Route::get('create', [
+                            'as' => 'backend.catalog.product_composite.group.create',
+                            'uses' => 'ProductCompositeGroupController@create',
+                            'permissions' => ['create_product_composite']
+                        ]);
+
+                        Route::post('store', [
+                            'as' => 'backend.catalog.product_composite.group.store',
+                            'uses' => 'ProductCompositeGroupController@store',
+                            'permissions' => ['create_product_composite']
+                        ]);
+
+                        Route::get('edit/{id}', [
+                            'as' => 'backend.catalog.product_composite.group.edit',
+                            'uses' => 'ProductCompositeGroupController@edit',
+                            'permissions' => ['edit_product_composite']
+                        ]);
+
+                        Route::post('update/{id}', [
+                            'as' => 'backend.catalog.product_composite.group.update',
+                            'uses' => 'ProductCompositeGroupController@update',
+                            'permissions' => ['edit_product_composite']
+                        ]);
+
+                        Route::post('delete/{id}', [
+                            'as' => 'backend.catalog.product_composite.group.delete',
+                            'uses' => 'ProductCompositeGroupController@delete',
+                            'permissions' => ['delete_product_composite']
+                        ]);
+                    });
+
+                    Route::get('{group_id}/index', [
+                        'as' => 'backend.catalog.product_composite.index',
+                        'uses' => 'ProductCompositeController@index',
+                        'permissions' => ['view_product_composite']
+                    ]);
+
+                    Route::get('{group_id}/create', [
+                        'as' => 'backend.catalog.product_composite.create',
+                        'uses' => 'ProductCompositeController@create',
+                        'permissions' => ['create_product_composite']
+                    ]);
+
+                    Route::post('{group_id}/store', [
+                        'as' => 'backend.catalog.product_composite.store',
+                        'uses' => 'ProductCompositeController@store',
+                        'permissions' => ['create_product_composite']
+                    ]);
+
+                    Route::get('{group_id}/edit/{id}', [
+                        'as' => 'backend.catalog.product_composite.edit',
+                        'uses' => 'ProductCompositeController@edit',
+                        'permissions' => ['edit_product_composite']
+                    ]);
+
+                    Route::post('{group_id}/update/{id}', [
+                        'as' => 'backend.catalog.product_composite.update',
+                        'uses' => 'ProductCompositeController@update',
+                        'permissions' => ['edit_product_composite']
+                    ]);
+
+                    Route::post('{group_id}/delete/{id}', [
+                        'as' => 'backend.catalog.product_composite.delete',
+                        'uses' => 'ProductCompositeController@delete',
+                        'permissions' => ['delete_product_composite']
+                    ]);
+
+                    Route::post('{group_id}/reorder', [
+                        'as' => 'backend.catalog.product_composite.reorder',
+                        'uses' => 'ProductCompositeController@reorder',
+                        'permissions' => ['edit_product_composite']
+                    ]);
+                });
+
                 Route::group(['prefix' => 'manufacturer'], function(){
                     Route::get('index', [
                         'as' => 'backend.catalog.manufacturer.index',

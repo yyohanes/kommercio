@@ -19,7 +19,7 @@
         <i class="fa fa-circle"></i>
     </li>
     <li>
-        <a href="{{ route('backend.catalog.product_attribute.index') }}"><span>Product Attribute</span></a>
+        <a href="{{ route('backend.catalog.product_attribute.index') }}"><span>Attribute</span></a>
         <i class="fa fa-circle"></i>
     </li>
     <li>

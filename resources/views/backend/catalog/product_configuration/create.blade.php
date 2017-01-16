@@ -6,25 +6,24 @@
         <i class="fa fa-circle"></i>
     </li>
     <li>
-        <a href="{{ route('backend.catalog.product_attribute.index') }}"><span>Attribute</span></a>
+        <a href="{{ route('backend.catalog.product_configuration.group.index') }}"><span>Configuration</span></a>
         <i class="fa fa-circle"></i>
     </li>
     <li>
-        <a href="{{ route('backend.catalog.product_attribute.value.index', ['attribute_id' => $productAttribute->id]) }}"><span>{{ $productAttribute->name }}</span></a>
-        <i class="fa fa-circle"></i>
+        <span>{{ $productConfigurationGroup->name }} - Configuration</span>
     </li>
     <li>
-        <span>Edit {{ $productAttributeValue->name }}</span>
+        Create {{ $productConfigurationGroup->name }} Configuration
     </li>
 @stop
 
 @section('content')
     <div class="col-md-12">
-        {!! Form::model($productAttributeValue, ['route' => ['backend.catalog.product_attribute.value.update', 'attribute_id' => $productAttribute->id, 'id' => $productAttributeValue->id], 'class' => 'form-horizontal']) !!}
+        {!! Form::model($configuration, ['route' => ['backend.catalog.product_configuration.store', 'group_id' => $productConfigurationGroup->id], 'class' => 'form-horizontal']) !!}
         <div class="portlet light portlet-fit portlet-form bordered">
             <div class="portlet-title">
                 <div class="caption">
-                    <span class="caption-subject sbold uppercase"> Edit {{ $productAttributeValue->name }} </span>
+                    <span class="caption-subject sbold uppercase"> Create {{ $productConfigurationGroup->name }} Configuration </span>
                 </div>
                 <div class="actions">
                     <button class="btn btn-primary btn-sm"><i class="fa fa-save"></i> Save </button>
@@ -34,7 +33,7 @@
 
             <div class="portlet-body">
                 <div class="form-body">
-                    @include('backend.catalog.product_attribute_value.create_form')
+                    @include('backend.catalog.product_configuration.create_form')
                 </div>
 
                 <div class="form-actions text-center">

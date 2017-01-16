@@ -8,6 +8,7 @@ return [
         'product_attributes' => true,
         'product_features' => false,
         'composite_product' => false,
+        'product_configuration' => false,
         'faceted_navigation' => false
     ],
     'cms' => [

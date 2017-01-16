@@ -51,6 +51,24 @@ $permissions = [
         ],
         'feature' => 'catalog.product_attributes'
     ],
+    'Product Composite' => [
+        'permissions' => [
+            'view_product_composite' => 'View Product Composite',
+            'create_product_composite' => 'Create Product Composite',
+            'edit_product_composite' => 'Edit Product Composite',
+            'delete_product_composite' => 'Delete Product Composite',
+        ],
+        'feature' => 'catalog.composite_product'
+    ],
+    'Product Configuration' => [
+        'permissions' => [
+            'view_product_configuration' => 'View Product Configuration',
+            'create_product_configuration' => 'Create Product Configuration',
+            'edit_product_configuration' => 'Edit Product Configuration',
+            'delete_product_configuration' => 'Delete Product Configuration',
+        ],
+        'feature' => 'catalog.product_configuration'
+    ],
     'Manufacturer' => [
         'permissions' => [
             'view_manufacturer' => 'View Manufacturer',

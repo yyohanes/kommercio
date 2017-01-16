@@ -1,6 +1,6 @@
 <?php
 
-namespace Kommercio\Models\ProductComposite;
+namespace Kommercio\Models\Product\Composite;
 
 use Illuminate\Database\Eloquent\Relations\Pivot;
 

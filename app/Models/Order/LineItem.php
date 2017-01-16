@@ -476,7 +476,7 @@ class LineItem extends Model
 
     public function productComposite()
     {
-        return $this->belongsTo('Kommercio\Models\ProductComposite\ProductComposite');
+        return $this->belongsTo('Kommercio\Models\Product\Composite\ProductComposite');
     }
 
     //Shipping Specifics

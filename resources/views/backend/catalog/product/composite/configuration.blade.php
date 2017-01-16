@@ -59,7 +59,7 @@ $index = isset($index)?$index:0;
                 @include('backend.master.form.fields.text', [
                     'name' => 'find_product['.$index.']',
                     'label' => false,
-                    'key' => 'find_cross_sell_product.'.$index,
+                    'key' => 'find_product.'.$index,
                     'attr' => [
                         'data-product_relation_type' => 'composite_products_'.$index,
                         'class' => 'form-control product-configuration-finder',
