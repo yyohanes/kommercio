@@ -11,7 +11,10 @@ return [
         'product_category' => 'Category'
     ],
     'product' => [
-        'not_active' => 'This item is not accessible.'
+        'not_active' => 'This item is not accessible.',
+        'composite' => [
+            'not_belong' => 'Product can\'t be customized.'
+        ]
     ],
     'product_category' => [
         'not_active' => 'This item is not accessible.'

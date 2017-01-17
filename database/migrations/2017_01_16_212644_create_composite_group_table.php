@@ -61,7 +61,7 @@ class CreateCompositeGroupTable extends Migration
 
         //Migrate old composites
         if(Schema::hasTable('product_product_composite_configuration')){
-            $qb = \Illuminate\Support\Facades\DB::table('product_product_composite_configuration')->join('product_composite_configurations AS CC', 'CC.id', '=', 'product_composite_configuration_id');
+            $qb = \Illuminate\Support\Facades\DB::table('product_product_composite_configuration AS C')->selectRaw('C.*, CC.product_composite_id')->join('product_composite_configurations AS CC', 'CC.id', '=', 'product_composite_configuration_id');
             foreach($qb->get() as $row){
                 \Illuminate\Support\Facades\DB::table('product_product_composite')->insert([
                     'product_composite_id' => $row->product_composite_id,
@@ -76,7 +76,10 @@ class CreateCompositeGroupTable extends Migration
         if(Schema::hasTable('product_composite_configurations')){
             $qb = \Illuminate\Support\Facades\DB::table('product_composite_configurations')->groupBy('product_id');
             foreach($qb->get() as $row){
-                $productCompositeGroup = new \Kommercio\Models\Product\Composite\ProductCompositeGroup();
+                $product = \Kommercio\Models\Product::find($row->product_id);
+                $productCompositeGroup = new \Kommercio\Models\Product\Composite\ProductCompositeGroup([
+                    'name' => $product->name.' Composites'
+                ]);
                 $productCompositeGroup->save();
 
                 $productCompositeGroup->products()->attach($row->product_id);

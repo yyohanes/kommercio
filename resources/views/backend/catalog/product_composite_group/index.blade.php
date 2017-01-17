@@ -55,7 +55,7 @@
                             </td>
                             <td>
                                 @foreach($productCompositeGroup->composites as $composite)
-                                    <div>- {{ $composite->name }}</div>
+                                    <div>- {{ $composite->label }}</div>
                                 @endforeach
                             </td>
                             <td class="text-center">

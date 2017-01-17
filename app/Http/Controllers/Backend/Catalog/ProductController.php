@@ -144,6 +144,8 @@ class ProductController extends Controller{
             $product->setRelation('categories', $referencedProduct->categories);
             $product->setRelation('productAttributes', $referencedProduct->productAttributes);
             $product->setRelation('productAttributeValues', $referencedProduct->productAttributeValues);
+            $product->setRelation('productConfigurationGroups', $referencedProduct->productConfigurationGroups);
+            $product->setRelation('productCompositeGroups', $referencedProduct->productCompositeGroups);
 
             $product->productDetail = $referencedProduct->productDetail;
         }else{
@@ -156,12 +158,17 @@ class ProductController extends Controller{
 
         $productAttributes = ProductAttribute::withTranslation()->orderBy('sort_order', 'ASC')->get();
 
+        $configurationGroupOptions = Product\Configuration\ProductConfigurationGroup::all()->pluck('name', 'id')->all();
+        $compositeGroupOptions = Product\Composite\ProductCompositeGroup::all()->pluck('name', 'id')->all();
+
         $currencyOptions = CurrencyHelper::getCurrencyOptions();
 
         return view('backend.catalog.product.create', [
             'product' => $product,
             'currencyOptions' => $currencyOptions,
-            'productAttributes' => $productAttributes
+            'productAttributes' => $productAttributes,
+            'compositeGroupOptions' => $compositeGroupOptions,
+            'configurationGroupOptions' => $configurationGroupOptions
         ]);
     }
 
@@ -209,6 +216,18 @@ class ProductController extends Controller{
         }
 
         $product->productAttributeValues()->sync($toSyncAttributeValues);
+
+        if(!empty($request->input('product_configuration_group', null))){
+            $product->productConfigurationGroups()->sync([$request->input('product_configuration_group')]);
+        }else{
+            $product->productConfigurationGroups()->detach();
+        }
+
+        if(!empty($request->input('product_composite_group', null))){
+            $product->productCompositeGroups()->sync([$request->input('product_composite_group')]);
+        }else{
+            $product->productCompositeGroups()->detach();
+        }
 
         $productDetail = new ProductDetail();
         $productDetail->fill($request->input('productDetail'));
@@ -260,6 +279,9 @@ class ProductController extends Controller{
 
         $productAttributes = ProductAttribute::withTranslation()->orderBy('sort_order', 'ASC')->get();
 
+        $configurationGroupOptions = Product\Configuration\ProductConfigurationGroup::all()->pluck('name', 'id')->all();
+        $compositeGroupOptions = Product\Composite\ProductCompositeGroup::all()->pluck('name', 'id')->all();
+
         $currencyOptions = CurrencyHelper::getCurrencyOptions();
 
         return view('backend.catalog.product.edit', [
@@ -267,7 +289,9 @@ class ProductController extends Controller{
             'featureOptions' => $featureOptions,
             'features' => $features,
             'productAttributes' => $productAttributes,
-            'currencyOptions' => $currencyOptions
+            'currencyOptions' => $currencyOptions,
+            'compositeGroupOptions' => $compositeGroupOptions,
+            'configurationGroupOptions' => $configurationGroupOptions
         ]);
     }
 
@@ -317,6 +341,18 @@ class ProductController extends Controller{
 
         $product->productAttributeValues()->sync($toSyncAttributeValues);
 
+        if(!empty($request->input('product_configuration_group', null))){
+            $product->productConfigurationGroups()->sync([$request->input('product_configuration_group')]);
+        }else{
+            $product->productConfigurationGroups()->detach();
+        }
+
+        if(!empty($request->input('product_composite_group', null))){
+            $product->productCompositeGroups()->sync([$request->input('product_composite_group')]);
+        }else{
+            $product->productCompositeGroups()->detach();
+        }
+
         $productDetail = $product->getStoreProductDetailOrNew($request->input('store_id'));
 
         $productDetail->fill($request->input('productDetail'));
@@ -350,68 +386,6 @@ class ProductController extends Controller{
             }
         }
         $product->productFeatureValues()->sync($syncFeatures);
-
-        //Composite Configurations
-        $count = 0;
-        $existingComposites = $product->composites->pluck('id', 'id')->all();
-
-        foreach($request->input('compositeConfigurations', []) as $idx => $compositeConfigurationData){
-            $compositeConfiguration = null;
-            $updatePivotFlag = false;
-
-            $compositeConfiguration = ProductComposite::where('name', $compositeConfigurationData['name'])->first();
-
-            if($compositeConfiguration && isset($existingComposites[$compositeConfiguration->id])){
-                unset($existingComposites[$compositeConfiguration->id]);
-                $updatePivotFlag = true;
-            }
-
-            if(!$compositeConfiguration){
-                $compositeConfiguration = new ProductComposite();
-            }
-
-            $compositeConfiguration->fill($compositeConfigurationData);
-            $compositeConfiguration->save();
-
-            $pivotData = [
-                'minimum' => $compositeConfigurationData['minimum'],
-                'maximum' => $compositeConfigurationData['maximum'],
-                'sort_order' => $count
-            ];
-
-            if($updatePivotFlag){
-                $product->composites()->updateExistingPivot($compositeConfiguration->id, $pivotData);
-            }else{
-                $product->composites()->attach($compositeConfiguration, $pivotData);
-            }
-
-            $configuredProductsData = [];
-
-            $productCompositeConfiguration = $product->composites()->where('product_composite_id', $compositeConfiguration->id)->first()->pivot;
-
-            $productCompositeConfiguration->configuredProducts()->detach();
-            foreach($request->input('composite_products_'.$idx.'_product') as $idy => $configuredProduct){
-                $configuredProductsData[$configuredProduct] = [
-                    'sort_order' => $idy
-                ];
-            }
-
-            $productCompositeConfiguration->configuredProducts()->sync($configuredProductsData);
-
-            $count += 1;
-        }
-
-        //Remove unused composites
-        foreach($existingComposites as $existingComposite){
-            $existingComposite = ProductComposite::find($existingComposite);
-
-            $checkIfCompositeIsUsed = $existingComposite->products()->where('products.id', '<>', $product->id)->count() > 0;
-            if($checkIfCompositeIsUsed){
-                $product->composites()->detach($existingComposite);
-            }else{
-                $existingComposite->delete();
-            }
-        }
 
         //Cross Sell
         $product->crossSellTo()->detach();
@@ -934,12 +908,20 @@ class ProductController extends Controller{
             $product = Product::findOrFail($id);
             $compositeConfiguration = $product->getCompositeConfiguration((int) $composite_id);
 
-            foreach($compositeConfiguration->pivot->configuredProducts as $configuredProduct){
+            foreach($compositeConfiguration->products as $configuredProduct){
                 if($configuredProduct->isPurchaseable){
                     $includedProductIds[] = $configuredProduct->id;
                 }else{
-                    $includedProductIds += $configuredProduct->variations->pluck('id')->all();
+                    $includedProductIds = array_merge($includedProductIds, $configuredProduct->variations->pluck('id')->all());
                 }
+            }
+
+            if($compositeConfiguration->productCategories->count() > 0){
+                $categoryProducts = Product::whereHas('categories', function($query) use ($compositeConfiguration){
+                    $query->whereIn('id', $compositeConfiguration->productCategories->pluck('id')->all());
+                });
+
+                $includedProductIds = array_merge($includedProductIds, $categoryProducts->pluck('id')->all());
             }
 
             $qb = $this->getAutocompleteQuery($request, $search);

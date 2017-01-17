@@ -3,6 +3,7 @@
 namespace Kommercio\Models\Order;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 use Kommercio\Facades\OrderHelper;
 use Kommercio\Facades\ProjectHelper;
 use Kommercio\Models\File;
@@ -202,6 +203,11 @@ class LineItem extends Model
 
         $this->sort_order = $sort_order;
 
+        if(!empty($data['configurations'])){
+            $this->save();
+            $this->productConfigurations()->sync($data['configurations']);
+        }
+
         if(!empty($data['children'])){
             $this->processChildren($data['children']);
         }
@@ -220,6 +226,9 @@ class LineItem extends Model
         foreach($this->fillable as $fillableAttribute){
             $this->setAttribute($fillableAttribute, NULL);
         }
+
+        //Clear attached configurations
+        DB::table($this->productConfigurations()->getTable())->where('line_item_id', $this->id)->delete();
     }
 
     public function linkProductBySKU($sku)
@@ -322,15 +331,18 @@ class LineItem extends Model
         if($this->isProduct && $this->product->composites->count() > 0){
             foreach($children as $compositeId => $compositeData){
                 foreach($compositeData as $compositeDatum){
+                    if(isset($compositeDatum['net_price'])){
+                        $compositeDatum['net_price'] = floatval($compositeDatum['net_price']);
+                    }
                     $childrenData[] = $compositeDatum;
                 }
             }
 
             foreach($this->product->composites as $composite){
-                if($composite->pivot->isSingle){
+                if($composite->isSingle){
                     $childrenData[] = [
-                        'product' => $composite->pivot->configuredProduct,
-                        'quantity' => $composite->pivot->minimum,
+                        'product' => $composite->product,
+                        'quantity' => $composite->minimum,
                         'line_item_type' => 'product',
                         'product_composite_id' => $composite->id
                     ];
@@ -477,6 +489,11 @@ class LineItem extends Model
     public function productComposite()
     {
         return $this->belongsTo('Kommercio\Models\Product\Composite\ProductComposite');
+    }
+
+    public function productConfigurations()
+    {
+        return $this->belongsToMany('Kommercio\Models\Product\Configuration\ProductConfiguration')->withPivot(['type', 'label', 'value']);
     }
 
     //Shipping Specifics

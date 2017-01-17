@@ -105,9 +105,9 @@ class OrderHelper
                 $lineItems[] = $lineItem;
             }
         }else{
-            $lineItems = $order->lineItems;
+            $lineItems = $order->allLineItems;
 
-            $existingLineItems = $order->lineItems->all();
+            $existingLineItems = $order->allLineItems->all();
 
             foreach($lineItems as $idx => $lineItem){
                 if($lineItem->isProduct || $lineItem->isFee || $lineItem->isShipping){

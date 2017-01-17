@@ -129,7 +129,7 @@
                 </div>
             </div>
             <div class="portlet-body" id="order-content-wrapper" data-order_edit="{{ isset($editOrder)?$editOrder:false }}">
-                <table id="line-items-table" class="table table-hover table-bordered table-striped fixed-header-table">
+                <table id="line-items-table" class="table table-hover table-bordered table-striped">
                     <thead>
                     <tr>
                         <th> Item </th>

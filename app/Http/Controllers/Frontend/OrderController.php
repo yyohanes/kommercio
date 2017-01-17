@@ -21,6 +21,7 @@ use Kommercio\Facades\NewsletterSubscriptionHelper;
 use Kommercio\Facades\OrderHelper;
 use Kommercio\Facades\PriceFormatter;
 use Kommercio\Facades\ProjectHelper;
+use Kommercio\Facades\RuntimeCache;
 use Kommercio\Http\Controllers\Controller;
 use Kommercio\Models\Customer;
 use Kommercio\Models\File;
@@ -33,6 +34,7 @@ use Kommercio\Models\Product;
 use Kommercio\Models\Profile\Profile;
 use Kommercio\Models\ShippingMethod\ShippingMethod;
 use Kommercio\Models\Store;
+use Kommercio\Models\Product\Configuration\ProductConfiguration;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
 class OrderController extends Controller
@@ -149,6 +151,7 @@ class OrderController extends Controller
                 'products.*.quantity' => 'required|integer|min:0'
             ];
 
+            //Bulk add
             $productData = $request->input('products');
         }else{
             $rules = [
@@ -156,8 +159,67 @@ class OrderController extends Controller
                 'quantity' => 'required|integer|min:0'
             ];
 
+            $product = RuntimeCache::getOrSet('product.'.$request->input('product_id'), function() use ($request){
+                return Product::findOrFail($request->input('product_id'));
+            });
+            $product = $product->parent?:$product;
+
+            //Composites
+            if($product->composites->count() > 0){
+                foreach($product->composites as $composite){
+                    $rules['product_composite.'.$composite->id] = $composite->minimum>0?'required|':'';
+                    $rules['product_composite.'.$composite->id] .= 'array|min:'.($composite->minimum+0);
+                    $rules['product_composite.'.$composite->id] .= $composite->maximum > 0?'|max:'.($composite->maximum+0):'';
+                }
+            }
+
+            $collectedConfigurations = [];
+
+            //Build Configurations rule together with collecting values
+            foreach($request->input('product_configuration', []) as $configuredProductId => $configurations){
+                $product = RuntimeCache::getOrSet('product.'.$configuredProductId, function() use ($configuredProductId){
+                    return Product::findOrFail($configuredProductId);
+                });
+                $product = $product->parent?:$product;
+
+                $collectedConfigurations[$configuredProductId] = [];
+
+                foreach($configurations as $configurationId => $configuration){
+                    $productConfiguration = $product->productConfigurationGroup->configurations->filter(function($row) use ($configurationId){
+                        return $row->id == $configurationId;
+                    })->first();
+
+                    if($productConfiguration){
+                        $rules['product_configuration.'.$configuredProductId.'.'.$configurationId] = $productConfiguration->buildRules();
+
+                        //Collect values
+                        $collectedConfigurations[$configuredProductId][$configurationId] = [
+                            'type' => $productConfiguration->type,
+                            'label' => $productConfiguration->name,
+                            'value' => $configuration
+                        ];
+                    }
+                }
+            }
+
+            //Collect Composite Values
+            foreach($request->input('product_composite', []) as $productCompositeId => $compositeProduct){
+                $children[$productCompositeId] = [];
+
+                foreach($compositeProduct as $compositeProductId => $compositeProductQuantity){
+                    $children[$productCompositeId][] = [
+                        'quantity' => $compositeProductQuantity,
+                        'product_id' => $compositeProductId
+                    ];
+                }
+            }
+
             $productData = [
-                ['product_id' => $request->input('product_id'), 'quantity' => $request->input('quantity')]
+                [
+                    'product_id' => $request->input('product_id'),
+                    'quantity' => $request->input('quantity'),
+                    'children' => isset($children)?$children:null
+                ]
             ];
         }
 
@@ -172,9 +234,14 @@ class OrderController extends Controller
         foreach($productData as $productDatum){
             $product_id = $productDatum['product_id'];
 
-            $product = Product::findOrFail($product_id);
+            $product = RuntimeCache::getOrSet('product.'.$product_id, function() use ($product_id){
+                return Product::findOrFail($product_id);
+            });
 
-            $order->addToCart($product, $productDatum['quantity']);
+            $order->addToCart($product, $productDatum['quantity'], [
+                'children' => isset($productDatum['children'])?$productDatum['children']:null,
+                'configurations' => $collectedConfigurations
+            ]);
 
             $added_products[] = $product;
 
@@ -198,9 +265,15 @@ class OrderController extends Controller
                 '_token' => csrf_token()
             ]);
         }else{
-            return redirect()
-                ->back()
-                ->with('success', $messages);
+            if($request->has('next_page')){
+                return redirect()
+                    ->to($request->input('next_page'))
+                    ->with('success', $messages);
+            }else{
+                return redirect()
+                    ->back()
+                    ->with('success', $messages);
+            }
         }
     }
 

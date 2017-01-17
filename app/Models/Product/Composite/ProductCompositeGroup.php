@@ -14,7 +14,16 @@ class ProductCompositeGroup extends Model implements SluggableInterface
     protected $sluggable = [
         'build_from' => 'name',
         'save_to' => 'slug',
+        'on_update' => TRUE
     ];
+
+    //Methods
+    public function getViewSuggestions()
+    {
+        $viewSuggestions = ['frontend.catalog.product_composite.view_'.$this->id, 'frontend.catalog.product_composite.view'];
+
+        return $viewSuggestions;
+    }
 
     //Relations
     public function composites()
@@ -24,7 +33,7 @@ class ProductCompositeGroup extends Model implements SluggableInterface
 
     public function products()
     {
-        return $this->belongsToMany('Kommercio\Models\Product')->withPivot('sort_order');
+        return $this->belongsToMany('Kommercio\Models\Product', 'product_composite_group_product')->withPivot('sort_order');
     }
 
     //Accessors

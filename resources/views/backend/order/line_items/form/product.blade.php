@@ -20,6 +20,13 @@
             'required' => TRUE,
             'defaultValue' => isset($product)?$product->sku:null
         ])
+
+        @if(isset($product) && ProjectHelper::isFeatureEnabled('catalog.product_configuration'))
+            @foreach($product->productConfigurations as $productConfiguration)
+                @include('backend.order.line_items.form.product_configuration.'.$productConfiguration->type)
+            @endforeach
+        @endif
+
         @if(ProjectHelper::isFeatureEnabled('order.line_item_notes'))
         @include('backend.master.form.fields.textarea', [
             'name' => 'line_items['.$key.'][notes]',
@@ -116,7 +123,7 @@ if(old('line_items.'.$key.'.children')){
         <tr class="child-line-item-header" data-composite_id="{{ $composite->id }}" data-parent_line_item_key="{{ $key }}">
             <td colspan="100">
                 {{ $composite->name }}
-                @if($composite->pivot->configuredProducts->count() > 1)
+                @if($composite->products->count() > 1 && $composite->maximum > 1)
                 <script id="lineitem-product-{{ $key }}-child-{{ $composite->id }}-template" type="text/x-handlebars-template">
                 @include('backend.order.line_items.form.product_child', ['parentKey' => $key, 'childKey' => '@{{childKey}}', 'composite' => $composite, 'parent' => $product, 'product' => null])
                 </script>

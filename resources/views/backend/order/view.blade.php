@@ -272,6 +272,7 @@
                                                 <table id="line-items-table" class="table table-hover table-bordered table-striped">
                                                     <thead>
                                                     <tr>
+                                                        <th> </th>
                                                         <th> Item </th>
                                                         <!--
                                                         <th style="width: 20%;"> Original Price </th>

@@ -192,35 +192,35 @@ var OrderForm = function () {
 
   var calculateOrderSummary = function()
   {
-      reserOrderSummary();
+    reserOrderSummary();
 
-      var lineitemTotalAmount, lineitemNetAmount, lineitemQuantity, lineitem;
+    var lineitemTotalAmount, lineitemNetAmount, lineitemQuantity, lineitem;
 
-      $('.line-item', '#line-items-table').each(function(idx, obj){
-          //Total line item after discount & tax
-          lineitemNetAmount = Number($(obj).find('.net-price-field').inputmask('unmaskedvalue'));
-          lineitemQuantity = Number($(obj).find('.quantity-field').inputmask('unmaskedvalue'));
-          lineitem = $lineItems[$(obj).data('uid')];
+    $('.line-item', '#line-items-table').each(function(idx, obj){
+      //Total line item after discount & tax
+      lineitemNetAmount = Number($(obj).find('.net-price-field').inputmask('unmaskedvalue'));
+      lineitemQuantity = Number($(obj).find('.quantity-field').inputmask('unmaskedvalue'));
+      lineitem = $lineItems[$(obj).data('uid')];
 
-          if($(obj).data('line_item') == 'product'){
-              lineitemTotalAmount = lineitemNetAmount * lineitemQuantity;
-              $orderProductSubtotal += lineitemTotalAmount;
-          }else if($(obj).data('line_item') == 'fee'){
-              lineitemTotalAmount = Number($(obj).find('.lineitem-total-amount').inputmask('unmaskedvalue'));
+      if($(obj).data('line_item') == 'product'){
+        lineitemTotalAmount = lineitemNetAmount * lineitemQuantity;
+        $orderProductSubtotal += lineitemTotalAmount;
+      }else if($(obj).data('line_item') == 'fee'){
+        lineitemTotalAmount = Number($(obj).find('.lineitem-total-amount').inputmask('unmaskedvalue'));
 
-              $orderFeeTotal += lineitemTotalAmount;
-          }else if($(obj).data('line_item') == 'shipping'){
-              lineitemTotalAmount = Number($(obj).find('.lineitem-total-amount').inputmask('unmaskedvalue'));
+        $orderFeeTotal += lineitemTotalAmount;
+      }else if($(obj).data('line_item') == 'shipping'){
+        lineitemTotalAmount = Number($(obj).find('.lineitem-total-amount').inputmask('unmaskedvalue'));
 
-              $orderShippingTotal += lineitemTotalAmount;
-          }
+        $orderShippingTotal += lineitemTotalAmount;
+      }
 
-          if($(obj).data('taxable') == '1'){
-              $orderTotalBeforeTax += lineitemTotalAmount;
-          }
-      });
+      if($(obj).data('taxable') == '1'){
+        $orderTotalBeforeTax += lineitemTotalAmount;
+      }
+    });
 
-      totalOrderSummary();
+    totalOrderSummary();
   }
 
   var calculateLineItemNetPrice = function($lineitem, $price, $quantity)

@@ -222,4 +222,9 @@ trait ProductHelper
 
         return $qb->get();
     }
+
+    public function getPathToComposite()
+    {
+        return route('frontend.catalog.product.composite.view', ['slug' => $this->productCompositeGroup->slug, 'product_slug' => $this->slug]);
+    }
 }

@@ -169,10 +169,10 @@ class Order extends Model implements AuthorSignatureInterface
     {
         $existingLineItems = $this->getProductLineItems();
 
-        //if already exists
+        //if already exists and not customized or composite
         $alreadyExist = FALSE;
         foreach($existingLineItems as $existingLineItem){
-            if($existingLineItem->line_item_id == $product->id){
+            if($existingLineItem->line_item_id == $product->id && empty($options['children']) && empty($options['configurations'])){
                 $alreadyExist = TRUE;
                 $existingLineItem->quantity += $quantity;
                 $existingLineItem->calculateTotal();
@@ -182,14 +182,35 @@ class Order extends Model implements AuthorSignatureInterface
         }
 
         if(!$alreadyExist){
-            $lineItem = new LineItem();
-            $lineItem->order()->associate($this);
-            $lineItem->processData([
+            $lineItemDatum = [
                 'line_item_type' => 'product',
                 'net_price' => $product->getNetPrice(),
                 'quantity' => $quantity,
-                'sku' => $product->sku
-            ]);
+                'sku' => $product->sku,
+                'configurations' => isset($options['configurations'][$product->id])?$options['configurations'][$product->id]:[]
+            ];
+
+            if(!empty($options['children'])){
+                foreach($options['children'] as $compositeId => $children){
+                    $lineItemDatum['children'][$compositeId] = [];
+
+                    foreach($children as $child){
+                        $childProduct = Product::findOrFail($child['product_id']);
+                        $lineItemDatum['children'][$compositeId][] = [
+                            'line_item_type' => 'product',
+                            'net_price' => $childProduct->getNetPrice(),
+                            'quantity' => $child['quantity'],
+                            'sku' => $childProduct->sku,
+                            'product_composite_id' => $compositeId,
+                            'configurations' => isset($options['configurations'][$childProduct->id])?$options['configurations'][$childProduct->id]:[]
+                        ];
+                    }
+                }
+            }
+
+            $lineItem = new LineItem();
+            $lineItem->order()->associate($this);
+            $lineItem->processData($lineItemDatum);
             $lineItem->save();
         }
 

@@ -33,7 +33,8 @@ class ProductConfigurationController extends Controller
             'productConfigurationGroup' => $productConfigurationGroup,
             'configuration' => $configuration,
             'typeOptions' => ProductConfiguration::getTypeOptions(),
-            'required' => $required
+            'required' => $required,
+            'label' => null
         ]);
     }
 
@@ -44,6 +45,7 @@ class ProductConfigurationController extends Controller
         $this->processByType($request, $configuration);
         $configuration->save();
         $configuration->groups()->attach($productConfigurationGroup, [
+            'label' => $request->input('label'),
             'required' => $request->input('required', 0),
             'sort_order' => $productConfigurationGroup->configurations->last()?$productConfigurationGroup->configurations->last()->pivot->sort_order+1:0
         ]);
@@ -69,7 +71,8 @@ class ProductConfigurationController extends Controller
             'productConfigurationGroup' => $productConfigurationGroup,
             'configuration' => $configuration,
             'typeOptions' => ProductConfiguration::getTypeOptions(),
-            'required' => $required
+            'required' => $required,
+            'label' => $configuration->pivot->label
         ]);
     }
 
@@ -91,6 +94,7 @@ class ProductConfigurationController extends Controller
 
         $configuration->groups()->detach($productConfigurationGroup);
         $configuration->groups()->attach($productConfigurationGroup, [
+            'label' => $request->input('label'),
             'required' => $request->input('required', 0),
             'sort_order' => $configuration->pivot->sort_order
         ]);

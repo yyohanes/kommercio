@@ -25,6 +25,7 @@ class ProductConfigurationFormRequest extends Request
     public function rules()
     {
         $rules = [
+            'label' => 'required',
             'name' => 'required',
             'required' => 'boolean'
         ];

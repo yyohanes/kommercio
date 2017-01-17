@@ -1,13 +1,11 @@
 <tr class="line-item" data-line_item="fee" data-line_item_key="{{ $key }}">
-    <td>
+    <td colspan="2">
         <div>{{ $lineItem->name }}</div>
         @if(!empty($lineItem->notes))
             <br/>
-            <blockquote>
-                <small>
-                    {!! nl2br($lineItem->notes) !!}
-                </small>
-            </blockquote>
+            <div>
+                {!! nl2br($lineItem->notes) !!}
+            </div>
         @endif
     </td>
     <td>

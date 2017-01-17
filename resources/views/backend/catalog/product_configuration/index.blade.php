@@ -53,7 +53,10 @@
                     <tbody>
                     @foreach($configurations as $configuration)
                         <tr>
-                            <td><i class="fa fa-reorder"></i> <span class="configuration-name" data-configuration_id="{{ $configuration->id }}">{{ $configuration->name }}</span></td>
+                            <td><i class="fa fa-reorder"></i> <span class="configuration-name" data-configuration_id="{{ $configuration->id }}">
+                                    {{ $configuration->name }}<br/>
+                                    <em>"{{ $configuration->pivot->label }}"</em>
+                                </span></td>
                             <td>
                                 {{ \Kommercio\Models\Product\Configuration\ProductConfiguration::getTypeOptions($configuration->type) }}
                             </td>

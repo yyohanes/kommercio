@@ -6,6 +6,40 @@ $menus['dashboard'] = [
     'name' => 'Dashboard'
 ];
 
+$menus['sales'] = [
+    'prepend' => '<i class="fa fa-smile-o"></i>',
+    'active_path' => 'sales',
+    'name' => 'Sales',
+    'children' => [
+        'order' => [
+            'active_path' => 'sales/order/',
+            'name' => 'Order',
+            'route' => 'backend.sales.order.index',
+            'permissions' => 'view_order'
+        ],
+        'order_limit' => [
+            'active_path' => 'sales/order-limit',
+            'name' => 'Order Limit',
+            'permissions' => 'view_order_limit',
+            'feature' => 'order.order_limit',
+            'children' => [
+                'order_limit_'.\Kommercio\Models\Order\OrderLimit::TYPE_PRODUCT => [
+                    'name' => 'Product Order Limit',
+                    'active_path' => 'sales/order-limit/'.\Kommercio\Models\Order\OrderLimit::TYPE_PRODUCT,
+                    'route' => 'backend.order_limit.index',
+                    'route_params' => ['type' => \Kommercio\Models\Order\OrderLimit::TYPE_PRODUCT],
+                ],
+                'order_limit_'.\Kommercio\Models\Order\OrderLimit::TYPE_PRODUCT_CATEGORY => [
+                    'name' => 'Category Order Limit',
+                    'active_path' => 'sales/order-limit/'.\Kommercio\Models\Order\OrderLimit::TYPE_PRODUCT_CATEGORY,
+                    'route' => 'backend.order_limit.index',
+                    'route_params' => ['type' => \Kommercio\Models\Order\OrderLimit::TYPE_PRODUCT_CATEGORY],
+                ]
+            ]
+        ],
+    ]
+];
+
 $menus['catalog'] = [
     'prepend' => '<i class="fa fa-book"></i>',
     'active_path' => 'catalog',
@@ -57,40 +91,6 @@ $menus['catalog'] = [
             'route' => 'backend.catalog.manufacturer.index',
             'permissions' => 'view_manufacturer'
         ]
-    ]
-];
-
-$menus['sales'] = [
-    'prepend' => '<i class="fa fa-smile-o"></i>',
-    'active_path' => 'sales',
-    'name' => 'Sales',
-    'children' => [
-        'order' => [
-            'active_path' => 'sales/order/',
-            'name' => 'Order',
-            'route' => 'backend.sales.order.index',
-            'permissions' => 'view_order'
-        ],
-        'order_limit' => [
-            'active_path' => 'sales/order-limit',
-            'name' => 'Order Limit',
-            'permissions' => 'view_order_limit',
-            'feature' => 'order.order_limit',
-            'children' => [
-                'order_limit_'.\Kommercio\Models\Order\OrderLimit::TYPE_PRODUCT => [
-                    'name' => 'Product Order Limit',
-                    'active_path' => 'sales/order-limit/'.\Kommercio\Models\Order\OrderLimit::TYPE_PRODUCT,
-                    'route' => 'backend.order_limit.index',
-                    'route_params' => ['type' => \Kommercio\Models\Order\OrderLimit::TYPE_PRODUCT],
-                ],
-                'order_limit_'.\Kommercio\Models\Order\OrderLimit::TYPE_PRODUCT_CATEGORY => [
-                    'name' => 'Category Order Limit',
-                    'active_path' => 'sales/order-limit/'.\Kommercio\Models\Order\OrderLimit::TYPE_PRODUCT_CATEGORY,
-                    'route' => 'backend.order_limit.index',
-                    'route_params' => ['type' => \Kommercio\Models\Order\OrderLimit::TYPE_PRODUCT_CATEGORY],
-                ]
-            ]
-        ],
     ]
 ];
 

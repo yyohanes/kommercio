@@ -35,4 +35,17 @@ class ProductCompositeFormRequest extends Request
 
         return $rules;
     }
+
+    public function all()
+    {
+        $attributes = parent::all();
+
+        if(!isset($attributes['free'])){
+            $attributes['free'] = 0;
+        }
+
+        $this->replace($attributes);
+
+        return parent::all();
+    }
 }

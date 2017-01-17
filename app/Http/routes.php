@@ -184,6 +184,11 @@ Route::group(['middleware' => ['web']], function () {
             'uses' => 'CatalogController@viewProduct'
         ]);
 
+        Route::any('composite/{slug}/{product_slug}', [
+            'as' => 'frontend.catalog.product.composite.view',
+            'uses' => 'ProductCompositeController@viewProduct'
+        ]);
+
         Route::get('sale', [
             'as' => 'frontend.catalog.sale',
             'uses' => 'CatalogController@sale'

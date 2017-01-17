@@ -1,4 +1,15 @@
 @include('backend.master.form.fields.text', [
+    'name' => 'label',
+    'label' => 'Label',
+    'key' => 'label',
+    'attr' => [
+        'class' => 'form-control',
+        'id' => 'label'
+    ],
+    'required' => TRUE
+])
+
+@include('backend.master.form.fields.text', [
     'name' => 'name',
     'label' => 'Name',
     'key' => 'name',
@@ -33,6 +44,21 @@
     'unitPosition' => 'front',
     'defaultValue' => old('maximum', $composite->exists?$composite->pivot->maximum:null),
     'required' => TRUE,
+])
+
+@include('backend.master.form.fields.checkbox', [
+    'name' => 'free',
+    'label' => 'Free Items',
+    'key' => 'free',
+    'value' => 1,
+    'checked' => null,
+    'attr' => [
+        'class' => 'make-switch',
+        'id' => 'free',
+        'data-on-color' => 'warning',
+        'data-on-text' => '<i class="fa fa-check"></i>',
+        'data-off-text' => '<i class="fa fa-times"></i>'
+    ]
 ])
 
 <div class="form-group composite-configuration-products">

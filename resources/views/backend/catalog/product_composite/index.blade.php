@@ -40,7 +40,7 @@
                 </div>
             </div>
 
-            <br class="portlet-body">
+            <div class="portlet-body">
                 <table class="table table-striped table-bordered table-advance dataset-reorder" id="product-composites-dataset" data-form_token="{{ csrf_token() }}" data-row_class="composite-name" data-row_value="composite_id" data-reorder_action="{{ route('backend.catalog.product_composite.reorder', ['group_id' => $productCompositeGroup->id]) }}">
                     <thead>
                     <tr>
@@ -48,13 +48,20 @@
                         <th>Include</th>
                         <th>Minimum</th>
                         <th>Maximum</th>
+                        <th>Free Items</th>
                         <th style="width: 20%;">Action</th>
                     </tr>
                     </thead>
                     <tbody>
                     @foreach($composites as $composite)
                         <tr>
-                            <td><i class="fa fa-reorder"></i> <span class="composite-name" data-composite_id="{{ $composite->id }}">{{ $composite->name }}</span></td>
+                            <td>
+                                <i class="fa fa-reorder"></i>
+                                <span class="composite-name" data-composite_id="{{ $composite->id }}">
+                                    {{ $composite->name }}<br/>
+                                    <em>"{{ $composite->label }}"</em>
+                                </span>
+                            </td>
                             <td>
                                 @if($composite->products->count() > 0)
                                     <div><strong>Product</strong></br>
@@ -78,6 +85,9 @@
                             </td>
                             <td>
                                 {{ $composite->maximum + 0 }}
+                            </td>
+                            <td>
+                                <i class="fa fa-{{ $composite->free?'check text-success':'remove text-danger' }}"></i></td>
                             </td>
                             <td class="text-center">
                                 {!! Form::open(['route' => ['backend.catalog.product_composite.delete', 'group_id' => $productCompositeGroup->id, 'id' => $composite->id]]) !!}

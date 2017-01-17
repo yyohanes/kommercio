@@ -8,7 +8,6 @@
     @parent
 
     <script>
-        var $compositeConfigurationMockup = '{!! json_encode(view('backend.catalog.product.composite.configuration', ['product' => $product, 'compositeConfiguration' => null])->render()) !!}';
         global_vars.get_related_product = '{{ route('backend.catalog.product.get_related') }}';
     </script>
 
@@ -39,11 +38,6 @@
         @if(ProjectHelper::isFeatureEnabled('catalog.product_attributes'))
             <li data-tab_context="attributes" role="presentation">
                 <a href="#tab_attributes" data-toggle="tab"> Attributes </a>
-            </li>
-        @endif
-        @if(ProjectHelper::isFeatureEnabled('catalog.composite_product'))
-            <li role="presentation">
-                <a href="#tab_composite" data-toggle="tab"> Composites </a>
             </li>
         @endif
         <li role="presentation">
@@ -158,6 +152,38 @@
                     'options' => ['' => 'Select Manufacturer'] + \Kommercio\Models\Manufacturer::getOptions(),
                     'valueColumnClass' => 'col-md-4'
                 ])
+
+                @if(ProjectHelper::isFeatureEnabled('catalog.composite_product'))
+                    @include('backend.master.form.fields.select', [
+                        'name' => 'product_composite_group',
+                        'label' => 'Composite',
+                        'key' => 'product_composite_group',
+                        'attr' => [
+                                'class' => 'form-control',
+                                'id' => 'product_composite_group',
+                        ],
+                        'options' => ['' => 'None'] + $compositeGroupOptions,
+                        'defaultOptions' => $product->productCompositeGroups->pluck('id')->all(),
+                        'required' => FALSE,
+                        'valueColumnClass' => 'col-md-4'
+                    ])
+                @endif
+
+                @if(ProjectHelper::isFeatureEnabled('catalog.product_configuration'))
+                    @include('backend.master.form.fields.select', [
+                        'name' => 'product_configuration_group',
+                        'label' => 'Configuration',
+                        'key' => 'product_configuration_group',
+                        'attr' => [
+                                'class' => 'form-control',
+                                'id' => 'product_configuration_group',
+                        ],
+                        'options' => ['' => 'None'] + $configurationGroupOptions,
+                        'defaultOptions' => $product->productConfigurationGroups->pluck('id')->all(),
+                        'required' => FALSE,
+                        'valueColumnClass' => 'col-md-4'
+                    ])
+                @endif
 
                 @include('backend.master.form.fields.checkbox', [
                     'name' => 'productDetail[taxable]',
@@ -450,31 +476,6 @@
                 @endif
             </div>
         </div>
-
-        @if(ProjectHelper::isFeatureEnabled('catalog.composite_product'))
-            <div class="tab-pane" role="tabpanel" id="tab_composite">
-                <div class="form-body">
-                    @if(!$product->exists)
-                        You need to save this product first to create composite configurations.
-                    @else
-                        <div class="margin-bottom-10">
-                            <a class="btn btn-default" id="product-configuration-add-btn" href="#">
-                                <i class="icon-plus"></i> Add Configuration
-                            </a>
-                        </div>
-
-                        <div id="composite-configurations-wrapper">
-                            <?php
-                            $compositeConfigurations = old('compositeConfigurations', $product->composites);
-                            ?>
-                            @foreach($compositeConfigurations as $idx=>$compositeConfiguration)
-                                @include('backend.catalog.product.composite.configuration', ['index' => $idx, 'compositeConfiguration' => $compositeConfiguration])
-                            @endforeach
-                        </div>
-                    @endif
-                </div>
-            </div>
-        @endif
 
         <div class="tab-pane" role="tabpanel" id="tab_category">
             <div class="form-body">

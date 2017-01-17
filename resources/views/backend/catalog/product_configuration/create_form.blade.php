@@ -1,4 +1,16 @@
 @include('backend.master.form.fields.text', [
+    'name' => 'label',
+    'label' => 'Label',
+    'key' => 'label',
+    'attr' => [
+        'class' => 'form-control',
+        'id' => 'label'
+    ],
+    'defaultValue' => old('label', $label),
+    'required' => TRUE
+])
+
+@include('backend.master.form.fields.text', [
     'name' => 'name',
     'label' => 'Name',
     'key' => 'name',

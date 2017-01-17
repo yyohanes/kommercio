@@ -3,6 +3,7 @@
 namespace Kommercio\Http\Requests\Backend\Order;
 
 use Kommercio\Http\Requests\Request;
+use Kommercio\Models\Product\Composite\ProductComposite;
 
 class OrderFormRequest extends Request
 {
@@ -50,9 +51,10 @@ class OrderFormRequest extends Request
 
                 foreach($this->input('line_items.'.$idx.'.children', []) as $compositeId => $compositeLineItems){
                     $quantity = 0;
+                    $productComposite = ProductComposite::findOrFail($compositeId);
                     foreach($compositeLineItems as $compositeLineItemIdx => $compositeLineItem){
                         $quantity += $compositeLineItem['quantity'];
-                        $rules['line_items.'.$idx.'.children.'.$compositeId.'.'.$compositeLineItemIdx.'.sku'] = 'required|product_sku';
+                        $rules['line_items.'.$idx.'.children.'.$compositeId.'.'.$compositeLineItemIdx.'.sku'] = ($productComposite->minimum>0?'required|':'').'product_sku';
                         //$rules['line_items.'.$idx.'.children.'.$compositeId.'.'.$compositeLineItemIdx.'.sku'] .= '|composite_quantity:'.$this->input('line_items.'.$idx.'.sku').','.$compositeId.','.$quantity;
                     }
                 }

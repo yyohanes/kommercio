@@ -15,6 +15,7 @@ class ProductConfigurationGroup extends Model implements SluggableInterface
     protected $sluggable = [
         'build_from' => 'name',
         'save_to' => 'slug',
+        'on_update' => TRUE
     ];
 
     public $translatedAttributes = ['name'];
@@ -22,12 +23,12 @@ class ProductConfigurationGroup extends Model implements SluggableInterface
     //Relations
     public function configurations()
     {
-        return $this->belongsToMany('Kommercio\Models\Product\Configuration\ProductConfiguration')->withPivot(['sort_order', 'required'])->orderBy('sort_order', 'ASC');
+        return $this->belongsToMany('Kommercio\Models\Product\Configuration\ProductConfiguration')->withPivot(['label', 'sort_order', 'required'])->orderBy('sort_order', 'ASC');
     }
 
     public function products()
     {
-        return $this->belongsToMany('Kommercio\Models\Product')->withPivot('sort_order');
+        return $this->belongsToMany('Kommercio\Models\Product', 'product_configuration_group_product')->withPivot('sort_order');
     }
 
     //Accessors

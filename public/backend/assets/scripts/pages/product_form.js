@@ -54,83 +54,11 @@ var ProductForm = function () {
         });
     }
 
-    var handleCompositeProductSearch = function($obj){
-        var $productConfigurationZone = $obj.parents('.composite-configuration-products').find('.configuration-products');
-        $productConfigurationZone.sortable({
-            placeholder: '<div class="col-md-3 product-item"></div>'
-        });
-
-        $obj.bind('typeahead:select', function(e, suggestion){
-            $obj.typeahead('val','');
-
-            $.ajax(global_vars.get_related_product + '/' + suggestion.id + '/' + $obj.data('product_relation_type'), {
-                method: 'GET',
-                success: function(data){
-                    if($productConfigurationZone.find('[data-product_id="'+suggestion.id+'"]').length < 1){
-                        var $loaded = $(data.data);
-                        $productConfigurationZone.append($loaded);
-
-                        handleLoadedProductRelation($loaded);
-                        $productConfigurationZone.sortable('reload');
-                    }
-                }
-            });
-        });
-
-        handleLoadedProductRelation($productConfigurationZone);
-    }
-
     var handleLoadedProductRelation = function(context){
         $('.product-item-remove', context).on('click', function(e){
             e.preventDefault();
 
             $(this).parent().remove();
-        });
-    }
-
-    var handleCompositeProducts = function()
-    {
-        var compositeConfigurationCount = $('#composite-configurations-wrapper .composite-configuration').length;
-
-        //Product configurations
-        $('#product-configuration-add-btn').click(function(e){
-            e.preventDefault();
-
-            var $newProductConfiguration = $($compositeConfigurationMockup);
-
-            $newProductConfiguration.find('[name]').each(function(idx, obj){
-                $(obj).attr('name', $(obj).attr('name').replace('[0]', '['+compositeConfigurationCount+']'));
-
-                var $attr = $(obj).attr('id');
-
-                if (typeof $attr !== typeof undefined && $attr !== false) {
-                    var $newId = $attr.replace('[0]', '['+compositeConfigurationCount+']');
-
-                    $newProductConfiguration.find('label[for="'+$attr+'"]').attr('for', $newId);
-                    $(obj).attr('id', $newId);
-                }
-            });
-
-            $newProductConfiguration.find('[for]').each(function(idx, obj){
-                $(obj).attr('for', $(obj).attr('for').replace('[0]', '['+compositeConfigurationCount+']'));
-            });
-
-            $newProductConfiguration.find('[data-product_relation_type]').each(function(idx, obj){
-                $(obj).attr('data-product_relation_type', $(obj).attr('data-product_relation_type').replace('_0', '_'+compositeConfigurationCount));
-            });
-
-            formBehaviors.init($newProductConfiguration);
-
-            $newProductConfiguration.appendTo('#composite-configurations-wrapper');
-            $('#composite-configurations-wrapper').sortable('refresh');
-
-            handleCompositeProductSearch($newProductConfiguration.find('.product-configuration-finder'));
-
-            compositeConfigurationCount += 1;
-        });
-
-        $('.product-configuration-finder', '#tab_composite').each(function(idx, obj){
-            handleCompositeProductSearch($(obj));
         });
     }
 
@@ -165,8 +93,6 @@ var ProductForm = function () {
             variationFormBehaviors.loadForm('?edit_form', 'Loading edit form...', $(this).data('variation_bulk_form'));
           });
 
-          handleCompositeProducts();
-
           refreshDefaultCategory();
 
           categoriesCheckbox();
@@ -174,8 +100,6 @@ var ProductForm = function () {
           handleProductRelation();
 
           variationFormBehaviors.init();
-
-          $("#composite-configurations-wrapper").sortable();
         }
 
     };

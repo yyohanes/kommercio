@@ -11,6 +11,7 @@ use Kommercio\Facades\CurrencyHelper;
 use Kommercio\Facades\FrontendHelper;
 use Kommercio\Facades\ProductIndexHelper;
 use Kommercio\Facades\ProjectHelper;
+use Kommercio\Facades\RuntimeCache;
 use Kommercio\Models\Interfaces\SeoModelInterface;
 use Kommercio\Models\Interfaces\UrlAliasInterface;
 use Kommercio\Models\Order\LineItem;
@@ -101,9 +102,14 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
         return $this->belongsToMany('Kommercio\Models\ProductFeature\ProductFeatureValue', 'product_product_feature')->withPivot(['product_feature_id'])->orderBy('sort_order', 'ASC');
     }
 
+    public function productCompositeGroups()
+    {
+        return $this->belongsToMany('Kommercio\Models\Product\Composite\ProductCompositeGroup', 'product_composite_group_product')->withPivot('sort_order')->orderBy('sort_order', 'ASC');
+    }
+
     public function productConfigurationGroups()
     {
-        return $this->belongsToMany('Kommercio\Models\Product\Configuration\ProductConfigurationGroup')->withPivot('sort_order')->orderBy('sort_order', 'ASC');
+        return $this->belongsToMany('Kommercio\Models\Product\Configuration\ProductConfigurationGroup', 'product_configuration_group_product')->withPivot('sort_order')->orderBy('sort_order', 'ASC');
     }
 
     public function priceRules()
@@ -140,11 +146,6 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
         return $this->belongsToMany('Kommercio\Models\Product', 'related_products', 'target_id', 'product_id')->withPivot(['sort_order', 'type'])->orderBy('sort_order', 'ASC')->wherePivot('type', 'cross_sell');
     }
 
-    public function composites()
-    {
-        return $this->belongsToMany('Kommercio\Models\Product\Composite\ProductComposite');
-    }
-
     //Methods
     public function getStoreProductDetailOrNew($store_id)
     {
@@ -169,7 +170,7 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
             $path = $this->getInternalPathSlug().'/'.$this->id;
         }
 
-        return FrontendHelper::get_url($path);
+        return FrontendHelper::getUrl($path);
     }
 
     public function getUrlAlias()
@@ -1191,6 +1192,46 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
         }
 
         return $this->_warehouse;
+    }
+
+    public function getProductConfigurationGroupAttribute()
+    {
+        return $this->productConfigurationGroups->first();
+    }
+
+    public function getProductConfigurationsAttribute()
+    {
+        $configurations = RuntimeCache::getOrSet('product_'.$this->id.'.configurations', function(){
+            $configurations = collect([]);
+
+            foreach($this->productConfigurationGroups as $productConfigurationGroup){
+                $configurations = $configurations->merge($productConfigurationGroup->configurations);
+            }
+
+            return $configurations;
+        });
+
+        return $configurations;
+    }
+
+    public function getProductCompositeGroupAttribute()
+    {
+        return $this->productCompositeGroups->first();
+    }
+
+    public function getCompositesAttribute()
+    {
+        $composites = RuntimeCache::getOrSet('product_'.$this->id.'.composites', function(){
+            $composites = collect([]);
+
+            foreach($this->productCompositeGroups as $productCompositeGroup){
+                $composites = $composites->merge($productCompositeGroup->composites);
+            }
+
+            return $composites;
+        });
+
+        return $composites;
     }
 
     /*
