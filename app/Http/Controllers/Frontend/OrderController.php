@@ -258,6 +258,7 @@ class OrderController extends Controller
             return new JsonResponse([
                 'data' => [
                     'itemsCount' => $order->itemsCount,
+                    'productsCount' => $order->productsCount,
                     'total' => PriceFormatter::formatNumber($order->total),
                     'added_to_cart' => view($added_view_name, ['added_products' => $added_products])->render()
                 ],

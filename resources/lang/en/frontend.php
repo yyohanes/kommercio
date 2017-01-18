@@ -27,6 +27,12 @@ return [
         'coupon_removed' => 'Coupon is successfully removed.',
         'cart_clear' => 'Your cart is cleared.'
     ],
+    'bookmark' => [
+        'not_exist' => 'Bookmark doesn\'t exist',
+        'not_logged_in' => 'Please login to add product to :bookmark',
+        'added' => ':product is added to :bookmark',
+        'removed' => ':product is removed from :bookmark',
+    ],
     'checkout' => [
         'empty_order' => 'Your order is empty.',
         'checkout_complete' => 'Your order is successful. Please check your inbox for email confirmation.',
@@ -57,7 +63,7 @@ return [
         ],
         'reward' => [
             'redeem_successful' => 'You have successfully redeemed :reward.'
-        ]
+        ],
     ],
     'seo' => [
         'member' => [
@@ -104,6 +110,11 @@ return [
                 ],
                 'edit' => [
                     'meta_title' => 'Edit Address Book',
+                ]
+            ],
+            'bookmark' => [
+                'index' => [
+                    'meta_title' => 'My Bookmarks'
                 ]
             ]
         ],

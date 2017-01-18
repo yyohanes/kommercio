@@ -3,6 +3,7 @@
 namespace Kommercio\Traits\Frontend;
 
 use Kommercio\Facades\Shortcode;
+use Kommercio\Models\Customer;
 use Kommercio\Models\Product;
 use Kommercio\Models\ProductAttribute\ProductAttributeValue;
 
@@ -204,8 +205,43 @@ trait ProductHelper
 
     public function getSimilarProducts($options = [])
     {
-        $qb = self::whereNotIn('id', [$this->id])->productEntity()->active()->catalogVisible()->whereHas('categories', function($query){
-            $query->whereIn('id', $this->categories->pluck('id')->all());
+        $options['product_ids'] = [$this->id];
+
+        return self::querySimilarProducts($options);
+    }
+
+    public function getPathToComposite()
+    {
+        return route('frontend.catalog.product.composite.view', ['slug' => $this->productCompositeGroup->slug, 'product_slug' => $this->slug]);
+    }
+
+    public function bookmarked(Customer $customer, $type)
+    {
+        $bookmark = $customer->bookmarks->filter(function($bookmark) use ($type){
+            return $bookmark->bookmarkType->slug == $type;
+        })->first();
+
+        if($bookmark){
+            return $bookmark->products->pluck('id')->contains($this->id);
+        }
+
+        return false;
+    }
+
+    public static function querySimilarProducts($options = [])
+    {
+        $qb = self::whereNotIn('id', $options['product_ids'])->productEntity()->active()->catalogVisible()->whereHas('categories', function($query) use ($options){
+            $categories = [];
+
+            foreach($options['product_ids'] as $product_id){
+                $product = Product::findOrFail($product_id);
+
+                foreach($product->categories as $category){
+                    $categories[$category->id] = $category->id;
+                }
+            }
+
+            $query->whereIn('id', $categories);
         });
 
         if(isset($options['limit'])){
@@ -217,14 +253,9 @@ trait ProductHelper
         }
 
         if(isset($options['order_dir'])){
-            $qb->orderBy($options['order_diro']);
+            $qb->orderBy($options['order_dir']);
         }
 
         return $qb->get();
-    }
-
-    public function getPathToComposite()
-    {
-        return route('frontend.catalog.product.composite.view', ['slug' => $this->productCompositeGroup->slug, 'product_slug' => $this->slug]);
     }
 }

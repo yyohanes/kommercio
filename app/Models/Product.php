@@ -146,6 +146,11 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
         return $this->belongsToMany('Kommercio\Models\Product', 'related_products', 'target_id', 'product_id')->withPivot(['sort_order', 'type'])->orderBy('sort_order', 'ASC')->wherePivot('type', 'cross_sell');
     }
 
+    public function bookmarks()
+    {
+        return $this->belongsToMany('Kommercio\Models\Customer\Bookmark');
+    }
+
     //Methods
     public function getStoreProductDetailOrNew($store_id)
     {

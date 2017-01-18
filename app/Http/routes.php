@@ -131,6 +131,13 @@ Route::group(['middleware' => ['web']], function () {
                         'uses' => 'AccountController@rewardRedeem'
                     ]);
                 });
+
+                Route::group(['prefix' => 'my-bookmark'], function(){
+                    Route::get('/', [
+                        'as' => 'frontend.member.bookmark.index',
+                        'uses' => 'BookmarkController@index'
+                    ]);
+                });
             });
         });
 
@@ -268,6 +275,22 @@ Route::group(['middleware' => ['web']], function () {
         Route::get('checkout/complete', [
             'as' => 'frontend.order.checkout.complete',
             'uses' => 'OrderController@checkoutComplete'
+        ]);
+
+        //Bookmark
+        Route::get('bookmark/{slug}/{product_sku}', [
+            'as' => 'frontend.bookmark.toggle_bookmark',
+            'uses' => 'BookmarkController@toggleBookmark'
+        ]);
+
+        Route::get('bookmark/{slug}/add/{product_sku}', [
+            'as' => 'frontend.bookmark.add_to_bookmark',
+            'uses' => 'BookmarkController@addToBookmark'
+        ]);
+
+        Route::get('bookmark/{slug}/remove/{product_sku}', [
+            'as' => 'frontend.bookmark.remove_from_bookmark',
+            'uses' => 'BookmarkController@removeFromBookmark'
         ]);
     });
 

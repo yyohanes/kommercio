@@ -44,9 +44,14 @@ class MenuItem extends Model
         return $this->belongsTo('Kommercio\Models\CMS\MenuItem', 'parent_id');
     }
 
-    public function children()
+    public function allChildren()
     {
         return $this->hasMany('Kommercio\Models\CMS\MenuItem', 'parent_id')->orderBy('sort_order', 'ASC');
+    }
+
+    public function children()
+    {
+        return $this->hasMany('Kommercio\Models\CMS\MenuItem', 'parent_id')->active()->orderBy('sort_order', 'ASC');
     }
 
     //Accessors

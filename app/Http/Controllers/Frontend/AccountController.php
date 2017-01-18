@@ -11,24 +11,14 @@ use Kommercio\Facades\LanguageHelper;
 use Kommercio\Facades\NewsletterSubscriptionHelper;
 use Kommercio\Facades\ProjectHelper;
 use Kommercio\Facades\RuntimeCache;
-use Kommercio\Http\Controllers\Controller;
 use Kommercio\Models\Customer;
 use Kommercio\Models\Order\Order;
 use Kommercio\Models\Profile\Profile;
 use Kommercio\Models\RewardPoint\Redemption;
 use Kommercio\Models\RewardPoint\Reward;
 
-class AccountController extends Controller
+class AccountController extends LoggedInController
 {
-    public $user;
-    public $customer;
-
-    public function __construct()
-    {
-        $this->user = Auth::user();
-        $this->customer = $this->user?$this->user->customer:null;
-    }
-
     public function account()
     {
         $viewName = ProjectHelper::getViewTemplate('frontend.member.dashboard');
