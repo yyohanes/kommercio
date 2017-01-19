@@ -307,7 +307,8 @@ $permissions = [
             'import_product' => 'Import Product',
             'import_product_attribute' => 'Import Product Attribute',
             'import_manufacturer' => 'Import Manufacturer',
-        ]
+        ],
+        'feature' => 'catalog.import'
     ],
 ];
 

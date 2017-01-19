@@ -8,7 +8,8 @@ return [
         'product_attributes' => true,
         'product_features' => false,
         'composite_product' => false,
-        'faceted_navigation' => false
+        'faceted_navigation' => false,
+        'import' => false
     ],
     'cms' => [
         'gallery' => true,
