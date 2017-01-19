@@ -175,11 +175,7 @@ var OrderForm = function () {
         $cartPriceRules[i].applied_line_items.push($lineItem);
       }
 
-      if($cartPriceRules[i].offer_type == 'product_discount'){
-        $lineItem.cartPriceRules[i] = (formHelper.roundNumber(calculated.base + calculated.net) - calculated.base) * $quantity;
-      }else{
-        $lineItem.cartPriceRules[i] = (formHelper.roundNumber(calculated.base + calculated.net) - calculated.base) * 1;
-      }
+      $lineItem.cartPriceRules[i] = (formHelper.roundNumber(calculated.base + calculated.net) - calculated.base) * $quantity;
 
       $lineItem.net += calculated.net;
     }
