@@ -263,6 +263,8 @@ class CustomValidator extends Validator
                         'store' => $store_id,
                         'type' => OrderLimit::TYPE_PRODUCT_CATEGORY
                     ]);
+                }else{
+                    $deliveryOrderLimits = [];
                 }
 
                 $todayOrderLimits = OrderLimit::getOrderLimits([
