@@ -51,6 +51,7 @@
                         <th>Date From</th>
                         <th>Date To</th>
                         <th>Active</th>
+                        <th>Backoffice</th>
                         <th style="width: 20%;">Action</th>
                     </tr>
                     </thead>
@@ -102,6 +103,7 @@
                                 {{ $orderLimit->date_to?$orderLimit->date_to->format('d M Y H:i'):null }}
                             </td>
                             <td> <i class="fa {{ $orderLimit->active?'fa-check text-success':'fa-remove text-danger' }}"></i> </td>
+                            <td> <i class="fa {{ $orderLimit->backoffice?'fa-check text-success':'fa-remove text-danger' }}"></i> </td>
                             <td class="text-center">
                                 {!! Form::open(['route' => ['backend.order_limit.delete', 'id' => $orderLimit->id]]) !!}
                                 <div class="btn-group btn-group-sm">

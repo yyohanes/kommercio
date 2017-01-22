@@ -22,9 +22,10 @@ class OrderLimit extends Model implements StoreManagedInterface
      */
     public $total = 0;
 
-    protected $fillable = ['type', 'limit_type', 'limit', 'date_from', 'date_to', 'active', 'store_id', 'sort_order'];
+    protected $fillable = ['type', 'limit_type', 'limit', 'date_from', 'date_to', 'active', 'backoffice', 'store_id', 'sort_order'];
     protected $casts = [
-        'active' => 'boolean'
+        'active' => 'boolean',
+        'backoffice' => 'boolean'
     ];
     protected $dates = [
         'date_from', 'date_to'
@@ -86,6 +87,11 @@ class OrderLimit extends Model implements StoreManagedInterface
     }
 
     //Scopes
+    public function scopeBackoffice($query)
+    {
+        $query->where('backoffice', true);
+    }
+
     public function scopeActive($query)
     {
         $query->where('active', 1);
@@ -243,6 +249,10 @@ class OrderLimit extends Model implements StoreManagedInterface
     {
         $qb = OrderLimit::active()
             ->orderBy('sort_order', 'ASC');
+
+        if(isset($options['backoffice'])){
+            $qb->backoffice();
+        }
 
         if(!empty($options['limit_type'])){
             $qb->whereLimitType($options['limit_type']);

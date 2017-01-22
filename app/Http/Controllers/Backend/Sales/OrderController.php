@@ -1169,21 +1169,24 @@ class OrderController extends Controller{
         $perOrderLimits = OrderLimit::getOrderLimits([
             'limit_type' => OrderLimit::LIMIT_PER_ORDER,
             'store' => $store_id,
-            'type' => OrderLimit::TYPE_PRODUCT_CATEGORY
+            'type' => OrderLimit::TYPE_PRODUCT_CATEGORY,
+            'backoffice' => TRUE
         ]);
 
         $deliveryOrderLimits = OrderLimit::getOrderLimits([
             'limit_type' => OrderLimit::LIMIT_DELIVERY_DATE,
             'date' => $request->has('delivery_date')?Carbon::createFromFormat('Y-m-d', $request->input('delivery_date')):null,
             'store' => $store_id,
-            'type' => OrderLimit::TYPE_PRODUCT_CATEGORY
+            'type' => OrderLimit::TYPE_PRODUCT_CATEGORY,
+            'backoffice' => TRUE
         ]);
 
         $todayOrderLimits = OrderLimit::getOrderLimits([
             'limit_type' => OrderLimit::LIMIT_ORDER_DATE,
             'date' => Carbon::now(),
             'store' => $store_id,
-            'type' => OrderLimit::TYPE_PRODUCT_CATEGORY
+            'type' => OrderLimit::TYPE_PRODUCT_CATEGORY,
+            'backoffice' => TRUE
         ]);
 
         $orderLimits = array_merge($perOrderLimits, $deliveryOrderLimits, $todayOrderLimits);

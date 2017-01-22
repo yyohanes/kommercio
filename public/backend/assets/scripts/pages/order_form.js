@@ -421,15 +421,24 @@ var OrderForm = function () {
       }
     }
 
+    var relevantCategoryOrderLimits = 0;
+
     for(var i in $categoryOrderLimits){
       $categoryOrderLimits[i].rendered.find('.limit-total').text(formHelper.roundNumber($categoryOrderLimits[i].limit));
       labelStatus($categoryOrderLimits[i].rendered.find('.ordered-total'), formHelper.roundNumber($categoryOrderLimits[i].total));
 
       if($categoryOrderLimits[i].lineItems.length > 0){
         $categoryOrderLimits[i].rendered.show();
+        relevantCategoryOrderLimits += 1;
       }else{
         $categoryOrderLimits[i].rendered.hide();
       }
+    }
+
+    if(relevantCategoryOrderLimits > 0){
+      $('#category-limit-wrapper').show();
+    }else{
+      $('#category-limit-wrapper').hide();
     }
   }
 

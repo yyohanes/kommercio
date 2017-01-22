@@ -130,4 +130,18 @@
     ],
 ])
 
+@include('backend.master.form.fields.checkbox', [
+    'name' => 'backoffice',
+    'label' => 'Backoffice',
+    'key' => 'backoffice',
+    'value' => 1,
+    'help_text' => 'Check if this limit is applied to Backoffice',
+    'checked' => $orderLimit->exists?$orderLimit->backoffice:true,
+    'attr' => [
+        'class' => 'make-switch',
+        'id' => 'active',
+        'data-on-color' => 'warning'
+    ],
+])
+
 {!! Form::hidden('type', $type) !!}
