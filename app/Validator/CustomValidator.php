@@ -256,12 +256,14 @@ class CustomValidator extends Validator
                     'type' => OrderLimit::TYPE_PRODUCT_CATEGORY
                 ]);
 
-                $deliveryOrderLimits = OrderLimit::getOrderLimits([
-                    'limit_type' => OrderLimit::LIMIT_DELIVERY_DATE,
-                    'date' => $order->delivery_date?:null,
-                    'store' => $store_id,
-                    'type' => OrderLimit::TYPE_PRODUCT_CATEGORY
-                ]);
+                if(!empty($order->delivery_date)){
+                    $deliveryOrderLimits = OrderLimit::getOrderLimits([
+                        'limit_type' => OrderLimit::LIMIT_DELIVERY_DATE,
+                        'date' => $order->delivery_date,
+                        'store' => $store_id,
+                        'type' => OrderLimit::TYPE_PRODUCT_CATEGORY
+                    ]);
+                }
 
                 $todayOrderLimits = OrderLimit::getOrderLimits([
                     'limit_type' => OrderLimit::LIMIT_ORDER_DATE,

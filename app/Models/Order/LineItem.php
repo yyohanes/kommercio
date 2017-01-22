@@ -330,7 +330,7 @@ class LineItem extends Model
 
         if($this->isProduct && $this->product->composites->count() > 0){
             foreach($children as $compositeId => $compositeData){
-                foreach($compositeData as $compositeDatum){
+                foreach($compositeData as $datumKey => $compositeDatum){
                     if(isset($compositeDatum['net_price'])){
                         $compositeDatum['net_price'] = floatval($compositeDatum['net_price']);
                     }
@@ -339,7 +339,7 @@ class LineItem extends Model
             }
 
             foreach($this->product->composites as $composite){
-                if($composite->isSingle){
+                if(!isset($children[$composite->id]) && $composite->isSingle){
                     $childrenData[] = [
                         'product' => $composite->product,
                         'quantity' => $composite->minimum,

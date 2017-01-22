@@ -409,11 +409,7 @@ var OrderForm = function () {
       if(isProductCategory($lineitem, $categoryOrderLimits[i].productCategories)){
         $categoryOrderLimits[i].total -= beforeValue;
 
-        if($categoryOrderLimits[i].limit_type == 'per_order'){
-          $categoryOrderLimits[i].total += currentQuantity;
-        }else{
-          $categoryOrderLimits[i].total += ($orderedTotal[$lineitem.find('.line-item-id').val()].ordered_total + currentQuantity);
-        }
+        $categoryOrderLimits[i].total += currentQuantity;
 
         if($categoryOrderLimits[i].lineItems.indexOf($lineitem.data('uid')) < 0){
           $categoryOrderLimits[i].lineItems.push($lineitem.data('uid'));
@@ -439,26 +435,6 @@ var OrderForm = function () {
       $('#category-limit-wrapper').show();
     }else{
       $('#category-limit-wrapper').hide();
-    }
-  }
-
-  var recalculateCategoryOrderLimit = function($lineitem)
-  {
-    var currentQuantity = Number($lineitem.find('.quantity-field').val());
-    var beforeValue = Number($lineitem.find('.quantity-field').data('beforeValue'));
-
-    for(var i in $categoryOrderLimits){
-      if(isProductCategory($lineitem, $categoryOrderLimits[i].productCategories)){
-        $categoryOrderLimits[i].total -= beforeValue;
-
-        if($categoryOrderLimits[i].limit_type == 'per_order'){
-          $categoryOrderLimits[i].total += currentQuantity;
-        }else{
-          $categoryOrderLimits[i].total += ($orderedTotal[$lineitem.find('.line-item-id').val()].ordered_total + currentQuantity);
-        }
-      }
-
-      labelStatus($categoryOrderLimits[i].rendered.find('.ordered-total'), formHelper.roundNumber($categoryOrderLimits[i].total));
     }
   }
 
@@ -803,6 +779,7 @@ var OrderForm = function () {
             data[i].total = 0;
             data[i].rendered = $('<tr><td>'+data[i].label+' <span class="label label-sm label-info"><span class="ordered-total">0</span>/<span class="limit-total">0</span></span></td></tr>');
             data[i].lineItems = [];
+            data[i].addedProducts = {};
 
             $categoryOrderLimits.push(data[i]);
 
@@ -915,6 +892,22 @@ var OrderForm = function () {
       'stock': data.stock
     };
 
+    for(var i in $categoryOrderLimits){
+      if($categoryOrderLimits[i].type != 'per_order'){
+        if(isProductCategory(row, $categoryOrderLimits[i].productCategories)){
+          if(typeof $categoryOrderLimits[i].addedProducts['product_' + row.find('.line-item-id').val()] != 'undefined'){
+            $categoryOrderLimits[i].total -= $categoryOrderLimits[i].addedProducts['product_' + row.find('.line-item-id').val()].ordered_total;
+          }else{
+            $categoryOrderLimits[i].total += data.ordered_total;
+          }
+
+          $categoryOrderLimits[i].addedProducts['product_' + row.find('.line-item-id').val()] = {
+            ordered_total: data.ordered_total
+          }
+        }
+      }
+    }
+
     if(data.order_limit !== null && data.order_limit !== undefined){
       row.find('.order-limit-info .limit-total').text(formHelper.roundNumber(data.order_limit));
       row.find('.order-limit-info .ordered-total').text(formHelper.roundNumber(data.ordered_total + currentQuantity));
@@ -936,10 +929,12 @@ var OrderForm = function () {
     var problems = '';
 
     $('.line-item[data-line_item="product"]', '#line-items-table').each(function(idx, obj){
-      var totalOrdered = Number($(obj).find('.quantity-field').val()) + $orderedTotal[$(obj).find('.line-item-id').val()].ordered_total;
+      if(typeof $orderedTotal[$(obj).find('.line-item-id').val()] != 'undefined'){
+        var totalOrdered = Number($(obj).find('.quantity-field').val()) + $orderedTotal[$(obj).find('.line-item-id').val()].ordered_total;
 
-      if((totalOrdered > $orderedTotal[$(obj).find('.line-item-id').val()].order_limit && $orderedTotal[$(obj).find('.line-item-id').val()].order_limit !== null) || (totalOrdered > $orderedTotal[$(obj).find('.line-item-id').val()].stock && $orderedTotal[$(obj).find('.line-item-id').val()].stock !== null)){
-        problems += $(obj).find('.product-search').val() + " order quantity exceeds limit.\n";
+        if((totalOrdered > $orderedTotal[$(obj).find('.line-item-id').val()].order_limit && $orderedTotal[$(obj).find('.line-item-id').val()].order_limit !== null) || (totalOrdered > $orderedTotal[$(obj).find('.line-item-id').val()].stock && $orderedTotal[$(obj).find('.line-item-id').val()].stock !== null)){
+          problems += $(obj).find('.product-search').val() + " order quantity exceeds limit.\n";
+        }
       }
     });
 
@@ -1054,7 +1049,7 @@ var OrderForm = function () {
     },
     lineItemInit: function(lineItem)
     {
-      var $lineItem = lineItem.filter('.line-item, .child-line-item-header, .child-line-item');
+      var $lineItem = lineItem.filter('.line-item:not(.child-line-item), .child-line-item-header, .child-line-item');
 
       if($lineItem.length > 1){
         $lineItem.each(function(idx, obj){
@@ -1118,20 +1113,15 @@ var OrderForm = function () {
         $('.line-item-remove', $lineItem).on('click', function(e){
           e.preventDefault();
 
-          if($lineItem.hasClass('.line-item')){
-            $($('[data-parent_line_item_key="'+$lineItem.data('line_item_key')+'"]'), '#line-items-table').remove();
-          }
+          $lineItem.trigger('order.line_item_remove');
 
-          $lineItem.find('.quantity-field').trigger('focus').val(0);
-          $lineItem.find('.quantity-field').trigger('change');
-
-          for(var i in $cartPriceRules){
-            $cartPriceRules[i].applied_line_items = $.grep($cartPriceRules[i].applied_line_items, function(n, i){
-              return n.uid != $lineItem.data('uid');
+          if($lineItem.hasClass('line-item') && $lineItem.data('line_item_key')){
+            $('[data-parent_line_item_key="'+$lineItem.data('line_item_key')+'"]', '#line-items-table').each(function(idx, obj){
+              $(obj).trigger('order.line_item_remove');
+              $(obj).remove();
             });
           }
 
-          delete $lineItems[$lineItem.data('uid')];
           $lineItem.remove();
 
           if($lineItemType == 'shipping'){
@@ -1178,6 +1168,26 @@ var OrderForm = function () {
               handleCategoryOrderLimit($lineItem);
             }
           });
+        });
+
+        $lineItem.on('order.line_item_remove', function(e){
+          var $lineItem = $(e.target);
+          $lineItem.find('.quantity-field').trigger('focus').val(0);
+          $lineItem.find('.quantity-field').trigger('change');
+
+          for(var i in $cartPriceRules){
+            $cartPriceRules[i].applied_line_items = $.grep($cartPriceRules[i].applied_line_items, function(n, i){
+              return n.uid != $lineItem.data('uid');
+            });
+          }
+
+          for(var i in $categoryOrderLimits){
+            $categoryOrderLimits[i].lineitems = $.grep($categoryOrderLimits[i].lineItems, function(n, i){
+              return n.uid != $lineItem.data('uid');
+            });
+          }
+
+          delete $lineItems[$lineItem.data('uid')];
         });
 
         $lineItem.find('.lineitem-total-amount').change(function(e){

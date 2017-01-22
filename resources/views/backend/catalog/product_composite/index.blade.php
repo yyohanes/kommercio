@@ -58,8 +58,11 @@
                             <td>
                                 <i class="fa fa-reorder"></i>
                                 <span class="composite-name" data-composite_id="{{ $composite->id }}">
-                                    {{ $composite->name }}<br/>
+                                    {{ $composite->name }}
+                                    @if(!empty($composite->label))
+                                    <br/>
                                     <em>"{{ $composite->label }}"</em>
+                                    @endif
                                 </span>
                             </td>
                             <td>

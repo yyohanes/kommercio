@@ -1173,13 +1173,17 @@ class OrderController extends Controller{
             'backoffice' => TRUE
         ]);
 
-        $deliveryOrderLimits = OrderLimit::getOrderLimits([
-            'limit_type' => OrderLimit::LIMIT_DELIVERY_DATE,
-            'date' => $request->has('delivery_date')?Carbon::createFromFormat('Y-m-d', $request->input('delivery_date')):null,
-            'store' => $store_id,
-            'type' => OrderLimit::TYPE_PRODUCT_CATEGORY,
-            'backoffice' => TRUE
-        ]);
+        if($request->has('delivery_date')){
+            $deliveryOrderLimits = OrderLimit::getOrderLimits([
+                'limit_type' => OrderLimit::LIMIT_DELIVERY_DATE,
+                'date' => Carbon::createFromFormat('Y-m-d', $request->input('delivery_date')),
+                'store' => $store_id,
+                'type' => OrderLimit::TYPE_PRODUCT_CATEGORY,
+                'backoffice' => TRUE
+            ]);
+        }else{
+            $deliveryOrderLimits = [];
+        }
 
         $todayOrderLimits = OrderLimit::getOrderLimits([
             'limit_type' => OrderLimit::LIMIT_ORDER_DATE,
