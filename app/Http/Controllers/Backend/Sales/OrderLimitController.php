@@ -9,6 +9,8 @@ use Kommercio\Http\Requests\Backend\Order\OrderLimitFormRequest;
 use Kommercio\Http\Controllers\Controller;
 use Kommercio\Models\Order\OrderLimit;
 use Kommercio\Models\Order\OrderLimitDayRule;
+use Kommercio\Models\Product;
+use Kommercio\Models\ProductCategory;
 use Kommercio\Models\Store;
 
 class OrderLimitController extends Controller
@@ -17,7 +19,9 @@ class OrderLimitController extends Controller
     {
         $qb = OrderLimit::where('type', $type)->orderBy('sort_order', 'ASC');
 
-        $qb->whereNull('store_id')->orWhereIn('store_id', Auth::user()->getManagedStores()->pluck('id')->all());
+        $qb->where(function($query){
+            $query->whereNull('store_id')->orWhereIn('store_id', Auth::user()->getManagedStores()->pluck('id')->all());
+        });
 
         $orderLimits = $qb->get();
 
@@ -34,21 +38,32 @@ class OrderLimitController extends Controller
 
         $orderLimit = new OrderLimit();
 
-        $defaultItems = [];
-        foreach(old('items', []) as $item){
-            $class = $this->getTypeClass($type);
-            $itemObj = $class::findOrFail($item);
-            $defaultItems[$itemObj->id] = $itemObj->getName();
+        $defaultProducts = [];
+        foreach(old('products', []) as $item){
+            $itemObj = Product::findOrFail($item);
+            $defaultProducts[$itemObj->id] = $itemObj->getName();
+        }
+
+        $defaultProductCategories = [];
+        foreach(old('categories', []) as $item){
+            $itemObj = ProductCategory::findOrFail($item);
+            $defaultProductCategories[$itemObj->id] = $itemObj->getName();
         }
 
         $dayRules = old('dayRules', [new OrderLimitDayRule()]);
 
+        $categorySourceUrl = route('backend.catalog.category.autocomplete');
+        $productSourceUrl = route('backend.catalog.product.autocomplete');
+
         return view('backend.order.order_limits.create', [
             'orderLimit' => $orderLimit,
             'type' =>  $type,
-            'defaultItems' => $defaultItems,
+            'defaultProducts' => $defaultProducts,
+            'defaultProductCategories' => $defaultProductCategories,
             'storeOptions' => $storeOptions,
-            'dayRules' => $dayRules
+            'dayRules' => $dayRules,
+            'productSourceUrl' => $productSourceUrl,
+            'categorySourceUrl' => $categorySourceUrl
         ]);
     }
 
@@ -72,7 +87,8 @@ class OrderLimitController extends Controller
             $orderLimit->dayRules()->save($dayRule);
         }
 
-        $orderLimit->getItemRelation()->sync($request->input('items'));
+        $orderLimit->products()->sync($request->input('products', []));
+        $orderLimit->productCategories()->sync($request->input('categories', []));
 
         return redirect()->route('backend.order_limit.index', ['type' => $type])->with('success', [OrderLimit::getTypeOptions($type).' Order Limit has successfully been created.']);
     }
@@ -92,31 +108,46 @@ class OrderLimitController extends Controller
 
         $type = $orderLimit->type;
 
-        $defaultItems = [];
-        foreach(old('items', $orderLimit->getItems()) as $item){
-            $class = $this->getTypeClass($type);
-
+        $defaultProducts = [];
+        foreach(old('products', $orderLimit->products) as $item){
             if(!is_object($item)){
-                $itemObj = $class::findOrFail($item);
+                $itemObj = Product::findOrFail($item);
             }else{
                 $itemObj = $item;
             }
 
-            $defaultItems[$itemObj->id] = $itemObj->getName();
+            $defaultProducts[$itemObj->id] = $itemObj->getName();
         }
 
-        $dayRules = old('dayRules', $orderLimit->dayRules->all());
+        $defaultProductCategories = [];
+        foreach(old('categories', $orderLimit->productCategories) as $item){
+            if(!is_object($item)){
+                $itemObj = ProductCategory::findOrFail($item);
+            }else{
+                $itemObj = $item;
+            }
+
+            $defaultProductCategories[$itemObj->id] = $itemObj->getName();
+        }
+
+        $dayRules = old('dayRules', $orderLimit->dayRules);
 
         if(count($dayRules) < 1){
             $dayRules = [new OrderLimitDayRule()];
         }
 
+        $categorySourceUrl = route('backend.catalog.category.autocomplete');
+        $productSourceUrl = route('backend.catalog.product.autocomplete');
+
         return view('backend.order.order_limits.edit', [
             'orderLimit' => $orderLimit,
-            'type' =>  $orderLimit->type,
-            'defaultItems' => $defaultItems,
+            'type' =>  $type,
+            'defaultProducts' => $defaultProducts,
+            'defaultProductCategories' => $defaultProductCategories,
             'storeOptions' => $storeOptions,
-            'dayRules' => $dayRules
+            'dayRules' => $dayRules,
+            'productSourceUrl' => $productSourceUrl,
+            'categorySourceUrl' => $categorySourceUrl
         ]);
     }
 
@@ -146,7 +177,8 @@ class OrderLimitController extends Controller
             $dayRule->save();
         }
 
-        $orderLimit->getItemRelation()->sync($request->input('items'));
+        $orderLimit->products()->sync($request->input('products', []));
+        $orderLimit->productCategories()->sync($request->input('categories', []));
 
         return redirect($request->get('backUrl', route('backend.order_limit.index', ['type' => $orderLimit->type])))->with('success', [OrderLimit::getTypeOptions($orderLimit->type).' Order Limit has successfully been updated.']);
     }
@@ -161,9 +193,9 @@ class OrderLimitController extends Controller
             abort(401);
         }
 
-        $orderLimit->getItemRelation()->detach();
+        $orderLimit->products()->detach();
+        $orderLimit->productCategories()->detach();
         $orderLimit->delete();
-
 
         return redirect()->back()->with('success', [OrderLimit::getTypeOptions($orderLimit->type).' Order Limit has successfully been deleted.']);
     }

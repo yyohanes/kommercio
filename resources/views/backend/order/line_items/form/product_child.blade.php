@@ -1,4 +1,10 @@
-<tr class="child-line-item line-item" data-line_item="product" data-parent_product="{{ $parent->id }}" data-parent_line_item_key="{{ $parentKey }}" data-line_item_key="{{ $childKey }}" data-composite="{{ $composite->id }}">
+<?php
+if(empty($product)){
+    $sku = old('line_items.'.$parentKey.'.children.'.$composite->id..'.'.$childKey.'.sku', null);
+    $product = empty($product) && $sku?\Kommercio\Models\Product::where('sku', $sku)->firstOrFail():null;
+}
+?>
+<tr class="child-line-item line-item" data-line_item="product" data-parent_product="{{ $parent->id }}" data-parent_line_item_key="{{ $parentKey }}" data-line_item_key="{{ $childKey }}" data-composite="{{ $composite->id }}" data-product_categories="{{ !empty($product)?implode('|', $product->categories->pluck('id')->all()):null }}">
     <td>
         @if(!$composite->isSingle)
         {!! Form::hidden('line_items['.$parentKey.'][children]['.$composite->id.']['.$childKey.'][product_composite_id]', $composite->id, ['class' => 'composite-id']) !!}
@@ -31,8 +37,8 @@
         @endif
     </td>
     <td class="availability">
-        <div class="order-limit-info">Limit: <span class="ordered-total">0</span>/<span class="limit-total">0</span></div>
-        <div class="stock-info">Stock: <span class="stock-total">0</span></div>
+        <div class="order-limit-info">Limit: <span class="label label-sm label-info"><span class="ordered-total">0</span>/<span class="limit-total">0</span></span></div>
+        <div class="stock-info">Stock: <span class="label label-sm label-info"><span class="stock-total">0</span></span></div>
     </td>
     <td>
         @if(!$composite->free)
@@ -47,7 +53,7 @@
             'required' => TRUE,
             'unitPosition' => 'front',
             'unit' => CurrencyHelper::getCurrentCurrency()['symbol'],
-            'defaultValue' => isset($product)?$product->getNetPrice():null
+            'defaultValue' => !empty($product)?$product->getNetPrice():null
         ])
         @endif
     </td>
@@ -59,7 +65,8 @@
             'key' => 'line_items.'.$parentKey.'.children.'.$composite->id.'.'.$childKey.'.quantity',
             'attr' => [
                 'class' => 'form-control input-sm quantity-field',
-                'id' => 'line_items['.$parentKey.'][children]['.$composite->id.']['.$childKey.'][quantity]'
+                'id' => 'line_items['.$parentKey.'][children]['.$composite->id.']['.$childKey.'][quantity]',
+                'autocomplete' => 'off'
             ],
             'required' => TRUE,
             'defaultValue' => 1

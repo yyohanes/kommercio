@@ -238,6 +238,7 @@ $menus['configuration'] = [
         'import' => [
             'active_path' => 'utility/import',
             'name' => 'Import',
+            'feature' => 'catalog.import',
             'children' => [
                 'import_product' => [
                     'active_path' => 'utility/import/product',

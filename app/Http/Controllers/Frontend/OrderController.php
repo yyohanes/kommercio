@@ -92,13 +92,25 @@ class OrderController extends Controller
         }
 
         if($request->input('update_cart', 0) == 1){
-            $rules = [
-                'products.*.id' => 'required|exists:products,id,deleted_at,NULL|is_available|is_active|is_purchaseable',
-                'products.*.quantity' => 'required|integer|min:0'
-            ];
+            foreach($request->input('products') as $idx => $inputProduct){
+                $rules['products.'.$idx.'.id'] = [
+                    'required',
+                    'exists:products,id,deleted_at,NULL',
+                    'is_available',
+                    'is_active',
+                    'is_purchaseable',
+                    'is_in_stock:'.$inputProduct['quantity'],
+                    'category_order_limit:'.$inputProduct['quantity'].','.$order->id,
+                    'per_order_limit:'.$inputProduct['quantity'].','.$order->id,
+                    'delivery_order_limit:'.$inputProduct['quantity'].','.$order->id.($order->delivery_date?','.$order->delivery_date->format('Y-m-d'):null),
+                    'today_order_limit:'.$inputProduct['quantity'].','.$order->id,
+                ];
 
-            foreach($request->input('products', []) as $idx => $productLineItem){
-                $rules['products.'.$idx.'.id'] = 'is_in_stock:'.$productLineItem['quantity'];
+                $rules['products.'.$idx.'.quantity'] = [
+                    'required',
+                    'integer',
+                    'min:0'
+                ];
             }
 
             $this->validate($request, $rules);
@@ -1336,6 +1348,7 @@ class OrderController extends Controller
                     'is_active',
                     'is_in_stock:'.$productLineItem->quantity,
                     'is_purchaseable',
+                    'category_order_limit:'.$productLineItem->quantity.','.$order->id,
                     'per_order_limit:'.$productLineItem->quantity.','.$order->id,
                     'delivery_order_limit:'.$productLineItem->quantity.','.$order->id.($order->delivery_date?','.$order->delivery_date->format('Y-m-d'):null),
                     'today_order_limit:'.$productLineItem->quantity.','.$order->id,

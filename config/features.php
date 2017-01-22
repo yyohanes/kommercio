@@ -9,7 +9,8 @@ return [
         'product_features' => false,
         'composite_product' => false,
         'product_configuration' => false,
-        'faceted_navigation' => false
+        'faceted_navigation' => false,
+        'import' => false
     ],
     'cms' => [
         'gallery' => true,

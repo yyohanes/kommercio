@@ -44,7 +44,7 @@
                     <thead>
                     <tr>
                         <th></th>
-                        <th>{{ \Kommercio\Models\Order\OrderLimit::getTypeOptions($type) }}</th>
+                        <th>Items</th>
                         <th>Limit</th>
                         <th>Store</th>
                         <th>Type</th>
@@ -66,11 +66,21 @@
                                 @endcan
                             </td>
                             <td>
-                                <ul>
-                                    @foreach($orderLimit->getItems() as $item)
-                                    <li>{{ $item->name }}</li>
+                                @if($orderLimit->products->count() > 0)
+                                <p><span class="badge badge-info">Products</span><br/>
+                                    @foreach($orderLimit->products as $item)
+                                    - {{ $item->name }}<br/>
                                     @endforeach
-                                </ul>
+                                </p>
+                                @endif
+
+                                @if($orderLimit->productCategories->count() > 0)
+                                    <p><span class="badge badge-success">Product Categories</span><br/>
+                                        @foreach($orderLimit->productCategories as $item)
+                                            - {{ $item->name }}<br/>
+                                        @endforeach
+                                    </p>
+                                @endif
                             </td>
                             <td>
                                 {{ $orderLimit->limit+0 }}

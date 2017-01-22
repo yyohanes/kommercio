@@ -983,7 +983,7 @@ class ProductController extends Controller{
 
         $options = [
             'store' => $store_id,
-            'date' => Carbon::now()->format('Y-m-d'),
+            'date' => $request->has('checkout_at')?Carbon::parse($request->input('checkout_at'))->format('Y-m-d'):Carbon::now()->format('Y-m-d'),
             'delivery_date' => $request->input('delivery_date', null)
         ];
         $orderLimit = $product->getOrderLimit($options);
@@ -996,7 +996,8 @@ class ProductController extends Controller{
             if($options['delivery_date']){
                 $totalOrderedByDelivery = $product->getOrderCount([
                     'delivery_date' => $options['delivery_date'],
-                    'store' => $store_id
+                    'store' => $store_id,
+                    'exclude_order_id' => $request->input('order_id')
                 ]);
             }
 
@@ -1004,7 +1005,8 @@ class ProductController extends Controller{
         }else{
             $totalOrderedByDate = $product->getOrderCount([
                 'checkout_at' => $options['date'],
-                'store' => $store_id
+                'store' => $store_id,
+                'exclude_order_id' => $request->input('order_id')
             ]);
 
             $totalOrdered = $totalOrderedByDate;
