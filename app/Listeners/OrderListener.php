@@ -7,6 +7,7 @@ use Kommercio\Events\CouponEvent;
 use Kommercio\Events\OrderEvent;
 use Kommercio\Facades\EmailHelper;
 use Kommercio\Facades\ProjectHelper;
+use Kommercio\Models\Order\Invoice;
 use Kommercio\Models\Order\Order;
 use Kommercio\Models\PaymentMethod\PaymentMethod;
 use Kommercio\Models\RewardPoint\RewardPointTransaction;
@@ -47,6 +48,11 @@ class OrderListener
 
     protected function placeOrder(Order $order, $internal = false)
     {
+        //Generate invoice if not yet created. Possible by payment
+        if($order->invoices->count() < 1){
+            $invoice = Invoice::createInvoice($order);
+        }
+
         if(!$internal){
             if(ProjectHelper::isFeatureEnabled('customer.reward_points')){
                 $existingReviewRewardPoints = $order->rewardPointTransactions()->where('status', RewardPointTransaction::STATUS_REVIEW)->get();

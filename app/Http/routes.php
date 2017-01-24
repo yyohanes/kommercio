@@ -277,6 +277,16 @@ Route::group(['middleware' => ['web']], function () {
             'uses' => 'OrderController@checkoutComplete'
         ]);
 
+        Route::get('order/invoice/{public_id}', [
+            'as' => 'frontend.order.invoice.view',
+            'uses' => 'InvoiceController@view'
+        ]);
+
+        Route::post('order/invoice/{public_id}/payment', [
+            'as' => 'frontend.order.invoice.payment',
+            'uses' => 'InvoiceController@payment'
+        ]);
+
         //Bookmark
         Route::get('bookmark/{slug}/{product_sku}', [
             'as' => 'frontend.bookmark.toggle_bookmark',

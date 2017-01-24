@@ -67,6 +67,7 @@ var KommercioFrontend = function(){
     clearErrors: function (context) {
       $('.has-error', context).removeClass('has-error');
       $('.help-block', context).remove();
+      $('.alert-danger', context).remove();
     }
   }
 }();

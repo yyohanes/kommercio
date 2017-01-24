@@ -25,7 +25,12 @@ return [
         'updated_cart' => 'Cart has been updated.',
         'coupon_added' => 'Coupon is successfully added.',
         'coupon_removed' => 'Coupon is successfully removed.',
-        'cart_clear' => 'Your cart is cleared.'
+        'cart_clear' => 'Your cart is cleared.',
+        'invoice' => [
+            'payment' => [
+                'success' => 'Payment successful. Thank you for making the payment.'
+            ]
+        ],
     ],
     'bookmark' => [
         'not_exist' => 'Bookmark doesn\'t exist',

@@ -833,7 +833,7 @@ class OrderController extends Controller
 
                     $paymentResponse = $this->processFinalPayment($order, $order->paymentMethod, $request);
                     if(is_array($paymentResponse)){
-                        $errors = $paymentResponse;
+                        $errors += [$paymentResponse];
                     }
 
                     if(!$errors){
@@ -1308,6 +1308,12 @@ class OrderController extends Controller
 
         if(ProjectHelper::getConfig('checkout_options.shipping_method_position', 'review') == 'review'){
             $ruleBook['place_order'] += [
+                'shipping_method' => 'required'.(isset($shippingMethodOptions)?'|in:'.implode(',', array_keys($shippingMethodOptions)):''),
+            ];
+        }
+
+        if(ProjectHelper::getConfig('checkout_options.shipping_method_position', 'review') == 'before_shipping_address'){
+            $ruleBook['customer_information'] += [
                 'shipping_method' => 'required'.(isset($shippingMethodOptions)?'|in:'.implode(',', array_keys($shippingMethodOptions)):''),
             ];
         }

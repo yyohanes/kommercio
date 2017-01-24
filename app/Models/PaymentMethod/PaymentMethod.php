@@ -4,6 +4,7 @@ namespace Kommercio\Models\PaymentMethod;
 
 use Dimsav\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Model;
+use Kommercio\Models\Order\Order;
 use Kommercio\Traits\Model\HasDataColumn;
 
 class PaymentMethod extends Model
@@ -44,6 +45,21 @@ class PaymentMethod extends Model
         }
 
         return $this->_processor;
+    }
+
+    /**
+     * Render payment method form
+     *
+     * @param Order $order Order from which to render payment form
+     * @return null|string
+     * @throws \Exception
+     * @throws \Throwable
+     */
+    public function renderForm(Order $order)
+    {
+        $checkoutFormView = $this->getProcessor()->getCheckoutForm();
+
+        return $checkoutFormView?view($checkoutFormView, ['order' => $order, 'paymentMethod' => $this])->render():null;
     }
 
     //Statics

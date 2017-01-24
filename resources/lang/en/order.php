@@ -18,6 +18,11 @@ return [
             'subject' => 'Your order #:reference is cancelled'
         ]
     ],
+    'payment' => [
+        'unpaid' => 'Unpaid',
+        'paid' => 'Paid',
+        'partial' => 'Partially Paid'
+    ],
     'coupons' => [
         'successfully_added' => 'Coupon ":coupon_code" is successfully added.',
         'not_exist' => 'Coupon ":coupon_code" is invalid.',

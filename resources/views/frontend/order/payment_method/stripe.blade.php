@@ -25,7 +25,7 @@
         </label>
     </div>
 @show
-    {!! Form::hidden('stripeToken', $order->getData('stripeToken', null), ['class' => 'stripeToken']) !!}
+    {!! Form::hidden('stripeToken', null, ['class' => 'stripeToken']) !!}
 </div>
 
 <script type="text/javascript">
@@ -59,7 +59,7 @@
             var rs = this.readyState;
             if (rs && rs != 'complete' && rs != 'loaded') return;
             try {
-                KommercioStripe.init($('#stripe-wrapper').parents('form'));
+                KommercioStripe.init({{ $paymentMethod->id }}, $('#stripe-wrapper').parents('form'));
             } catch (e) {}
         };
         var s = document.getElementsByTagName('script')[0];

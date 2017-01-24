@@ -8,6 +8,17 @@
     <div class="portlet-body">
         {!! Form::open(['route' => ['backend.sales.order.payment.save', 'order_id' => $order->id], 'class' => 'form-horizontal']) !!}
         @include('backend.master.form.fields.select', [
+            'name' => 'payment[invoice_id]',
+            'label' => 'Invoice',
+            'key' => 'payment.invoice_id',
+            'attr' => [
+                'class' => 'form-control',
+                'id' => 'payment[invoice_id]',
+            ],
+            'options' => $invoiceOptions,
+        ])
+
+        @include('backend.master.form.fields.select', [
             'name' => 'payment[payment_method_id]',
             'label' => 'Payment Method',
             'key' => 'payment.payment_method_id',

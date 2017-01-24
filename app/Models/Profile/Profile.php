@@ -3,6 +3,12 @@
 namespace Kommercio\Models\Profile;
 
 use Illuminate\Database\Eloquent\Model;
+use Kommercio\Facades\RuntimeCache;
+use Kommercio\Models\Address\Area;
+use Kommercio\Models\Address\City;
+use Kommercio\Models\Address\Country;
+use Kommercio\Models\Address\District;
+use Kommercio\Models\Address\State;
 
 class Profile extends Model
 {
@@ -161,6 +167,62 @@ class Profile extends Model
                 ]);
             }
         }
+    }
+
+    //Accessors
+    public function getCountryAttribute()
+    {
+        if($this->country_id){
+            return RuntimeCache::getOrSet('country_'.$this->country_id, function(){
+                return Country::find($this->country_id);
+            });
+        }
+
+        return null;
+    }
+
+    public function getStateAttribute()
+    {
+        if($this->state_id){
+            return RuntimeCache::getOrSet('state_'.$this->state_id, function(){
+                return State::find($this->state_id);
+            });
+        }
+
+        return null;
+    }
+
+    public function getCityAttribute()
+    {
+        if($this->city_id){
+            return RuntimeCache::getOrSet('city_'.$this->city_id, function(){
+                return City::find($this->city_id);
+            });
+        }
+
+        return null;
+    }
+
+    public function getDistrictAttribute()
+    {
+        if($this->district_id){
+            return RuntimeCache::getOrSet('district_'.$this->district_id, function(){
+                return District::find($this->district_id);
+            });
+        }
+
+        return null;
+    }
+
+    public function getAreaAttribute()
+    {
+        if($this->area_id){
+            return RuntimeCache::getOrSet('area_'.$this->area_id, function(){
+                return Area::find($this->area_id);
+            });
+        }
+
+        return null;
     }
 
     //Scopes

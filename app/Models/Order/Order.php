@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Kommercio\Facades\CurrencyHelper;
 use Kommercio\Facades\PriceFormatter;
+use Kommercio\Facades\ProjectHelper;
 use Kommercio\Models\Interfaces\AuthorSignatureInterface;
 use Kommercio\Models\PriceRule\CartPriceRule;
 use Kommercio\Models\PriceRule\Coupon;
@@ -42,7 +43,7 @@ class Order extends Model implements AuthorSignatureInterface
 
     public function __construct($attributes = [])
     {
-        $this->referenceFormat = config('project.order_number_format');
+        $this->referenceFormat = ProjectHelper::getConfig('order_options.reference_format');
 
         parent::__construct($attributes);
     }
@@ -91,6 +92,11 @@ class Order extends Model implements AuthorSignatureInterface
     public function payments()
     {
         return $this->hasMany('Kommercio\Models\Order\Payment');
+    }
+
+    public function invoices()
+    {
+        return $this->hasMany('Kommercio\Models\Order\Invoice');
     }
 
     public function comments()
@@ -388,7 +394,7 @@ class Order extends Model implements AuthorSignatureInterface
         $format = $this->referenceFormat;
         $formatElements = explode(':', $format);
 
-        $counterLength = config('project.order_number_counter_length');
+        $counterLength = ProjectHelper::getConfig('order_options.reference_counter_length');
 
         $lastOrder = self::checkout()
             ->whereRaw("DATE_FORMAT(checkout_at, '%d-%m-%Y') = ?", [$this->checkout_at->format('d-m-Y')])
@@ -425,6 +431,12 @@ class Order extends Model implements AuthorSignatureInterface
         }
 
         $this->reference = $orderReference;
+
+        //Final duplicate order reference check
+        while(self::checkout()->where('reference', $orderReference)->count() > 0){
+            $orderReference = $this->generateReference();
+        }
+
         return $orderReference;
     }
 
@@ -1010,6 +1022,21 @@ class Order extends Model implements AuthorSignatureInterface
         $additionalFields = $this->getData('additional_fields', []);
 
         return $additionalFields;
+    }
+
+    public function getPaymentStatusAttribute()
+    {
+        $outstanding = $this->getOutstandingAmount();
+
+        $status = 'unpaid';
+
+        if($outstanding <= 0){
+            $status = 'paid';
+        }elseif($outstanding < $this->total){
+            $status = 'partial';
+        }
+
+        return $status;
     }
 
     //Mutators

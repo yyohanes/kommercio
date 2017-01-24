@@ -4,7 +4,10 @@ namespace Kommercio\Models\Order;
 
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Event;
+use Kommercio\Events\PaymentEvent;
 use Kommercio\Models\Interfaces\AuthorSignatureInterface;
+use Kommercio\Models\PaymentMethod\PaymentMethod;
 use Kommercio\Traits\Model\AuthorSignature;
 use Kommercio\Traits\Model\HasDataColumn;
 use Kommercio\Traits\Model\MediaAttachable;
@@ -32,6 +35,11 @@ class Payment extends Model implements AuthorSignatureInterface
     public function order()
     {
         return $this->belongsTo('Kommercio\Models\Order\Order');
+    }
+
+    public function invoice()
+    {
+        return $this->belongsTo('Kommercio\Models\Order\Invoice');
     }
 
     public function paymentMethod()
@@ -82,6 +90,64 @@ class Payment extends Model implements AuthorSignatureInterface
     }
 
     //Statics
+
+    /**
+     * Create Order Payment
+     * @param Order $order
+     * @param string $status
+     * @param PaymentMethod|null $paymentMethod
+     * @param string $notes
+     * @param array $options
+     * @return Payment
+     */
+    public static function createPayment(Order $order, Invoice $invoice = null, $status = self::STATUS_PENDING, PaymentMethod $paymentMethod = null, $notes = '', $options = [])
+    {
+        $paymentData = [
+            'amount' => $order->total,
+            'currency' => $order->currency,
+            'status' => $status,
+            'notes' => $notes
+        ];
+
+        $payment = new self();
+        $payment->fill($paymentData);
+
+        if(!$paymentMethod){
+            $paymentMethod = $order->paymentMethod;
+        }
+
+        if(!$invoice){
+            $invoice = $order->invoices->get(0);
+        }
+
+        //Create invoice if no longer created
+        if(!$invoice){
+            $invoice = Invoice::createInvoice($order);
+        }
+
+        $payment->invoice()->associate($invoice);
+        $payment->order()->associate($order);
+        $payment->paymentMethod()->associate($paymentMethod);
+
+        if(!empty($options['payment_date'])){
+            $payment->payment_date = $options['payment_date'];
+        }else{
+            $payment->payment_date = Carbon::now();
+        }
+
+        if(!empty($options['data'])){
+            $payment->saveData($options['data']);
+        }
+
+        $payment->save();
+
+        if($payment->status == self::STATUS_SUCCESS){
+            Event::fire(new PaymentEvent('accept', $payment));
+        }
+
+        return $payment;
+    }
+
     public static function getStatusOptions($option=null)
     {
         $array = [

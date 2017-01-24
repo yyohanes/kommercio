@@ -71,29 +71,26 @@ class Stripe implements PaymentMethodInterface, PaymentMethodSettingFormInterfac
                     ]
                 ));
 
-                $paymentData = [
-                    'payment_method_id' => $this->paymentMethod->id,
-                    'amount' => $order->total,
-                    'currency' => $order->currency,
-                    'status' => Payment::STATUS_PENDING,
-                    'order_id' => $order->id,
+                $notes = "Card Detail"."\r\n";
+                $notes .= "Type: ".$charge->source->brand."\r\n";
+                $notes .= "Country: ".$charge->source->country."\r\n";
+                $notes .= "Last4: ".$charge->source->last4."\r\n";
+
+                $options = [
+                    'data' => [
+                        'stripe' => $charge
+                    ]
                 ];
 
-                $paymentData['notes'] = "Card Detail"."\r\n";
-                $paymentData['notes'] .= "Type: ".$charge->source->brand."\r\n";
-                $paymentData['notes'] .= "Country: ".$charge->source->country."\r\n";
-                $paymentData['notes'] .= "Last4: ".$charge->source->last4."\r\n";
+                $invoice = isset($options['invoice'])?$options['invoice']:null;
 
-                $payment = new Payment();
-                $payment->fill($paymentData);
-                $payment->status = Payment::STATUS_SUCCESS;
-                $payment->payment_date = Carbon::now();
-                $payment->saveData(['stripe' => $charge]);
-                $payment->save();
+                $payment = Payment::createPayment($order, $invoice, Payment::STATUS_SUCCESS, $this->paymentMethod, $notes, $options);
+
+                return $payment;
             }catch(\Stripe\Error\Base $e){
                 $body = $e->getJsonBody();
                 $err  = $body['error'];
-                return $err['message'];
+                return [$err['message']];
             }
         }
     }

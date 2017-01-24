@@ -12,7 +12,20 @@ class Store extends Model
 
     protected $guarded = ['warehouses'];
 
+    //Relations
+    public function orders()
+    {
+        return $this->hasMany('Kommercio\Models\Order\Order');
+    }
+
     //Accessors
+    public function getOrderCountAttribute()
+    {
+        $count = $this->orders()->checkout()->count();
+
+        return $count;
+    }
+
     public function getProductCountAttribute()
     {
         return $this->productDetails->count();

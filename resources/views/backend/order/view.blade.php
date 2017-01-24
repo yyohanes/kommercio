@@ -117,7 +117,7 @@
                             </li>
                             @can('access', ['view_payment'])
                             <li role="presentation">
-                                <a href="#tab_payments" data-toggle="tab"> Payments </a>
+                                <a href="#tab_invoice_payments" data-toggle="tab"> Invoice / Payments </a>
                             </li>
                             @endcan
 
@@ -380,8 +380,50 @@
                             </div>
 
                             @can('access', ['view_payment'])
-                            <div class="tab-pane" id="tab_payments">
+                            <div class="tab-pane" id="tab_invoice_payments">
                                 <div class="form-body">
+                                    @if($order->invoices->count() > 0)
+                                    <div class="margin-bottom-10">
+                                        <div class="portlet">
+                                            <div class="portlet-title">
+                                                <div class="caption">
+                                                    <i class="fa fa-file-o"></i>
+                                                    <span class="caption-subject">Invoice</span>
+                                                </div>
+                                            </div>
+                                            <div class="portlet-body">
+                                                <div class="table-scrollable">
+                                                    <table class="table table-hover">
+                                                        <thead>
+                                                        <tr>
+                                                            <th colspan="2"> Invoice No </th>
+                                                            <th> Amount </th>
+                                                            <th> Status </th>
+                                                            <th> Date </th>
+                                                            <th></th>
+                                                        </tr>
+                                                        </thead>
+                                                        <tbody id="invoice-index-wrapper">
+                                                        @foreach($order->invoices as $idx => $invoice)
+                                                            <tr>
+                                                                <td>{{ $idx + 1 }}</td>
+                                                                <td>{{ $invoice->reference }}</td>
+                                                                <td>{{ \Kommercio\Facades\PriceFormatter::formatNumber($invoice->total) }}</td>
+                                                                <td><span class="label label-{{ $invoice->status == \Kommercio\Models\Order\Invoice::STATUS_PAID?'success':'warning' }}">{{ \Kommercio\Models\Order\Invoice::getStatusOptions($invoice->status) }}</span></td>
+                                                                <td>{{ $invoice->created_at->format('d M Y H:i') }}</td>
+                                                                <td><a href="{{ route('frontend.order.invoice.view', ['public_id' => $invoice->public_id]) }}" class="btn btn-xs btn-default" target="_blank"><i class="fa fa-search"></i> View</a></td>
+                                                            </tr>
+                                                        @endforeach
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    @endif
+
+                                    <hr/>
+
                                     <div class="margin-bottom-10">
                                         @can('access', ['create_payment'])
                                         <a class="btn btn-default" id="payment-add-btn" href="#">
@@ -398,6 +440,7 @@
                                         <table class="table table-hover">
                                             <thead>
                                             <tr>
+                                                <th> Invoice </th>
                                                 <th> Payment Date </th>
                                                 <th> Amount </th>
                                                 <th> Status </th>

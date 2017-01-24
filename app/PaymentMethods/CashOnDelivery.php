@@ -11,7 +11,12 @@ class CashOnDelivery implements PaymentMethodInterface
 
     public function validate($options = null)
     {
-        $valid = TRUE;
+        $valid = true;
+        $order = isset($options['order'])?$options['order']:null;
+
+        if($order && $order->getShippingMethod()){
+            $valid = $order->shippingInformation->country && $order->shippingInformation->country->iso_code == 'SG';
+        }
 
         return $valid;
     }
