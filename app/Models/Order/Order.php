@@ -36,17 +36,8 @@ class Order extends Model implements AuthorSignatureInterface
 
     public static $processedStatus = [self::STATUS_PENDING, self::STATUS_PROCESSING];
 
-    public $referenceFormat;
-
     protected $guarded = ['shippingProfile', 'billingProfile'];
     protected $dates = ['deleted_at', 'delivery_date', 'checkout_at'];
-
-    public function __construct($attributes = [])
-    {
-        $this->referenceFormat = ProjectHelper::getConfig('order_options.reference_format');
-
-        parent::__construct($attributes);
-    }
 
     //Relations
     public function lineItems()
@@ -391,7 +382,7 @@ class Order extends Model implements AuthorSignatureInterface
 
     public function generateReference()
     {
-        $format = $this->referenceFormat;
+        $format = ProjectHelper::getConfig('order_options.reference_format');
         $formatElements = explode(':', $format);
 
         $counterLength = ProjectHelper::getConfig('order_options.reference_counter_length');

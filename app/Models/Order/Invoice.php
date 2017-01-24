@@ -16,20 +16,11 @@ class Invoice extends Model
     protected $fillable = ['reference', 'total', 'status', 'payment_date', 'public_id'];
     protected $dates = ['payment_date'];
 
-    private $_referenceFormat;
-
-    public function __construct($attributes = [])
-    {
-        $this->_referenceFormat = ProjectHelper::getConfig('invoice_options.reference_format');
-
-        parent::__construct($attributes);
-    }
-
     //Methods
     public function generateReference()
     {
         $date = $this->created_at?:Carbon::now();
-        $format = $this->_referenceFormat;
+        $format = ProjectHelper::getConfig('invoice_options.reference_format');
         $formatElements = explode(':', $format);
 
         $counterLength = ProjectHelper::getConfig('invoice_options.reference_counter_length');
@@ -133,6 +124,8 @@ class Invoice extends Model
         $invoice->generateReference();
         $invoice->generatePublicId();
         $invoice->save();
+
+        $order->load('invoices');
 
         return $invoice;
     }
