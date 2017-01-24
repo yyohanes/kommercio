@@ -350,7 +350,7 @@ var OrderForm = function () {
           }
 
           $.ajax(global_vars.get_tax_path, {
-            data: 'country_id='+$('#profile\\[country_id\\]').val()+'&state_id='+$('#profile\\[state_id\\]').val()+'&city_id='+$('#profile\\[city_id\\]').val()+'&district_id='+$('#profile\\[district_id\\]').val()+'&area_id='+$('#profile\\[area_id\\]').val(),
+            data: 'country_id='+$('#shipping_profile\\[country_id\\]').val()+'&state_id='+$('#shipping_profile\\[state_id\\]').val()+'&city_id='+$('#shipping_profile\\[city_id\\]').val()+'&district_id='+$('#shipping_profile\\[district_id\\]').val()+'&area_id='+$('#shipping_profile\\[area_id\\]').val(),
             success: function(data) {
               $taxes = [];
               $productTaxes = {};
@@ -1040,8 +1040,14 @@ var OrderForm = function () {
           OrderForm.lineItemInit($(obj));
       });
 
+      /*
       $('#billing-information-wrapper').on('address.change', function(){
-          $('#order-form').trigger('order.major_change');
+        $('#order-form').trigger('order.major_change');
+      });
+      */
+
+      $('#shipping-information-wrapper').on('address.change', function(){
+        $('#order-form').trigger('order.major_change');
       });
 
       $('#order-form').trigger('order.major_change');

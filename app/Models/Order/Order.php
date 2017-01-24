@@ -994,6 +994,8 @@ class Order extends Model implements AuthorSignatureInterface
     {
         if($this->shippingProfile){
             $this->shippingProfile->fillDetails();
+        }else{
+            return new Profile();
         }
 
         return $this->shippingProfile;
@@ -1003,6 +1005,8 @@ class Order extends Model implements AuthorSignatureInterface
     {
         if($this->billingProfile){
             $this->billingProfile->fillDetails();
+        }else{
+            return new Profile();
         }
 
         return $this->billingProfile;

@@ -215,6 +215,7 @@ class TaxController extends Controller
         $return = [];
 
         $taxes = Tax::getTaxes($data);
+        \Log::info($request->all());
         foreach($taxes as $tax){
             $return[] = [
                 'id' => $tax->id,
