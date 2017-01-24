@@ -454,14 +454,6 @@ class OrderController extends Controller{
         Event::fire(new OrderEvent('process_payment', $order));
 
         if($request->input('action') == 'place_order'){
-            $paymentMethod = PaymentMethod::findOrFail($order->payment_method_id);
-
-            $paymentResponse = $this->processFinalPayment($order, $paymentMethod, $request);
-
-            if(is_array($paymentResponse)){
-                return redirect()->back()->withErrors($paymentResponse);
-            }
-
             $order->processStocks();
             $this->placeOrder($order);
 
@@ -694,14 +686,6 @@ class OrderController extends Controller{
         Event::fire(new OrderEvent('before_update_order', $order));
 
         if($request->input('action') == 'place_order'){
-            $paymentMethod = PaymentMethod::findOrFail($order->payment_method_id);
-
-            $paymentResponse = $this->processFinalPayment($order, $paymentMethod, $request);
-
-            if(is_array($paymentResponse)){
-                return redirect()->back()->withErrors($paymentResponse);
-            }
-
             //If order is not cart, return all stocks first
             if(in_array($order->status, [Order::STATUS_CART, Order::STATUS_ADMIN_CART, Order::STATUS_CANCELLED])){
                 $order->returnStocks();
