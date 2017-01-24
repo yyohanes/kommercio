@@ -134,9 +134,9 @@ class AccountController extends LoggedInController
     public function orders(Request $request)
     {
         $options = [
-            'limit' => $request->input('limit', ProjectHelper::getConfig('order_options.limit')),
-            'sort_by' => $request->input('sort_by', ProjectHelper::getConfig('order_options.sort_by')),
-            'sort_dir' => $request->input('sort_dir', ProjectHelper::getConfig('order_options.sort_dir'))
+            'limit' => $request->input('limit', ProjectHelper::getConfig('order_history_options.limit')),
+            'sort_by' => $request->input('sort_by', ProjectHelper::getConfig('order_history_options.sort_by')),
+            'sort_dir' => $request->input('sort_dir', ProjectHelper::getConfig('order_history_options.sort_dir'))
         ];
 
         $qb = Order::checkout()->where('customer_id', $this->customer->id);

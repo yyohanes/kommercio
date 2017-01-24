@@ -903,7 +903,7 @@ class Order extends Model implements AuthorSignatureInterface
 
     public function scopeProcessed($query)
     {
-        $query->whereIn('status', config('project.processed_order_status', self::$processedStatus));
+        $query->whereIn('status', ProjectHelper::getConfig('order_options.processed_order_status', self::$processedStatus));
     }
 
     public function scopeWhereHasLineItem($query, $line_item_id, $line_item_type)
