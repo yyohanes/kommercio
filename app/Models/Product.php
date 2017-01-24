@@ -426,8 +426,10 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
             }
         }
 
-        foreach($array[$productAttributeValue->product_attribute_id] as &$productAttributeValues){
-            $productAttributeValues = collect($productAttributeValues)->sortBy('sort_order');
+        foreach($array as &$productAttribute){
+            foreach($productAttribute as &$productAttributeValues){
+                $productAttributeValues = collect($productAttributeValues)->sortBy('sort_order');
+            }
         }
 
         return $array;

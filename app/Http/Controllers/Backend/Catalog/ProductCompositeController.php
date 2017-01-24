@@ -82,6 +82,7 @@ class ProductCompositeController extends Controller
         $composite->fill($request->all());
         $composite->save();
 
+        $composite->products()->detach();
         $this->processComposite($request, $composite);
 
         return redirect($request->input('backUrl', route('backend.catalog.product_composite.index', ['group_id' => $group_id])))->with('success', [$composite->name.' has successfully been updated.']);
