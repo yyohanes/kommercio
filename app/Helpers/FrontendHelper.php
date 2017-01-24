@@ -11,7 +11,6 @@ use Illuminate\Support\Facades\Request as RequestFacade;
 use Kommercio\Facades\ProjectHelper as ProjectHelperFacade;
 use Kommercio\Facades\CurrencyHelper as CurrencyHelperFacade;
 use Illuminate\Http\Request;
-use Kommercio\Facades\ProjectHelper;
 use Kommercio\Models\CMS\BannerGroup;
 use Kommercio\Models\CMS\Block;
 use Kommercio\Models\CMS\Menu;
@@ -241,7 +240,7 @@ class FrontendHelper
         }
 
         if(empty($this->_currentOrder)){
-            $store = ProjectHelper::getActiveStore();
+            $store = ProjectHelperFacade::getActiveStore();
 
             $order = new Order();
             $order->store()->associate($store);
