@@ -409,7 +409,9 @@
                                                                 <td>{{ $idx + 1 }}</td>
                                                                 <td>{{ $invoice->reference }}</td>
                                                                 <td>{{ \Kommercio\Facades\PriceFormatter::formatNumber($invoice->total) }}</td>
-                                                                <td><span class="label label-{{ $invoice->status == \Kommercio\Models\Order\Invoice::STATUS_PAID?'success':'warning' }}">{{ \Kommercio\Models\Order\Invoice::getStatusOptions($invoice->status) }}</span></td>
+                                                                <td>
+                                                                    <span class="label label-{{ $invoice->status == \Kommercio\Models\Order\Invoice::STATUS_PAID?'success':'warning' }}">{{ \Kommercio\Models\Order\Invoice::getStatusOptions($invoice->status) }}</span>
+                                                                </td>
                                                                 <td>{{ $invoice->created_at->format('d M Y H:i') }}</td>
                                                                 <td>
                                                                     <a href="{{ route('frontend.order.invoice.view', ['public_id' => $invoice->public_id]) }}" class="btn btn-xs btn-default" target="_blank"><i class="fa fa-search"></i> View</a>

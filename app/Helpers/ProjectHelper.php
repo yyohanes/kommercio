@@ -229,4 +229,16 @@ class ProjectHelper
             mt_rand( 0, 0xffff ), mt_rand( 0, 0xffff ), mt_rand( 0, 0xffff )
         );
     }
+
+    public function objectToArray($obj) {
+        if(is_object($obj)) $obj = (array) $obj;
+        if(is_array($obj)) {
+            $new = array();
+            foreach($obj as $key => $val) {
+                $new[$key] = $this->objectToArray($val);
+            }
+        }
+        else $new = $obj;
+        return $new;
+    }
 }

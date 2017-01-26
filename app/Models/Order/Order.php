@@ -431,6 +431,19 @@ class Order extends Model implements AuthorSignatureInterface
         return $orderReference;
     }
 
+    public function generatePublicId()
+    {
+        $uuid = ProjectHelper::generateUuid();
+
+        $this->public_id = $uuid;
+
+        while(self::where('public_id', $uuid)->count() > 0){
+            $uuid = $this->generatePublicId();
+        }
+
+        return $uuid;
+    }
+
     public function processStocks()
     {
         $this->_processStocks($this->lineItems);
@@ -534,7 +547,7 @@ class Order extends Model implements AuthorSignatureInterface
 
     public function calculateSubtotal()
     {
-        $this->subtotal = $this->calculateProductTotal();
+        $this->subtotal = $this->calculateProductTotal() + $this->calculateAdditionalTotal();
         $this->subtotal = PriceFormatter::round($this->subtotal);
 
         return $this->subtotal;
@@ -624,13 +637,12 @@ class Order extends Model implements AuthorSignatureInterface
     public function calculateTotal()
     {
         $subtotal = $this->calculateSubtotal();
-        $additionalTotal = $this->calculateAdditionalTotal();
         $shippingTotal = $this->calculateShippingTotal();
         $discountTotal = $this->calculateDiscountTotal();
         $taxTotal = $this->calculateTaxTotal();
         $taxError = $this->calculateTaxError();
 
-        $this->total = PriceFormatter::round($subtotal + $shippingTotal + $discountTotal + $additionalTotal + $taxTotal);
+        $this->total = PriceFormatter::round($subtotal + $shippingTotal + $discountTotal + $taxTotal);
         $beforeRoundingTotal = $this->total;
 
         $this->total = PriceFormatter::round($this->total, config('project.total_precision'), config('project.total_rounding'));
@@ -726,6 +738,19 @@ class Order extends Model implements AuthorSignatureInterface
 
         foreach($queriedLineItems as $lineItem){
             if($lineItem->isProduct){
+                $lineItems[] = $lineItem;
+            }
+        }
+
+        return $lineItems;
+    }
+
+    public function getFeeLineItems()
+    {
+        $lineItems = [];
+
+        foreach($this->lineItems as $lineItem){
+            if($lineItem->isFee){
                 $lineItems[] = $lineItem;
             }
         }
@@ -1078,9 +1103,24 @@ class Order extends Model implements AuthorSignatureInterface
         return $array[$process];
     }
 
+    /**
+     * @param $public_id Public ID of the invoice
+     * @return self
+     */
+    public static function findPublic($public_id)
+    {
+        return self::where('public_id', $public_id)->first();
+    }
+
     protected static function boot()
     {
         parent::boot();
+
+        static::saving(function($model){
+            if(empty($model->public_id)){
+                $model->generatePublicId();
+            }
+        });
 
         static::deleted(function($model){
             if($model->forceDeleting){

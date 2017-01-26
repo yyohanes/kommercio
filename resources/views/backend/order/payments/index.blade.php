@@ -14,7 +14,7 @@
                 <li class="list-group-item">
                     Payment entered by {{ $payment->createdBy?$payment->createdBy->email:'Customer' }}<br/>
                     @if($payment->notes)
-                    Notes:<br/>{!! nl2br($payment->notes) !!}
+                    <pre>Notes:<br/>{!! nl2br($payment->notes) !!}</pre>
                     @endif
                     <span class="badge badge-default">{{ $payment->created_at->format('d-m-Y H:i') }}</span>
                 </li>
@@ -22,7 +22,7 @@
                     <li class="list-group-item">
                         Payment set to {{ $history['status'] }} by {{ $history['by'] }}<br/>
                         @if($history['notes'])
-                        Reason: {!! nl2br($history['notes']) !!}
+                        <pre>Reason: {!! nl2br($history['notes']) !!}</pre>
                         @endif
                         <span class="badge badge-default">{{ $history['at']?\Carbon\Carbon::parse($history['at'])->format('d-m-Y H:i'):null }}</span>
                     </li>

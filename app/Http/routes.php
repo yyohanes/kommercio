@@ -2338,6 +2338,25 @@ Route::group(['middleware' => ['web']], function () {
         });
     });
 
+    //Payment Methods
+    Route::group(['namespace' => 'PaymentMethod', 'prefix' => 'payment-method'], function(){
+        //Paypal
+        Route::group(['namespace' => 'Paypal', 'prefix' => 'paypal'], function(){
+            //Express checkout
+            Route::group(['prefix' => 'express-checkout'], function(){
+                Route::post('create', [
+                    'as' => 'frontend.payment_method.paypal.express_checkout.create',
+                    'uses' => 'ExpressCheckoutController@create'
+                ]);
+
+                Route::post('execute/{status}', [
+                    'as' => 'frontend.payment_method.paypal.express_checkout.execute',
+                    'uses' => 'ExpressCheckoutController@execute'
+                ]);
+            });
+        });
+    });
+
     Route::post('availability/calendar', [
         'as' => 'catalog.product.availability_calendar',
         'uses' => 'Backend\Catalog\ProductController@availabilityCalendar',

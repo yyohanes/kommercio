@@ -68,7 +68,7 @@ class RajaOngkirInternational implements ShippingMethodInterface
         }
 
         //From saved order
-        if($order && $order->store && !empty($order->store->getDefaultWarehouse()->city_id) && $order->shippingInformation){
+        if($order && $order->store && !empty($order->store->getDefaultWarehouse()->city_id) && $order->shippingInformation->country_id){
             $origin = City::find($order->store->getDefaultWarehouse()->city_id);
             $destination = Country::find($order->shippingInformation->country_id);
         }

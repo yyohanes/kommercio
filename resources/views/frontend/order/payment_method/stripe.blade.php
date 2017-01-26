@@ -52,7 +52,7 @@
 <script type="text/javascript">
     (function() {
         var stripeCheckoutJS = document.createElement('script');
-        stripeCheckoutJS.src = '{{ asset('kommercio/assets/scripts/stripe.js') }}';
+        stripeCheckoutJS.src = '{{ asset('kommercio/assets/scripts/PaymentMethods/stripe.js') }}';
         stripeCheckoutJS.type = 'text/javascript';
         stripeCheckoutJS.async = 'true';
         stripeCheckoutJS.onload = stripeCheckoutJS.onreadystatechange = function() {

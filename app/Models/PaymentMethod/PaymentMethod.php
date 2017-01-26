@@ -15,6 +15,7 @@ class PaymentMethod extends Model
     public $translatedAttributes = ['name', 'message'];
 
     protected $fillable = ['name', 'class', 'message', 'sort_order'];
+    private $_processor;
 
     //Relations
     public function payments()
@@ -22,7 +23,10 @@ class PaymentMethod extends Model
         return $this->hasMany('Kommercio\Models\Order\Payment');
     }
 
-    private $_processor;
+    public function orders()
+    {
+        return $this->hasMany('Kommercio\Models\Order\Order');
+    }
 
     //Methods
     public function getProcessor()
@@ -57,9 +61,12 @@ class PaymentMethod extends Model
      */
     public function renderForm(Order $order)
     {
-        $checkoutFormView = $this->getProcessor()->getCheckoutForm();
+        return $this->getProcessor()->getCheckoutForm($order);
+    }
 
-        return $checkoutFormView?view($checkoutFormView, ['order' => $order, 'paymentMethod' => $this])->render():null;
+    public function renderSummary(Order $order)
+    {
+        return $this->getProcessor()->getSummary($order);
     }
 
     //Statics

@@ -114,12 +114,13 @@ class OrderHelper
                 $lineItems[] = $lineItem;
             }
         }else{
-            $lineItems = $order->allLineItems;
+            $allLineItems = $order->allLineItems;
 
             $existingLineItems = $order->allLineItems->all();
 
-            foreach($lineItems as $idx => $lineItem){
+            foreach($allLineItems as $idx => $lineItem){
                 if($lineItem->isProduct || $lineItem->isFee || $lineItem->isShipping){
+                    $lineItems[] = $lineItem;
                     unset($existingLineItems[$idx]);
                 }
             }
@@ -163,7 +164,6 @@ class OrderHelper
                 }
 
                 $valueDifference = PriceFormatterFacade::round($lineItemAmount + $priceRuleValue) - $lineItemAmount;
-
 
                 $lineItemAmount += $valueDifference;
                 $lineItem->discount_total += $valueDifference;

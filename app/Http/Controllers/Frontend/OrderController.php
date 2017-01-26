@@ -765,6 +765,12 @@ class OrderController extends Controller
                         'request' => $request
                     ]);
 
+                    //Set default shipping method if order has no shipping
+                    if(count($order->getShippingLineItems()) == 0 && count($shippingMethodOptions) > 0){
+                        $shippingMethodKeys = array_keys($shippingMethodOptions);
+                        $request->request->set('shipping_method', array_shift($shippingMethodKeys));
+                    }
+
                     $nextStep = 'checkout_summary';
                 }
                 break;
@@ -793,7 +799,7 @@ class OrderController extends Controller
                 $order->currency = $request->input('currency');
                 $order->conversion_rate = 1;
 
-                OrderHelper::processLineItems($request, $viewData['order'], false);
+                OrderHelper::processLineItems($request, $order, false);
 
                 $order->load('lineItems');
                 $order->calculateTotal();

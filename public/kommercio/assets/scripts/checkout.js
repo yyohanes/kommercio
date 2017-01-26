@@ -1,9 +1,9 @@
 (function($) {
-
   $.checkoutForm = function(element, options) {
 
     var defaults = {
-      errorMessageClass: 'messages alert alert-danger'
+      errorMessageClass: 'messages alert alert-danger',
+      placeOrderBtn: '#place-order-btn'
     }
 
     var plugin = this;
@@ -16,7 +16,13 @@
     plugin.init = function() {
       plugin.settings = $.extend({}, defaults, options);
 
-      plugin.initComponent(element);
+      initComponent(element);
+      KommercioFrontend.runtimeObjects.checkoutForm = $element;
+      $element.trigger('checkout_form.initialized', [plugin]);
+    }
+
+    plugin.getPlaceOrderBtn = function(){
+      return $(plugin.settings.placeOrderBtn);
     }
 
     plugin.processCheckout = function($form, $process)
@@ -25,13 +31,13 @@
 
       $form.triggerHandler('validate_step_submit', [$process, checkoutData]);
 
-      $element.append('<div class="loading-overlay" />');
+      KommercioFrontend.toggleOverlay($element, true);
 
       if(checkoutData.run_flag){
         plugin.submitCheckoutForm($form, $process);
       }else{
         checkoutData.run_flag = true;
-        $element.find('.loading-overlay').remove();
+        KommercioFrontend.toggleOverlay($element, false);
       }
     };
 
@@ -40,10 +46,13 @@
         method: 'POST',
         data: $form.serialize() + '&process=' + $process,
         success: function(data){
+          $form.triggerHandler('after_step_change', [data.step, checkoutData.step]);
+
           var $html = null;
 
           for(var i in data.data){
             $html = $(data.data[i]);
+            var $newForm = $html.find('form');
 
             if(data.step == 'complete'){
               $('#ajax-meat').replaceWith($html);
@@ -51,14 +60,12 @@
               $('#'+ i +'-wrapper', element).html($html);
             }
 
-            plugin.initComponent($('#'+ i +'-wrapper', element));
+            initComponent($('#'+ i +'-wrapper', element));
             checkoutData.step = data.step;
           }
-
-          $element.trigger('after_step_change', [data.step, checkoutData.step]);
         },
         complete: function(){
-          $element.find('.loading-overlay').remove();
+          KommercioFrontend.toggleOverlay($element, false);
         },
         error: function(data){
           if($process != 'place_order'){
@@ -77,7 +84,7 @@
       });
     }
 
-    plugin.initComponent = function(context)
+    var initComponent = function(context)
     {
       handleAddressSelector(context);
       handleStepButton(context);
@@ -88,6 +95,7 @@
         handleAvailability(context);
       }
       handleSavedAddress(context);
+      handleForm(context);
     }
 
     var handleSavedAddress = function(context)
@@ -118,7 +126,7 @@
         var $form = $(e.target).parents('form');
 
         $form.triggerHandler('place_order', [checkoutData]);
-        $element.append('<div class="loading-overlay" />');
+        KommercioFrontend.toggleOverlay($element, true);
       });
     }
 
@@ -214,6 +222,14 @@
       });
     }
 
+    var handleForm = function(context)
+    {
+      $('form', context).each(function(idx, obj){
+        $(obj).data('checkoutForm', plugin);
+        $(obj).trigger('checkout_form.form_initialized', [plugin]);
+      });
+    }
+
     var checkoutData = {
       run_flag: true,
       step: null,
@@ -224,14 +240,12 @@
   }
 
   $.fn.checkoutForm = function(options) {
-
-      return this.each(function() {
-          if (undefined == $(this).data('checkoutForm')) {
-              var plugin = new $.checkoutForm(this, options);
-              $(this).data('checkoutForm', plugin);
-          }
-      });
-
+    return this.each(function() {
+      if (undefined == $(this).data('checkoutForm')) {
+        var plugin = new $.checkoutForm(this, options);
+        $(this).data('checkoutForm', plugin);
+      }
+    });
   }
 
 })(jQuery);

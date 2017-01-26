@@ -4,38 +4,18 @@ namespace Kommercio\PaymentMethods;
 
 use Carbon\Carbon;
 use Kommercio\Facades\ProjectHelper;
+use Kommercio\Models\Order\Order;
 use Kommercio\Models\Order\Payment;
 use Kommercio\Models\PaymentMethod\PaymentMethod;
 use Illuminate\Http\Request;
 
-class Stripe implements PaymentMethodInterface, PaymentMethodSettingFormInterface
+class Stripe extends PaymentMethodAbstract implements PaymentMethodSettingFormInterface
 {
-    protected $paymentMethod;
-
-    public function validate($options = null)
+    public function getCheckoutForm(Order $order, $options = null)
     {
-        $valid = TRUE;
+        $view = ProjectHelper::getViewTemplate('frontend.order.payment_method.stripe');
 
-        if(isset($options['frontend'])){
-            //$valid = $options['frontend'];
-        }
-
-        return $valid;
-    }
-
-    public function isExternalCheckout()
-    {
-        return false;
-    }
-
-    public function setPaymentMethod(PaymentMethod $paymentMethod)
-    {
-        $this->paymentMethod = $paymentMethod;
-    }
-
-    public function getCheckoutForm($options = null)
-    {
-        return ProjectHelper::getViewTemplate('frontend.order.payment_method.stripe');
+        return view($view, ['order' => $order, 'paymentMethod' => $this->paymentMethod])->render();
     }
 
     public function getValidationRules($options = null)
@@ -112,6 +92,11 @@ class Stripe implements PaymentMethodInterface, PaymentMethodSettingFormInterfac
         }catch(\Exception $e){
             return false;
         }
+    }
+
+    public function saveForm(Request $request)
+    {
+
     }
 
     public function settingForm()

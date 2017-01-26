@@ -4,6 +4,8 @@ namespace Kommercio\Models\ShippingMethod;
 
 use Dimsav\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Model;
+use Kommercio\Facades\CurrencyHelper;
+use Kommercio\Facades\PriceFormatter;
 use Kommercio\Models\Order\Order;
 
 class ShippingMethod extends Model
@@ -48,6 +50,30 @@ class ShippingMethod extends Model
         return isset($methods[$key])?$methods[$key]:null;
     }
 
+    public function validate($options = [])
+    {
+        if(!$this->getProcessor()){
+            return false;
+        }
+
+        return $this->getProcessor() && $this->getProcessor()->validate($options);
+    }
+
+    public function getPrices($options = [])
+    {
+        if(!$this->getProcessor()){
+            return false;
+        }
+
+        $prices = $this->getProcessor()->getPrices($options);
+        foreach($prices as &$price){
+            $price['price']['amount'] = PriceFormatter::round(CurrencyHelper::convert($price['price']['amount'], $price['price']['currency']));
+            $price['price']['currency'] = CurrencyHelper::getCurrentCurrency()['code'];
+        }
+
+        return $prices;
+    }
+
     //Accessors
     public function getRequireAddressAttribute()
     {
@@ -84,8 +110,8 @@ class ShippingMethod extends Model
 
         $return = [];
         foreach($shippingMethods as $shippingMethod){
-            if($shippingMethod->getProcessor() && $shippingMethod->getProcessor()->validate($options)){
-                $shippingReturnedMethods = $shippingMethod->getProcessor()->getPrices($options);
+            if($shippingMethod->validate($options)){
+                $shippingReturnedMethods = $shippingMethod->getPrices($options);
 
                 if($shippingReturnedMethods){
                     $return = array_merge($return, $shippingReturnedMethods);

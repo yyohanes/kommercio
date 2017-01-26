@@ -1311,7 +1311,7 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
             'root_product_id' => $this->parent?$this->parent->id:$this->id,
             'product_id' => $this->id,
             'value' => $this->_calculateNetPrice(),
-            'currency' => $this->productDetail->currency,
+            'currency' => $this->parent?$this->parent->productDetail->currency:$this->productDetail->currency,
             'store_id' => $this->store->id
         ]);
     }

@@ -24,7 +24,8 @@
         "sendgrid/sendgrid": "~5.1",
         "unisharp/laravel-filemanager": "^1.6",
         "stripe/stripe-php": "3.*",
-        "veritrans/veritrans-php": "dev-snap"
+        "veritrans/veritrans-php": "dev-snap",
+        "paypal/rest-api-sdk-php": "*"
     },
     "require-dev": {
         "fzaninotto/faker": "~1.4",
