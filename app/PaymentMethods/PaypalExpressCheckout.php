@@ -82,19 +82,20 @@ class PaypalExpressCheckout extends PaymentMethodAbstract implements PaymentMeth
 
         if(empty($webProfile)){
             try{
-                $webProfile->create($apiContext);
+                $response = $webProfile->create($apiContext);
+                $this->paymentMethod->saveData(['web_experience_profile_id' => $response->getId()]);
             } catch (PayPalConnectionException $e) {
                 \Log::info($e->getData());
             }
         }else{
             try{
                 $webProfile->update($apiContext);
+                $this->paymentMethod->saveData(['web_experience_profile_id' => $webProfile->getId()]);
             } catch (PayPalConnectionException $e) {
                 \Log::info($e->getData());
             }
         }
 
-        $this->paymentMethod->saveData(['web_experience_profile_id' => $webProfile->getId()]);
         $this->paymentMethod->save();
     }
 
