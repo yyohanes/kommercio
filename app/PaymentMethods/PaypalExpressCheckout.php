@@ -34,6 +34,7 @@ class PaypalExpressCheckout extends PaymentMethodAbstract implements PaymentMeth
             )
         );
 
+        $new = true;
         $webProfile = null;
         $currentList = WebProfile::get_list($apiContext);
 
@@ -41,6 +42,7 @@ class PaypalExpressCheckout extends PaymentMethodAbstract implements PaymentMeth
         foreach($currentList as $profile){
             if(strpos($profile->getName(), '_kommercio') !== false){
                 $webProfile = $profile;
+                $new = false;
                 break;
             }
         }
