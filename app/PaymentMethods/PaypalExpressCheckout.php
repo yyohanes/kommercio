@@ -82,7 +82,7 @@ class PaypalExpressCheckout extends PaymentMethodAbstract implements PaymentMeth
             ->setNoShipping(1)
             ->setAddressOverride(1);
 
-        if(empty($webProfile)){
+        if($new){
             try{
                 $response = $webProfile->create($apiContext);
                 $this->paymentMethod->saveData(['web_experience_profile_id' => $response->getId()]);
