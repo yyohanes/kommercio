@@ -29,64 +29,68 @@ class FlatRateShipping extends ShippingMethodAbstract implements ShippingMethodS
 
     public function getPrices($options = null)
     {
-        $order = $options['order'];
+        $order = isset($options['order'])?$options['order']:null;
         $request = isset($options['request'])?$options['request']:null;
 
-        $currency = $order->currency?:CurrencyHelper::getCurrentCurrency()['code'];
+        if($order || $request){
+            $currency = $order->currency?:CurrencyHelper::getCurrentCurrency()['code'];
 
-        $price = null;
+            $price = null;
 
-        $lowest_address_type = 'country';
+            $lowest_address_type = 'country';
 
-        if($order->shippingInformation->country_id){
-            if($order->shippingInformation->area_id){
-                $lowest_address_type = 'area';
-            }elseif($order->shippingInformation->district_id){
-                $lowest_address_type = 'district';
-            }elseif($order->shippingInformation->city_id){
-                $lowest_address_type = 'city';
-            }elseif($order->shippingInformation->state_id){
-                $lowest_address_type = 'state';
+            if($order->shippingInformation->country_id){
+                if($order->shippingInformation->area_id){
+                    $lowest_address_type = 'area';
+                }elseif($order->shippingInformation->district_id){
+                    $lowest_address_type = 'district';
+                }elseif($order->shippingInformation->city_id){
+                    $lowest_address_type = 'city';
+                }elseif($order->shippingInformation->state_id){
+                    $lowest_address_type = 'state';
+                }
+            }elseif($request){
+                if($request->has('shipping_profile.area_id')){
+                    $lowest_address_type = 'area';
+                }elseif($request->has('shipping_profile.district_id')){
+                    $lowest_address_type = 'district';
+                }elseif($request->has('shipping_profile.city_id')){
+                    $lowest_address_type = 'city';
+                }elseif($request->has('shipping_profile.state_id')){
+                    $lowest_address_type = 'state';
+                }
             }
-        }else{
-            if($request->has('shipping_profile.area_id')){
-                $lowest_address_type = 'area';
-            }elseif($request->has('shipping_profile.district_id')){
-                $lowest_address_type = 'district';
-            }elseif($request->has('shipping_profile.city_id')){
-                $lowest_address_type = 'city';
-            }elseif($request->has('shipping_profile.state_id')){
-                $lowest_address_type = 'state';
+
+            $address_id = $request->input('shipping_profile.'.$lowest_address_type.'_id', $order->shippingInformation->{$lowest_address_type.'_id'});
+            $model = Address::getClassNameByType($lowest_address_type);
+
+            $address = $model::find($address_id);
+
+            if($address){
+                $rate = $this->findRate($address);
+
+                if($rate){
+                    $price = $rate->price;
+                }
             }
-        }
 
-        $address_id = $request->input('shipping_profile.'.$lowest_address_type.'_id', $order->shippingInformation->{$lowest_address_type.'_id'});
-        $model = Address::getClassNameByType($lowest_address_type);
-
-        $address = $model::find($address_id);
-
-        if($address){
-            $rate = $this->findRate($address);
-
-            if($rate){
-                $price = $rate->price;
+            if(is_null($price)){
+                return [];
             }
+
+            $methods = $this->getAvailableMethods();
+
+            foreach($methods as &$method){
+                $method['price'] = [
+                    'currency' => $currency,
+                    'amount' => CurrencyHelper::convert($price, $rate->currency, $currency)
+                ];
+            }
+
+            return $methods;
         }
 
-        if(is_null($price)){
-            return [];
-        }
-
-        $methods = $this->getAvailableMethods();
-
-        foreach($methods as &$method){
-            $method['price'] = [
-                'currency' => $currency,
-                'amount' => CurrencyHelper::convert($price, $rate->currency, $currency)
-            ];
-        }
-
-        return $methods;
+        return [];
     }
 
     public function renderSettingView(Address $address)
