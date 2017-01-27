@@ -101,7 +101,7 @@ class Stripe extends PaymentMethodAbstract implements PaymentMethodSettingFormIn
 
     public function settingForm()
     {
-        return ProjectHelper::getViewTemplate('backend.payment_method.stripe.additional_setting_form');
+        return ProjectHelper::getViewTemplate('backend.payment_method.Stripe.additional_setting_form');
     }
 
     public function getPublishableKey()

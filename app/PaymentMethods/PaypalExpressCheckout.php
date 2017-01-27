@@ -20,7 +20,7 @@ class PaypalExpressCheckout extends PaymentMethodAbstract implements PaymentMeth
 {
     public function getSummary(Order $order, $options = null)
     {
-        $view = ProjectHelper::getViewTemplate('frontend.order.payment_method.paypal.express_checkout');
+        $view = ProjectHelper::getViewTemplate('frontend.order.payment_method.Paypal.express_checkout');
 
         return view($view, ['order' => $order, 'paymentMethod' => $this])->render();
     }

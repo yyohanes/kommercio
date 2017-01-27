@@ -52,7 +52,7 @@ class MidtransSnap extends PaymentMethodAbstract implements PaymentMethodSetting
 
     public function settingForm()
     {
-        return ProjectHelper::getViewTemplate('backend.payment_method.midtrans.snap.additional_setting_form');
+        return ProjectHelper::getViewTemplate('backend.payment_method.Midtrans.Snap.additional_setting_form');
     }
 
     //Statics
