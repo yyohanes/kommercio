@@ -39,6 +39,8 @@ class FlatRateShipping extends ShippingMethodAbstract implements ShippingMethodS
 
             $lowest_address_type = 'country';
 
+            $address_id = null;
+
             if($order->shippingInformation->country_id){
                 if($order->shippingInformation->area_id){
                     $lowest_address_type = 'area';
