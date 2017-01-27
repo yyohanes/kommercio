@@ -7,10 +7,8 @@ use Kommercio\Models\Order\Order;
 use Kommercio\Models\ShippingMethod\ShippingMethod;
 use Kommercio\ShippingMethods\ShippingMethodInterface;
 
-class FreeShipping implements ShippingMethodInterface
+class FreeShipping extends ShippingMethodAbstract
 {
-    protected $shippingMethod;
-
     public function getAvailableMethods()
     {
         $methods = [
@@ -41,16 +39,6 @@ class FreeShipping implements ShippingMethodInterface
         }
 
         return $valid;
-    }
-
-    public function requireAddress()
-    {
-        return true;
-    }
-
-    public function setShippingMethod(ShippingMethod $shippingMethod)
-    {
-        $this->shippingMethod = $shippingMethod;
     }
 
     public function getPrices($options = null)

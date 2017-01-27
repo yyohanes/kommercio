@@ -181,6 +181,7 @@
                     </div>
                 </div>
 
+                @if(ProjectHelper::isFeatureEnabled('order.order_limit'))
                 <div style="margin-top: 10px;" class="row">
                     <div class="col-md-5">
                         <table id="category-limit-wrapper" class="table">
@@ -193,6 +194,7 @@
                         </table>
                     </div>
                 </div>
+                @endif
             </div>
         </div>
     </div>

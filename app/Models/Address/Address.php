@@ -144,4 +144,9 @@ class Address extends Model
 
         return $fqn;
     }
+
+    public static function getAddressByType($id, $type)
+    {
+        $model = self::getClassNameByType($type);
+    }
 }

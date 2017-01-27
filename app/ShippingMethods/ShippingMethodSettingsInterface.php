@@ -7,7 +7,6 @@ use Kommercio\Models\Address\Address;
 
 interface ShippingMethodSettingsInterface
 {
-    public function hasSettingPage();
     public function renderSettingView(Address $address);
     public function processSettings(Request $request, Address $address);
 }
