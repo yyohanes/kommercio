@@ -25,7 +25,7 @@ class PaymentHistoryLogs extends Migration
 
             if(is_array($history)){
                 foreach($history as $historyLog){
-                    $log = $payment->recordStatusChange(array_search($historyLog['status'], $paymentStatusArray), $historyLog['by'], $history['notes']);
+                    $log = $payment->recordStatusChange(array_search($historyLog['status'], $paymentStatusArray), $historyLog['by'], (!empty($history['notes'])?$history['notes']:null));
 
                     if(!empty($history['at'])){
                         $date = \Carbon\Carbon::parse($history['at']);
