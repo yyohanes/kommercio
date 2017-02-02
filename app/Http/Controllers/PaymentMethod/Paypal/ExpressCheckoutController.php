@@ -39,7 +39,7 @@ class ExpressCheckoutController extends Controller
             )
         );
 
-        if($this->getIsProduction()){
+        if($this->paymentMethod->getProcessor()){
             $this->apiContext->setConfig([
                 'mode' => 'live',
                 'log.LogEnabled' => true,
