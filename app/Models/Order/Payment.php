@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Event;
 use Kommercio\Events\PaymentEvent;
 use Kommercio\Models\Interfaces\AuthorSignatureInterface;
+use Kommercio\Models\Log;
 use Kommercio\Models\PaymentMethod\PaymentMethod;
 use Kommercio\Traits\Model\AuthorSignature;
 use Kommercio\Traits\Model\HasDataColumn;
@@ -21,11 +22,17 @@ class Payment extends Model implements AuthorSignatureInterface
     const STATUS_FAILED = 'failed';
     const STATUS_REVIEW = 'review';
     const STATUS_PENDING = 'pending';
+    const STATUS_INITIATE = 'initiate';
 
     protected $guarded = [];
     protected $dates = ['payment_date'];
 
     //Scope
+    public function scopeCounted($query)
+    {
+        $query->whereNotIn('status', [self::STATUS_INITIATE]);
+    }
+
     public function scopeSuccessful($query)
     {
         $query->whereIn('status', [self::STATUS_SUCCESS]);
@@ -47,6 +54,11 @@ class Payment extends Model implements AuthorSignatureInterface
         return $this->belongsTo('Kommercio\Models\PaymentMethod\PaymentMethod');
     }
 
+    public function logs()
+    {
+        return $this->morphMany('Kommercio\Models\Log', 'loggable');
+    }
+
     //Relations
     public function attachments()
     {
@@ -54,31 +66,16 @@ class Payment extends Model implements AuthorSignatureInterface
     }
 
     //Methods
-    public function recordStatusChange($status, $by, $note=null)
+    public function recordStatusChange($status, $by, $note=null, $data = null)
     {
-        $history = $this->getData('actions');
+        $log = Log::log('payment.update', $note, $this, $status, $by, $data);
 
-        if(!$history){
-            $history = [];
-        }
-
-        $history[] = [
-            'status' => self::getStatusOptions($status),
-            'by' => $by,
-            'at' => Carbon::now()->toDateTimeString(),
-            'notes' => $note
-        ];
-
-        $this->saveData(['history' => $history]);
+        return $log;
     }
 
     public function getHistory()
     {
-        $histories = $this->getData('history');
-
-        if(!is_array($histories)){
-            $histories = $histories?[$histories]:[];
-        }
+        $histories = $this->logs()->whereTag('payment.update')->get();
 
         return $histories;
     }
@@ -135,6 +132,10 @@ class Payment extends Model implements AuthorSignatureInterface
             $payment->payment_date = Carbon::now();
         }
 
+        if(!empty($options['response'])){
+            $payment->response = $options['response'];
+        }
+
         if(!empty($options['data'])){
             $payment->saveData($options['data']);
         }
@@ -144,6 +145,18 @@ class Payment extends Model implements AuthorSignatureInterface
         if($payment->status == self::STATUS_SUCCESS){
             Event::fire(new PaymentEvent('accept', $payment));
         }
+
+        return $payment;
+    }
+
+    /**
+     * Create Initiate Payment
+     * @param Order $order
+     * @return Payment
+     */
+    public static function createIniatePayment(Order $order)
+    {
+        $payment = self::createPayment($order, null, self::STATUS_INITIATE, $order->paymentMethod);
 
         return $payment;
     }

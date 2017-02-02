@@ -20,11 +20,11 @@
                 </li>
                 @foreach($payment->getHistory() as $history)
                     <li class="list-group-item">
-                        Payment set to {{ $history['status'] }} by {{ $history['by'] }}<br/>
-                        @if($history['notes'])
-                        <pre>Reason: {!! nl2br($history['notes']) !!}</pre>
+                        Payment set to {{ \Kommercio\Models\Order\Payment::getStatusOptions($history->value) }} by {{ $history->author }}<br/>
+                        @if($history->notes)
+                        <pre>Reason: {!! nl2br($history->notes) !!}</pre>
                         @endif
-                        <span class="badge badge-default">{{ $history['at']?\Carbon\Carbon::parse($history['at'])->format('d-m-Y H:i'):null }}</span>
+                        <span class="badge badge-default">{{ $history->created_at->format('d-m-Y H:i') }}</span>
                     </li>
                 @endforeach
             </ul>

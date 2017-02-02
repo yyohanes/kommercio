@@ -2355,6 +2355,22 @@ Route::group(['middleware' => ['web']], function () {
                 ]);
             });
         });
+
+        //Midtrans
+        Route::group(['namespace' => 'Midtrans', 'prefix' => 'midtrans'], function(){
+            //Snap
+            Route::group(['prefix' => 'snap'], function(){
+                Route::post('token', [
+                    'as' => 'frontend.payment_method.midtrans.snap.token',
+                    'uses' => 'SnapController@token'
+                ]);
+
+                Route::post('notify', [
+                    'as' => 'frontend.payment_method.midtrans.snap.notify',
+                    'uses' => 'SnapController@notify'
+                ]);
+            });
+        });
     });
 
     Route::post('availability/calendar', [

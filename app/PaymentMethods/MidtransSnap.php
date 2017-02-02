@@ -4,12 +4,20 @@ namespace Kommercio\PaymentMethods;
 
 use Carbon\Carbon;
 use Kommercio\Facades\ProjectHelper;
+use Kommercio\Models\Order\Order;
 use Kommercio\Models\Order\Payment;
 use Kommercio\Models\PaymentMethod\PaymentMethod;
 use Illuminate\Http\Request;
 
 class MidtransSnap extends PaymentMethodAbstract implements PaymentMethodSettingFormInterface
 {
+    public function getSummary(Order $order, $options = null)
+    {
+        $view = ProjectHelper::getViewTemplate('frontend.order.payment_method.midtrans.snap');
+
+        return view($view, ['order' => $order, 'paymentMethod' => $this])->render();
+    }
+
     public function getIsProduction()
     {
         return $this->paymentMethod->getData('is_production', false);
@@ -25,7 +33,7 @@ class MidtransSnap extends PaymentMethodAbstract implements PaymentMethodSetting
         return $this->getIsProduction()?'https://app.midtrans.com/snap/snap.js':'https://app.sandbox.midtrans.com/snap/snap.js';
     }
 
-    public function getIs3DS()
+    public function getIs3ds()
     {
         return $this->paymentMethod->getData('3ds', true);
     }
@@ -40,7 +48,7 @@ class MidtransSnap extends PaymentMethodAbstract implements PaymentMethodSetting
         return $this->paymentMethod->getData('client_key');
     }
 
-    protected function getServerKey()
+    public function getServerKey()
     {
         return $this->paymentMethod->getData('server_key');
     }
@@ -48,6 +56,15 @@ class MidtransSnap extends PaymentMethodAbstract implements PaymentMethodSetting
     public function saveForm(Request $request)
     {
 
+    }
+
+    public function finalProcessPayment($options = null)
+    {
+        $order = $options['order'];
+
+        if($order && $order->exists){
+            $payment = Payment::createPayment($order, $invoice, Payment::STATUS_SUCCESS, $this->paymentMethod, $notes, $options);
+        }
     }
 
     public function settingForm()

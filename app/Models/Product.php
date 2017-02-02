@@ -1194,7 +1194,7 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
 
     public function getProductConfigurationsAttribute()
     {
-        $configurations = RuntimeCache::getOrSet('product_'.$this->id.'.configurations', function(){
+        $configurations = RuntimeCache::getOrSet('product_'.$this->id.'_configurations', function(){
             $configurations = collect([]);
 
             foreach($this->productConfigurationGroups as $productConfigurationGroup){
@@ -1214,7 +1214,7 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
 
     public function getCompositesAttribute()
     {
-        $composites = RuntimeCache::getOrSet('product_'.$this->id.'.composites', function(){
+        $composites = RuntimeCache::getOrSet('product_'.$this->id.'_composites', function(){
             $composites = collect([]);
 
             foreach($this->productCompositeGroups as $productCompositeGroup){

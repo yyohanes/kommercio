@@ -4028,7 +4028,7 @@
             ],
             "description": "PHP Wraper for Veritrans VT-Web Payment API.",
             "homepage": "https://veritrans.co.id",
-            "time": "2016-04-26 10:03:38"
+            "time": "2016-04-26T10:03:38+00:00"
         },
         {
             "name": "vlucas/phpdotenv",

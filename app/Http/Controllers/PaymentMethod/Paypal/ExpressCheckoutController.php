@@ -38,6 +38,24 @@ class ExpressCheckoutController extends Controller
                 $this->paymentMethod->getProcessor()->getSecretKey()
             )
         );
+
+        if($this->getIsProduction()){
+            $this->apiContext->setConfig([
+                'mode' => 'live',
+                'log.LogEnabled' => true,
+                'log.FileName' => 'logs/PayPal.log',
+                'log.LogLevel' => 'INFO', // PLEASE USE `INFO` LEVEL FOR LOGGING IN LIVE ENVIRONMENTS
+                'cache.enabled' => true,
+            ]);
+        }else{
+            $this->apiContext->setConfig([
+                'mode' => 'sandbox',
+                'log.LogEnabled' => true,
+                'log.FileName' => 'logs/PayPal.log',
+                'log.LogLevel' => 'DEBUG', // PLEASE USE `INFO` LEVEL FOR LOGGING IN LIVE ENVIRONMENTS
+                'cache.enabled' => true,
+            ]);
+        }
     }
 
     public function create(Request $request)
@@ -164,7 +182,9 @@ class ExpressCheckoutController extends Controller
                 try {
                     $payment = Payment::get($paymentId, $this->apiContext);
 
-                    $kommercioPayment = KommercioPayment::createPayment($order, null, KommercioPayment::STATUS_SUCCESS, $order->paymentMethod, json_encode($payment->toArray(), JSON_PRETTY_PRINT));
+                    $options['response'] = json_encode($payment->toArray(), JSON_PRETTY_PRINT);
+
+                    $kommercioPayment = KommercioPayment::createPayment($order, null, KommercioPayment::STATUS_SUCCESS, $order->paymentMethod, null, $options);
 
                     $return = [
                         'result' => 1,

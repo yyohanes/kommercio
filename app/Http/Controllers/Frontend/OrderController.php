@@ -644,9 +644,6 @@ class OrderController extends Controller
                         Auth::logout();
                     }
 
-                    //Save email to order
-                    $order->saveProfile('billing', ['email' => $request->input('billingProfile.email')]);
-
                     //If already logged in, next
                     if(Auth::check()){
                         $nextStep = 'customer_information';
@@ -654,6 +651,9 @@ class OrderController extends Controller
                         $nextStep = 'account';
                     }
                 }
+
+                //Save email to order
+                $order->saveProfile('billing', ['email' => $request->input('billingProfile.email')]);
 
                 break;
             case 'customer_information':

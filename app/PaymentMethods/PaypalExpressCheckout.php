@@ -34,6 +34,24 @@ class PaypalExpressCheckout extends PaymentMethodAbstract implements PaymentMeth
             )
         );
 
+        if($this->getIsProduction()){
+            $apiContext->setConfig([
+                'mode' => 'live',
+                'log.LogEnabled' => true,
+                'log.FileName' => 'logs/PayPal.log',
+                'log.LogLevel' => 'INFO', // PLEASE USE `INFO` LEVEL FOR LOGGING IN LIVE ENVIRONMENTS
+                'cache.enabled' => true,
+            ]);
+        }else{
+            $apiContext->setConfig([
+                'mode' => 'sandbox',
+                'log.LogEnabled' => true,
+                'log.FileName' => 'logs/PayPal.log',
+                'log.LogLevel' => 'DEBUG', // PLEASE USE `INFO` LEVEL FOR LOGGING IN LIVE ENVIRONMENTS
+                'cache.enabled' => true,
+            ]);
+        }
+
         $new = true;
         $webProfile = null;
         $currentList = WebProfile::get_list($apiContext);

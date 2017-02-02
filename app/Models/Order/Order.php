@@ -82,7 +82,7 @@ class Order extends Model implements AuthorSignatureInterface
 
     public function payments()
     {
-        return $this->hasMany('Kommercio\Models\Order\Payment');
+        return $this->hasMany('Kommercio\Models\Order\Payment')->counted();
     }
 
     public function invoices()

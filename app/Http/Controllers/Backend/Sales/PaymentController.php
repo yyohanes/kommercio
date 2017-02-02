@@ -158,8 +158,8 @@ class PaymentController extends Controller{
             }
 
             $payment->status = $status;
-            $payment->recordStatusChange($status, Auth::user()->email, $request->input('reason'));
             $payment->save();
+            $payment->recordStatusChange($status, Auth::user()->email, $request->input('reason'));
 
             if($process == 'accept'){
                 Event::fire(new PaymentEvent('accept', $payment));

@@ -41,7 +41,10 @@ return [
     'checkout' => [
         'empty_order' => 'Your order is empty.',
         'checkout_complete' => 'Your order is successful. Please check your inbox for email confirmation.',
-        'order_not_complete' => 'Order is not completed yet.'
+        'order_not_complete' => 'Order is not completed yet.',
+        'payment' => [
+            'error' => 'Payment unsuccessful. Please try again or select another payment method.'
+        ]
     ],
     'login' => [
         'invalid_password' => 'Password is invalid.'
