@@ -69,8 +69,13 @@ class Payment extends Model implements AuthorSignatureInterface
     //Methods
     public function changeStatus($status, $note=null, $by = null, $data = null)
     {
+        $oldStatus = $this->status;
         $this->status = $status;
         $this->save();
+
+        if($oldStatus != $status && $status == self::STATUS_SUCCESS){
+            Event::fire(new PaymentEvent('accept', $this));
+        }
 
         if(!$by){
             $by = Auth::user()->email;
