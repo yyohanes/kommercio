@@ -8,11 +8,11 @@ var KommercioMidtransSnap = function(){
           var $placeOrderBtn = $form.find('[name="process"][value="place_order"]');
 
           $placeOrderBtn.on('click', function(e){
-            e.preventDefault();
-
             KommercioFrontend.toggleOverlay($form, true);
 
             if(blocked){
+              e.preventDefault();
+
               $.ajax(options.getToken, {
                 method: 'POST',
                 data: {
