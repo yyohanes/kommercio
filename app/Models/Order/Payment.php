@@ -80,6 +80,15 @@ class Payment extends Model implements AuthorSignatureInterface
         return $histories;
     }
 
+    /**
+     * Create external reference for payment gateway. Ex: Order ID for Paypal or Midtrans
+     * @return string
+     */
+    public function generateExternalReference()
+    {
+        return $this->invoice->reference.'/'.$this->id;
+    }
+
     //Accessors
     public function getIsSuccessAttribute()
     {
@@ -176,5 +185,20 @@ class Payment extends Model implements AuthorSignatureInterface
         }
 
         return (isset($array[$option]))?$array[$option]:$array;
+    }
+
+    /**
+     * Retrieve payment given external Order ID. Ex: From Paypal or Midtrans
+     * @param string $orderId
+     * @return self
+     */
+    public static function getPaymentFromExternal(string $orderId)
+    {
+        $explodedOrderId = explode('/', $orderId);
+        $paymentId = array_pop($explodedOrderId);
+
+        $payment = self::findOrFail($paymentId);
+
+        return $payment;
     }
 }

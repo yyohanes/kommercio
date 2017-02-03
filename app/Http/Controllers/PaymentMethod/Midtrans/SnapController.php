@@ -65,7 +65,7 @@ class SnapController extends Controller
         $payment = Payment::createIniatePayment($order);
 
         $transaction_details = array(
-            'order_id' => $payment->invoice->reference.'/'.$payment->id,
+            'order_id' => $payment->generateExternalReference(),
             'gross_amount' => $orderTotal,
         );
 
@@ -106,30 +106,32 @@ class SnapController extends Controller
             'order_id' => 'required',
             'payment_type' => 'required',
             'gross_amount' => 'required',
+            'transaction_status' => 'required'
         ];
 
-        $orderId = $request->input('order_id');
+        $this->validate($request, $rules);
 
-        $explodedOrderId = explode('/', $orderId);
-        $paymentId = array_pop($explodedOrderId);
-
-        $payment = Payment::findOrFail($paymentId);
+        $payment = Payment::getPaymentFromExternal($request->input('order_id'));
 
         $paymentType = $request->input('payment_type');
         $transactionStatus = $request->input('transaction_status');
 
-        if($paymentType == 'credit_card'){
-            if($transactionStatus == 'capture'){
-                $note = 'Status change from '.Payment::getStatusOptions($payment->status).' to '.Payment::getStatusOptions(Payment::STATUS_SUCCESS);
-                $data = [
-                    'response' => json_encode($request->all(), JSON_PRETTY_PRINT)
-                ];
+        $note = 'Status change from '.Payment::getStatusOptions($payment->status).' to '.Payment::getStatusOptions(Payment::STATUS_SUCCESS);
+        $data = [
+            'response' => json_encode($request->all(), JSON_PRETTY_PRINT)
+        ];
 
-                $payment->recordStatusChange(Payment::STATUS_SUCCESS, 'Midtrans Notification', $note, $data);
-            }
+        if(in_array($transactionStatus, ['cancel', 'expire', 'deny', 'failure'])){
+            $payment->recordStatusChange(Payment::STATUS_FAILED, 'Midtrans Notification', $note, $data);
         }else{
-            if($transactionStatus == 'settlement'){
-
+            if($paymentType == 'credit_card'){
+                if($transactionStatus == 'capture'){
+                    $payment->recordStatusChange(Payment::STATUS_SUCCESS, 'Midtrans Notification', $note, $data);
+                }
+            }else{
+                if($transactionStatus == 'settlement'){
+                    $payment->recordStatusChange(Payment::STATUS_SUCCESS, 'Midtrans Notification', $note, $data);
+                }
             }
         }
     }

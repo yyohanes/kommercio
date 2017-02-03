@@ -5,6 +5,7 @@ namespace Kommercio\Models\PaymentMethod;
 use Dimsav\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Model;
 use Kommercio\Models\Order\Order;
+use Kommercio\Models\Order\Payment;
 use Kommercio\Traits\Model\HasDataColumn;
 
 class PaymentMethod extends Model

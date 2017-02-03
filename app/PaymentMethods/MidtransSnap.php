@@ -60,11 +60,7 @@ class MidtransSnap extends PaymentMethodAbstract implements PaymentMethodSetting
 
     public function finalProcessPayment($options = null)
     {
-        $order = $options['order'];
-
-        if($order && $order->exists){
-            $payment = Payment::createPayment($order, $invoice, Payment::STATUS_SUCCESS, $this->paymentMethod, $notes, $options);
-        }
+        $request = $options['request'];
     }
 
     public function settingForm()
