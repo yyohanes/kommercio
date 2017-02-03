@@ -157,9 +157,7 @@ class PaymentController extends Controller{
                 return redirect(route('backend.sales.order.view', ['id' => $payment->order->id]).'#tab_payments')->withErrors($validator);
             }
 
-            $payment->status = $status;
-            $payment->save();
-            $payment->recordStatusChange($status, Auth::user()->email, $request->input('reason'));
+            $payment->changeStatus($status, $request->input('reason'), Auth::user()->email);
 
             if($process == 'accept'){
                 Event::fire(new PaymentEvent('accept', $payment));

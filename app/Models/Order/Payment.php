@@ -4,6 +4,7 @@ namespace Kommercio\Models\Order;
 
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Event;
 use Kommercio\Events\PaymentEvent;
 use Kommercio\Models\Interfaces\AuthorSignatureInterface;
@@ -66,6 +67,17 @@ class Payment extends Model implements AuthorSignatureInterface
     }
 
     //Methods
+    public function changeStatus($status, $note=null, $by = null, $data = null)
+    {
+        $this->status = $status;
+        $this->save();
+
+        if(!$by){
+            $by = Auth::user()->email;
+        }
+        $this->recordStatusChange($status, $by, $note, $data);
+    }
+
     public function recordStatusChange($status, $by, $note=null, $data = null)
     {
         $log = Log::log('payment.update', $note, $this, $status, $by, $data);

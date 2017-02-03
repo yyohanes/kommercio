@@ -122,15 +122,15 @@ class SnapController extends Controller
         ];
 
         if(in_array($transactionStatus, ['cancel', 'expire', 'deny', 'failure'])){
-            $payment->recordStatusChange(Payment::STATUS_FAILED, 'Midtrans Notification', $note, $data);
+            $payment->changeStatus(Payment::STATUS_FAILED, $note, 'Midtrans Notification', $data);
         }else{
             if($paymentType == 'credit_card'){
                 if($transactionStatus == 'capture'){
-                    $payment->recordStatusChange(Payment::STATUS_SUCCESS, 'Midtrans Notification', $note, $data);
+                    $payment->changeStatus(Payment::STATUS_SUCCESS, $note, 'Midtrans Notification', $data);
                 }
             }else{
                 if($transactionStatus == 'settlement'){
-                    $payment->recordStatusChange(Payment::STATUS_SUCCESS, 'Midtrans Notification', $note, $data);
+                    $payment->changeStatus(Payment::STATUS_SUCCESS, $note, 'Midtrans Notification', $data);
                 }
             }
         }
