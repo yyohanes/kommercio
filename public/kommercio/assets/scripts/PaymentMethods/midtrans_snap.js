@@ -26,11 +26,10 @@ var KommercioMidtransSnap = function(){
                       $placeOrderBtn.trigger('click');
                     },
                     onPending: function(result){
-                      blocked = false;
-
                       if(result.fraud_status != 'accept'){
                         alert(options.errorMessage);
                       }else{
+                        blocked = false;
                         $placeOrderBtn.trigger('click');
                       }
                     },

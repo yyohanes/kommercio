@@ -178,6 +178,7 @@ class Payment extends Model implements AuthorSignatureInterface
             self::STATUS_PENDING => 'Pending',
             self::STATUS_FAILED => 'Failed',
             self::STATUS_VOID => 'Void',
+            self::STATUS_INITIATE => 'Initiate',
         ];
 
         if(empty($option)){
@@ -192,7 +193,7 @@ class Payment extends Model implements AuthorSignatureInterface
      * @param string $orderId
      * @return self
      */
-    public static function getPaymentFromExternal(string $orderId)
+    public static function getPaymentFromExternal($orderId)
     {
         $explodedOrderId = explode('/', $orderId);
         $paymentId = array_pop($explodedOrderId);
