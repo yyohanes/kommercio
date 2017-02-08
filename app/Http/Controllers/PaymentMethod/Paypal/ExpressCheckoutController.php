@@ -82,10 +82,12 @@ class ExpressCheckoutController extends Controller
             ->setDetails($details)
             ->setTotal($order->calculateTotal());
 
+        $payment = KommercioPayment::createIniatePayment($order);
+
         $transaction = new Transaction();
         $transaction->setAmount($amount)
             ->setItemList($itemList)
-            ->setInvoiceNumber(uniqid());
+            ->setInvoiceNumber($payment->generateExternalReference());
 
         $redirectUrls = new RedirectUrls();
         $redirectUrls->setReturnUrl(route('frontend.payment_method.paypal.express_checkout.execute', ['status' => 'success']))
@@ -153,15 +155,19 @@ class ExpressCheckoutController extends Controller
 
             $execution->addTransaction($transaction);
 
+            $newStatus = KommercioPayment::STATUS_FAILED;
+
             try{
                 $result = $payment->execute($execution, $this->apiContext);
 
                 try {
                     $payment = Payment::get($paymentId, $this->apiContext);
+                    \Log::info($payment->getTransactions());
+                    $kommercioPayment = KommercioPayment::getPaymentFromExternal($payment->getTransactions()[0]->getInvoiceNumber());
 
                     $options['response'] = json_encode($payment->toArray(), JSON_PRETTY_PRINT);
 
-                    $kommercioPayment = KommercioPayment::createPayment($order, null, KommercioPayment::STATUS_SUCCESS, $order->paymentMethod, null, $options);
+                    $newStatus = KommercioPayment::STATUS_SUCCESS;
 
                     $return = [
                         'result' => 1,
@@ -187,11 +193,16 @@ class ExpressCheckoutController extends Controller
             \Log::info('fail');
             \Log::info($request);
 
+            $newStatus = KommercioPayment::STATUS_FAILED;
+
             $return = [
                 'result' => 0,
                 'message' => 'You have cancelled the payment.'
             ];
         }
+
+        $note = 'Status change from '.KommercioPayment::getStatusOptions($kommercioPayment->status).' to '.KommercioPayment::getStatusOptions($newStatus);
+        $kommercioPayment->changeStatus($newStatus, $note, 'Paypal Notification', $options);
 
         return new JsonResponse($return);
     }
