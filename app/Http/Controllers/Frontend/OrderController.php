@@ -799,10 +799,10 @@ class OrderController extends Controller
                 $order->currency = $request->input('currency');
                 $order->conversion_rate = 1;
 
-                OrderHelper::processLineItems($request, $order, false);
+                /*OrderHelper::processLineItems($request, $order, false);
 
                 $order->load('lineItems');
-                $order->calculateTotal();
+                $order->calculateTotal();*/
 
                 $nextStep = 'checkout_summary';
 
@@ -888,10 +888,10 @@ class OrderController extends Controller
                     if($request->input('shipping_method') == $idx){
                         $order->updateShippingMethod($request->input('shipping_method'));
 
-                        OrderHelper::processLineItems($request, $order, false);
+                        /*OrderHelper::processLineItems($request, $order, false);
 
                         $order->load('lineItems');
-                        $order->calculateTotal();
+                        $order->calculateTotal();*/
 
                         break;
                     }
@@ -901,6 +901,11 @@ class OrderController extends Controller
             if($request->has('additional_fields')){
                 $order->additional_fields = $request->input('additional_fields');
             }
+
+            OrderHelper::processLineItems($request, $order, false);
+
+            $order->load('lineItems');
+            $order->calculateTotal();
 
             $order->saveData(['checkout_step' => $viewData['step']]);
 

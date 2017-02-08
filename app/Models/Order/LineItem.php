@@ -414,7 +414,13 @@ class LineItem extends Model
 
     public function getIsFreeShippingAttribute()
     {
-        return $this->line_item_type == 'free_shipping';
+        $isFreeShipping = $this->line_item_type == 'free_shipping';
+
+        if(!$isFreeShipping && $this->isCoupon){
+            $isFreeShipping = $this->coupon->cartPriceRule->offer_type == CartPriceRule::OFFER_TYPE_FREE_SHIPPING;
+        }
+
+        return $isFreeShipping;
     }
 
     public function getQuantityAttribute()
@@ -478,7 +484,7 @@ class LineItem extends Model
 
     public function coupon()
     {
-        return $this->belongsTo('Kommercio\Models\PriceRule\Coupon', 'line_item_id');
+        return $this->belongsTo('Kommercio\Models\PriceRule\Coupon', 'line_item_id')->with('cartPriceRule');
     }
 
     public function shippingMethod()

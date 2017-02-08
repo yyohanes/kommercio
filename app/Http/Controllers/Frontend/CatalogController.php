@@ -147,7 +147,7 @@ class CatalogController extends Controller
         $instilledRequest = $this->instillCatalogRequest($request);
         $options = $instilledRequest['options'];
 
-        $qb = Product::productEntity()->earch;
+        $qb = Product::productEntity();
 
         $qb->joinTranslation()->joinDetail()->selectSelf()
             ->where('D.active', true)

@@ -149,7 +149,11 @@ class OrderHelper
                     if((!$productCartPriceRuleProducts->isEmpty() && !$productCartPriceRuleProducts->contains($lineItem->line_item_id)) || !$lineItem->isProduct){
                         continue;
                     }
-                }elseif($cartPriceRule->modification_type == CartPriceRule::MODIFICATION_TYPE_PERCENT){
+                }elseif($cartPriceRule->offer_type == CartPriceRule::OFFER_TYPE_FREE_SHIPPING) {
+                    continue;
+                }
+
+                if($cartPriceRule->modification_type == CartPriceRule::MODIFICATION_TYPE_PERCENT){
 
                 }elseif($cartPriceRule->modification_type == CartPriceRule::MODIFICATION_TYPE_AMOUNT && count($cartPriceRule->appliedLineItems) < 1){
 

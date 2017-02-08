@@ -18,6 +18,8 @@ use PayPal\Rest\ApiContext;
 
 class PaypalExpressCheckout extends PaymentMethodAbstract implements PaymentMethodSettingFormInterface
 {
+    private $_apiContext;
+
     public function getSummary(Order $order, $options = null)
     {
         $view = ProjectHelper::getViewTemplate('frontend.order.payment_method.paypal.express_checkout');
@@ -27,30 +29,7 @@ class PaypalExpressCheckout extends PaymentMethodAbstract implements PaymentMeth
 
     public function saveForm(Request $request)
     {
-        $apiContext = new ApiContext(
-            new OAuthTokenCredential(
-                $this->getClientId(),
-                $this->getSecretKey()
-            )
-        );
-
-        if($this->getIsProduction()){
-            $apiContext->setConfig([
-                'mode' => 'live',
-                'log.LogEnabled' => true,
-                'log.FileName' => storage_path('logs/PayPal.log'),
-                'log.LogLevel' => 'INFO', // PLEASE USE `INFO` LEVEL FOR LOGGING IN LIVE ENVIRONMENTS
-                'cache.enabled' => true,
-            ]);
-        }else{
-            $apiContext->setConfig([
-                'mode' => 'sandbox',
-                'log.LogEnabled' => true,
-                'log.FileName' => storage_path('logs/PayPal.log'),
-                'log.LogLevel' => 'DEBUG', // PLEASE USE `INFO` LEVEL FOR LOGGING IN LIVE ENVIRONMENTS
-                'cache.enabled' => true,
-            ]);
-        }
+        $apiContext = $this->getApiContext();
 
         $new = true;
         $webProfile = null;
@@ -147,6 +126,38 @@ class PaypalExpressCheckout extends PaymentMethodAbstract implements PaymentMeth
     public function getSecretKey()
     {
         return $this->paymentMethod->getData('secret_key');
+    }
+
+    public function getApiContext()
+    {
+        if(!isset($this->_apiContext)){
+            $this->_apiContext = new ApiContext(
+                new OAuthTokenCredential(
+                    $this->getClientId(),
+                    $this->getSecretKey()
+                )
+            );
+
+            if($this->getEnvironment() == 'production'){
+                $this->_apiContext->setConfig([
+                    'mode' => 'live',
+                    'log.LogEnabled' => true,
+                    'log.FileName' => storage_path('logs/PayPal.log'),
+                    'log.LogLevel' => 'INFO', // PLEASE USE `INFO` LEVEL FOR LOGGING IN LIVE ENVIRONMENTS
+                    'cache.enabled' => true,
+                ]);
+            }else{
+                $this->_apiContext->setConfig([
+                    'mode' => 'sandbox',
+                    'log.LogEnabled' => true,
+                    'log.FileName' => storage_path('logs/PayPal.log'),
+                    'log.LogLevel' => 'DEBUG', // PLEASE USE `INFO` LEVEL FOR LOGGING IN LIVE ENVIRONMENTS
+                    'cache.enabled' => true,
+                ]);
+            }
+        }
+
+        return $this->_apiContext;
     }
 
     //Statics

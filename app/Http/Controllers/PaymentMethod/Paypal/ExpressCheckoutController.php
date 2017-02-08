@@ -32,30 +32,7 @@ class ExpressCheckoutController extends Controller
     {
         $this->paymentMethod = PaymentMethod::where('class', 'PaypalExpressCheckout')->firstOrFail();
 
-        $this->apiContext = new ApiContext(
-            new OAuthTokenCredential(
-                $this->paymentMethod->getProcessor()->getClientId(),
-                $this->paymentMethod->getProcessor()->getSecretKey()
-            )
-        );
-
-        if($this->paymentMethod->getProcessor()){
-            $this->apiContext->setConfig([
-                'mode' => 'live',
-                'log.LogEnabled' => true,
-                'log.FileName' => storage_path('logs/PayPal.log'),
-                'log.LogLevel' => 'INFO', // PLEASE USE `INFO` LEVEL FOR LOGGING IN LIVE ENVIRONMENTS
-                'cache.enabled' => true,
-            ]);
-        }else{
-            $this->apiContext->setConfig([
-                'mode' => 'sandbox',
-                'log.LogEnabled' => true,
-                'log.FileName' => storage_path('logs/PayPal.log'),
-                'log.LogLevel' => 'DEBUG', // PLEASE USE `INFO` LEVEL FOR LOGGING IN LIVE ENVIRONMENTS
-                'cache.enabled' => true,
-            ]);
-        }
+        $this->apiContext = $this->paymentMethod->getProcessor()->getApiContext();
     }
 
     public function create(Request $request)
