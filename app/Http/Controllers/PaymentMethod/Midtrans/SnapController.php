@@ -56,7 +56,7 @@ class SnapController extends Controller
         $customer_details = array(
             'first_name'    => $order->shippingInformation->first_name,
             'last_name'     => $order->shippingInformation->last_name,
-            'email'         => $order->customer->getProfile()->email,
+            'email'         => $order->shippingInformation->email,
             'phone'         => $order->shippingInformation->phone_number,
             'billing_address'  => $billing_address,
             'shipping_address' => $billing_address

@@ -162,7 +162,6 @@ class ExpressCheckoutController extends Controller
 
                 try {
                     $payment = Payment::get($paymentId, $this->apiContext);
-                    \Log::info($payment->getTransactions());
                     $kommercioPayment = KommercioPayment::getPaymentFromExternal($payment->getTransactions()[0]->getInvoiceNumber());
 
                     $options['response'] = json_encode($payment->toArray(), JSON_PRETTY_PRINT);
