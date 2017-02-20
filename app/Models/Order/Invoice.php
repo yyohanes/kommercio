@@ -120,7 +120,7 @@ class Invoice extends Model
             $invoice->setCreatedAt($date);
         }
         $invoice->order()->associate($order);
-        $invoice->store()->associate($order->store);
+        $invoice->store()->associate($order->store?:ProjectHelper::getActiveStore());
         $invoice->generateReference();
         $invoice->generatePublicId();
         $invoice->save();
