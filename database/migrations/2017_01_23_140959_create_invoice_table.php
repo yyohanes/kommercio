@@ -37,7 +37,7 @@ class CreateInvoiceTable extends Migration
         //Generate invoices from existing orders
         $orders = \Kommercio\Models\Order\Order::checkout()->orderBy('checkout_at', 'ASC')->get();
         foreach($orders as $order){
-            if($order->invoices->count() < 1){
+            if($order->invoices->count() < 1 && $order->store){
                 $invoice = \Kommercio\Models\Order\Invoice::createInvoice($order, $order->checkout_at);
 
                 $successfulPayment = null;
