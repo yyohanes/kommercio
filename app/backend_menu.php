@@ -6,46 +6,6 @@ $menus['dashboard'] = [
     'name' => 'Dashboard'
 ];
 
-$menus['catalog'] = [
-    'prepend' => '<i class="fa fa-book"></i>',
-    'active_path' => 'catalog',
-    'name' => 'Catalog',
-    'children' => [
-        'product' => [
-            'active_path' => 'catalog/product/index',
-            'name' => 'Product',
-            'route' => 'backend.catalog.product.index',
-            'permissions' => 'view_product'
-        ],
-        'product_category' => [
-            'active_path' => 'catalog/category',
-            'name' => 'Category',
-            'route' => 'backend.catalog.category.index',
-            'permissions' => 'view_product_category'
-        ],
-        'product_attribute' => [
-            'active_path' => 'catalog/product-attribute',
-            'name' => 'Product Attribute',
-            'route' => 'backend.catalog.product_attribute.index',
-            'permissions' => 'view_product_attribute',
-            'feature' => 'catalog.product_attributes'
-        ],
-        'product_feature' => [
-            'active_path' => 'catalog/product-feature',
-            'name' => 'Product Feature',
-            'route' => 'backend.catalog.product_feature.index',
-            'permissions' => 'view_product_feature',
-            'feature' => 'catalog.product_features'
-        ],
-        'manufacturer' => [
-            'active_path' => 'catalog/manufacturer',
-            'name' => 'Manufacturer',
-            'route' => 'backend.catalog.manufacturer.index',
-            'permissions' => 'view_manufacturer'
-        ]
-    ]
-];
-
 $menus['sales'] = [
     'prepend' => '<i class="fa fa-smile-o"></i>',
     'active_path' => 'sales',
@@ -77,6 +37,60 @@ $menus['sales'] = [
                 ]
             ]
         ],
+    ]
+];
+
+$menus['catalog'] = [
+    'prepend' => '<i class="fa fa-book"></i>',
+    'active_path' => 'catalog',
+    'name' => 'Catalog',
+    'children' => [
+        'product' => [
+            'active_path' => 'catalog/product/index',
+            'name' => 'Product',
+            'route' => 'backend.catalog.product.index',
+            'permissions' => 'view_product'
+        ],
+        'product_category' => [
+            'active_path' => 'catalog/category',
+            'name' => 'Category',
+            'route' => 'backend.catalog.category.index',
+            'permissions' => 'view_product_category'
+        ],
+        'product_attribute' => [
+            'active_path' => 'catalog/product-attribute',
+            'name' => 'Attribute',
+            'route' => 'backend.catalog.product_attribute.index',
+            'permissions' => 'view_product_attribute',
+            'feature' => 'catalog.product_attributes'
+        ],
+        'product_feature' => [
+            'active_path' => 'catalog/product-feature',
+            'name' => 'Feature',
+            'route' => 'backend.catalog.product_feature.index',
+            'permissions' => 'view_product_feature',
+            'feature' => 'catalog.product_features'
+        ],
+        'product_configuration' => [
+            'active_path' => 'catalog/product-configuration/group',
+            'name' => 'Configuration',
+            'route' => 'backend.catalog.product_configuration.group.index',
+            'permissions' => 'view_product_configuration_group',
+            'feature' => 'catalog.product_configuration'
+        ],
+        'product_composite' => [
+            'active_path' => 'catalog/product-composite/group',
+            'name' => 'Composite',
+            'route' => 'backend.catalog.product_composite.group.index',
+            'permissions' => 'view_product_composite',
+            'feature' => 'catalog.composite_product'
+        ],
+        'manufacturer' => [
+            'active_path' => 'catalog/manufacturer',
+            'name' => 'Manufacturer',
+            'route' => 'backend.catalog.manufacturer.index',
+            'permissions' => 'view_manufacturer'
+        ]
     ]
 ];
 

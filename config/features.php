@@ -8,6 +8,7 @@ return [
         'product_attributes' => true,
         'product_features' => false,
         'composite_product' => false,
+        'product_configuration' => false,
         'faceted_navigation' => false,
         'import' => false
     ],
@@ -18,6 +19,7 @@ return [
     ],
     'customer' => [
         'reward_points' => false,
-        'customer_group' => false
+        'customer_group' => false,
+        'wishlist' => false
     ]
 ];
