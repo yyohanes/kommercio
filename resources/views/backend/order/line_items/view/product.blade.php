@@ -37,16 +37,14 @@
     </td>
 </tr>
 
-@foreach($lineItem->children as $childLineItem)
-    @if($childLineItem->productComposite)
+@foreach($lineItem->product->composites as $productComposite)
     <tr class="child-line-item child-line-item-header">
         <td colspan="100">
-            {{ $childLineItem->productComposite->name }}
+            {{ $productComposite->name }}
         </td>
     </tr>
 
-    @foreach($lineItem->getChildrenByComposite($childLineItem->productComposite) as $child)
-        @include('backend.order.line_items.view.product', ['composite' => $childLineItem->productComposite, 'lineItem' => $child, 'child' => true])
+    @foreach($lineItem->getChildrenByComposite($productComposite) as $child)
+        @include('backend.order.line_items.view.product', ['composite' => $productComposite, 'lineItem' => $child, 'child' => true])
     @endforeach
-    @endif
 @endforeach

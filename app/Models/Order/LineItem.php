@@ -191,6 +191,10 @@ class LineItem extends Model
 
         if(isset($data['product_composite_id'])){
             $this->productComposite()->associate($data['product_composite_id']);
+
+            if($this->productComposite->free){
+                $this->net_price = 0;
+            }
         }
 
         if(is_null($this->taxable)){

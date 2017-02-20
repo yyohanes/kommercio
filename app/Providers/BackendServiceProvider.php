@@ -9,6 +9,7 @@ use Kommercio\Facades\ProjectHelper;
 use Kommercio\Models\File;
 use Kommercio\Models\Interfaces\AuthorSignatureInterface;
 use Illuminate\Support\Facades\Storage;
+use Kommercio\Models\Interfaces\ConfigVariableInterface;
 use Kommercio\Models\Interfaces\ProductIndexInterface;
 use Kommercio\Models\Interfaces\UrlAliasInterface;
 use Kommercio\Models\UrlAlias;

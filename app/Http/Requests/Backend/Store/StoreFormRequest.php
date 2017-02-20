@@ -34,7 +34,13 @@ class StoreFormRequest extends Request
             'type' => 'required|in:'.implode(',', $typeAllowedOptions),
             'warehouses' => 'required',
             'warehouses.*' => 'in:'.implode(',', $warehouseAllowedOptions),
+            'contacts.*.name' => 'required_with:contacts.*.email',
+            'contacts.*.email' => 'required_with:contacts.*.name',
         ];
+
+        foreach($this->input('contacts') as $contactIdx => $contactField){
+
+        }
 
         return $rules;
     }

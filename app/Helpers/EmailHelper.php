@@ -4,13 +4,20 @@ namespace Kommercio\Helpers;
 
 use Illuminate\Support\Facades\Mail;
 use Kommercio\Facades\ProjectHelper as ProjectHelperFacade;
+use Kommercio\Models\Store;
 
 class EmailHelper
 {
-    public function getContact($type='general')
+    public function getContact($type='general', $store = null)
     {
-        $default = config('kommercio.contacts.'.$type);
-        $contact = config('project.contacts.'.$type, $default);
+        $kommercioDefault = config('kommercio.contacts.'.$type);
+        $default = config('project.contacts.'.$type, $kommercioDefault);
+
+        if($store instanceof Store){
+            $contact = $store->getData('contacts.'.$type, $default);
+        }else{
+            $contact = $default;
+        }
 
         return $contact;
     }
@@ -24,7 +31,7 @@ class EmailHelper
 
     public function sendMail($to, $subject, $template, $data, $contact='general', $callback = null, $queue = true, $preview=FALSE)
     {
-        $contact = $this->getContact($contact);
+        $contact = $this->getContact($contact, (isset($data['store'])?$data['store']:null));
         $template = $this->getTemplate($template);
 
         if(!$preview){

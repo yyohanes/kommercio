@@ -31,6 +31,7 @@ class StoreController extends Controller{
     {
         $store = new Store();
         $store->fill($request->all());
+        $store->setData('contacts', $request->input('contacts'));
         $store->save();
 
         $store->warehouses()->sync($request->input('warehouses', []));
@@ -52,6 +53,7 @@ class StoreController extends Controller{
         $store = Store::findOrFail($id);
 
         $store->fill($request->all());
+        $store->setData('contacts', $request->input('contacts'));
         $store->save();
 
         $store->warehouses()->sync($request->input('warehouses', []));

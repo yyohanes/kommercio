@@ -394,23 +394,23 @@ class OrderHelper
         switch($type){
             case 'confirmation':
                 $subject = trans(LanguageHelperFacade::getTranslationKey('order.email.confirmation.subject'), ['reference' => $order->reference]);
-                EmailHelperFacade::sendMail($destination?:$order->billingInformation->email, $subject, 'order.confirmation', ['order' => $order]);
+                EmailHelperFacade::sendMail($destination?:$order->billingInformation->email, $subject, 'order.confirmation', ['order' => $order, 'store' => $order->store]);
                 break;
             case 'processing':
                 $subject = trans(LanguageHelperFacade::getTranslationKey('order.email.processing.subject'), ['reference' => $order->reference]);
-                EmailHelperFacade::sendMail($destination?:$order->billingInformation->email, $subject, 'order.processing', ['order' => $order]);
+                EmailHelperFacade::sendMail($destination?:$order->billingInformation->email, $subject, 'order.processing', ['order' => $order, 'store' => $order->store]);
                 break;
             case 'shipped':
                 $subject = trans(LanguageHelperFacade::getTranslationKey('order.email.shipped.subject'), ['reference' => $order->reference]);
-                EmailHelperFacade::sendMail($destination?:$order->billingInformation->email, $subject, 'order.shipped', ['order' => $order]);
+                EmailHelperFacade::sendMail($destination?:$order->billingInformation->email, $subject, 'order.shipped', ['order' => $order, 'store' => $order->store]);
                 break;
             case 'completed':
                 $subject = trans(LanguageHelperFacade::getTranslationKey('order.email.completed.subject'), ['reference' => $order->reference]);
-                EmailHelperFacade::sendMail($destination?:$order->billingInformation->email, $subject, 'order.completed', ['order' => $order]);
+                EmailHelperFacade::sendMail($destination?:$order->billingInformation->email, $subject, 'order.completed', ['order' => $order, 'store' => $order->store]);
                 break;
             case 'cancelled':
                 $subject = trans(LanguageHelperFacade::getTranslationKey('order.email.cancelled.subject'), ['reference' => $order->reference]);
-                EmailHelperFacade::sendMail($destination?:$order->billingInformation->email, $subject, 'order.cancelled', ['order' => $order]);
+                EmailHelperFacade::sendMail($destination?:$order->billingInformation->email, $subject, 'order.cancelled', ['order' => $order, 'store' => $order->store]);
                 break;
             default:
                 break;
