@@ -13,10 +13,14 @@ class EmailHelper
         $kommercioDefault = config('kommercio.contacts.'.$type);
         $default = config('project.contacts.'.$type, $kommercioDefault);
 
+        $contact = $default;
+
         if($store instanceof Store){
-            $contact = $store->getData('contacts.'.$type, $default);
-        }else{
-            $contact = $default;
+            $storeContact = $store->getData('contacts.'.$type, $default);
+
+            if(!empty($storeContact['email'])){
+                $contact = $storeContact;
+            }
         }
 
         return $contact;
