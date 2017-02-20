@@ -11,6 +11,7 @@ use Kommercio\Facades\CurrencyHelper;
 use Kommercio\Facades\FrontendHelper;
 use Kommercio\Facades\ProductIndexHelper;
 use Kommercio\Facades\ProjectHelper;
+use Kommercio\Facades\RuntimeCache;
 use Kommercio\Models\Interfaces\SeoModelInterface;
 use Kommercio\Models\Interfaces\UrlAliasInterface;
 use Kommercio\Models\Order\LineItem;
@@ -101,6 +102,16 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
         return $this->belongsToMany('Kommercio\Models\ProductFeature\ProductFeatureValue', 'product_product_feature')->withPivot(['product_feature_id'])->orderBy('sort_order', 'ASC');
     }
 
+    public function productCompositeGroups()
+    {
+        return $this->belongsToMany('Kommercio\Models\Product\Composite\ProductCompositeGroup', 'product_composite_group_product')->withPivot('sort_order')->orderBy('sort_order', 'ASC');
+    }
+
+    public function productConfigurationGroups()
+    {
+        return $this->belongsToMany('Kommercio\Models\Product\Configuration\ProductConfigurationGroup', 'product_configuration_group_product')->withPivot('sort_order')->orderBy('sort_order', 'ASC');
+    }
+
     public function priceRules()
     {
         if($this->combination_type == self::COMBINATION_TYPE_VARIATION){
@@ -135,9 +146,9 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
         return $this->belongsToMany('Kommercio\Models\Product', 'related_products', 'target_id', 'product_id')->withPivot(['sort_order', 'type'])->orderBy('sort_order', 'ASC')->wherePivot('type', 'cross_sell');
     }
 
-    public function composites()
+    public function bookmarks()
     {
-        return $this->belongsToMany('Kommercio\Models\ProductComposite\ProductComposite', 'product_composite_configurations')->withPivot(['id', 'minimum', 'maximum', 'sort_order'])->withTimestamps()->orderBy('sort_order', 'ASC');
+        return $this->belongsToMany('Kommercio\Models\Customer\Bookmark');
     }
 
     //Methods
@@ -164,7 +175,7 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
             $path = $this->getInternalPathSlug().'/'.$this->id;
         }
 
-        return FrontendHelper::get_url($path);
+        return FrontendHelper::getUrl($path);
     }
 
     public function getUrlAlias()
@@ -415,8 +426,10 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
             }
         }
 
-        foreach($array[$productAttributeValue->product_attribute_id] as &$productAttributeValues){
-            $productAttributeValues = collect($productAttributeValues)->sortBy('sort_order');
+        foreach($array as &$productAttribute){
+            foreach($productAttribute as &$productAttributeValues){
+                $productAttributeValues = collect($productAttributeValues)->sortBy('sort_order');
+            }
         }
 
         return $array;
@@ -882,6 +895,10 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
                 if(!empty($options['checkout_at'])){
                     $query->whereRaw('DATE_FORMAT(checkout_at, \'%Y-%m-%d\') = ?', [$options['checkout_at']]);
                 }
+
+                if(!empty($options['exclude_order_id'])){
+                    $query->whereNotIn('id', [$options['exclude_order_id']]);
+                }
             });
 
         $orderCount = floatval($qb->sum('quantity'));
@@ -895,7 +912,13 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
         $date = isset($options['date'])?Carbon::createFromFormat('Y-m-d', $options['date']):null;
 
         //Per Order Limit
-        $orderLimits = $this->getOrderLimits(OrderLimit::LIMIT_PER_ORDER, $date, $store);
+        $orderLimits = OrderLimit::getOrderLimits([
+            'limit_type' => OrderLimit::LIMIT_PER_ORDER,
+            'date' => $date,
+            'store' => $store,
+            'type' => OrderLimit::TYPE_PRODUCT,
+            'product' => $this
+        ]);
 
         $orderLimit = (count($orderLimits) > 0)?$this->extractOrderLimit($orderLimits)->limit:null;
 
@@ -912,7 +935,13 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
 
         if($deliveryDate){
             //Delivery Limit
-            $deliveryOrderLimits = $this->getOrderLimits(OrderLimit::LIMIT_DELIVERY_DATE, $deliveryDate, $store);
+            $deliveryOrderLimits = OrderLimit::getOrderLimits([
+                'limit_type' => OrderLimit::LIMIT_DELIVERY_DATE,
+                'date' => $deliveryDate,
+                'store' => $store,
+                'type' => OrderLimit::TYPE_PRODUCT,
+                'product' => $this
+            ]);
 
             $deliveryOrderLimit = (count($deliveryOrderLimits) > 0)?$this->extractOrderLimit($deliveryOrderLimits)->limit:null;
         }
@@ -920,7 +949,13 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
         //Order Total Limit
         $totalOrderLimit = null;
         if($date){
-            $totalOrderLimits = $this->getOrderLimits(OrderLimit::LIMIT_ORDER_DATE, $date, $store);
+            $totalOrderLimits = OrderLimit::getOrderLimits([
+                'limit_type' => OrderLimit::LIMIT_ORDER_DATE,
+                'date' => $date,
+                'store' => $store,
+                'type' => OrderLimit::TYPE_PRODUCT,
+                'product' => $this
+            ]);
 
             $totalOrderLimit = (count($totalOrderLimits) > 0)?$this->extractOrderLimit($totalOrderLimits)->limit:null;
         }
@@ -936,12 +971,12 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
             }
         }
 
-        $limitType = 'checkout_at';
+        $limitType = OrderLimit::LIMIT_ORDER_DATE;
 
         if(isset($orderLimits['checkout_at']) && $totalOrderLimit <= $deliveryOrderLimit){
-            $limitType = 'checkout_at';
+            $limitType = OrderLimit::LIMIT_ORDER_DATE;
         }elseif(isset($orderLimits['delivery_date'])){
-            $limitType = 'delivery_date';
+            $limitType = OrderLimit::LIMIT_DELIVERY_DATE;
         }
 
         return $orderLimits?['limit_type' => $limitType, 'limit' => $orderLimits[$limitType]]:null;
@@ -1082,42 +1117,6 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
         }
     }
 
-    protected function getOrderLimits($limit_type, $date, $store)
-    {
-        $qb = OrderLimit::active()
-            ->orderBy('sort_order', 'ASC')
-            ->whereLimitType($limit_type)
-            ->where(function($qb){
-                $qb->whereHas('products', function($qb){
-                    $qb->whereIn('id', [$this->id]);
-                })
-                ->orWhereHas('productCategories', function($qb){
-                    $qb->whereIn('id', $this->categories->pluck('id')->all());
-                });
-            });
-
-        if($store){
-            $qb->whereStore($store);
-        }
-
-        if($date){
-            $qb->withinDate($date);
-        }else{
-            $date = Carbon::now();
-            $qb->allDays();
-        }
-
-        $orderLimits = [];
-
-        foreach($qb->get() as $orderLimit){
-            if($orderLimit->dayRulesPassed($date)){
-                $orderLimits[] = $orderLimit;
-            }
-        }
-
-        return $orderLimits;
-    }
-
     public function getMetaImage()
     {
         return $this->thumbnail?$this->thumbnail->getImagePath('original'):null;
@@ -1186,6 +1185,46 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
         }
 
         return $this->_warehouse;
+    }
+
+    public function getProductConfigurationGroupAttribute()
+    {
+        return $this->productConfigurationGroups->first();
+    }
+
+    public function getProductConfigurationsAttribute()
+    {
+        $configurations = RuntimeCache::getOrSet('product_'.$this->id.'_configurations', function(){
+            $configurations = collect([]);
+
+            foreach($this->productConfigurationGroups as $productConfigurationGroup){
+                $configurations = $configurations->merge($productConfigurationGroup->configurations);
+            }
+
+            return $configurations;
+        });
+
+        return $configurations;
+    }
+
+    public function getProductCompositeGroupAttribute()
+    {
+        return $this->productCompositeGroups->first();
+    }
+
+    public function getCompositesAttribute()
+    {
+        $composites = RuntimeCache::getOrSet('product_'.$this->id.'_composites', function(){
+            $composites = collect([]);
+
+            foreach($this->productCompositeGroups as $productCompositeGroup){
+                $composites = $composites->merge($productCompositeGroup->composites);
+            }
+
+            return $composites;
+        });
+
+        return $composites;
     }
 
     /*
@@ -1272,7 +1311,7 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
             'root_product_id' => $this->parent?$this->parent->id:$this->id,
             'product_id' => $this->id,
             'value' => $this->_calculateNetPrice(),
-            'currency' => $this->productDetail->currency,
+            'currency' => $this->parent?$this->parent->productDetail->currency:$this->productDetail->currency,
             'store_id' => $this->store->id
         ]);
     }

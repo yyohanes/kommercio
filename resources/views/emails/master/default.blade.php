@@ -11,10 +11,6 @@
     <style>
         /* ------------------------------------- 		GLOBAL ------------------------------------- */
         * {
-            margin:0;
-            padding:0;
-        }
-        * {
             font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;
         }
         img {
@@ -37,6 +33,9 @@
         }
         .bt {
             padding-top:10px;
+        }
+        p {
+            margin-bottom: 1em;
         }
         p.callout {
             padding:9px;

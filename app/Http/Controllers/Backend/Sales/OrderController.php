@@ -23,6 +23,7 @@ use Kommercio\Models\Order\LineItem;
 use Kommercio\Http\Requests\Backend\Order\OrderFormRequest;
 use Collective\Html\FormFacade;
 use Illuminate\Support\Facades\Request as RequestFacade;
+use Kommercio\Models\Order\OrderLimit;
 use Kommercio\Models\PaymentMethod\PaymentMethod;
 use Kommercio\Models\PriceRule\CartPriceRule;
 use Kommercio\Models\Product;
@@ -296,7 +297,7 @@ class OrderController extends Controller{
             endif;
 
             if(!empty($processActions)){
-                $orderAction .= '<div class="btn-group btn-group-xs dropup"><button type="button" class="btn btn-default hold-on-click dropdown-toggle" data-toggle="dropdown" data-hover="dropdown" data-close-others="true" aria-expanded="true"><i class="fa fa-flag-o"></i></button><ul class="dropdown-menu pull-right" role="menu">'.$processActions.'</ul></div>';
+                $orderAction .= '<div class="btn-group btn-group-xs"><button type="button" class="btn btn-default hold-on-click dropdown-toggle" data-toggle="dropdown" data-hover="dropdown" data-close-others="true" aria-expanded="true"><i class="fa fa-flag-o"></i></button><ul class="dropdown-menu" role="menu">'.$processActions.'</ul></div>';
             }
 
             $printActions = '';
@@ -308,11 +309,12 @@ class OrderController extends Controller{
             endif;
 
             if(!empty($printActions)){
-                $orderAction .= '<div class="btn-group btn-group-xs dropup"><button type="button" class="btn btn-default hold-on-click dropdown-toggle" data-toggle="dropdown" data-hover="dropdown" data-close-others="true" aria-expanded="true"><i class="fa fa-print"></i></button><ul class="dropdown-menu pull-right" role="menu">'.$printActions.'</ul></div>';
+                $orderAction .= '<div class="btn-group btn-group-xs"><button type="button" class="btn btn-default hold-on-click dropdown-toggle" data-toggle="dropdown" data-hover="dropdown" data-close-others="true" aria-expanded="true"><i class="fa fa-print"></i></button><ul class="dropdown-menu" role="menu">'.$printActions.'</ul></div>';
             }
 
             $rowMeat = [
                 '<input type="checkbox" name="id[]" value="'.$order->id.'" />',
+                $orderAction,
                 $idx + 1 + $orderingStart,
                 $order->reference,
                 $order->checkout_at?$order->checkout_at->format('d M Y, H:i'):''
@@ -348,8 +350,6 @@ class OrderController extends Controller{
             if(Auth::user()->manageMultipleStores){
                 $rowMeat = array_merge($rowMeat, [$order->store->name]);
             }
-
-            $rowMeat = array_merge($rowMeat, [$orderAction]);
 
             $meat[] = $rowMeat;
         }
@@ -454,14 +454,6 @@ class OrderController extends Controller{
         Event::fire(new OrderEvent('process_payment', $order));
 
         if($request->input('action') == 'place_order'){
-            $paymentMethod = PaymentMethod::findOrFail($order->payment_method_id);
-
-            $paymentResponse = $this->processFinalPayment($order, $paymentMethod, $request);
-
-            if(is_array($paymentResponse)){
-                return redirect()->back()->withErrors($paymentResponse);
-            }
-
             $order->processStocks();
             $this->placeOrder($order);
 
@@ -694,14 +686,6 @@ class OrderController extends Controller{
         Event::fire(new OrderEvent('before_update_order', $order));
 
         if($request->input('action') == 'place_order'){
-            $paymentMethod = PaymentMethod::findOrFail($order->payment_method_id);
-
-            $paymentResponse = $this->processFinalPayment($order, $paymentMethod, $request);
-
-            if(is_array($paymentResponse)){
-                return redirect()->back()->withErrors($paymentResponse);
-            }
-
             //If order is not cart, return all stocks first
             if(in_array($order->status, [Order::STATUS_CART, Order::STATUS_ADMIN_CART, Order::STATUS_CANCELLED])){
                 $order->returnStocks();
@@ -1159,6 +1143,54 @@ class OrderController extends Controller{
         }else{
             return $priceRules;
         }
+    }
+
+    public function getCategoryAvailability(Request $request)
+    {
+        $store = ProjectHelper::getStoreByRequest($request);
+        $store_id = $store->id;
+
+        $perOrderLimits = OrderLimit::getOrderLimits([
+            'limit_type' => OrderLimit::LIMIT_PER_ORDER,
+            'store' => $store_id,
+            'type' => OrderLimit::TYPE_PRODUCT_CATEGORY,
+            'backoffice' => TRUE
+        ]);
+
+        if($request->has('delivery_date')){
+            $deliveryOrderLimits = OrderLimit::getOrderLimits([
+                'limit_type' => OrderLimit::LIMIT_DELIVERY_DATE,
+                'date' => Carbon::createFromFormat('Y-m-d', $request->input('delivery_date')),
+                'store' => $store_id,
+                'type' => OrderLimit::TYPE_PRODUCT_CATEGORY,
+                'backoffice' => TRUE
+            ]);
+        }else{
+            $deliveryOrderLimits = [];
+        }
+
+        $todayOrderLimits = OrderLimit::getOrderLimits([
+            'limit_type' => OrderLimit::LIMIT_ORDER_DATE,
+            'date' => Carbon::now(),
+            'store' => $store_id,
+            'type' => OrderLimit::TYPE_PRODUCT_CATEGORY,
+            'backoffice' => TRUE
+        ]);
+
+        $orderLimits = array_merge($perOrderLimits, $deliveryOrderLimits, $todayOrderLimits);
+
+        $return = [];
+
+        foreach($orderLimits as $orderLimit){
+            $return[] = [
+                'label' => implode(',', $orderLimit->productCategories->pluck('name')->all()),
+                'limit' => floatval($orderLimit->limit),
+                'limit_type' => $orderLimit->limit_type,
+                'productCategories' => $orderLimit->productCategories->pluck('id')->all()
+            ];
+        }
+
+        return new JsonResponse($return);
     }
 
     public function addCoupon(Request $request)

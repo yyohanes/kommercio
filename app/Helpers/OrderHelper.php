@@ -80,7 +80,16 @@ class OrderHelper
     {
         $cartPriceRules = $this->getCartRules($request, $order, $freeEdit);
 
-        $taxes = ProjectHelperFacade::getActiveStore()->getTaxes();
+        //$taxes = ProjectHelperFacade::getActiveStore()->getTaxes();
+        $data = [
+            'country_id' => $order->shippingInformation->country_id?:$request->input('shipping_profile.country_id'),
+            'state_id' => $order->shippingInformation->state_id?:$request->input('shipping_profile.state_id'),
+            'city_id' => $order->shippingInformation->city_id?:$request->input('shipping_profile.city_id'),
+            'district_id' => $order->shippingInformation->district_id?:$request->input('shipping_profile.district_id'),
+            'area_id' => $order->shippingInformation->area_id?:$request->input('shipping_profile.area_id'),
+        ];
+
+        $taxes = Tax::getTaxes($data);
 
         $count = 0;
 
@@ -105,12 +114,13 @@ class OrderHelper
                 $lineItems[] = $lineItem;
             }
         }else{
-            $lineItems = $order->lineItems;
+            $allLineItems = $order->allLineItems;
 
-            $existingLineItems = $order->lineItems->all();
+            $existingLineItems = $order->allLineItems->all();
 
-            foreach($lineItems as $idx => $lineItem){
+            foreach($allLineItems as $idx => $lineItem){
                 if($lineItem->isProduct || $lineItem->isFee || $lineItem->isShipping){
+                    $lineItems[] = $lineItem;
                     unset($existingLineItems[$idx]);
                 }
             }
@@ -139,7 +149,11 @@ class OrderHelper
                     if((!$productCartPriceRuleProducts->isEmpty() && !$productCartPriceRuleProducts->contains($lineItem->line_item_id)) || !$lineItem->isProduct){
                         continue;
                     }
-                }elseif($cartPriceRule->modification_type == CartPriceRule::MODIFICATION_TYPE_PERCENT){
+                }elseif($cartPriceRule->offer_type == CartPriceRule::OFFER_TYPE_FREE_SHIPPING) {
+                    continue;
+                }
+
+                if($cartPriceRule->modification_type == CartPriceRule::MODIFICATION_TYPE_PERCENT){
 
                 }elseif($cartPriceRule->modification_type == CartPriceRule::MODIFICATION_TYPE_AMOUNT && count($cartPriceRule->appliedLineItems) < 1){
 
@@ -154,7 +168,6 @@ class OrderHelper
                 }
 
                 $valueDifference = PriceFormatterFacade::round($lineItemAmount + $priceRuleValue) - $lineItemAmount;
-
 
                 $lineItemAmount += $valueDifference;
                 $lineItem->discount_total += $valueDifference;
@@ -381,23 +394,23 @@ class OrderHelper
         switch($type){
             case 'confirmation':
                 $subject = trans(LanguageHelperFacade::getTranslationKey('order.email.confirmation.subject'), ['reference' => $order->reference]);
-                EmailHelperFacade::sendMail($destination?:$order->billingInformation->email, $subject, 'order.confirmation', ['order' => $order]);
+                EmailHelperFacade::sendMail($destination?:$order->billingInformation->email, $subject, 'order.confirmation', ['order' => $order, 'store' => $order->store]);
                 break;
             case 'processing':
                 $subject = trans(LanguageHelperFacade::getTranslationKey('order.email.processing.subject'), ['reference' => $order->reference]);
-                EmailHelperFacade::sendMail($destination?:$order->billingInformation->email, $subject, 'order.processing', ['order' => $order]);
+                EmailHelperFacade::sendMail($destination?:$order->billingInformation->email, $subject, 'order.processing', ['order' => $order, 'store' => $order->store]);
                 break;
             case 'shipped':
                 $subject = trans(LanguageHelperFacade::getTranslationKey('order.email.shipped.subject'), ['reference' => $order->reference]);
-                EmailHelperFacade::sendMail($destination?:$order->billingInformation->email, $subject, 'order.shipped', ['order' => $order]);
+                EmailHelperFacade::sendMail($destination?:$order->billingInformation->email, $subject, 'order.shipped', ['order' => $order, 'store' => $order->store]);
                 break;
             case 'completed':
                 $subject = trans(LanguageHelperFacade::getTranslationKey('order.email.completed.subject'), ['reference' => $order->reference]);
-                EmailHelperFacade::sendMail($destination?:$order->billingInformation->email, $subject, 'order.completed', ['order' => $order]);
+                EmailHelperFacade::sendMail($destination?:$order->billingInformation->email, $subject, 'order.completed', ['order' => $order, 'store' => $order->store]);
                 break;
             case 'cancelled':
                 $subject = trans(LanguageHelperFacade::getTranslationKey('order.email.cancelled.subject'), ['reference' => $order->reference]);
-                EmailHelperFacade::sendMail($destination?:$order->billingInformation->email, $subject, 'order.cancelled', ['order' => $order]);
+                EmailHelperFacade::sendMail($destination?:$order->billingInformation->email, $subject, 'order.cancelled', ['order' => $order, 'store' => $order->store]);
                 break;
             default:
                 break;

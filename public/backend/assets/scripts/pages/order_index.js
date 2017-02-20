@@ -14,46 +14,45 @@ var OrderIndex = function () {
 
         var columnDefs = [
             {"name": "bulk_action", "targets": 0, "orderable": false},
-            {"name": "no", "targets": 1, "orderable": false},
-            {"name": "reference", "targets": 2},
-            {"name": "checkout_at", "targets": 3}
+            {"name": "action", "targets": 1, "orderable": false},
+            {"name": "no", "targets": 2, "orderable": false},
+            {"name": "reference", "targets": 3},
+            {"name": "checkout_at", "targets": 4}
         ];
 
         if(enable_delivery_date){
-            columnDefs.push({"name": "delivery_date", "targets": 4});
+            columnDefs.push({"name": "delivery_date", "targets": 5});
             runtimeAdditonalColumns += 1;
         }
 
         columnDefs = columnDefs.concat([
-            {"name": "billing", "targets": 4+runtimeAdditonalColumns, "orderable": false},
-            {"name": "shipping", "targets": 5+runtimeAdditonalColumns, "orderable": false}
+            {"name": "billing", "targets": 5+runtimeAdditonalColumns, "orderable": false},
+            {"name": "shipping", "targets": 6+runtimeAdditonalColumns, "orderable": false}
         ]);
 
         for(var i=0; i<additional_columns;i+=1){
-            columnDefs.push({"name": "sticky_product"+i, "targets": 6+i+runtimeAdditonalColumns, "orderable": false});
+            columnDefs.push({"name": "sticky_product"+i, "targets": 7+i+runtimeAdditonalColumns, "orderable": false});
         }
         runtimeAdditonalColumns += additional_columns;
 
         columnDefs = columnDefs.concat([
-            {"name": "total", "targets": 6+runtimeAdditonalColumns}
+            {"name": "total", "targets": 7+runtimeAdditonalColumns}
         ]);
 
         if(view_payment){
-            columnDefs.push({"name": "payment_method", "orderable" : false, "targets": 7+runtimeAdditonalColumns});
-            columnDefs.push({"name": "outstanding", "targets": 8+runtimeAdditonalColumns});
+            columnDefs.push({"name": "payment_method", "orderable" : false, "targets": 8+runtimeAdditonalColumns});
+            columnDefs.push({"name": "outstanding", "targets": 9+runtimeAdditonalColumns});
             runtimeAdditonalColumns += 1;
         }
 
         columnDefs = columnDefs.concat([
-            {"name": "status", "targets": 8+runtimeAdditonalColumns, "orderable": false}
+            {"name": "status", "targets": 9+runtimeAdditonalColumns, "orderable": false}
         ]);
 
         if(show_store_column){
-            columnDefs.push({"name": "store_id", "orderable" : false, "targets": 9+runtimeAdditonalColumns});
+            columnDefs.push({"name": "store_id", "orderable" : false, "targets": 10+runtimeAdditonalColumns});
             runtimeAdditonalColumns += 1;
         }
-
-        columnDefs.push({"name": "action", "orderable" : false, "targets": 9+runtimeAdditonalColumns});
 
         $dataTable.init({
             token: $('#orders-dataset').data('form_token'),

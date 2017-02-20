@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Request;
 use Illuminate\Support\ServiceProvider;
 use Kommercio\Facades\FrontendHelper;
 use Kommercio\Facades\ProjectHelper;
+use Kommercio\Models\Customer;
 
 class FrontendServiceProvider extends ServiceProvider
 {
@@ -23,7 +24,7 @@ class FrontendServiceProvider extends ServiceProvider
 
             $user = Auth::user();
             $view->with('loggedInUser', $user);
-            $view->with('loggedInCustomer', $user?$user->customer:null);
+            $view->with('loggedInCustomer', $user?$user->customer:new Customer());
 
             $viewsData = $view->getData();
 

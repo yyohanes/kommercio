@@ -28,25 +28,7 @@ class OrderLimitFormRequest extends Request
     {
         $allowedLimitTypeOptions = implode(',', array_keys(OrderLimit::getLimitTypeOptions()));
 
-        if($this->route('id')){
-            $model = OrderLimit::findOrFail($this->route('id'));
-            $type = $model->type;
-        }else{
-            $type = $this->route('type');
-        }
-
-        switch($type){
-            case OrderLimit::TYPE_PRODUCT_CATEGORY:
-                $existTable = 'product_categories';
-                break;
-            default:
-                $existTable = 'products';
-                break;
-        }
-
         $rules = [
-            'items' => 'required',
-            'items.*' => 'exists:'.$existTable.',id',
             'limit_type' => 'required|in:'.$allowedLimitTypeOptions,
             'limit' => 'required|numeric|min:0',
             'date_from' => 'date_format:Y-m-d H:i',
@@ -55,6 +37,20 @@ class OrderLimitFormRequest extends Request
             'dayRules.*.days.*' => 'in:'.implode(',', array_keys(ProjectHelper::getDaysOptions())),
             'store_id' => 'in:'.implode(',', array_keys(Store::getStoreOptions()))
         ];
+
+        if($this->input('type') == OrderLimit::TYPE_PRODUCT_CATEGORY){
+            $rules += [
+                'categories' => 'required:products',
+                'categories.*' => 'exists:product_categories,id'
+            ];
+        }else{
+            $rules += [
+                'products' => 'required_without:products',
+                'products.*' => 'exists:products,id',
+                'categories' => 'required_without:products',
+                'categories.*' => 'exists:product_categories,id'
+            ];
+        }
 
         return $rules;
     }
@@ -69,6 +65,10 @@ class OrderLimitFormRequest extends Request
 
         if(!$this->has('active')){
             $attributes['active'] = 0;
+        }
+
+        if(!$this->has('backoffice')){
+            $attributes['backoffice'] = 0;
         }
 
         $this->replace($attributes);

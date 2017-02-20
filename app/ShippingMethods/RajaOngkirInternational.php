@@ -12,10 +12,8 @@ use Kommercio\Models\Address\District;
 use Kommercio\Models\Order\Order;
 use Kommercio\Models\ShippingMethod\ShippingMethod;
 
-class RajaOngkirInternational implements ShippingMethodInterface
+class RajaOngkirInternational extends ShippingMethodAbstract
 {
-    protected $shippingMethod;
-
     public function getAvailableMethods()
     {
         $methods = [
@@ -36,23 +34,6 @@ class RajaOngkirInternational implements ShippingMethodInterface
         return $methods;
     }
 
-    public function validate($options = null)
-    {
-        $valid = TRUE;
-
-        return $valid;
-    }
-
-    public function requireAddress()
-    {
-        return TRUE;
-    }
-
-    public function setShippingMethod(ShippingMethod $shippingMethod)
-    {
-        $this->shippingMethod = $shippingMethod;
-    }
-
     public function getPrices($options = null)
     {
         $return = [];
@@ -68,7 +49,7 @@ class RajaOngkirInternational implements ShippingMethodInterface
         }
 
         //From saved order
-        if($order && $order->store && !empty($order->store->getDefaultWarehouse()->city_id) && $order->shippingInformation){
+        if($order && $order->store && !empty($order->store->getDefaultWarehouse()->city_id) && $order->shippingInformation->country_id){
             $origin = City::find($order->store->getDefaultWarehouse()->city_id);
             $destination = Country::find($order->shippingInformation->country_id);
         }
@@ -135,10 +116,5 @@ class RajaOngkirInternational implements ShippingMethodInterface
         }
 
         return $return;
-    }
-
-    public function beforePlaceOrder(Order $order)
-    {
-
     }
 }

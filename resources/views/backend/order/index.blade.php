@@ -78,6 +78,7 @@
                             <th style="width: 10px;">
                                 <input type="checkbox" class="group-checkable" />
                             </th>
+                            <th></th>
                             <th style="width: 10px;"></th>
                             <th style="min-width: 120px;">Order #</th>
                             <th>Purchased On</th>
@@ -98,10 +99,17 @@
                             @if(Auth::user()->manageMultipleStores)
                                 <th>Store</th>
                             @endif
-                            <th></th>
                         </tr>
                         <tr role="row" class="filter" id="order-filter-form" data-order_index="{{ route('backend.sales.order.index') }}">
                             <td></td>
+                            <td>
+                                <div class="margin-bottom-5 btn-group btn-group-xs">
+                                    <button id="order-filter-btn" class="btn btn-default margin-bottom">
+                                        <i class="fa fa-search"></i> Search</button>
+                                    <a href="{{ route('backend.sales.order.index') }}" class="btn btn-default">
+                                        <i class="fa fa-times"></i> Reset</a>
+                                </div>
+                            </td>
                             <td></td>
                             <td>{!! Form::text('filter[reference]', Request::input('filter.reference'), ['class' => 'form-control form-filter input-sm']) !!}</td>
                             <td>
@@ -128,14 +136,6 @@
                             @if(Auth::user()->manageMultipleStores)
                                 <td>{!! Form::select('filter[store_id]', ['' => 'All'] + \Kommercio\Models\Store::getStoreOptions(), Request::input('filter.store_id'), ['class' => 'form-control form-filter input-sm']) !!}</td>
                             @endif
-                            <td>
-                                <div class="margin-bottom-5 btn-group btn-group-xs">
-                                    <button id="order-filter-btn" class="btn btn-default margin-bottom">
-                                        <i class="fa fa-search"></i> Search</button>
-                                    <a href="{{ route('backend.sales.order.index') }}" class="btn btn-default">
-                                        <i class="fa fa-times"></i> Reset</a>
-                                </div>
-                            </td>
                         </tr>
                         </thead>
                     </table>

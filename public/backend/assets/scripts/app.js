@@ -13,7 +13,7 @@ var KommercioApp = function(){
       $(obj).floatThead('destroy');
 
       $(obj).floatThead({
-        position: 'fixed',
+        position: 'absolute',
         top: fixedHeaderOffset,
         responsiveContainer: function($table){
           return $table.closest(".table-responsive");

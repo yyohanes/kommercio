@@ -45,7 +45,7 @@ class UrlAlias extends Model
         $aliases = $qb->get();
 
         foreach($aliases as $alias){
-            $alias->forceDelete();
+            $alias->delete();
         }
     }
 }

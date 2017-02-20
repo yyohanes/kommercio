@@ -124,3 +124,7 @@
 .child-line-item-header td:first-child, .child-line-item td:first-child {
   padding-left: 2em;
 }
+/* line 148, sass/app.scss */
+.child-line-item-header .product-image, .child-line-item .product-image {
+  width: 50px !important;
+}

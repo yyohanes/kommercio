@@ -44,13 +44,14 @@
                     <thead>
                     <tr>
                         <th></th>
-                        <th>{{ \Kommercio\Models\Order\OrderLimit::getTypeOptions($type) }}</th>
+                        <th>Items</th>
                         <th>Limit</th>
                         <th>Store</th>
                         <th>Type</th>
                         <th>Date From</th>
                         <th>Date To</th>
                         <th>Active</th>
+                        <th>Backoffice</th>
                         <th style="width: 20%;">Action</th>
                     </tr>
                     </thead>
@@ -66,11 +67,21 @@
                                 @endcan
                             </td>
                             <td>
-                                <ul>
-                                    @foreach($orderLimit->getItems() as $item)
-                                    <li>{{ $item->name }}</li>
+                                @if($orderLimit->products->count() > 0)
+                                <p><span class="badge badge-info">Products</span><br/>
+                                    @foreach($orderLimit->products as $item)
+                                    - {{ $item->name }}<br/>
                                     @endforeach
-                                </ul>
+                                </p>
+                                @endif
+
+                                @if($orderLimit->productCategories->count() > 0)
+                                    <p><span class="badge badge-success">Product Categories</span><br/>
+                                        @foreach($orderLimit->productCategories as $item)
+                                            - {{ $item->name }}<br/>
+                                        @endforeach
+                                    </p>
+                                @endif
                             </td>
                             <td>
                                 {{ $orderLimit->limit+0 }}
@@ -92,6 +103,7 @@
                                 {{ $orderLimit->date_to?$orderLimit->date_to->format('d M Y H:i'):null }}
                             </td>
                             <td> <i class="fa {{ $orderLimit->active?'fa-check text-success':'fa-remove text-danger' }}"></i> </td>
+                            <td> <i class="fa {{ $orderLimit->backoffice?'fa-check text-success':'fa-remove text-danger' }}"></i> </td>
                             <td class="text-center">
                                 {!! Form::open(['route' => ['backend.order_limit.delete', 'id' => $orderLimit->id]]) !!}
                                 <div class="btn-group btn-group-sm">

@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Kommercio\Facades\CurrencyHelper;
 use Kommercio\Facades\PriceFormatter;
+use Kommercio\Facades\ProjectHelper;
 use Kommercio\Models\Interfaces\AuthorSignatureInterface;
 use Kommercio\Models\PriceRule\CartPriceRule;
 use Kommercio\Models\PriceRule\Coupon;
@@ -35,17 +36,8 @@ class Order extends Model implements AuthorSignatureInterface
 
     public static $processedStatus = [self::STATUS_PENDING, self::STATUS_PROCESSING];
 
-    public $referenceFormat;
-
     protected $guarded = ['shippingProfile', 'billingProfile'];
     protected $dates = ['deleted_at', 'delivery_date', 'checkout_at'];
-
-    public function __construct($attributes = [])
-    {
-        $this->referenceFormat = config('project.order_number_format');
-
-        parent::__construct($attributes);
-    }
 
     //Relations
     public function lineItems()
@@ -90,7 +82,12 @@ class Order extends Model implements AuthorSignatureInterface
 
     public function payments()
     {
-        return $this->hasMany('Kommercio\Models\Order\Payment');
+        return $this->hasMany('Kommercio\Models\Order\Payment')->counted();
+    }
+
+    public function invoices()
+    {
+        return $this->hasMany('Kommercio\Models\Order\Invoice');
     }
 
     public function comments()
@@ -169,10 +166,10 @@ class Order extends Model implements AuthorSignatureInterface
     {
         $existingLineItems = $this->getProductLineItems();
 
-        //if already exists
+        //if already exists and not customized or composite
         $alreadyExist = FALSE;
         foreach($existingLineItems as $existingLineItem){
-            if($existingLineItem->line_item_id == $product->id){
+            if($existingLineItem->line_item_id == $product->id && empty($options['children']) && empty($options['configurations'])){
                 $alreadyExist = TRUE;
                 $existingLineItem->quantity += $quantity;
                 $existingLineItem->calculateTotal();
@@ -182,14 +179,35 @@ class Order extends Model implements AuthorSignatureInterface
         }
 
         if(!$alreadyExist){
-            $lineItem = new LineItem();
-            $lineItem->order()->associate($this);
-            $lineItem->processData([
+            $lineItemDatum = [
                 'line_item_type' => 'product',
                 'net_price' => $product->getNetPrice(),
                 'quantity' => $quantity,
-                'sku' => $product->sku
-            ]);
+                'sku' => $product->sku,
+                'configurations' => isset($options['configurations'][$product->id])?$options['configurations'][$product->id]:[]
+            ];
+
+            if(!empty($options['children'])){
+                foreach($options['children'] as $compositeId => $children){
+                    $lineItemDatum['children'][$compositeId] = [];
+
+                    foreach($children as $child){
+                        $childProduct = Product::findOrFail($child['product_id']);
+                        $lineItemDatum['children'][$compositeId][] = [
+                            'line_item_type' => 'product',
+                            'net_price' => $childProduct->getNetPrice(),
+                            'quantity' => $child['quantity'],
+                            'sku' => $childProduct->sku,
+                            'product_composite_id' => $compositeId,
+                            'configurations' => isset($options['configurations'][$childProduct->id])?$options['configurations'][$childProduct->id]:[]
+                        ];
+                    }
+                }
+            }
+
+            $lineItem = new LineItem();
+            $lineItem->order()->associate($this);
+            $lineItem->processData($lineItemDatum);
             $lineItem->save();
         }
 
@@ -364,10 +382,10 @@ class Order extends Model implements AuthorSignatureInterface
 
     public function generateReference()
     {
-        $format = $this->referenceFormat;
+        $format = ProjectHelper::getConfig('order_options.reference_format');
         $formatElements = explode(':', $format);
 
-        $counterLength = config('project.order_number_counter_length');
+        $counterLength = ProjectHelper::getConfig('order_options.reference_counter_length');
 
         $lastOrder = self::checkout()
             ->whereRaw("DATE_FORMAT(checkout_at, '%d-%m-%Y') = ?", [$this->checkout_at->format('d-m-Y')])
@@ -404,7 +422,26 @@ class Order extends Model implements AuthorSignatureInterface
         }
 
         $this->reference = $orderReference;
+
+        //Final duplicate order reference check
+        while(self::checkout()->where('reference', $orderReference)->count() > 0){
+            $orderReference = $this->generateReference();
+        }
+
         return $orderReference;
+    }
+
+    public function generatePublicId()
+    {
+        $uuid = ProjectHelper::generateUuid();
+
+        $this->public_id = $uuid;
+
+        while(self::where('public_id', $uuid)->count() > 0){
+            $uuid = $this->generatePublicId();
+        }
+
+        return $uuid;
     }
 
     public function processStocks()
@@ -510,7 +547,7 @@ class Order extends Model implements AuthorSignatureInterface
 
     public function calculateSubtotal()
     {
-        $this->subtotal = $this->calculateProductTotal();
+        $this->subtotal = $this->calculateProductTotal() + $this->calculateAdditionalTotal();
         $this->subtotal = PriceFormatter::round($this->subtotal);
 
         return $this->subtotal;
@@ -600,13 +637,12 @@ class Order extends Model implements AuthorSignatureInterface
     public function calculateTotal()
     {
         $subtotal = $this->calculateSubtotal();
-        $additionalTotal = $this->calculateAdditionalTotal();
         $shippingTotal = $this->calculateShippingTotal();
         $discountTotal = $this->calculateDiscountTotal();
         $taxTotal = $this->calculateTaxTotal();
         $taxError = $this->calculateTaxError();
 
-        $this->total = PriceFormatter::round($subtotal + $shippingTotal + $discountTotal + $additionalTotal + $taxTotal);
+        $this->total = PriceFormatter::round($subtotal + $shippingTotal + $discountTotal + $taxTotal);
         $beforeRoundingTotal = $this->total;
 
         $this->total = PriceFormatter::round($this->total, config('project.total_precision'), config('project.total_rounding'));
@@ -702,6 +738,19 @@ class Order extends Model implements AuthorSignatureInterface
 
         foreach($queriedLineItems as $lineItem){
             if($lineItem->isProduct){
+                $lineItems[] = $lineItem;
+            }
+        }
+
+        return $lineItems;
+    }
+
+    public function getFeeLineItems()
+    {
+        $lineItems = [];
+
+        foreach($this->lineItems as $lineItem){
+            if($lineItem->isFee){
                 $lineItems[] = $lineItem;
             }
         }
@@ -879,7 +928,7 @@ class Order extends Model implements AuthorSignatureInterface
 
     public function scopeProcessed($query)
     {
-        $query->whereIn('status', config('project.processed_order_status', self::$processedStatus));
+        $query->whereIn('status', ProjectHelper::getConfig('order_options.processed_order_status', self::$processedStatus));
     }
 
     public function scopeWhereHasLineItem($query, $line_item_id, $line_item_type)
@@ -912,9 +961,16 @@ class Order extends Model implements AuthorSignatureInterface
         return $count;
     }
 
+    public function getProductsCountAttribute()
+    {
+        $productLineItems = $this->getProductLineItems();
+
+        return count($productLineItems);
+    }
+
     public function getIsCancellableAttribute()
     {
-        return in_array($this->status, [self::STATUS_PENDING, self::STATUS_PROCESSING]) || (Gate::allows('access', ['cancel_settled_order']) && !in_array($this->status, [Order::STATUS_COMPLETED]));
+        return in_array($this->status, [self::STATUS_PENDING, self::STATUS_PROCESSING]) || (Gate::allows('access', ['cancel_settled_order']) && !in_array($this->status, [self::STATUS_CANCELLED, Order::STATUS_COMPLETED]));
     }
 
     public function getIsCompleteableAttribute()
@@ -963,6 +1019,8 @@ class Order extends Model implements AuthorSignatureInterface
     {
         if($this->shippingProfile){
             $this->shippingProfile->fillDetails();
+        }else{
+            return new Profile();
         }
 
         return $this->shippingProfile;
@@ -972,6 +1030,8 @@ class Order extends Model implements AuthorSignatureInterface
     {
         if($this->billingProfile){
             $this->billingProfile->fillDetails();
+        }else{
+            return new Profile();
         }
 
         return $this->billingProfile;
@@ -982,6 +1042,21 @@ class Order extends Model implements AuthorSignatureInterface
         $additionalFields = $this->getData('additional_fields', []);
 
         return $additionalFields;
+    }
+
+    public function getPaymentStatusAttribute()
+    {
+        $outstanding = $this->getOutstandingAmount();
+
+        $status = 'unpaid';
+
+        if($outstanding <= 0){
+            $status = 'paid';
+        }elseif($outstanding < $this->total){
+            $status = 'partial';
+        }
+
+        return $status;
     }
 
     //Mutators
@@ -1028,9 +1103,24 @@ class Order extends Model implements AuthorSignatureInterface
         return $array[$process];
     }
 
+    /**
+     * @param $public_id Public ID of the invoice
+     * @return self
+     */
+    public static function findPublic($public_id)
+    {
+        return self::where('public_id', $public_id)->first();
+    }
+
     protected static function boot()
     {
         parent::boot();
+
+        static::saving(function($model){
+            if(empty($model->public_id)){
+                $model->generatePublicId();
+            }
+        });
 
         static::deleted(function($model){
             if($model->forceDeleting){

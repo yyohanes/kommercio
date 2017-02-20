@@ -6,11 +6,11 @@
         <i class="fa fa-circle"></i>
     </li>
     <li>
-        <a href="{{ route('backend.catalog.product_feature.index') }}"><span>Product Feature</span></a>
+        <a href="{{ route('backend.catalog.product_feature.index') }}"><span>Feature</span></a>
         <i class="fa fa-circle"></i>
     </li>
     <li>
-        <span>Create Product Feature</span>
+        <span>Create Feature</span>
     </li>
 @stop
 
@@ -20,7 +20,7 @@
         <div class="portlet light portlet-fit portlet-form bordered">
             <div class="portlet-title">
                 <div class="caption">
-                    <span class="caption-subject sbold uppercase"> Create Product Feature </span>
+                    <span class="caption-subject sbold uppercase"> Create Feature </span>
                 </div>
                 <div class="actions">
                     <button class="btn btn-primary btn-sm"><i class="fa fa-save"></i> Save </button>

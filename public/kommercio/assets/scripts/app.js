@@ -1,4 +1,10 @@
 var KommercioFrontend = function(){
+  var loadedScripts = [];
+
+  function isFunction(x) {
+    return Object.prototype.toString.call(x) == '[object Function]';
+  }
+
   return {
     init: function () {
       this.csrfHeaderSetup(global_vars.csrf_token);
@@ -67,10 +73,41 @@ var KommercioFrontend = function(){
     clearErrors: function (context) {
       $('.has-error', context).removeClass('has-error');
       $('.help-block', context).remove();
-    }
+      $('.alert-danger', context).remove();
+    },
+    toggleOverlay: function($to, $toggleTo)
+    {
+      if($toggleTo){
+        if($to.find('.loading-overlay').length == 0){
+          $to.append('<div class="loading-overlay" />');
+        }
+      }else{
+        $to.find('.loading-overlay').remove();
+      }
+    },
+    loadJSScript: function(path, onLoad) {
+      if(loadedScripts.indexOf(path) < 0){
+        $.getScript(path)
+            .done(function() {
+              loadedScripts.push(path);
+
+              if($.isFunction(onLoad)){
+                onLoad();
+              }
+            })
+            .fail(function() {
+              /* boo, fall back to something else */
+            });
+      }else{
+        if($.isFunction(onLoad)){
+          onLoad();
+        }
+      }
+    },
+    runtimeObjects: {}
   }
 }();
 
 jQuery(document).ready(function() {
-    KommercioFrontend.init();
+  KommercioFrontend.init();
 });

@@ -1,5 +1,6 @@
 @foreach($payments as $payment)
     <tr>
+        <td> {{ $payment->invoice->reference }} </td>
         <td> {{ $payment->payment_date?$payment->payment_date->format('D, d M Y'):null }} </td>
         <td> {{ PriceFormatter::formatNumber($payment->amount, $payment->currency) }} </td>
         <td> <span class="label bg-{{ OrderHelper::getPaymentStatusLabelClass($payment->status) }} bg-font-{{ OrderHelper::getPaymentStatusLabelClass($payment->status) }}">{{ \Kommercio\Models\Order\Payment::getStatusOptions($payment->status) }}</span> </td>
@@ -13,17 +14,17 @@
                 <li class="list-group-item">
                     Payment entered by {{ $payment->createdBy?$payment->createdBy->email:'Customer' }}<br/>
                     @if($payment->notes)
-                    Notes:<br/>{!! nl2br($payment->notes) !!}
+                    <pre>Notes:<br/>{!! nl2br($payment->notes) !!}</pre>
                     @endif
                     <span class="badge badge-default">{{ $payment->created_at->format('d-m-Y H:i') }}</span>
                 </li>
                 @foreach($payment->getHistory() as $history)
                     <li class="list-group-item">
-                        Payment set to {{ $history['status'] }} by {{ $history['by'] }}<br/>
-                        @if($history['notes'])
-                        Reason: {!! nl2br($history['notes']) !!}
+                        Payment set to {{ \Kommercio\Models\Order\Payment::getStatusOptions($history->value) }} by {{ $history->author }}<br/>
+                        @if($history->notes)
+                        <pre>Reason: {!! nl2br($history->notes) !!}</pre>
                         @endif
-                        <span class="badge badge-default">{{ $history['at']?\Carbon\Carbon::parse($history['at'])->format('d-m-Y H:i'):null }}</span>
+                        <span class="badge badge-default">{{ $history->created_at->format('d-m-Y H:i') }}</span>
                     </li>
                 @endforeach
             </ul>

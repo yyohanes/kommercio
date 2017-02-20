@@ -129,7 +129,7 @@
                 </div>
             </div>
             <div class="portlet-body" id="order-content-wrapper" data-order_edit="{{ isset($editOrder)?$editOrder:false }}">
-                <table id="line-items-table" class="table table-hover table-bordered table-striped fixed-header-table">
+                <table id="line-items-table" class="table table-hover table-bordered table-striped">
                     <thead>
                     <tr>
                         <th> Item </th>
@@ -161,6 +161,7 @@
                         @endif
                     </tbody>
                 </table>
+
                 <div class="clearfix">
                     <a href="#" id ="add-product-lineitem" class="btn btn-default btn-sm"><i class="fa fa-tag"></i> Add Product</a>
                     <a href="#" id="add-fee-lineitem" class="btn btn-default btn-sm"><i class="fa fa-ellipsis-h"></i> Add Fee</a>
@@ -179,6 +180,21 @@
                         <a href="#" id="add-shipping-lineitem" class="btn btn-default btn-sm" data-shipping_options="{{ route('backend.sales.order.shipping_options') }}"><i class="fa fa-truck"></i> Add Shipping</a>
                     </div>
                 </div>
+
+                @if(ProjectHelper::isFeatureEnabled('order.order_limit'))
+                <div style="margin-top: 10px;" class="row">
+                    <div class="col-md-5">
+                        <table id="category-limit-wrapper" class="table">
+                            <thead>
+                                <tr>
+                                    <th>Category Limits</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+                @endif
             </div>
         </div>
     </div>
@@ -279,6 +295,8 @@
     </div>
 </div>
 
+{!! Form::hidden('checkout_at', $order->checkout_at?:null) !!}
+{!! Form::hidden('order_id', $order->id) !!}
 {!! Form::hidden('currency', CurrencyHelper::getCurrentCurrency()['code'], ['id' => 'currency-input']) !!}
 {!! Form::hidden('backUrl', Request::input('backUrl')) !!}
 
@@ -302,6 +320,7 @@
         global_vars.get_reward_points_path = '{{ route('backend.customer.reward_rule.get') }}';
         global_vars.get_tax_path = '{{ route('backend.tax.get') }}';
         global_vars.get_product_availability = '{{ route('backend.catalog.product.availability', ['id' => null]) }}';
+        global_vars.get_category_availability = '{{ route('backend.sales.order.category_availability') }}';
         global_vars.get_availability_calendar = '{{ route('catalog.product.availability_calendar') }}';
     </script>
 

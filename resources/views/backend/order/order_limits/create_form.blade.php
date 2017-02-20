@@ -1,33 +1,39 @@
-<?php
-switch($type){
-    case \Kommercio\Models\Order\OrderLimit::TYPE_PRODUCT_CATEGORY:
-        $sourceUrl = route('backend.catalog.category.autocomplete');
-        $valueProperty = 'name';
-        break;
-    default:
-        $sourceUrl = route('backend.catalog.product.autocomplete');
-        $valueProperty = 'sku';
-        break;
-
-}
-?>
+@if($type == \Kommercio\Models\Order\OrderLimit::TYPE_PRODUCT)
 @include('backend.master.form.fields.select', [
-    'name' => 'items[]',
-    'label' => str_plural(\Kommercio\Models\Order\OrderLimit::getTypeOptions($type)),
-    'key' => 'items',
+    'name' => 'products[]',
+    'label' => 'Products',
+    'key' => 'products',
     'attr' => [
         'class' => 'form-control select2-ajax',
-        'id' => 'items',
+        'id' => 'products',
         'multiple' => TRUE,
-        'data-remote_source' => $sourceUrl,
-        'data-remote_value_property' => $valueProperty,
+        'data-remote_source' => $productSourceUrl,
+        'data-remote_value_property' => 'sku',
         'data-remote_label_property' => 'name'
     ],
-    'required' => TRUE,
     'valueColumnClass' => 'col-md-6',
-    'options' => $defaultItems,
-    'defaultOptions' => array_keys($defaultItems),
-    'help_text' => 'You can select more than one '.\Kommercio\Models\Order\OrderLimit::getTypeOptions($type)
+    'options' => $defaultProducts,
+    'defaultOptions' => array_keys($defaultProducts),
+    'help_text' => 'You can select more than one Product'
+])
+@endif
+
+@include('backend.master.form.fields.select', [
+    'name' => 'categories[]',
+    'label' => 'Product Categories',
+    'key' => 'categories',
+    'attr' => [
+        'class' => 'form-control select2-ajax',
+        'id' => 'categories',
+        'multiple' => TRUE,
+        'data-remote_source' => $categorySourceUrl,
+        'data-remote_value_property' => 'name',
+        'data-remote_label_property' => 'name'
+    ],
+    'valueColumnClass' => 'col-md-6',
+    'options' => $defaultProductCategories,
+    'defaultOptions' => array_keys($defaultProductCategories),
+    'help_text' => 'You can select more than one Product Category'
 ])
 
 @include('backend.master.form.fields.select', [
@@ -103,7 +109,7 @@ switch($type){
                 <div class="checkbox-list">
                     @foreach($days as $dayIdx => $day)
                         <label class="checkbox-inline">
-                            {!! Form::checkbox('dayRules['.$idx.'][days][]', $dayIdx, $dayRule->$dayIdx) !!} {{ $day }} </label>
+                            {!! Form::checkbox('dayRules['.$idx.'][days][]', $dayIdx, is_object($dayRules)?$dayRule->$dayIdx:null) !!} {{ $day }} </label>
                     @endforeach
                 </div>
             </div>
@@ -117,6 +123,20 @@ switch($type){
     'key' => 'active',
     'value' => 1,
     'checked' => $orderLimit->exists?$orderLimit->active:true,
+    'attr' => [
+        'class' => 'make-switch',
+        'id' => 'active',
+        'data-on-color' => 'warning'
+    ],
+])
+
+@include('backend.master.form.fields.checkbox', [
+    'name' => 'backoffice',
+    'label' => 'Backoffice',
+    'key' => 'backoffice',
+    'value' => 1,
+    'help_text' => 'Check if this limit is applied to Backoffice',
+    'checked' => $orderLimit->exists?$orderLimit->backoffice:true,
     'attr' => [
         'class' => 'make-switch',
         'id' => 'active',

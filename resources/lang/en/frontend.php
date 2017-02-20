@@ -11,7 +11,10 @@ return [
         'product_category' => 'Category'
     ],
     'product' => [
-        'not_active' => 'This item is not accessible.'
+        'not_active' => 'This item is not accessible.',
+        'composite' => [
+            'not_belong' => 'Product can\'t be customized.'
+        ]
     ],
     'product_category' => [
         'not_active' => 'This item is not accessible.'
@@ -22,12 +25,26 @@ return [
         'updated_cart' => 'Cart has been updated.',
         'coupon_added' => 'Coupon is successfully added.',
         'coupon_removed' => 'Coupon is successfully removed.',
-        'cart_clear' => 'Your cart is cleared.'
+        'cart_clear' => 'Your cart is cleared.',
+        'invoice' => [
+            'payment' => [
+                'success' => 'Payment successful. Thank you for making the payment.'
+            ]
+        ],
+    ],
+    'bookmark' => [
+        'not_exist' => 'Bookmark doesn\'t exist',
+        'not_logged_in' => 'Please login to add product to :bookmark',
+        'added' => ':product is added to :bookmark',
+        'removed' => ':product is removed from :bookmark',
     ],
     'checkout' => [
         'empty_order' => 'Your order is empty.',
         'checkout_complete' => 'Your order is successful. Please check your inbox for email confirmation.',
-        'order_not_complete' => 'Order is not completed yet.'
+        'order_not_complete' => 'Order is not completed yet.',
+        'payment' => [
+            'error' => 'Payment unsuccessful. Please try again or select another payment method.'
+        ]
     ],
     'login' => [
         'invalid_password' => 'Password is invalid.'
@@ -54,7 +71,7 @@ return [
         ],
         'reward' => [
             'redeem_successful' => 'You have successfully redeemed :reward.'
-        ]
+        ],
     ],
     'seo' => [
         'member' => [
@@ -101,6 +118,11 @@ return [
                 ],
                 'edit' => [
                     'meta_title' => 'Edit Address Book',
+                ]
+            ],
+            'bookmark' => [
+                'index' => [
+                    'meta_title' => 'My Bookmarks'
                 ]
             ]
         ],

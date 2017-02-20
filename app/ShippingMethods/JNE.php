@@ -11,10 +11,8 @@ use Kommercio\Models\Address\District;
 use Kommercio\Models\Order\Order;
 use Kommercio\Models\ShippingMethod\ShippingMethod;
 
-class JNE implements ShippingMethodInterface
+class JNE extends ShippingMethodAbstract
 {
-    protected $shippingMethod;
-
     public function getAvailableMethods()
     {
         $methods = [
@@ -57,23 +55,6 @@ class JNE implements ShippingMethodInterface
         ];
 
         return $methods;
-    }
-
-    public function validate($options = null)
-    {
-        $valid = TRUE;
-
-        return $valid;
-    }
-
-    public function requireAddress()
-    {
-        return TRUE;
-    }
-
-    public function setShippingMethod(ShippingMethod $shippingMethod)
-    {
-        $this->shippingMethod = $shippingMethod;
     }
 
     public function getPrices($options = null)
@@ -139,10 +120,5 @@ class JNE implements ShippingMethodInterface
         }
 
         return $return;
-    }
-
-    public function beforePlaceOrder(Order $order)
-    {
-
     }
 }

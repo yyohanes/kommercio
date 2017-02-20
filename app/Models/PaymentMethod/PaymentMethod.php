@@ -4,6 +4,8 @@ namespace Kommercio\Models\PaymentMethod;
 
 use Dimsav\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Model;
+use Kommercio\Models\Order\Order;
+use Kommercio\Models\Order\Payment;
 use Kommercio\Traits\Model\HasDataColumn;
 
 class PaymentMethod extends Model
@@ -14,6 +16,7 @@ class PaymentMethod extends Model
     public $translatedAttributes = ['name', 'message'];
 
     protected $fillable = ['name', 'class', 'message', 'sort_order'];
+    private $_processor;
 
     //Relations
     public function payments()
@@ -21,7 +24,10 @@ class PaymentMethod extends Model
         return $this->hasMany('Kommercio\Models\Order\Payment');
     }
 
-    private $_processor;
+    public function orders()
+    {
+        return $this->hasMany('Kommercio\Models\Order\Order');
+    }
 
     //Methods
     public function getProcessor()
@@ -44,6 +50,24 @@ class PaymentMethod extends Model
         }
 
         return $this->_processor;
+    }
+
+    /**
+     * Render payment method form
+     *
+     * @param Order $order Order from which to render payment form
+     * @return null|string
+     * @throws \Exception
+     * @throws \Throwable
+     */
+    public function renderForm(Order $order)
+    {
+        return $this->getProcessor()->getCheckoutForm($order);
+    }
+
+    public function renderSummary(Order $order)
+    {
+        return $this->getProcessor()->getSummary($order);
     }
 
     //Statics

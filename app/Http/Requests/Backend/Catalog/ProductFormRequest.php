@@ -51,6 +51,8 @@ class ProductFormRequest extends Request
             'stock' => 'numeric',
             'variation.*.stock' => 'numeric',
             'variation.*.productDetail.manage_stock' => 'boolean',
+            'product_composite_group.*' => 'exists:product_composite_groups,id',
+            'product_configuration_group.*' => 'exists:product_configuration_groups,id'
         ];
 
         if($this->has('compositeConfigurations')){

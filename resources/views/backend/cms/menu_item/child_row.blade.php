@@ -23,7 +23,7 @@
                 </table>
             </div>
 
-            @include('backend.cms.menu_item.child_row', ['menuItems' => $menuItem->children])
+            @include('backend.cms.menu_item.child_row', ['menuItems' => $menuItem->allChildren])
         </li>
     @endforeach
 </ol>

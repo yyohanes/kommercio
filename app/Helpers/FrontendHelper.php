@@ -240,7 +240,10 @@ class FrontendHelper
         }
 
         if(empty($this->_currentOrder)){
+            $store = ProjectHelperFacade::getActiveStore();
+
             $order = new Order();
+            $order->store()->associate($store);
             $order->ip_address = RequestFacade::ip();
             $order->user_agent = RequestFacade::header('User-Agent');
             $order->status = Order::STATUS_CART;

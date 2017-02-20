@@ -11,24 +11,14 @@ use Kommercio\Facades\LanguageHelper;
 use Kommercio\Facades\NewsletterSubscriptionHelper;
 use Kommercio\Facades\ProjectHelper;
 use Kommercio\Facades\RuntimeCache;
-use Kommercio\Http\Controllers\Controller;
 use Kommercio\Models\Customer;
 use Kommercio\Models\Order\Order;
 use Kommercio\Models\Profile\Profile;
 use Kommercio\Models\RewardPoint\Redemption;
 use Kommercio\Models\RewardPoint\Reward;
 
-class AccountController extends Controller
+class AccountController extends LoggedInController
 {
-    public $user;
-    public $customer;
-
-    public function __construct()
-    {
-        $this->user = Auth::user();
-        $this->customer = $this->user?$this->user->customer:null;
-    }
-
     public function account()
     {
         $viewName = ProjectHelper::getViewTemplate('frontend.member.dashboard');
@@ -144,9 +134,9 @@ class AccountController extends Controller
     public function orders(Request $request)
     {
         $options = [
-            'limit' => $request->input('limit', ProjectHelper::getConfig('order_options.limit')),
-            'sort_by' => $request->input('sort_by', ProjectHelper::getConfig('order_options.sort_by')),
-            'sort_dir' => $request->input('sort_dir', ProjectHelper::getConfig('order_options.sort_dir'))
+            'limit' => $request->input('limit', ProjectHelper::getConfig('order_history_options.limit')),
+            'sort_by' => $request->input('sort_by', ProjectHelper::getConfig('order_history_options.sort_by')),
+            'sort_dir' => $request->input('sort_dir', ProjectHelper::getConfig('order_history_options.sort_dir'))
         ];
 
         $qb = Order::checkout()->where('customer_id', $this->customer->id);

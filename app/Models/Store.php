@@ -4,15 +4,31 @@ namespace Kommercio\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
+use Kommercio\Traits\Model\HasDataColumn;
 
 class Store extends Model
 {
+    use HasDataColumn;
+
     const TYPE_ONLINE = 'online';
     const TYPE_OFFLINE = 'offline';
 
-    protected $guarded = ['warehouses'];
+    protected $guarded = ['warehouses', 'contacts'];
+
+    //Relations
+    public function orders()
+    {
+        return $this->hasMany('Kommercio\Models\Order\Order');
+    }
 
     //Accessors
+    public function getOrderCountAttribute()
+    {
+        $count = $this->orders()->checkout()->count();
+
+        return $count;
+    }
+
     public function getProductCountAttribute()
     {
         return $this->productDetails->count();

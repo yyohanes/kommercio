@@ -3,7 +3,7 @@ $menus = config('backend_menu');
 $count = 0;
 ?>
 
-<ul class="page-sidebar-menu page-header-fixed" data-keep-expanded="true" data-auto-scroll="true" data-slide-speed="200">
+<ul class="page-sidebar-menu page-header-fixed" data-keep-expanded="true" data-auto-scroll="false" data-slide-speed="200">
     <li class="sidebar-toggler-wrapper hide">
         <!-- BEGIN SIDEBAR TOGGLER BUTTON -->
         <div class="sidebar-toggler"> </div>

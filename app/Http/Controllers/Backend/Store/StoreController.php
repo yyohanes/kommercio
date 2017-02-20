@@ -31,6 +31,7 @@ class StoreController extends Controller{
     {
         $store = new Store();
         $store->fill($request->all());
+        $store->setData('contacts', $request->input('contacts'));
         $store->save();
 
         $store->warehouses()->sync($request->input('warehouses', []));
@@ -52,6 +53,7 @@ class StoreController extends Controller{
         $store = Store::findOrFail($id);
 
         $store->fill($request->all());
+        $store->setData('contacts', $request->input('contacts'));
         $store->save();
 
         $store->warehouses()->sync($request->input('warehouses', []));
@@ -65,8 +67,17 @@ class StoreController extends Controller{
 
         $name = $store->name;
 
+        if(!$this->deleteable($store)){
+            return redirect()->back()->withErrors('There are Orders in this store, thus can no longer be deleted.');
+        }
+
         $store->delete();
 
         return redirect()->back()->with('success', [$name.' has been deleted.']);
+    }
+
+    protected function deleteable(Store $store)
+    {
+        return $store->orderCount < 1;
     }
 }

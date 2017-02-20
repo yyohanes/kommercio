@@ -4,38 +4,18 @@ namespace Kommercio\PaymentMethods;
 
 use Carbon\Carbon;
 use Kommercio\Facades\ProjectHelper;
+use Kommercio\Models\Order\Order;
 use Kommercio\Models\Order\Payment;
 use Kommercio\Models\PaymentMethod\PaymentMethod;
 use Illuminate\Http\Request;
 
-class Stripe implements PaymentMethodInterface, PaymentMethodSettingFormInterface
+class Stripe extends PaymentMethodAbstract implements PaymentMethodSettingFormInterface
 {
-    protected $paymentMethod;
-
-    public function validate($options = null)
+    public function getCheckoutForm(Order $order, $options = null)
     {
-        $valid = TRUE;
+        $view = ProjectHelper::getViewTemplate('frontend.order.payment_method.stripe');
 
-        if(isset($options['frontend'])){
-            //$valid = $options['frontend'];
-        }
-
-        return $valid;
-    }
-
-    public function isExternalCheckout()
-    {
-        return false;
-    }
-
-    public function setPaymentMethod(PaymentMethod $paymentMethod)
-    {
-        $this->paymentMethod = $paymentMethod;
-    }
-
-    public function getCheckoutForm($options = null)
-    {
-        return ProjectHelper::getViewTemplate('frontend.order.payment_method.stripe');
+        return view($view, ['order' => $order, 'paymentMethod' => $this->paymentMethod])->render();
     }
 
     public function getValidationRules($options = null)
@@ -71,29 +51,26 @@ class Stripe implements PaymentMethodInterface, PaymentMethodSettingFormInterfac
                     ]
                 ));
 
-                $paymentData = [
-                    'payment_method_id' => $this->paymentMethod->id,
-                    'amount' => $order->total,
-                    'currency' => $order->currency,
-                    'status' => Payment::STATUS_PENDING,
-                    'order_id' => $order->id,
+                $notes = "Card Detail"."\r\n";
+                $notes .= "Type: ".$charge->source->brand."\r\n";
+                $notes .= "Country: ".$charge->source->country."\r\n";
+                $notes .= "Last4: ".$charge->source->last4."\r\n";
+
+                $options = [
+                    'data' => [
+                        'stripe' => $charge
+                    ]
                 ];
 
-                $paymentData['notes'] = "Card Detail"."\r\n";
-                $paymentData['notes'] .= "Type: ".$charge->source->brand."\r\n";
-                $paymentData['notes'] .= "Country: ".$charge->source->country."\r\n";
-                $paymentData['notes'] .= "Last4: ".$charge->source->last4."\r\n";
+                $invoice = isset($options['invoice'])?$options['invoice']:null;
 
-                $payment = new Payment();
-                $payment->fill($paymentData);
-                $payment->status = Payment::STATUS_SUCCESS;
-                $payment->payment_date = Carbon::now();
-                $payment->saveData(['stripe' => $charge]);
-                $payment->save();
+                $payment = Payment::createPayment($order, $invoice, Payment::STATUS_SUCCESS, $this->paymentMethod, $notes, $options);
+
+                return $payment;
             }catch(\Stripe\Error\Base $e){
                 $body = $e->getJsonBody();
                 $err  = $body['error'];
-                return $err['message'];
+                return [$err['message']];
             }
         }
     }
@@ -117,9 +94,14 @@ class Stripe implements PaymentMethodInterface, PaymentMethodSettingFormInterfac
         }
     }
 
+    public function saveForm(Request $request)
+    {
+
+    }
+
     public function settingForm()
     {
-        return ProjectHelper::getViewTemplate('backend.payment_method.stripe.additional_setting_form');
+        return ProjectHelper::getViewTemplate('backend.payment_method.Stripe.additional_setting_form');
     }
 
     public function getPublishableKey()

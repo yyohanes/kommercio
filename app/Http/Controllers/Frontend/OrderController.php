@@ -21,6 +21,7 @@ use Kommercio\Facades\NewsletterSubscriptionHelper;
 use Kommercio\Facades\OrderHelper;
 use Kommercio\Facades\PriceFormatter;
 use Kommercio\Facades\ProjectHelper;
+use Kommercio\Facades\RuntimeCache;
 use Kommercio\Http\Controllers\Controller;
 use Kommercio\Models\Customer;
 use Kommercio\Models\File;
@@ -33,6 +34,7 @@ use Kommercio\Models\Product;
 use Kommercio\Models\Profile\Profile;
 use Kommercio\Models\ShippingMethod\ShippingMethod;
 use Kommercio\Models\Store;
+use Kommercio\Models\Product\Configuration\ProductConfiguration;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
 class OrderController extends Controller
@@ -90,13 +92,25 @@ class OrderController extends Controller
         }
 
         if($request->input('update_cart', 0) == 1){
-            $rules = [
-                'products.*.id' => 'required|exists:products,id,deleted_at,NULL|is_available|is_active|is_purchaseable',
-                'products.*.quantity' => 'required|integer|min:0'
-            ];
+            foreach($request->input('products') as $idx => $inputProduct){
+                $rules['products.'.$idx.'.id'] = [
+                    'required',
+                    'exists:products,id,deleted_at,NULL',
+                    'is_available',
+                    'is_active',
+                    'is_purchaseable',
+                    'is_in_stock:'.$inputProduct['quantity'],
+                    'category_order_limit:'.$inputProduct['quantity'].','.$order->id,
+                    'per_order_limit:'.$inputProduct['quantity'].','.$order->id,
+                    'delivery_order_limit:'.$inputProduct['quantity'].','.$order->id.($order->delivery_date?','.$order->delivery_date->format('Y-m-d'):null),
+                    'today_order_limit:'.$inputProduct['quantity'].','.$order->id,
+                ];
 
-            foreach($request->input('products', []) as $idx => $productLineItem){
-                $rules['products.'.$idx.'.id'] = 'is_in_stock:'.$productLineItem['quantity'];
+                $rules['products.'.$idx.'.quantity'] = [
+                    'required',
+                    'integer',
+                    'min:0'
+                ];
             }
 
             $this->validate($request, $rules);
@@ -149,6 +163,7 @@ class OrderController extends Controller
                 'products.*.quantity' => 'required|integer|min:0'
             ];
 
+            //Bulk add
             $productData = $request->input('products');
         }else{
             $rules = [
@@ -156,8 +171,67 @@ class OrderController extends Controller
                 'quantity' => 'required|integer|min:0'
             ];
 
+            $product = RuntimeCache::getOrSet('product.'.$request->input('product_id'), function() use ($request){
+                return Product::findOrFail($request->input('product_id'));
+            });
+            $product = $product->parent?:$product;
+
+            //Composites
+            if($product->composites->count() > 0){
+                foreach($product->composites as $composite){
+                    $rules['product_composite.'.$composite->id] = $composite->minimum>0?'required|':'';
+                    $rules['product_composite.'.$composite->id] .= 'array|min:'.($composite->minimum+0);
+                    $rules['product_composite.'.$composite->id] .= $composite->maximum > 0?'|max:'.($composite->maximum+0):'';
+                }
+            }
+
+            $collectedConfigurations = [];
+
+            //Build Configurations rule together with collecting values
+            foreach($request->input('product_configuration', []) as $configuredProductId => $configurations){
+                $product = RuntimeCache::getOrSet('product.'.$configuredProductId, function() use ($configuredProductId){
+                    return Product::findOrFail($configuredProductId);
+                });
+                $product = $product->parent?:$product;
+
+                $collectedConfigurations[$configuredProductId] = [];
+
+                foreach($configurations as $configurationId => $configuration){
+                    $productConfiguration = $product->productConfigurationGroup->configurations->filter(function($row) use ($configurationId){
+                        return $row->id == $configurationId;
+                    })->first();
+
+                    if($productConfiguration){
+                        $rules['product_configuration.'.$configuredProductId.'.'.$configurationId] = $productConfiguration->buildRules();
+
+                        //Collect values
+                        $collectedConfigurations[$configuredProductId][$configurationId] = [
+                            'type' => $productConfiguration->type,
+                            'label' => $productConfiguration->name,
+                            'value' => $configuration
+                        ];
+                    }
+                }
+            }
+
+            //Collect Composite Values
+            foreach($request->input('product_composite', []) as $productCompositeId => $compositeProduct){
+                $children[$productCompositeId] = [];
+
+                foreach($compositeProduct as $compositeProductId => $compositeProductQuantity){
+                    $children[$productCompositeId][] = [
+                        'quantity' => $compositeProductQuantity,
+                        'product_id' => $compositeProductId
+                    ];
+                }
+            }
+
             $productData = [
-                ['product_id' => $request->input('product_id'), 'quantity' => $request->input('quantity')]
+                [
+                    'product_id' => $request->input('product_id'),
+                    'quantity' => $request->input('quantity'),
+                    'children' => isset($children)?$children:null
+                ]
             ];
         }
 
@@ -172,9 +246,14 @@ class OrderController extends Controller
         foreach($productData as $productDatum){
             $product_id = $productDatum['product_id'];
 
-            $product = Product::findOrFail($product_id);
+            $product = RuntimeCache::getOrSet('product.'.$product_id, function() use ($product_id){
+                return Product::findOrFail($product_id);
+            });
 
-            $order->addToCart($product, $productDatum['quantity']);
+            $order->addToCart($product, $productDatum['quantity'], [
+                'children' => isset($productDatum['children'])?$productDatum['children']:null,
+                'configurations' => $collectedConfigurations
+            ]);
 
             $added_products[] = $product;
 
@@ -191,6 +270,7 @@ class OrderController extends Controller
             return new JsonResponse([
                 'data' => [
                     'itemsCount' => $order->itemsCount,
+                    'productsCount' => $order->productsCount,
                     'total' => PriceFormatter::formatNumber($order->total),
                     'added_to_cart' => view($added_view_name, ['added_products' => $added_products])->render()
                 ],
@@ -198,9 +278,15 @@ class OrderController extends Controller
                 '_token' => csrf_token()
             ]);
         }else{
-            return redirect()
-                ->back()
-                ->with('success', $messages);
+            if($request->has('next_page')){
+                return redirect()
+                    ->to($request->input('next_page'))
+                    ->with('success', $messages);
+            }else{
+                return redirect()
+                    ->back()
+                    ->with('success', $messages);
+            }
         }
     }
 
@@ -558,9 +644,6 @@ class OrderController extends Controller
                         Auth::logout();
                     }
 
-                    //Save email to order
-                    $order->saveProfile('billing', ['email' => $request->input('billingProfile.email')]);
-
                     //If already logged in, next
                     if(Auth::check()){
                         $nextStep = 'customer_information';
@@ -568,6 +651,9 @@ class OrderController extends Controller
                         $nextStep = 'account';
                     }
                 }
+
+                //Save email to order
+                $order->saveProfile('billing', ['email' => $request->input('billingProfile.email')]);
 
                 break;
             case 'customer_information':
@@ -679,6 +765,12 @@ class OrderController extends Controller
                         'request' => $request
                     ]);
 
+                    //Set default shipping method if order has no shipping
+                    if(count($order->getShippingLineItems()) == 0 && count($shippingMethodOptions) > 0){
+                        $shippingMethodKeys = array_keys($shippingMethodOptions);
+                        $request->request->set('shipping_method', array_shift($shippingMethodKeys));
+                    }
+
                     $nextStep = 'checkout_summary';
                 }
                 break;
@@ -707,10 +799,10 @@ class OrderController extends Controller
                 $order->currency = $request->input('currency');
                 $order->conversion_rate = 1;
 
-                OrderHelper::processLineItems($request, $viewData['order'], false);
+                /*OrderHelper::processLineItems($request, $order, false);
 
                 $order->load('lineItems');
-                $order->calculateTotal();
+                $order->calculateTotal();*/
 
                 $nextStep = 'checkout_summary';
 
@@ -747,7 +839,7 @@ class OrderController extends Controller
 
                     $paymentResponse = $this->processFinalPayment($order, $order->paymentMethod, $request);
                     if(is_array($paymentResponse)){
-                        $errors = $paymentResponse;
+                        $errors += [$paymentResponse];
                     }
 
                     if(!$errors){
@@ -796,10 +888,10 @@ class OrderController extends Controller
                     if($request->input('shipping_method') == $idx){
                         $order->updateShippingMethod($request->input('shipping_method'));
 
-                        OrderHelper::processLineItems($request, $order, false);
+                        /*OrderHelper::processLineItems($request, $order, false);
 
                         $order->load('lineItems');
-                        $order->calculateTotal();
+                        $order->calculateTotal();*/
 
                         break;
                     }
@@ -809,6 +901,11 @@ class OrderController extends Controller
             if($request->has('additional_fields')){
                 $order->additional_fields = $request->input('additional_fields');
             }
+
+            OrderHelper::processLineItems($request, $order, false);
+
+            $order->load('lineItems');
+            $order->calculateTotal();
 
             $order->saveData(['checkout_step' => $viewData['step']]);
 
@@ -1226,6 +1323,12 @@ class OrderController extends Controller
             ];
         }
 
+        if(ProjectHelper::getConfig('checkout_options.shipping_method_position', 'review') == 'before_shipping_address'){
+            $ruleBook['customer_information'] += [
+                'shipping_method' => 'required'.(isset($shippingMethodOptions)?'|in:'.implode(',', array_keys($shippingMethodOptions)):''),
+            ];
+        }
+
         if(ProjectHelper::getConfig('require_billing_information')){
             $ruleBook['customer_information'] += [
                 'billingProfile.full_name' => 'required',
@@ -1262,6 +1365,7 @@ class OrderController extends Controller
                     'is_active',
                     'is_in_stock:'.$productLineItem->quantity,
                     'is_purchaseable',
+                    'category_order_limit:'.$productLineItem->quantity.','.$order->id,
                     'per_order_limit:'.$productLineItem->quantity.','.$order->id,
                     'delivery_order_limit:'.$productLineItem->quantity.','.$order->id.($order->delivery_date?','.$order->delivery_date->format('Y-m-d'):null),
                     'today_order_limit:'.$productLineItem->quantity.','.$order->id,

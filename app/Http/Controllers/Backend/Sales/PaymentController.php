@@ -8,11 +8,11 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Validator;
 use Kommercio\Events\OrderUpdate;
-use Kommercio\Events\PaymentEvent;
 use Kommercio\Facades\CurrencyHelper;
 use Kommercio\Facades\OrderHelper;
 use Kommercio\Facades\PriceFormatter;
 use Kommercio\Http\Controllers\Controller;
+use Kommercio\Models\Order\Invoice;
 use Kommercio\Models\Order\Order;
 use Kommercio\Models\Order\Payment;
 use Kommercio\Models\PaymentMethod\PaymentMethod;
@@ -48,12 +48,15 @@ class PaymentController extends Controller{
             $paymentMethodOptions[$paymentMethod->id] = $paymentMethod->name;
         }
 
+        $invoiceOptions = $order->invoices->pluck('reference', 'id')->all();
+
         $form = view('backend.order.payments.form', [
             'payment' => $payment,
             'order' => $order,
             'currencyOptions' => $currencyOptions,
             'paymentMethodOptions' => $paymentMethodOptions,
-            'outstanding' => $order->getOutstandingAmount()
+            'outstanding' => $order->getOutstandingAmount(),
+            'invoiceOptions' => $invoiceOptions
         ])->render();
 
         return response()->json([
@@ -67,6 +70,7 @@ class PaymentController extends Controller{
         $order = Order::findOrFail($order_id);
 
         $rules = [
+            'payment.invoice_id' => 'required|in:'.implode(',', $order->invoices->pluck('id')->all()),
             'payment.payment_method_id' => 'required',
             'payment.amount' => 'required|numeric|min:0',
             'payment.currency' => 'required',
@@ -80,7 +84,6 @@ class PaymentController extends Controller{
         $payment->order()->associate($order);
         $payment->status = Payment::STATUS_PENDING;
         $payment->payment_date = Carbon::now();
-
         $payment->save();
 
         if($request->has('attachments')){
@@ -153,13 +156,7 @@ class PaymentController extends Controller{
                 return redirect(route('backend.sales.order.view', ['id' => $payment->order->id]).'#tab_payments')->withErrors($validator);
             }
 
-            $payment->status = $status;
-            $payment->recordStatusChange($status, Auth::user()->email, $request->input('reason'));
-            $payment->save();
-
-            if($process == 'accept'){
-                Event::fire(new PaymentEvent('accept', $payment));
-            }
+            $payment->changeStatus($status, $request->input('reason'), Auth::user()->email);
 
             return redirect($request->input('backUrl', route('backend.sales.order.view', ['id' => $payment->order->id])))->with('success', [$message]);
         }

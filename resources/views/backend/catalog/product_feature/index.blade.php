@@ -19,7 +19,7 @@
         <i class="fa fa-circle"></i>
     </li>
     <li>
-        <span>Product Feature</span>
+        <span>Feature</span>
     </li>
 @stop
 
@@ -28,7 +28,7 @@
         <div class="portlet light portlet-fit portlet-datatable bordered">
             <div class="portlet-title">
                 <div class="caption">
-                    <span class="caption-subject sbold uppercase"> Product Features </span>
+                    <span class="caption-subject sbold uppercase"> Feature </span>
                 </div>
                 <div class="actions">
                     @can('access', ['create_product_feature'])

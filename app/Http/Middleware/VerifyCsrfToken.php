@@ -8,10 +8,10 @@ class VerifyCsrfToken extends BaseVerifier
 {
     /**
      * The URIs that should be excluded from CSRF verification.
-     *
+     * Common uses: Exclude external payment notification
      * @var array
      */
     protected $except = [
-        //
+        'payment-method/midtrans/snap/notify'
     ];
 }

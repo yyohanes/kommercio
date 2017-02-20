@@ -69,6 +69,11 @@ class Customer extends Model
         return $this->hasMany('Kommercio\Models\RewardPoint\Redemption')->orderBy('created_at', 'DESC');
     }
 
+    public function bookmarks()
+    {
+        return $this->hasMany('Kommercio\Models\Customer\Bookmark');
+    }
+
     //Methods
     public function saveAddress($data, $billing = false, $shipping = false)
     {

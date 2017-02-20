@@ -85,6 +85,7 @@ return [
     'per_order_limit' => 'Only :quantity :product is allowed per Order.',
     'delivery_order_limit' => ':quantity :product left for :date.',
     'today_order_limit' => ':quantity :product left for today.',
+    'category_order_limit' => ':product can\'t be purchased. Only :limit :order_limit can be purchased together.',
     'descendant_address' => 'The :attribute field is required.',
     'captcha' => 'Verification code is invalid. Please try again.',
     'old_password' => 'Old password is invalid.',

@@ -19,7 +19,7 @@
         <i class="fa fa-circle"></i>
     </li>
     <li>
-        <span>Product Attribute</span>
+        <span>Attribute</span>
     </li>
 @stop
 
@@ -28,7 +28,7 @@
         <div class="portlet light portlet-fit portlet-datatable bordered">
             <div class="portlet-title">
                 <div class="caption">
-                    <span class="caption-subject sbold uppercase"> Product Attributes </span>
+                    <span class="caption-subject sbold uppercase"> Attribute </span>
                 </div>
                 <div class="actions">
                     @can('access', ['create_product_attribute'])

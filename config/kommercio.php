@@ -66,13 +66,22 @@ return [
     ],
     'print_format' => 'default',
     'require_billing_information' => false,
+    'order_options' => [
+        'processed_order_status' => ['pending', 'processing'],
+        'reference_format' => 'store_code:order_year:order_month:order_day:counter',
+        'reference_counter_length' => 4
+    ],
+    'invoice_options' => [
+        'reference_format' => 'store_code:invoice_year:invoice_month:invoice_day:counter',
+        'reference_counter_length' => 4
+    ],
     'catalog_options' => [
         'shop_url' => 'shop',
         'limit' => 20,
         'sort_by' => 'order',
         'sort_dir' => 'ASC',
     ],
-    'order_options' => [
+    'order_history_options' => [
         'limit' => 20,
         'sort_by' => 'checkout_at',
         'sort_dir' => 'ASC',
