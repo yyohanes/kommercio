@@ -440,21 +440,34 @@ class ProductController extends Controller{
     {
         $product = Product::withTrashed()->findOrFail($id);
 
-        if(!$this->deleteable($product->id)){
+        $deleteable = true;
+
+        $products = $product->variations->push($product);
+
+        foreach($products as $singleProduct){
+            if(!$this->deleteable($singleProduct->id)){
+                $deleteable = false;
+                break;
+            }
+        }
+
+        if(!$deleteable){
             return redirect()->back()->withErrors(['Can\'t delete this product. It is used in settled Orders.']);
         }
 
         $name = $product->name;
 
-        //Remove all media first. We do it manually because Translation model is cascaded, so we can't do this on Translation delete
-        foreach($product->translations as $translation){
-            $translation->deleteMedia('image');
-            $translation->deleteMedia('thumbnail');
+        foreach($products as $singleProduct){
+            //Remove all media first. We do it manually because Translation model is cascaded, so we can't do this on Translation delete
+            foreach($singleProduct->translations as $translation){
+                $translation->deleteMedia('image');
+                $translation->deleteMedia('thumbnail');
+            }
+
+            LineItem::isProduct($singleProduct->id)->delete();
+
+            $singleProduct->forceDelete();
         }
-
-        LineItem::isProduct($product->id)->delete();
-
-        $product->forceDelete();
 
         if($request->ajax()){
             return response()->json([

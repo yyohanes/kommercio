@@ -45,7 +45,8 @@ class BackendServiceProvider extends ServiceProvider
 
         $this->app['events']->listen('eloquent.deleting*', function ($model) {
             if ($model instanceof UrlAliasInterface) {
-                if(!property_exists($model, 'forceDeleting') || (property_exists($model, 'forceDeleting') && $model->forceDeleting)){
+                //Bug in Laravel 5.2. Should have function isForceDeleting
+                if(!property_exists($model, 'forceDeleting') || $model['forceDeleting']){
                     UrlAlias::deleteAlias($model->getInternalPathSlug().'/'.$model->id);
                 }
             }

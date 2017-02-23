@@ -97,7 +97,7 @@ class ReportController extends Controller
         $storeOptions += Store::getStoreOptions();
 
         $dateTypeOptions = ['checkout_at' => 'Order Date'];
-        if (config('project.enable_delivery_date', false)) {
+        if (ProjectHelper::getConfig('enable_delivery_date', false)) {
             $dateTypeOptions['delivery_date'] = 'Delivery Date';
         }
 
@@ -170,7 +170,7 @@ class ReportController extends Controller
             'shipping_method' => $request->input('search.shipping_method', array_keys($shippingMethodOptions)),
             'date_type' => 'delivery_date',
             'date' => $request->input('search.date', $date->format('Y-m-d')),
-            'status' => $request->input('search.status', config('project.processed_order_status')),
+            'status' => $request->input('search.status', ProjectHelper::getConfig('order_options.processed_order_status')),
             'store' => $request->input('search.store', key($storeOptions)),
         ];
 
@@ -282,7 +282,7 @@ class ReportController extends Controller
             'shipping_method' => $request->input('search.shipping_method', array_keys($shippingMethodOptions)),
             'date_type' => 'delivery_date',
             'date' => $request->input('search.date', $date->format('Y-m-d')),
-            'status' => $request->input('search.status', config('project.processed_order_status')),
+            'status' => $request->input('search.status', ProjectHelper::getConfig('order_options.processed_order_status')),
             'store' => $request->input('search.store', 'all'),
         ];
 

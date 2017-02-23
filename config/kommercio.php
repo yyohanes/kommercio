@@ -79,12 +79,12 @@ return [
         'shop_url' => 'shop',
         'limit' => 20,
         'sort_by' => 'order',
-        'sort_dir' => 'ASC',
+        'sort_dir' => 'DESC',
     ],
     'order_history_options' => [
         'limit' => 20,
         'sort_by' => 'checkout_at',
-        'sort_dir' => 'ASC',
+        'sort_dir' => 'DESC',
     ],
     'checkout_options' => [
         'shipping_method_position' => 'review', //review; before_review; before_shipping_address
