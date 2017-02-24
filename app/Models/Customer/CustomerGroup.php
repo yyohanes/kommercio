@@ -9,8 +9,8 @@ class CustomerGroup extends Model
 {
     use Translatable;
 
-    public $translatedAttributes = ['name'];
-    protected $fillable = ['name', 'sort_order'];
+    public $translatedAttributes = ['name', 'description'];
+    protected $fillable = ['name', 'description', 'sort_order'];
 
     //Accessors
     public function getCustomerCountAttribute()

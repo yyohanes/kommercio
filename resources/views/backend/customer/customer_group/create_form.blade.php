@@ -9,3 +9,13 @@
     'required' => TRUE,
     'valueColumnClass' => 'col-md-4'
 ])
+
+@include('backend.master.form.fields.textarea', [
+    'name' => 'description',
+    'label' => 'Description',
+    'key' => 'description',
+    'attr' => [
+        'class' => 'form-control wysiwyg-editor',
+        'id' => 'description'
+    ]
+])
