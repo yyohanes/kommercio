@@ -31,6 +31,7 @@ class ProductCompositeFormRequest extends Request
             'composite_product.*' => 'numeric|exists:products,id',
             'product_category' => 'required_without:composite_product|array',
             'product_category.*' => 'numeric|exists:product_categories,id',
+            'default_product.*' => 'numeric|exists:products,id',
         ];
 
         return $rules;

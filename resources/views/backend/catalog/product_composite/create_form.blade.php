@@ -104,6 +104,26 @@
     'defaultOptions' => $composite->productCategories->pluck('id')->all()
 ])
 
+<hr/>
+
+@include('backend.master.form.fields.select', [
+    'name' => 'default_product[]',
+    'label' => 'Default Product',
+    'key' => 'default_product',
+    'attr' => [
+        'class' => 'form-control default-products-select',
+        'id' => 'products',
+        'multiple' => TRUE,
+        'data-remote_source' => $productSourceUrl,
+        'data-remote_value_property' => 'sku',
+        'data-remote_label_property' => 'name',
+    ],
+    'valueColumnClass' => 'col-md-6',
+    'options' => $defaultProducts,
+    'defaultOptions' => array_keys($defaultProducts),
+    'help_text' => 'You can select more than one Product'
+])
+
 @section('bottom_page_scripts')
     @parent
 

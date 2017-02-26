@@ -27,12 +27,17 @@ class ProductCompositeController extends Controller
     {
         $productCompositeGroup = ProductCompositeGroup::findOrFail($group_id);
         $composite = new ProductComposite();
+        $defaultProducts = [];
         $productCategoryOptions = ProductCategory::getPossibleParentOptions();
+
+        $productSourceUrl = route('backend.catalog.product.autocomplete');
 
         return view('backend.catalog.product_composite.create', [
             'productCompositeGroup' => $productCompositeGroup,
             'composite' => $composite,
-            'productCategoryOptions' => $productCategoryOptions
+            'productCategoryOptions' => $productCategoryOptions,
+            'productSourceUrl' => $productSourceUrl,
+            'defaultProducts' => $defaultProducts
         ]);
     }
 
@@ -61,12 +66,18 @@ class ProductCompositeController extends Controller
             return $composite->id == $id;
         })->first();
 
+        $defaultProducts = $composite->defaultProducts->pluck('sku', 'id')->all();
+
         $productCategoryOptions = ProductCategory::getPossibleParentOptions();
+
+        $productSourceUrl = route('backend.catalog.product.autocomplete');
 
         return view('backend.catalog.product_composite.edit', [
             'productCompositeGroup' => $productCompositeGroup,
             'composite' => $composite,
-            'productCategoryOptions' => $productCategoryOptions
+            'productCategoryOptions' => $productCategoryOptions,
+            'productSourceUrl' => $productSourceUrl,
+            'defaultProducts' => $defaultProducts
         ]);
     }
 
@@ -136,6 +147,7 @@ class ProductCompositeController extends Controller
     protected function processComposite(ProductCompositeFormRequest $request, $composite, $update = false)
     {
         $configuredProductsData = [];
+        $defaultProductsData = [];
 
         foreach($request->input('composite_product', []) as $idx => $configuredProduct){
             $configuredProductsData[$configuredProduct] = [
@@ -143,7 +155,14 @@ class ProductCompositeController extends Controller
             ];
         }
 
+        foreach($request->input('default_product', []) as $idx => $defaultProduct){
+            $defaultProductsData[$defaultProduct] = [
+                'sort_order' => $idx
+            ];
+        }
+
         $composite->products()->sync($configuredProductsData);
+        $composite->defaultProducts()->sync($defaultProductsData);
 
         $composite->productCategories()->sync($request->input('product_category', []));
     }

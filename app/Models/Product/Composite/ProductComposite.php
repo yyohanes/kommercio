@@ -31,33 +31,31 @@ class ProductComposite extends Model implements SluggableInterface
     public function getProductSelection()
     {
         $results = RuntimeCache::getOrSet('product_composite_'.$this->id.'_products', function(){
-            $includedProductIds = [];
+            $includedProducts = collect([]);
 
             foreach($this->products as $configuredProduct){
                 if($configuredProduct->isPurchaseable){
-                    $includedProductIds[] = $configuredProduct->id;
+                    $includedProducts->push($configuredProduct);
                 }else{
-                    $includedProductIds = array_merge($includedProductIds, $configuredProduct->variations->pluck('id')->all());
+                    $includedProducts = $includedProducts->merge($configuredProduct->variations);
                 }
             }
 
             if($this->productCategories->count() > 0){
-                $categoryProducts = Product::whereHas('categories', function($query){
+                $categoryProducts = Product::joinDetail()->selectSelf()->whereHas('categories', function($query){
                     $query->whereIn('id', $this->productCategories->pluck('id')->all());
-                });
+                })->orderBy('D.sort_order', 'ASC');
 
-                $includedProductIds = array_merge($includedProductIds, $categoryProducts->pluck('id')->all());
+                $includedProducts = $includedProducts->merge($categoryProducts->get());
             }
 
-            $qb = Product::with('parent')->productSelection()->active();
-
-            if($includedProductIds){
-                $qb->whereIn('products.id', $includedProductIds);
+            foreach($includedProducts as $idx => $includedProduct){
+                if(!$includedProduct->productDetail->active){
+                    $includedProducts->forget($idx);
+                }
             }
 
-            $results = $qb->get();
-
-            return $results;
+            return $includedProducts;
         });
 
         return $results;
@@ -84,6 +82,11 @@ class ProductComposite extends Model implements SluggableInterface
     public function groups()
     {
         return $this->belongsToMany('Kommercio\Models\Product\Composite\ProductCompositeGroup');
+    }
+
+    public function defaultProducts()
+    {
+        return $this->belongsToMany('Kommercio\Models\Product', 'product_composite_default_product')->withPivot('sort_order')->orderBy('sort_order', 'ASC');
     }
 
     public function products()

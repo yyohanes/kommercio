@@ -1148,6 +1148,16 @@ class ProductController extends Controller{
             $qb->where('products.id', '<>', $request->input('exclude'));
         }
 
+        if($request->input('product')){
+            $qb->whereIn('products.id', $request->input('product'));
+        }
+
+        if($request->input('product_category')){
+            $qb->whereHas('categories', function($query) use ($request){
+                $query->whereIn('id', $request->input('product_category'));
+            });
+        }
+
         if(!$request->user()->can('access', ['add_inactive_product'])){
             $qb->where('D.active', 1);
         }
