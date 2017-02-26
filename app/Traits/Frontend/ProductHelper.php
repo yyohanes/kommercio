@@ -210,9 +210,14 @@ trait ProductHelper
         return self::querySimilarProducts($options);
     }
 
-    public function getPathToComposite()
+    public function getPathToComposite($lineItemId = null)
     {
-        return route('frontend.catalog.product.composite.view', ['slug' => $this->productCompositeGroup->slug, 'product_slug' => $this->slug]);
+        $pathParams = ['slug' => $this->productCompositeGroup->slug, 'product_slug' => $this->slug];
+
+        if($lineItemId){
+            $pathParams['line_item_id'] = $lineItemId;
+        }
+        return route('frontend.catalog.product.composite.view', $pathParams);
     }
 
     public function bookmarked(Customer $customer, $type)

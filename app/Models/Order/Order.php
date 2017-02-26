@@ -205,7 +205,14 @@ class Order extends Model implements AuthorSignatureInterface
                 }
             }
 
-            $lineItem = new LineItem();
+            if(!empty($options['line_item_id'])){
+                $lineItem = $this->findLineItem($options['line_item_id']);
+            }
+
+            if(empty($lineItem)){
+                $lineItem = new LineItem();
+            }
+
             $lineItem->order()->associate($this);
             $lineItem->processData($lineItemDatum);
             $lineItem->save();
@@ -543,6 +550,13 @@ class Order extends Model implements AuthorSignatureInterface
         $profile->saveDetails($data);
 
         $this->load($profileRelation);
+    }
+
+    public function findLineItem($line_item_id)
+    {
+        return $this->lineItems->filter(function($value, $key) use ($line_item_id){
+            return $value->id == $line_item_id;
+        })->first();
     }
 
     public function calculateSubtotal()

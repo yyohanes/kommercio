@@ -252,7 +252,8 @@ class OrderController extends Controller
 
             $order->addToCart($product, $productDatum['quantity'], [
                 'children' => isset($productDatum['children'])?$productDatum['children']:null,
-                'configurations' => $collectedConfigurations
+                'configurations' => $collectedConfigurations,
+                'line_item_id' => $request->input('line_item_id')
             ]);
 
             $added_products[] = $product;

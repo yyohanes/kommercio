@@ -74,7 +74,7 @@ class ProjectHelper
             if(Auth::check()){
                 $user = Auth::user();
 
-                if($user->isSuperAdmin){
+                if($user->isSuperAdmin || $user->isCustomer){
                     $activeStore = $this->getDefaultStore();
                 }else{
                     $activeStore = $user->stores->first();

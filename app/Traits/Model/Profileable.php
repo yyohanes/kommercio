@@ -89,10 +89,10 @@ trait Profileable
 
             $this->profile()->associate($profile);
             $this->save();
-            $this->load('profile');
         }
 
         $profile->saveDetails($data);
+        $this->load('profile');
     }
 
     public function loadProfileFields()

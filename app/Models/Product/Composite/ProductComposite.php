@@ -6,6 +6,7 @@ use Cviebrock\EloquentSluggable\SluggableInterface;
 use Cviebrock\EloquentSluggable\SluggableTrait;
 use Dimsav\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Model;
+use Kommercio\Facades\RuntimeCache;
 use Kommercio\Models\Product;
 
 class ProductComposite extends Model implements SluggableInterface
@@ -29,31 +30,35 @@ class ProductComposite extends Model implements SluggableInterface
     //Methods
     public function getProductSelection()
     {
-        $includedProductIds = [];
+        $results = RuntimeCache::getOrSet('product_composite_'.$this->id.'_products', function(){
+            $includedProductIds = [];
 
-        foreach($this->products as $configuredProduct){
-            if($configuredProduct->isPurchaseable){
-                $includedProductIds[] = $configuredProduct->id;
-            }else{
-                $includedProductIds = array_merge($includedProductIds, $configuredProduct->variations->pluck('id')->all());
+            foreach($this->products as $configuredProduct){
+                if($configuredProduct->isPurchaseable){
+                    $includedProductIds[] = $configuredProduct->id;
+                }else{
+                    $includedProductIds = array_merge($includedProductIds, $configuredProduct->variations->pluck('id')->all());
+                }
             }
-        }
 
-        if($this->productCategories->count() > 0){
-            $categoryProducts = Product::whereHas('categories', function($query){
-                $query->whereIn('id', $this->productCategories->pluck('id')->all());
-            });
+            if($this->productCategories->count() > 0){
+                $categoryProducts = Product::whereHas('categories', function($query){
+                    $query->whereIn('id', $this->productCategories->pluck('id')->all());
+                });
 
-            $includedProductIds = array_merge($includedProductIds, $categoryProducts->pluck('id')->all());
-        }
+                $includedProductIds = array_merge($includedProductIds, $categoryProducts->pluck('id')->all());
+            }
 
-        $qb = Product::with('parent')->productSelection()->active();
+            $qb = Product::with('parent')->productSelection()->active();
 
-        if($includedProductIds){
-            $qb->whereIn('products.id', $includedProductIds);
-        }
+            if($includedProductIds){
+                $qb->whereIn('products.id', $includedProductIds);
+            }
 
-        $results = $qb->get();
+            $results = $qb->get();
+
+            return $results;
+        });
 
         return $results;
     }

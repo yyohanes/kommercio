@@ -4,6 +4,8 @@ namespace Kommercio\Http\Controllers\Frontend;
 
 use Illuminate\Http\Request;
 
+use Illuminate\Support\Facades\Session;
+use Kommercio\Facades\FrontendHelper;
 use Kommercio\Facades\LanguageHelper;
 use Kommercio\Facades\ProjectHelper;
 use Kommercio\Http\Requests;
@@ -13,10 +15,35 @@ use Kommercio\Models\Product\Composite\ProductCompositeGroup;
 
 class ProductCompositeController extends Controller
 {
-    public function viewProduct($slug, $product_slug)
+    public function viewProduct(Request $request, $slug, $product_slug)
     {
         $compositeGroup = ProductCompositeGroup::findBySlugOrFail($slug);
         $product = Product::whereTranslation('slug', $product_slug)->firstOrFail();
+
+        if($request->has('line_item_id')){
+            $order = FrontendHelper::getCurrentOrder();
+            $lineItem = $order->findLineItem($request->input('line_item_id'));
+
+            if($lineItem){
+                $oldValues = old();
+
+                if(empty($oldValues)){
+                    $oldValues['quantity'] = $lineItem->quantity;
+
+                    foreach($lineItem->children as $childLineItem){
+                        if($childLineItem->productComposite){
+                            $oldValues = array_add($oldValues, 'product_composite.'.$childLineItem->productComposite->id.'.'.$childLineItem->line_item_id, true);
+
+                            foreach($childLineItem->productConfigurations as $productConfiguration){
+                                $oldValues = array_add($oldValues, 'product_configuration.'.$childLineItem->line_item_id.'.'.$productConfiguration->id, $productConfiguration->pivot->value);
+                            }
+                        }
+                    }
+
+                    Session::flashInput($oldValues);
+                }
+            }
+        }
 
         if($check = $this->belongingCheck($product, $compositeGroup)){
             return $check;
