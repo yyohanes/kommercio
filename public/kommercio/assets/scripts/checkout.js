@@ -205,7 +205,7 @@
           $disabledDates = $.makeArray(data.disabled_dates);
 
           $(e.target).datepicker('_process_options', {datesDisabled: $disabledDates});
-          $(e.target).datepicker('update', e.date);
+          //$(e.target).datepicker('update', e.date);
           //$(e.target).datepicker('moveMonth', e.date);
           /*
            if(typeof date !== 'undefined'){

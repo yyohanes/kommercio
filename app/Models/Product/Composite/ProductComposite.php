@@ -61,6 +61,19 @@ class ProductComposite extends Model implements SluggableInterface
         return $results;
     }
 
+    public function getDefaultProducts()
+    {
+        $includedProducts = $this->isSingle?$this->products:$this->defaultProducts;
+
+        foreach($includedProducts as $idx => $includedProduct){
+            if(!$includedProduct->productDetail->active){
+                $includedProducts->forget($idx);
+            }
+        }
+
+        return $includedProducts;
+    }
+
     //Accessors
     public function getIsSingleAttribute()
     {
