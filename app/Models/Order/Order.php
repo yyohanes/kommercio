@@ -387,7 +387,7 @@ class Order extends Model implements AuthorSignatureInterface
         return $this;
     }
 
-    public function generateReference()
+    public function generateReference($last_number = null)
     {
         $format = ProjectHelper::getConfig('order_options.reference_format');
         $formatElements = explode(':', $format);
@@ -400,7 +400,12 @@ class Order extends Model implements AuthorSignatureInterface
             ->orderBy(DB::raw('CAST(order_number as UNSIGNED)'), 'DESC')
             ->first();
 
-        $totalCheckedOutOrder = $lastOrder?intval($lastOrder->order_number):0;
+        if($last_number){
+            $totalCheckedOutOrder = intval($last_number);
+        }else{
+            $totalCheckedOutOrder = $lastOrder?intval($lastOrder->order_number):0;
+        }
+
         $this->order_number = str_pad($totalCheckedOutOrder + 1, $counterLength, 0, STR_PAD_LEFT);
 
         $orderReference = '';
@@ -433,7 +438,7 @@ class Order extends Model implements AuthorSignatureInterface
 
         //Final duplicate order reference check
         while(self::checkout()->where('reference', $orderReference)->count() > 0){
-            $orderReference = $this->generateReference();
+            $orderReference = $this->generateReference($this->order_number);
         }
 
         return $orderReference;
