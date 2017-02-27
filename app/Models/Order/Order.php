@@ -399,6 +399,7 @@ class Order extends Model implements AuthorSignatureInterface
             ->where('store_id', $this->store_id)
             ->orderBy(DB::raw('CAST(order_number as UNSIGNED)'), 'DESC')
             ->first();
+
         $totalCheckedOutOrder = $lastOrder?intval($lastOrder->order_number):0;
         $this->order_number = str_pad($totalCheckedOutOrder + 1, $counterLength, 0, STR_PAD_LEFT);
 
