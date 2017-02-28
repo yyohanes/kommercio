@@ -1017,8 +1017,8 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
                 }
 
                 $dayOrderLimit = $this->getOrderLimit([
+                    'delivery_date' => $dayToRun->format('Y-m-d'),
                     'store' => $store,
-                    'delivery_date' => $dayToRun->format($format)
                 ]);
 
                 if(is_array($dayOrderLimit) && ($dayOrderLimit['limit'] == 0 || $dayOrderCount + $quantity > $dayOrderLimit['limit'])){

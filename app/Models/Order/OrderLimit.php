@@ -288,8 +288,10 @@ class OrderLimit extends Model implements StoreManagedInterface
         $orderLimits = [];
 
         foreach($qb->get() as $orderLimit){
-            if(isset($date) && $orderLimit->dayRulesPassed($date)){
-                $orderLimits[] = $orderLimit;
+            if(isset($date)){
+                if($orderLimit->dayRulesPassed($date)){
+                    $orderLimits[] = $orderLimit;
+                }
             }else{
                 $orderLimits[] = $orderLimit;
             }
