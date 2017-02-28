@@ -194,6 +194,7 @@ class Order extends Model implements AuthorSignatureInterface
                     foreach($children as $child){
                         $childProduct = Product::findOrFail($child['product_id']);
                         $lineItemDatum['children'][$compositeId][] = [
+                            'line_item_id' => $child['product_id'],
                             'line_item_type' => 'product',
                             'net_price' => $childProduct->getNetPrice(),
                             'quantity' => $child['quantity'],
