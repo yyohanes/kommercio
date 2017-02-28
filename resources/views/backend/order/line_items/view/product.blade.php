@@ -14,10 +14,12 @@
             @endif
 
             @foreach($lineItem->productConfigurations as $productConfiguration)
+                @if(!empty($productConfiguration->pivot->value))
                 <div>
                 <span class="badge badge-success">{{ $productConfiguration->pivot->label }}</span><br/>
                 {!! nl2br($productConfiguration->pivot->value) !!}
                 </div>
+                @endif
             @endforeach
         @endif
     </td>
@@ -38,13 +40,17 @@
 </tr>
 
 @foreach($lineItem->product->composites as $productComposite)
+    <?php $children = $lineItem->getChildrenByComposite($productComposite); ?>
+
+    @if($children->count() > 0)
     <tr class="child-line-item child-line-item-header">
         <td colspan="100">
             {{ $productComposite->name }}
         </td>
     </tr>
 
-    @foreach($lineItem->getChildrenByComposite($productComposite) as $child)
+    @foreach($children as $child)
         @include('backend.order.line_items.view.product', ['composite' => $productComposite, 'lineItem' => $child, 'child' => true])
     @endforeach
+    @endif
 @endforeach

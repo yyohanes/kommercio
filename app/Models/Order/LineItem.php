@@ -19,7 +19,7 @@ class LineItem extends Model
 {
     use HasDataColumn, MediaAttachable;
 
-    protected $fillable = ['line_item_id', 'line_item_type', 'name', 'base_price', 'quantity', 'taxable', 'notes', 'net_price', 'discount_total', 'tax_total', 'total', 'sort_order', 'data', 'temporary'];
+    protected $fillable = ['line_item_id', 'line_item_type', 'name', 'base_price', 'quantity', 'taxable', 'notes', 'net_price', 'discount_total', 'tax_total', 'total', 'sort_order', 'data', 'temporary', 'product_composite_id', 'parent_id'];
     protected $casts = [
         'taxable' => 'boolean',
         'temporary' => 'boolean'
@@ -335,10 +335,12 @@ class LineItem extends Model
         if($this->isProduct && $this->product->composites->count() > 0){
             foreach($children as $compositeId => $compositeData){
                 foreach($compositeData as $datumKey => $compositeDatum){
-                    if(isset($compositeDatum['net_price'])){
-                        $compositeDatum['net_price'] = floatval($compositeDatum['net_price']);
+                    if(!empty($compositeDatum['line_item_id'])){
+                        if(isset($compositeDatum['net_price'])){
+                            $compositeDatum['net_price'] = floatval($compositeDatum['net_price']);
+                        }
+                        $childrenData[] = $compositeDatum;
                     }
-                    $childrenData[] = $compositeDatum;
                 }
             }
 
@@ -356,7 +358,7 @@ class LineItem extends Model
 
         $existingLineItems = $this->children;
 
-        $count = 0;
+        $count = count($existingLineItems);
 
         $lineItems = [];
 

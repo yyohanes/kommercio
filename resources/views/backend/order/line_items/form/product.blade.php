@@ -121,20 +121,19 @@ if(empty($product)){
 
 @if(!empty($product))
     @foreach($product->composites as $composite)
-        <tr class="child-line-item-header" data-composite_id="{{ $composite->id }}" data-parent_line_item_key="{{ $key }}">
+        <tr class="child-line-item-header" data-composite_id="{{ $composite->id }}" data-parent_line_item_key="{{ $key }}" data-maximum="{{ $composite->maximum+0 }}">
             <td colspan="100">
                 {{ $composite->name }}
-                @if($composite->products->count() > 1 && $composite->maximum > 1)
+
                 <script id="lineitem-product-{{ $key }}-child-{{ $composite->id }}-template" type="text/x-handlebars-template">
                 @include('backend.order.line_items.form.product_child', ['parentKey' => $key, 'childKey' => '@{{childKey}}', 'composite' => $composite, 'parent' => $product, 'product' => null])
                 </script>
                 <a href="#" class="configured-product-add btn btn-xs btn-default"><i class="fa fa-plus"></i></a>
-                @endif
             </td>
         </tr>
 
-        @foreach(old('line_items.'.$key.'.children.'.$composite->id, [0]) as $idx=>$child)
-        @include('backend.order.line_items.form.product_child', ['parentKey' => $key, 'childKey' => $idx, 'composite' => $composite, 'parent' => $product, 'product' => null])
+        @foreach(old('line_items.'.$key.'.children.'.$composite->id, (!$order->exists && $composite->defaultProducts->count() > 0)?$composite->defaultProducts:[[]]) as $idx=>$child)
+        @include('backend.order.line_items.form.product_child', ['parentKey' => $key, 'childKey' => $idx, 'composite' => $composite, 'parent' => $product, 'product' => $child])
         @endforeach
     @endforeach
 @endif

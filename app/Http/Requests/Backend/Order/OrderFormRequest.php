@@ -3,7 +3,9 @@
 namespace Kommercio\Http\Requests\Backend\Order;
 
 use Kommercio\Http\Requests\Request;
+use Kommercio\Models\Product;
 use Kommercio\Models\Product\Composite\ProductComposite;
+use Kommercio\Models\Product\Configuration\ProductConfiguration;
 
 class OrderFormRequest extends Request
 {
@@ -55,7 +57,20 @@ class OrderFormRequest extends Request
                     foreach($compositeLineItems as $compositeLineItemIdx => $compositeLineItem){
                         $quantity += $compositeLineItem['quantity'];
                         $rules['line_items.'.$idx.'.children.'.$compositeId.'.'.$compositeLineItemIdx.'.sku'] = ($productComposite->minimum>0?'required|':'').'product_sku';
-                        //$rules['line_items.'.$idx.'.children.'.$compositeId.'.'.$compositeLineItemIdx.'.sku'] .= '|composite_quantity:'.$this->input('line_items.'.$idx.'.sku').','.$compositeId.','.$quantity;
+
+                        if(isset($compositeLineItem['product_configuration'])){
+                            $product = Product::findOrFail($compositeLineItem['line_item_id']);
+
+                            foreach($compositeLineItem['product_configuration'] as $productConfigurationId => $configuration){
+                                $productConfiguration = $product->productConfigurationGroup->configurations->filter(function($row) use ($productConfigurationId){
+                                    return $row->id == $productConfigurationId;
+                                })->first();
+
+                                if($productConfiguration){
+                                    $rules['line_items.'.$idx.'.children.'.$compositeId.'.'.$compositeLineItemIdx.'.product_configuration.'.$productConfigurationId] = $productConfiguration->buildRules();
+                                }
+                            }
+                        }
                     }
                 }
             }elseif($lineItem['line_item_type'] == 'fee'){

@@ -187,7 +187,7 @@ class OrderController extends Controller
 
             $collectedConfigurations = [];
 
-            //Build Configurations rule together with collecting values
+            //Build Configurations rule together while collecting values
             foreach($request->input('product_configuration', []) as $configuredProductId => $configurations){
                 $product = RuntimeCache::getOrSet('product.'.$configuredProductId, function() use ($configuredProductId){
                     return Product::findOrFail($configuredProductId);

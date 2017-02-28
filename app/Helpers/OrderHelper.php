@@ -98,9 +98,9 @@ class OrderHelper
         $lineItems = [];
 
         if($freeEdit){
-            $existingLineItems = $order->lineItems->all();
+            $existingLineItems = $order->allLineItems->all();
 
-            foreach($request->input('line_items', []) as $lineItemDatum) {
+            foreach($request->input('line_items', []) as $lineItemDatum){
                 if ($lineItemDatum['line_item_type'] == 'product' && empty($lineItemDatum['quantity'])) {
                     continue;
                 }
@@ -110,6 +110,8 @@ class OrderHelper
                 $lineItem = $this->reuseOrCreateLineItem($order, $existingLineItems, $count);
 
                 $lineItem->processData($lineItemDatum, $count);
+
+                $count += 1;
 
                 $lineItems[] = $lineItem;
             }

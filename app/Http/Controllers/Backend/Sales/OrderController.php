@@ -16,6 +16,7 @@ use Kommercio\Facades\AddressHelper;
 use Kommercio\Facades\LanguageHelper;
 use Kommercio\Facades\OrderHelper;
 use Kommercio\Facades\ProjectHelper;
+use Kommercio\Facades\RuntimeCache;
 use Kommercio\Http\Controllers\Controller;
 use Kommercio\Models\Customer;
 use Kommercio\Models\Order\Order;
@@ -440,6 +441,8 @@ class OrderController extends Controller{
         $order->saveProfile('billing', $request->input('profile'));
         $order->saveProfile('shipping', $request->input('shipping_profile'));
 
+        $this->processConfigurations($request);
+
         //Use free form line items to pre-filled order Line items
         $order->setRelation('lineItems', OrderHelper::processLineItems($request, $order, true, true));
 
@@ -605,6 +608,11 @@ class OrderController extends Controller{
                         $lineItemChildData = $lineItemChild->toArray();
                         $lineItemChildData['id'] = $lineItemChild->product->id;
                         $lineItemChildData['sku'] = $lineItemChild->product->sku;
+                        $lineItemChildData['product_configuration'] = [];
+
+                        foreach($lineItemChild->productConfigurations as $productConfiguration){
+                            $lineItemChildData['product_configuration'][$productConfiguration->id] = $productConfiguration->pivot->value;
+                        }
 
                         $lineItemData['children'][$lineItemChild->product_composite_id][] = $lineItemChildData;
                     }
@@ -677,6 +685,9 @@ class OrderController extends Controller{
 
         //Use free form line items
         $order->setRelation('lineItems', OrderHelper::processLineItems($request, $order, true, true));
+
+        //Process configurations HAS TO BE here because above OrderHelper::processLineItems is dummy
+        $this->processConfigurations($request);
 
         OrderHelper::processLineItems($request, $order);
 
@@ -1251,5 +1262,46 @@ class OrderController extends Controller{
             'order' => $order,
             'request' => $request
         ]);
+    }
+
+    protected function processConfigurations(Request $request)
+    {
+        $attributes = $request->all();
+
+        foreach($attributes['line_items'] as $idx => &$lineItem){
+            if(isset($lineItem['children'])){
+                foreach($lineItem['children'] as $compositeId => $compositeProducts){
+                    foreach($compositeProducts as $compositeIdx => $compositeProduct){
+                        if(isset($compositeProduct['product_configuration'])){
+                            $productId = $lineItem['children'][$compositeId][$compositeIdx]['line_item_id'];
+                            $product = RuntimeCache::getOrSet('product_'.$productId, function() use ($productId){
+                                return Product::findOrFail($productId);
+                            });
+
+                            $collectedConfigurations = [];
+
+                            foreach($compositeProduct['product_configuration'] as $configurationId => $configuration){
+                                $productConfiguration = $product->productConfigurationGroup->configurations->filter(function($row) use ($configurationId){
+                                    return $row->id == $configurationId;
+                                })->first();
+
+                                if($productConfiguration){
+                                    //Collect values
+                                    $collectedConfigurations[$configurationId] = [
+                                        'type' => $productConfiguration->type,
+                                        'label' => $productConfiguration->name,
+                                        'value' => $configuration
+                                    ];
+                                }
+                            }
+
+                            $lineItem['children'][$compositeId][$compositeIdx]['configurations'] = $collectedConfigurations;
+                        }
+                    }
+                }
+            }
+        }
+
+        $request->replace($attributes);
     }
 }

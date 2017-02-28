@@ -1,7 +1,11 @@
 <?php
-if(empty($product)){
-    $sku = old('line_items.'.$parentKey.'.children.'.$composite->id.'.'.$childKey.'.sku', null);
-    $product = empty($product) && $sku?\Kommercio\Models\Product::where('sku', $sku)->firstOrFail():null;
+if($composite->isSingle){
+    $product = $composite->product;
+}else{
+    if(is_array($product)){
+        $sku = old('line_items.'.$parentKey.'.children.'.$composite->id.'.'.$childKey.'.sku', null);
+        $product = is_array($product) && $sku?\Kommercio\Models\Product::where('sku', $sku)->firstOrFail():null;
+    }
 }
 ?>
 <tr class="child-line-item line-item" data-line_item="product" data-parent_product="{{ $parent->id }}" data-parent_line_item_key="{{ $parentKey }}" data-line_item_key="{{ $childKey }}" data-composite="{{ $composite->id }}" data-product_categories="{{ !empty($product)?implode('|', $product->categories->pluck('id')->all()):null }}">
@@ -35,7 +39,7 @@ if(empty($product)){
 
         @if(!empty($product) && ProjectHelper::isFeatureEnabled('catalog.product_configuration'))
             @foreach($product->productConfigurations as $productConfiguration)
-                @include('backend.order.line_items.form.product_configuration.'.$productConfiguration->type, ['key' => $parentKey])
+                @include('backend.order.line_items.form.product_configuration.'.$productConfiguration->type, ['parentKey' => $parentKey, 'key' => $childKey, 'composite' => $composite, 'product' => $product])
             @endforeach
         @endif
     </td>
