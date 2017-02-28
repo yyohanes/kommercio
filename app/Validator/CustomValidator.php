@@ -381,6 +381,12 @@ class CustomValidator extends Validator
         $quantity = $parameters[0];
         $order_id = $parameters[1];
 
+        if($type == 'delivery_date'){
+            $store_id = isset($parameters[3])?$parameters[3]:null;
+        }else{
+            $store_id = isset($parameters[2])?$parameters[2]:null;
+        }
+
         if($quantity > 0){
             $delivery_date = null;
             if($type == 'delivery_date' && isset($parameters[2])){
@@ -396,17 +402,17 @@ class CustomValidator extends Validator
                 return Product::findOrFail($product_id);
             });
             $order = RuntimeCache::getOrSet('order_'.$order_id, function() use ($order_id){
-                return Order::findOrFail($order_id);
+                return Order::find($order_id);
             });
 
             $orderCount = $product->getOrderCount([
                 'delivery_date' => $delivery_date,
                 'checkout_at' => $today,
-                'store' => !empty($order->store)?$order->store->id:null,
+                'store' => $store_id?:(!empty($order->store)?$order->store->id:null),
             ]);
 
             $orderLimit = $product->getOrderLimit([
-                'store' => !empty($order->store)?$order->store->id:null,
+                'store' => $store_id?:(!empty($order->store)?$order->store->id:null),
                 'date' => $today,
                 'delivery_date' => $delivery_date
             ]);
