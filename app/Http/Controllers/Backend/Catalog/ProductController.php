@@ -1066,9 +1066,6 @@ class ProductController extends Controller{
 
             $store = ProjectHelper::getStoreByRequest($request);
         }else{
-            $focusedDate->modify('+1 week');
-            $months[] = $focusedDate->format('n-Y');
-
             $order = FrontendHelper::getCurrentOrder();
 
             foreach($order->getProductLineItems() as $idx => $productLineItem) {

@@ -1002,7 +1002,9 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
             $dayToRun->setTime(0, 0, 0);
 
             $lastDayOfMonth = clone $dayToRun;
-            $lastDayOfMonth->modify('last day of this month');
+            $lastDayOfMonth->modify('last day of next month');
+
+            $dayToRun->modify('-1 month');
 
             while($dayToRun->lte($lastDayOfMonth)){
                 $dayOrderCount = $this->getOrderCount([

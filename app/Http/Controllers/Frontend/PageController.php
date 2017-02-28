@@ -10,7 +10,7 @@ class PageController extends Controller
 {
     public function view($id)
     {
-        $page = Page::findOrFail($id);
+        $page = Page::where('id', $id)->where('active', true)->firstOrFail();
 
         $view_name = ProjectHelper::findViewTemplate(['frontend.page.view_'.$page->id, 'frontend.page.view_'.$page->slug, 'frontend.page.view']);
 
