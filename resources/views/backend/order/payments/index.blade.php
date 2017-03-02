@@ -1,7 +1,7 @@
 @foreach($payments as $payment)
     <tr>
-        <td> {{ $payment->invoice->reference }} </td>
-        <td> {{ $payment->payment_date?$payment->payment_date->format('D, d M Y'):null }} </td>
+        <td> {{ $payment->invoice?$payment->invoice->reference:null }} </td>
+        <td> {{ isset($payment->payment_date)?$payment->payment_date->format('D, d M Y'):null }} </td>
         <td> {{ PriceFormatter::formatNumber($payment->amount, $payment->currency) }} </td>
         <td> <span class="label bg-{{ OrderHelper::getPaymentStatusLabelClass($payment->status) }} bg-font-{{ OrderHelper::getPaymentStatusLabelClass($payment->status) }}">{{ \Kommercio\Models\Order\Payment::getStatusOptions($payment->status) }}</span> </td>
         <td style="width: 100px;">
