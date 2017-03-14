@@ -298,7 +298,11 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
 
             return false;
         }else{
-            $availableAttributeValues = $this->getAvailableAttributeValues();
+            $availableAttributeValues = [];
+
+            foreach($this->getAvailableAttributeValues() as $attributeValues){
+                $availableAttributeValues = array_merge($availableAttributeValues, array_keys($attributeValues));
+            }
 
             if(is_int($productAttributeValue)){
                 $identifier = $productAttributeValue;
@@ -309,8 +313,7 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
                 $identifier = $productAttributeValue->id;
             }
 
-            $flattened = array_flatten($availableAttributeValues);
-            return isset($flattened[$identifier]);
+            return in_array($identifier, $availableAttributeValues);
         }
     }
 
@@ -1032,10 +1035,16 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
         return $disabledDates;
     }
 
-    public function getCompositeConfiguration($composite)
+    public function getCompositeConfiguration($composite, $like = false)
     {
         if(is_string($composite)){
-            $composite = $this->composites->where('slug', $composite)->first();
+            if($like){
+                $composite = $this->composites->filter(function($item, $key) use ($composite){
+                    return strpos($item->slug, $composite) === 0;
+                })->first();
+            }else{
+                $composite = $this->composites->where('slug', $composite)->first();
+            }
         }elseif(is_int($composite)){
             $composite = $this->composites->where('id', $composite)->first();
         }
@@ -1043,10 +1052,16 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
         return $composite;
     }
 
-    public function hasCompositeConfiguration($composite)
+    public function hasCompositeConfiguration($composite, $like = false)
     {
         if(is_string($composite)){
-            $count = $this->composites->where('slug', $composite)->count();
+            if($like){
+                $count = $this->composites->filter(function($item, $key) use ($composite){
+                    return strpos($item->slug, $composite) === 0;
+                })->count();
+            }else{
+                $count = $this->composites->where('slug', $composite)->count();
+            }
         }elseif(is_int($composite)){
             $count = $this->composites->where('id', $composite)->count();
         }
@@ -1222,7 +1237,7 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
             foreach($this->productCompositeGroups as $productCompositeGroup){
                 $composites = $composites->merge($productCompositeGroup->composites);
             }
-
+            
             return $composites;
         });
 
