@@ -44,7 +44,7 @@ class ProductComposite extends Model implements SluggableInterface
             if($this->productCategories->count() > 0){
                 $categoryProducts = Product::joinDetail()->selectSelf()->whereHas('categories', function($query){
                     $query->whereIn('id', $this->productCategories->pluck('id')->all());
-                })->orderBy('D.sort_order', 'ASC');
+                });
 
                 $includedProducts = $includedProducts->merge($categoryProducts->get());
             }

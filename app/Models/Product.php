@@ -1343,6 +1343,9 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
     {
         $store = Store::find($store_id);
         $this->_store = $store;
+
+        //Unset cached Product Detail
+        unset($this->_productDetail);
     }
 
     public function setWarehouseAttribute($warehouse_id)
