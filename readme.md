@@ -19,5 +19,5 @@ http://kommercio.webpresso.co.id
 
 Backend
 http://kommercio.webpresso.co.id/backoffice
-Username: admin@kommercio.id  
+Username: admin@kommercio.id
 Password: kommercio123

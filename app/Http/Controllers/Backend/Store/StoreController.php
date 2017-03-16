@@ -30,7 +30,7 @@ class StoreController extends Controller{
     public function store(StoreFormRequest $request)
     {
         $store = new Store();
-        $store->fill($request->all());
+        $store->fill($request->input('location') + $request->all());
         $store->setData('contacts', $request->input('contacts'));
         $store->save();
 
@@ -52,7 +52,7 @@ class StoreController extends Controller{
     {
         $store = Store::findOrFail($id);
 
-        $store->fill($request->all());
+        $store->fill($request->input('location') + $request->all());
         $store->setData('contacts', $request->input('contacts'));
         $store->save();
 

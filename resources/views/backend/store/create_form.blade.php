@@ -32,6 +32,17 @@
     'required' => TRUE,
 ])
 
+<hr/>
+
+@include('backend.master.form.fields.address.address', [
+    'name' => 'location',
+    'label' => 'Address',
+    'parent' => $store,
+    'required' => FALSE
+])
+
+<hr/>
+
 @include('backend.master.form.fields.select', [
     'name' => 'warehouses[]',
     'label' => 'Warehouse',
