@@ -60,11 +60,11 @@ class Store extends Model
     {
         $taxes = Tax::getTaxes([
             'store_id' => $this->id,
-            'country_id' => $this->getDefaultWarehouse()->country_id,
-            'state_id' => $this->getDefaultWarehouse()->state_id,
-            'city_id' => $this->getDefaultWarehouse()->city_id,
-            'district_id' => $this->getDefaultWarehouse()->district_id,
-            'area_id' => $this->getDefaultWarehouse()->area_id,
+            'country_id' => $this->country_id,
+            'state_id' => $this->state_id,
+            'city_id' => $this->city_id,
+            'district_id' => $this->district_id,
+            'area_id' => $this->area_id,
         ]);
 
         return $taxes;
