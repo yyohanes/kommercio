@@ -203,17 +203,8 @@
         data: $checkoutForm.serialize() + '&month=' + (month+1) + '&year=' + year,
         success: function(data){
           $disabledDates = $.makeArray(data.disabled_dates);
-
-          $(e.target).datepicker('_process_options', {datesDisabled: $disabledDates});
-          //$(e.target).datepicker('update', e.date);
-          //$(e.target).datepicker('moveMonth', e.date);
-          /*
-           if(typeof date !== 'undefined'){
-           $('#delivery_date', '#checkout-form').datepicker('update', date);
-           }else{
-           $('#delivery_date', '#checkout-form').datepicker('fill');
-           }
-           */
+          $(e.target).datepicker('setDatesDisabled', $disabledDates);
+          $(e.target).datepicker('update', e.date);
         },
         complete: function(){
           $('#delivery-date-panel .datepicker-days').css('visibility', 'visible');
