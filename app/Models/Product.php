@@ -942,7 +942,7 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
                 'limit_type' => OrderLimit::LIMIT_DELIVERY_DATE,
                 'date' => $deliveryDate,
                 'store' => $store,
-                'type' => OrderLimit::TYPE_PRODUCT,
+                //'type' => OrderLimit::TYPE_PRODUCT,
                 'product' => $this
             ]);
 
@@ -956,7 +956,7 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
                 'limit_type' => OrderLimit::LIMIT_ORDER_DATE,
                 'date' => $date,
                 'store' => $store,
-                'type' => OrderLimit::TYPE_PRODUCT,
+                //'type' => OrderLimit::TYPE_PRODUCT,
                 'product' => $this
             ]);
 
