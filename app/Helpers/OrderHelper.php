@@ -98,7 +98,7 @@ class OrderHelper
         $lineItems = [];
 
         if($freeEdit){
-            $existingLineItems = $order->allLineItems->all();
+            $existingLineItems = $order->lineItems->all();
 
             foreach($request->input('line_items', []) as $lineItemDatum){
                 if ($lineItemDatum['line_item_type'] == 'product' && empty($lineItemDatum['quantity'])) {

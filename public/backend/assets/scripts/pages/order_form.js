@@ -1155,7 +1155,7 @@ var OrderForm = function () {
         $('.line-item-remove', $lineItem).on('click', function(e){
           e.preventDefault();
 
-          if($lineItem.hasClass('line-item') && $lineItem.data('line_item_key')){
+          if($lineItem.hasClass('line-item') && typeof $lineItem.data('line_item_key') != 'undefined'){
             $('[data-parent_line_item_key="'+$lineItem.data('line_item_key')+'"]', '#line-items-table').each(function(idx, obj){
               $(obj).trigger('order.line_item_remove');
               $(obj).remove();

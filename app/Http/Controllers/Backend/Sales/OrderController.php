@@ -696,6 +696,7 @@ class OrderController extends Controller{
 
         Event::fire(new OrderEvent('before_update_order', $order));
 
+
         if($request->input('action') == 'place_order'){
             //If order is not cart, return all stocks first
             if(in_array($order->status, [Order::STATUS_CART, Order::STATUS_ADMIN_CART, Order::STATUS_CANCELLED])){
@@ -1096,7 +1097,8 @@ class OrderController extends Controller{
         if($request->input('isParent')){
             $render = view('backend.order.line_items.form.product', [
                 'product' => $model,
-                'key' => $request->get('product_index')
+                'key' => $request->get('product_index'),
+                'order' => new Order()
             ])->render();
         }else{
             $parentProduct = Product::findOrFail($request->get('parent_product'));
@@ -1105,7 +1107,8 @@ class OrderController extends Controller{
                 'parentKey' => $request->get('parent_index'),
                 'childKey' => $request->get('product_index'),
                 'composite' => $parentProduct->getCompositeConfiguration((int) $request->get('composite')),
-                'product' => $model
+                'product' => $model,
+                'order' => new Order()
             ])->render();
         }
 

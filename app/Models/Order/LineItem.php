@@ -231,6 +231,9 @@ class LineItem extends Model
             $this->setAttribute($fillableAttribute, NULL);
         }
 
+        //Clear children
+        $this->children()->delete();
+
         //Clear attached configurations
         DB::table($this->productConfigurations()->getTable())->where('line_item_id', $this->id)->delete();
     }
