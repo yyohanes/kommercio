@@ -46,7 +46,7 @@ if($store != 'all'){
             <td>{{ $order->shippingInformation->email }}</td>
             <td>{!! AddressHelper::printAddress($order->shippingInformation->getDetails()) !!}</td>
             @foreach($orderedProducts as $orderedProductIdx=>$orderedProduct)
-                <td>{{ $order->getProductQuantity($orderedProductIdx) + 0 }}</td>
+                <td>{{ $order->getProductQuantity($orderedProductIdx, true) + 0 }}</td>
             @endforeach
             <td>{{ $order->outstanding }}</td>
             <td>{{ CurrencyHelper::convert($order->total, $order->currency, $order->currency) }}</td>
