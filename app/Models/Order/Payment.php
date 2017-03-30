@@ -143,7 +143,7 @@ class Payment extends Model implements AuthorSignatureInterface
             $invoice = $order->invoices->get(0);
         }
 
-        //Create invoice if no longer created
+        //Create invoice if none exists
         if(!$invoice){
             $invoice = Invoice::createInvoice($order);
         }
@@ -167,6 +167,7 @@ class Payment extends Model implements AuthorSignatureInterface
         }
 
         $payment->save();
+        $payment->order->load('payments');
 
         if($payment->status == self::STATUS_SUCCESS){
             Event::fire(new PaymentEvent('accept', $payment));

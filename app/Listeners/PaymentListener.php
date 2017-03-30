@@ -42,6 +42,7 @@ class PaymentListener
 
     protected function paymentAccepted(Payment $payment)
     {
+        \Log::info($payment->order->payments);
         if($payment->order->getOutstandingAmount() <= 0){
             if(ProjectHelper::isFeatureEnabled('customer.reward_points')){
                 $payment->order->addRewardPoint([
