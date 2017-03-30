@@ -1082,6 +1082,7 @@ class ProductController extends Controller{
             $orderedQuantity = $orderedQuantities[$idx];
 
             $options = [
+                'order' => $order,
                 'store' => $store_id,
                 'quantity' => $orderedQuantity,
                 'months' => $months,

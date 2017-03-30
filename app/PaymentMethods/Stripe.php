@@ -42,7 +42,7 @@ class Stripe extends PaymentMethodAbstract implements PaymentMethodSettingFormIn
 
             try{
                 $charge = \Stripe\Charge::create(array(
-                    "amount" => $order->total * 100,
+                    "amount" => $order->getOutstandingAmount() * 100,
                     "currency" => $order->currency,
                     "source" => $order->getData('stripeToken'),
                     "description" => "Charge for ".$order->billingInformation->email,

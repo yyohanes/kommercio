@@ -126,7 +126,7 @@ class Payment extends Model implements AuthorSignatureInterface
     public static function createPayment(Order $order, Invoice $invoice = null, $status = self::STATUS_PENDING, PaymentMethod $paymentMethod = null, $notes = '', $options = [])
     {
         $paymentData = [
-            'amount' => $order->total,
+            'amount' => $order->getOutstandingAmount(),
             'currency' => $order->currency,
             'status' => $status,
             'notes' => $notes

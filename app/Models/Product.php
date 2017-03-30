@@ -942,11 +942,11 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
                 'limit_type' => OrderLimit::LIMIT_DELIVERY_DATE,
                 'date' => $deliveryDate,
                 'store' => $store,
-                //'type' => OrderLimit::TYPE_PRODUCT,
+                'type' => isset($options['type'])?$options['type']:OrderLimit::TYPE_PRODUCT,
                 'product' => $this
             ]);
 
-            $deliveryOrderLimit = (count($deliveryOrderLimits) > 0)?$this->extractOrderLimit($deliveryOrderLimits)->limit:null;
+            $deliveryOrderLimit = (count($deliveryOrderLimits) > 0)?$this->extractOrderLimit($deliveryOrderLimits):null;
         }
 
         //Order Total Limit
@@ -956,11 +956,11 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
                 'limit_type' => OrderLimit::LIMIT_ORDER_DATE,
                 'date' => $date,
                 'store' => $store,
-                //'type' => OrderLimit::TYPE_PRODUCT,
+                'type' => isset($options['type'])?$options['type']:OrderLimit::TYPE_PRODUCT,
                 'product' => $this
             ]);
 
-            $totalOrderLimit = (count($totalOrderLimits) > 0)?$this->extractOrderLimit($totalOrderLimits)->limit:null;
+            $totalOrderLimit = (count($totalOrderLimits) > 0)?$this->extractOrderLimit($totalOrderLimits):null;
         }
 
         $orderLimits = [
@@ -976,13 +976,15 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
 
         $limitType = OrderLimit::LIMIT_ORDER_DATE;
 
-        if(isset($orderLimits['checkout_at']) && $totalOrderLimit <= $deliveryOrderLimit){
+        if(isset($orderLimits['checkout_at']) && $totalOrderLimit->limit <= $deliveryOrderLimit){
+            $limitObj = $totalOrderLimit;
             $limitType = OrderLimit::LIMIT_ORDER_DATE;
         }elseif(isset($orderLimits['delivery_date'])){
+            $limitObj = $deliveryOrderLimit;
             $limitType = OrderLimit::LIMIT_DELIVERY_DATE;
         }
 
-        return $orderLimits?['limit_type' => $limitType, 'limit' => $orderLimits[$limitType]]:null;
+        return $orderLimits?['limit_type' => $limitType, 'limit' => $orderLimits[$limitType]->limit, 'object' => $limitObj]:null;
     }
 
     public function getUnavailableDeliveryDates($options)
@@ -995,6 +997,13 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
         $store = !empty($options['store'])?$options['store']:null;
         $months = !empty($options['months'])?$options['months']:[];
         $format = !empty($options['format'])?$options['format']:'Y-m-d';
+        $order = !empty($options['order'])?$options['order']:null;
+
+        if($order){
+            $productLineItems = $order->getProductLineItems();
+        }else{
+            $productLineItems = [];
+        }
 
         if(!$months){
             throw new \Exception('You need to specify months.');
@@ -1019,13 +1028,51 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
                     $dayOrderCount -= $saved_quantity;
                 }
 
-                $dayOrderLimit = $this->getOrderLimit([
+                //Product Limit
+                $dayProductOrderLimit = $this->getOrderLimit([
                     'delivery_date' => $dayToRun->format('Y-m-d'),
                     'store' => $store,
+                    'type' => OrderLimit::TYPE_PRODUCT
                 ]);
 
-                if(is_array($dayOrderLimit) && ($dayOrderLimit['limit'] == 0 || $dayOrderCount + $quantity > $dayOrderLimit['limit'])){
+                if(is_array($dayProductOrderLimit) && ($dayProductOrderLimit['limit'] == 0 || $dayOrderCount + $quantity > $dayProductOrderLimit['limit'])){
                     $disabledDates[] = $dayToRun->format($format);
+                }
+
+                //Category Limit
+                $dayCategoryOrderLimit = $this->getOrderLimit([
+                    'delivery_date' => $dayToRun->format('Y-m-d'),
+                    'store' => $store,
+                    'type' => OrderLimit::TYPE_PRODUCT_CATEGORY
+                ]);
+
+                foreach($productLineItems as $productLineItem){
+                    if($productLineItem->product->id != $this->id){
+                        if($dayCategoryOrderLimit->productRulesPassed($productLineItem->product)){
+                            $dayCategoryOrderLimit->total += $productLineItem->quantity;
+                        }
+                    }
+                }
+
+                if(is_array($dayCategoryOrderLimit)){
+                    //Get ordered products by date
+                    if($dayCategoryOrderLimit['limit_type'] == OrderLimit::LIMIT_DELIVERY_DATE){
+                        $orderDate = $dayToRun;
+                    }else{
+                        $orderDate = Carbon::now();
+                    }
+
+                    $orders = Order::getOrdersByDate($orderDate, $dayCategoryOrderLimit['limit_type']);
+
+                    if($dayCategoryOrderLimit['object']->productRulesPassed($this)){
+                        $dayCategoryOrderLimit['object']->total += $quantity;
+                    }
+
+                    if($dayCategoryOrderLimit['object']->total > $dayCategoryOrderLimit['object']->limit){
+                        $disabledDates[] = $dayToRun->format($format);
+                    }
+
+                    \Log::info($dayCategoryOrderLimit['object']->total);
                 }
 
                 $dayToRun->addDay();

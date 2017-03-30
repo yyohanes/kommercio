@@ -4,6 +4,7 @@ namespace Kommercio\Models\Order;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Kommercio\Facades\CurrencyHelper;
@@ -1122,6 +1123,25 @@ class Order extends Model implements AuthorSignatureInterface
         ];
 
         return $array[$process];
+    }
+
+    /**
+     * Get orders based on date
+     * @param Carbon $date Date of order
+     * @parem string $type delivery_date / checkout_at
+     * @return Collection Orders based on Date and Type
+     */
+    public static function getOrdersByDate($date, $type = 'checkout_at')
+    {
+        $qb = self::usageCounted()->orderBy('checkout_at', 'ASC');
+
+        if($type == 'delivery_date'){
+            $qb->where('delivery_date', $date);
+        }else{
+            $qb->where('checkout_at', $date);
+        }
+
+        return $qb->get();
     }
 
     /**
