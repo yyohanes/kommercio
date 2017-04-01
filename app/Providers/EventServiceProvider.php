@@ -32,7 +32,8 @@ class EventServiceProvider extends ServiceProvider
             'Kommercio\Listeners\RewardPointListener'
         ],
         'Kommercio\Events\StoreEvent' => [],
-        'Kommercio\Events\CatalogQueryBuilder' => []
+        'Kommercio\Events\CatalogQueryBuilder' => [],
+        'Kommercio\Events\CartPriceRuleEvent' => [],
     ];
 
     public function __construct($app)
@@ -77,6 +78,11 @@ class EventServiceProvider extends ServiceProvider
         //Add package Catalog Query Builder Listener
         if(file_exists(base_path('packages/project/src/Project/Listeners/CatalogQueryBuilderListener.php'))){
             $this->listen['Kommercio\Events\CatalogQueryBuilder'][] = 'Project\Project\Listeners\CatalogQueryBuilderListener';
+        }
+
+        //Add package Cart Price Rule Event Listener
+        if(file_exists(base_path('packages/project/src/Project/Listeners/CartPriceRuleListener.php'))){
+            $this->listen['Kommercio\Events\CartPriceRuleEvent'][] = 'Project\Project\Listeners\CartPriceRuleListener';
         }
 
         //Reverse listeners so Project goes first

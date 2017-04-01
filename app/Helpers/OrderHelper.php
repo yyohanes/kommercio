@@ -3,6 +3,8 @@
 namespace Kommercio\Helpers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Event;
+use Kommercio\Events\CartPriceRuleEvent;
 use Kommercio\Facades\PriceFormatter as PriceFormatterFacade;
 use Kommercio\Facades\ProjectHelper as ProjectHelperFacade;
 use Kommercio\Facades\EmailHelper as EmailHelperFacade;
@@ -161,6 +163,16 @@ class OrderHelper
 
                 }else{
                     continue;
+                }
+
+                Event::fire(new CartPriceRuleEvent('apply_to_line_item', $cartPriceRule, ['lineItem' => $lineItem]));
+
+                if(!$cartPriceRule->runtimeValid){
+                    continue;
+                }
+
+                if(!empty($additionalCouponValidation)){
+                    $couponValidation = $additionalCouponValidation;
                 }
 
                 if($cartPriceRule->modification_source = CartPriceRule::MODIFICATION_SOURCE_BASE){

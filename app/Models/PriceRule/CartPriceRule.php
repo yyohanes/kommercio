@@ -3,6 +3,8 @@
 namespace Kommercio\Models\PriceRule;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Event;
+use Kommercio\Events\CartPriceRuleEvent;
 use Kommercio\Facades\LanguageHelper;
 use Kommercio\Facades\OrderHelper;
 use Kommercio\Facades\PriceFormatter;
@@ -39,6 +41,7 @@ class CartPriceRule extends Model implements StoreManagedInterface
     //To store calculation
     public $total = 0;
     public $appliedLineItems = [];
+    public $runtimeValid = true;
 
     //Relations
     public function store()
@@ -490,6 +493,7 @@ class CartPriceRule extends Model implements StoreManagedInterface
         }else{
             foreach($couponPriceRules as $couponPriceRule){
                 $couponValidation = $couponPriceRule->validateUsage($options['customer_email']);
+
                 if(!$couponValidation['valid']){
                     return trans(LanguageHelper::getTranslationKey($couponValidation['message']), ['coupon_code' => $couponCode]);
                 }
