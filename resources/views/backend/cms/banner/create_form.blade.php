@@ -44,6 +44,19 @@
     'existing' => $banner->images
 ])
 
+@include('backend.master.form.fields.videos', [
+    'name' => 'videos',
+    'label' => 'Banner Video',
+    'key' => 'videos',
+    'attr' => [
+        'class' => 'form-control',
+        'id' => 'videos'
+    ],
+    'multiple' => TRUE,
+    'limit' => 3,
+    'existing' => $banner->videos
+])
+
 @include('backend.master.form.fields.checkbox', [
     'name' => 'active',
     'label' => 'Active',

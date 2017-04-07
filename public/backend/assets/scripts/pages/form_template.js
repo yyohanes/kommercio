@@ -22,6 +22,7 @@ var formBehaviors = function(){
             document_base_url : global_vars.base_path,
             remove_trailing_brs: false,
             paste_as_text: true,
+            file_browser_callback_types: 'file image media',
             file_browser_callback : function(field_name, url, type, win) {
                 var x = window.innerWidth || document.documentElement.clientWidth || document.getElementsByTagName('body')[0].clientWidth;
                 var y = window.innerHeight|| document.documentElement.clientHeight|| document.getElementsByTagName('body')[0].clientHeight;
@@ -338,7 +339,8 @@ var formBehaviors = function(){
             });
         }
 
-        $('.images-upload', context).each(function(idx, obj){
+        $('.images-upload, .videos-upload', context).each(function(idx, obj){
+          var $type = $(obj).hasClass('videos-upload')?'video':'image';
             $(obj).on('drag dragstart dragend dragover dragenter dragleave drop', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
@@ -357,17 +359,30 @@ var formBehaviors = function(){
 
             $refreshDropzone($uploadedZone);
 
+            var $acceptedFileTypes, $typeMatch, $uploadedClass, $uploadedRemoveClass;
+            if($type == 'video'){
+              $acceptedFileTypes = /(\.|\/)(mp4|m4v|ogg)$/i;
+              $typeMatch = 'video.*';
+              $uploadedClass = 'uploaded-video';
+              $uploadedRemoveClass = 'uploaded-video-remove';
+            }else{
+              $acceptedFileTypes = /(\.|\/)(gif|jpe?g|png)$/i;
+              $typeMatch = 'image.*';
+              $uploadedClass = 'uploaded-image';
+              $uploadedRemoveClass = 'uploaded-image-remove';
+            }
+
             $(obj).fileupload({
                 url: $(obj).data('upload_url'),
                 dataType: 'json',
                 disableImageResize: /Android(?!.*Chrome)|Opera/.test(window.navigator.userAgent),
                 maxFileSize: global_vars.max_upload_size,
-                acceptFileTypes: /(\.|\/)(gif|jpe?g|png)$/i,
+                acceptFileTypes: $acceptedFileTypes,
                 dropZone: $(obj).find('.dropzone'),
                 add: function(e, data){
-                    if(data.originalFiles.length <= $limit && $uploadedZone.find('.uploaded-image').length < $limit){
+                    if(data.originalFiles.length <= $limit && $uploadedZone.find(('.' + $uploadedClass)).length < $limit){
                         $.each(data.files, function (index, file) {
-                            if (file.type.match('image.*')) {
+                            if (file.type.match($typeMatch)) {
                                 data.context = $('<div class="col-md-3"><div class="progress"><div class="progress-bar" role="progressbar" aria-valuenow="" aria-valuemin="0" aria-valuemax="100" style=""></div></div></div>');
                                 data.context.appendTo($uploadedZone);
 
@@ -393,14 +408,21 @@ var formBehaviors = function(){
                 },
                 done: function(e, data){
                     $.each(data.result.files, function (index, file) {
-                        var $uploadedImage = '<div class="col-md-3 uploaded-image text-center"><img class="img-responsive" src="'+global_vars.base_path+'/'+global_vars.images_path+'/backend_thumbnail/'+file.path+'" />';
+                        var $uploadedImage = '<div class="col-md-3 '+ $uploadedClass +' text-center">';
+
+                        if($type == 'video'){
+                          $uploadedImage += '<div>' + file.filename +'</div>';
+                        }else{
+                          $uploadedImage += '<img class="img-responsive" src="'+global_vars.base_path+'/'+global_vars.images_path+'/backend_thumbnail/'+file.path+'" />';
+                        }
+
                         if($caption == 1){
                             $uploadedImage += '<input name="'+$(obj).data('name')+'_caption[]" type="text" placeholder="Caption" class="form-control input-sm" />';
                         }
                         $uploadedImage += '<input name="'+$(obj).data('name')+'[]" type="hidden" value="'+file.id+'" /><a href="#" class="uploaded-image-remove"><i class="fa fa-remove"></i></a></div>';
                         $uploadedImage = $($uploadedImage);
 
-                        $uploadedProcess($uploadedImage.find('.uploaded-image-remove'), $uploadedZone);
+                        $uploadedProcess($uploadedImage.find(('.' + $uploadedRemoveClass)), $uploadedZone);
 
                         data.context.replaceWith($uploadedImage);
 
@@ -423,11 +445,11 @@ var formBehaviors = function(){
             );
 
             $uploadedZone.sortable({
-                placeholder: '<div class="col-md-3 uploaded-image"></div>'
+                placeholder: '<div class="col-md-3 ' + $uploadedClass + '"></div>'
             });
 
             $refreshDropzone($uploadedZone);
-            $uploadedProcess($uploadedZone.find('.uploaded-image-remove'), $uploadedZone);
+            $uploadedProcess($uploadedZone.find(('.' + $uploadedRemoveClass)), $uploadedZone);
         });
     };
 

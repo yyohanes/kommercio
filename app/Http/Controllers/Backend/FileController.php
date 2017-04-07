@@ -61,7 +61,7 @@ class FileController extends Controller{
             $rules[$file_name] = 'required';
 
             foreach($files as $file_idx=>$file){
-                $rules[$file_name.'.'.$file_idx] = $this->getFileRule($type).'|max:'.File::MAXIMUM_SIZE;
+                $rules[$file_name.'.'.$file_idx] = $this->getFileRule($type);
             }
         }
 
@@ -72,7 +72,9 @@ class FileController extends Controller{
     {
         switch($type){
             case 'image':
-                return 'image';
+                return 'image|max:'.File::MAXIMUM_SIZE;
+            case 'video':
+                return 'mimes:mp4,m4v,ogg|max:100000';
         }
     }
 }

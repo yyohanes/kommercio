@@ -15,14 +15,14 @@
 }
 
 /* line 20, sass/app.scss */
-.images-upload .dropzone {
+.images-upload .dropzone, .videos-upload .dropzone {
   padding: 2em;
   border: 1px dashed #ccc;
   text-align: center;
   color: #999;
 }
 /* line 28, sass/app.scss */
-.images-upload.is-dragover .dropzone {
+.images-upload.is-dragover .dropzone, .videos-upload.is-dragover .dropzone {
   background: #eee;
 }
 

@@ -26,4 +26,9 @@ class BannerTranslation extends Model
     {
         return $this->media('image')->where('locale', $this->locale);
     }
+
+    public function videos()
+    {
+        return $this->media('video')->where('locale', $this->locale);
+    }
 }
