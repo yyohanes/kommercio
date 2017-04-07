@@ -419,7 +419,7 @@ var formBehaviors = function(){
                         if($caption == 1){
                             $uploadedImage += '<input name="'+$(obj).data('name')+'_caption[]" type="text" placeholder="Caption" class="form-control input-sm" />';
                         }
-                        $uploadedImage += '<input name="'+$(obj).data('name')+'[]" type="hidden" value="'+file.id+'" /><a href="#" class="uploaded-image-remove"><i class="fa fa-remove"></i></a></div>';
+                        $uploadedImage += '<input name="'+$(obj).data('name')+'[]" type="hidden" value="'+file.id+'" /><a href="#" class="'+$uploadedRemoveClass+'"><i class="fa fa-remove"></i></a></div>';
                         $uploadedImage = $($uploadedImage);
 
                         $uploadedProcess($uploadedImage.find(('.' + $uploadedRemoveClass)), $uploadedZone);
