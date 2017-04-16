@@ -20,7 +20,7 @@ class Banner extends Model
     ];
 
     public $fillable = ['name', 'body', 'banner_group_id', 'menu_class', 'active', 'sort_order'];
-    public $translatedAttributes = ['name', 'body', 'image', 'images'];
+    public $translatedAttributes = ['name', 'body', 'image', 'images', 'videos'];
     protected $toggleFields = ['active'];
 
     public function render($imageStyle = 'original')

@@ -53,6 +53,17 @@ class BannerController extends Controller{
             $banner->getTranslation()->attachMedia($images, 'image');
         }
 
+        if($request->has('videos')){
+            foreach($request->input('videos', []) as $idx=>$video){
+                $videos[$video] = [
+                    'type' => 'video',
+                    'caption' => $request->input('videos_caption.'.$idx, null),
+                    'locale' => $banner->getTranslation()->locale
+                ];
+            }
+            $banner->getTranslation()->attachMedia($videos, 'video');
+        }
+
         return redirect($request->get('backUrl', route('backend.cms.banner.index', ['banner_group_id' => $banner->bannerGroup->id])))->with('success', [$banner->name.' has successfully been created.']);
     }
 
@@ -85,6 +96,16 @@ class BannerController extends Controller{
             ];
         }
         $banner->getTranslation()->syncMedia($images, 'image');
+
+        $videos = [];
+        foreach($request->input('videos', []) as $idx=>$video){
+            $videos[$video] = [
+                'type' => 'video',
+                'caption' => $request->input('videos_caption.'.$idx, null),
+                'locale' => $banner->getTranslation()->locale
+            ];
+        }
+        $banner->getTranslation()->syncMedia($videos, 'video');
 
         return redirect($request->get('backUrl', route('backend.cms.banner.index', ['banner_group_id' => $banner->bannerGroup->id])))->with('success', [$banner->name.' has successfully been updated.']);
     }
