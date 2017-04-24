@@ -34,7 +34,7 @@ class CreateCompositeGroupTable extends Migration
             $table->integer('sort_order')->default(0);
 
             $table->foreign('product_composite_group_id', 'product_composite_group_product_foreign')->references('id')->on('product_composite_groups')->onDelete('CASCADE');
-            $table->foreign('product_id')->references('id')->on('products');
+            $table->foreign('product_id')->references('id')->on('products')->onDelete('CASCADE');
         });
 
         Schema::table('product_composites', function(Blueprint $table){
