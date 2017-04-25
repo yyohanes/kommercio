@@ -1015,7 +1015,7 @@ class OrderController extends Controller
                 'attachment' => 'image|max:3000',
             ];
 
-            Event::fire(new OrderEvent('before_validate_confirm_payment', null, ['request' => &$request]));
+            Event::fire(new OrderEvent('before_validate_confirm_payment', null, ['request' => &$request, 'rules' => &$rules]));
 
             $this->validate($request, $rules);
 
@@ -1035,8 +1035,9 @@ class OrderController extends Controller
                 'email' => 'Email',
                 'phone' => 'Phone',
                 'account_name' => 'Account Holder',
-                'account_bank' => 'Bank Name',
-                'transfer_method' => 'Transfer Method'
+                'account_bank' => 'Sender Bank Name',
+                'account_bank_destination' => 'Destination Bank Name',
+                'transfer_method' => 'Transfer Method',
             ];
 
             if($request->has('details')){

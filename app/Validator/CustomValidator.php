@@ -40,8 +40,8 @@ class CustomValidator extends Validator
         $variations = $product->getVariationsByAttributes($attributes, $attributeValues);
 
         if($variation){
-            $variations = $variations->reject(function($value) use ($variation){
-                return $value->id == $variation;
+            $variations = $variations->reject(function($value) use ($variation, $attributes){
+                return $value->id == $variation || $value->productAttributes->count() != count($attributes);
             });
         }
 
