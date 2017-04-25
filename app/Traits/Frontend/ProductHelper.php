@@ -72,7 +72,7 @@ trait ProductHelper
 
     public function canBePurchased()
     {
-        $return = $this->isPurchaseable && $this->productDetail->active && $this->productDetail->available;
+        $return = $this->isInStock() && $this->isPurchaseable && $this->productDetail->active && $this->productDetail->available;
 
         return $return;
     }
