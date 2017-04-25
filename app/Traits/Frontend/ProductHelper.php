@@ -109,7 +109,8 @@ trait ProductHelper
                 $attributes[$attributeValue->productAttribute->id]['options'][$attributeValue->id] = [
                     'label' => $attributeValue->name,
                     'id' => $attributeValue->id,
-                    'object' => $attributeValue
+                    'object' => $attributeValue,
+                    'canBePurchased' => $variation->canBePurchased()
                 ];
             }
         }
