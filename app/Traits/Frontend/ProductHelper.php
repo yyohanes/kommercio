@@ -70,9 +70,23 @@ trait ProductHelper
         return $return;
     }
 
+    public function canBePurchased()
+    {
+        $return = $this->isPurchaseable && $this->productDetail->is_active && $this->productDetail->active && $this->productDetail->available;
+
+        return $return;
+    }
+
     public function getDefaultVariation()
     {
         $variations = $this->getActiveVariations();
+
+        //Get first available product
+        foreach($variations as $variation){
+            if($variation->canBePurchased()){
+                return $variation;
+            }
+        }
 
         return isset($variations[0])?$variations[0]:$this;
     }
@@ -98,6 +112,13 @@ trait ProductHelper
                     'object' => $attributeValue
                 ];
             }
+        }
+
+        foreach($attributes as &$attribute){
+            $attributeValues = collect($attribute['options']);
+            $attribute['options'] = $attributeValues->sortBy(function($attributeValue, $key){
+                return $attributeValue['object']->sort_order;
+            });
         }
 
         return $attributes;
