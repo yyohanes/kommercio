@@ -56,6 +56,19 @@ Route::group(['middleware' => ['web']], function () {
             'uses' => 'Auth\AuthController@register'
         ]);
 
+        //Socialite
+        Route::group(['prefix' => 'auth/social', 'namespace' => 'Auth'], function(){
+            Route::get('facebook/redirect', [
+                'as' => 'frontend.auth.facebook.redirect',
+                'uses' => 'SocialiteController@facebookRedirect'
+            ]);
+
+            Route::get('facebook/callback', [
+                'as' => 'frontend.auth.facebook.callback',
+                'uses' => 'SocialiteController@facebookCallback'
+            ]);
+        });
+
         Route::group(['middleware' => 'auth'], function(){
             Route::group(['prefix' => 'member'], function(){
                 Route::get('account', [

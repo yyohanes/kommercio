@@ -9,6 +9,7 @@ var KommercioFrontend = function(){
     init: function () {
       this.csrfHeaderSetup(global_vars.csrf_token);
       this.confirmBtns(document);
+      this.popupBtns(document);
 
       $(document).ajaxComplete(function (event, request, settings) {
         if (typeof request.responseJSON !== 'undefined' && typeof request.responseJSON._token !== 'undefined') {
@@ -25,6 +26,16 @@ var KommercioFrontend = function(){
         $(obj).on('click', function(){
           return confirm($message);
         });
+      });
+    },
+    popupBtns: function(context){
+      $('.popup-btn', context).on('click', function(e){
+        e.preventDefault();
+
+        var width = $(this).data('popup_width')?$(this).data('popup_width'):720;
+        var height = $(this).data('popup_height')?$(this).data('popup_width'):560;
+
+        window.open($(this).attr('href'), 'popup-window', 'width='+width+',height='+height);
       });
     },
     csrfHeaderSetup: function (token) {

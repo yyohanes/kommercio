@@ -130,7 +130,12 @@ class User extends Authenticatable
 
     public function customer()
     {
-        return $this->hasOne('Kommercio\Models\Customer');
+        return $this->hasOne(Customer::class);
+    }
+
+    public function socialAccounts()
+    {
+        return $this->hasMany(SocialAccount::class);
     }
 
     //Statics

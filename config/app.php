@@ -178,6 +178,7 @@ return [
         \Maatwebsite\Excel\ExcelServiceProvider::class,
         \Mews\Captcha\CaptchaServiceProvider::class,
         \Unisharp\Laravelfilemanager\LaravelFilemanagerServiceProvider::class,
+        \Laravel\Socialite\SocialiteServiceProvider::class,
 
         /*
          * Application Service Providers...
@@ -239,14 +240,15 @@ return [
         'Form' => \Collective\Html\FormFacade::class,
         'HTML' => \Collective\Html\HtmlFacade::class,
         'Excel' => \Maatwebsite\Excel\Facades\Excel::class,
-        'NavigationHelper' => \Kommercio\Facades\NavigationHelper::class,
+        'Socialite' => Laravel\Socialite\Facades\Socialite::class,
         'Shortcode' => \Kommercio\Facades\Shortcode::class,
         'Captcha' => \Mews\Captcha\Facades\Captcha::class,
+        'Image' => Intervention\Image\Facades\Image::class,
+        'GlideImage' => Spatie\Glide\GlideImageFacade::class,
+        'NavigationHelper' => \Kommercio\Facades\NavigationHelper::class,
         'NewsletterSubscriptionHelper' => \Kommercio\Facades\NewsletterSubscriptionHelper::class,
         'ProjectHelper' => \Kommercio\Facades\ProjectHelper::class,
         'CurrencyHelper' => \Kommercio\Facades\CurrencyHelper::class,
-        'Image' => Intervention\Image\Facades\Image::class,
-        'GlideImage' => Spatie\Glide\GlideImageFacade::class,
         'PriceFormatter' => \Kommercio\Facades\PriceFormatter::class,
         'AddressHelper' => \Kommercio\Facades\AddressHelper::class,
         'OrderHelper' => \Kommercio\Facades\OrderHelper::class,
