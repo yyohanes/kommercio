@@ -2,19 +2,9 @@
 
 namespace Kommercio\Models\ProductFeature;
 
-use Cviebrock\EloquentSluggable\SluggableInterface;
-use Cviebrock\EloquentSluggable\SluggableTrait;
-use Illuminate\Database\Eloquent\Model;
+use Kommercio\Models\Abstracts\SluggableModel;
 
-class ProductFeatureValueTranslation extends Model implements SluggableInterface
+class ProductFeatureValueTranslation extends SluggableModel
 {
-    use SluggableTrait;
-
-    protected $sluggable = [
-        'build_from' => 'name',
-        'save_to'    => 'slug',
-        'on_update' => TRUE,
-    ];
-
     public $timestamps = FALSE;
 }

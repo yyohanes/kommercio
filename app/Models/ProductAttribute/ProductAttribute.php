@@ -18,13 +18,13 @@ class ProductAttribute extends Model implements ProductIndexInterface
     protected $guarded = [];
 
     //Methods
-    public function newPivot(Model $parent, array $attributes, $table, $exists)
+    public function newPivot(Model $parent, array $attributes, $table, $exists, $using = null)
     {
         if ($parent instanceof Product) {
-            return new AttributeValuePivot($parent, $attributes, $table, $exists);
+            return new AttributeValuePivot($parent, $attributes, $table, $exists, $using);
         }
 
-        return parent::newPivot($parent, $attributes, $table, $exists);
+        return parent::newPivot($parent, $attributes, $table, $exists, $using);
     }
 
     public function getProductIndexType()

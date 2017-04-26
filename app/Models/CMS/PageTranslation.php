@@ -2,22 +2,18 @@
 
 namespace Kommercio\Models\CMS;
 
-use Cviebrock\EloquentSluggable\SluggableInterface;
-use Cviebrock\EloquentSluggable\SluggableTrait;
 use Illuminate\Database\Eloquent\Model;
+use Kommercio\Models\Abstracts\SluggableModel;
 use Kommercio\Traits\Model\MediaAttachable;
 
-class PageTranslation extends Model implements SluggableInterface
+class PageTranslation extends SluggableModel
 {
-    use MediaAttachable, SluggableTrait;
+    use MediaAttachable;
 
     public $timestamps = FALSE;
 
-    protected $sluggable = [
-        'build_from' => 'name',
-        'save_to'    => 'slug',
-        'on_update' => TRUE,
-    ];
+    //Methods
+
 
     //Relations
     public function images()

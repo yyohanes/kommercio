@@ -3,6 +3,7 @@
 namespace Kommercio\Validator;
 
 use Carbon\Carbon;
+use Illuminate\Contracts\Translation\Translator;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Validator;
 use Kommercio\Facades\RuntimeCache;
@@ -14,13 +15,12 @@ use Kommercio\Models\PaymentMethod\PaymentMethod;
 use Kommercio\Models\PriceRule\CartPriceRule;
 use Kommercio\Models\Product;
 use Kommercio\Models\RewardPoint\Reward;
-use Symfony\Component\Translation\TranslatorInterface;
 
 class CustomValidator extends Validator
 {
     private static $_storage;
 
-    public function __construct(TranslatorInterface $translator, array $data, array $rules, array $messages = [], array $customAttributes = [])
+    public function __construct(Translator $translator, array $data, array $rules, array $messages = [], array $customAttributes = [])
     {
         parent::__construct( $translator, $data, $rules, $messages, $customAttributes );
 

@@ -1,6 +1,17 @@
 <?php
 
 return [
+    /*
+    |--------------------------------------------------------------------------
+    | Application Name
+    |--------------------------------------------------------------------------
+    |
+    | This value is the name of your application. This value is used when the
+    | framework needs to place the application's name in a notification or
+    | any other location as required by the application or its packages.
+    */
+
+    'name' => env('PROJECT_NAME','Kommercio'),
 
     /*
     |--------------------------------------------------------------------------
@@ -138,6 +149,7 @@ return [
         Illuminate\Foundation\Providers\FoundationServiceProvider::class,
         Illuminate\Hashing\HashServiceProvider::class,
         Illuminate\Mail\MailServiceProvider::class,
+        Illuminate\Notifications\NotificationServiceProvider::class,
         Illuminate\Pagination\PaginationServiceProvider::class,
         Illuminate\Pipeline\PipelineServiceProvider::class,
         Illuminate\Queue\QueueServiceProvider::class,
@@ -149,16 +161,20 @@ return [
         Illuminate\View\ViewServiceProvider::class,
 
         /*
+         * Package Service Providers...
+         */
+        Laravel\Tinker\TinkerServiceProvider::class,
+
+        /*
          * Third-party service providers
          */
-        \Cviebrock\EloquentSluggable\SluggableServiceProvider::class,
+        \Cviebrock\EloquentSluggable\ServiceProvider::class,
         \Barryvdh\Debugbar\ServiceProvider::class,
         \Dimsav\Translatable\TranslatableServiceProvider::class,
         \Collective\Html\HtmlServiceProvider::class,
         \Intervention\Image\ImageServiceProvider::class,
         \Spatie\Glide\GlideServiceProvider::class,
         \Fedeisas\LaravelMailCssInliner\LaravelMailCssInlinerServiceProvider::class,
-        \Collective\Bus\BusServiceProvider::class,
         \Maatwebsite\Excel\ExcelServiceProvider::class,
         \Mews\Captcha\CaptchaServiceProvider::class,
         \Unisharp\Laravelfilemanager\LaravelFilemanagerServiceProvider::class,
@@ -205,6 +221,7 @@ return [
         'Lang'      => Illuminate\Support\Facades\Lang::class,
         'Log'       => Illuminate\Support\Facades\Log::class,
         'Mail'      => Illuminate\Support\Facades\Mail::class,
+        'Notification' => Illuminate\Support\Facades\Notification::class,
         'Password'  => Illuminate\Support\Facades\Password::class,
         'Queue'     => Illuminate\Support\Facades\Queue::class,
         'Redirect'  => Illuminate\Support\Facades\Redirect::class,

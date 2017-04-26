@@ -2,24 +2,18 @@
 
 namespace Kommercio\Models;
 
-use Cviebrock\EloquentSluggable\SluggableInterface;
-use Cviebrock\EloquentSluggable\SluggableTrait;
-use Illuminate\Database\Eloquent\Model;
+use Kommercio\Models\Abstracts\SluggableModel;
 use Kommercio\Traits\Model\AuthorSignature;
 use Kommercio\Traits\Model\MediaAttachable;
 use Kommercio\Models\Interfaces\AuthorSignatureInterface;
 
-class ProductTranslation extends Model implements AuthorSignatureInterface, SluggableInterface
+class ProductTranslation extends SluggableModel implements AuthorSignatureInterface
 {
-    use AuthorSignature, MediaAttachable, SluggableTrait;
+    use AuthorSignature, MediaAttachable;
 
     public $timestamps = FALSE;
 
-    protected $sluggable = [
-        'build_from' => 'name',
-        'save_to'    => 'slug',
-        'on_update' => TRUE,
-    ];
+    //Methods
 
     //Accessors
     public function getThumbnailAttribute()

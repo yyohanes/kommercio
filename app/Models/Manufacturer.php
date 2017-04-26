@@ -2,22 +2,15 @@
 
 namespace Kommercio\Models;
 
-use Cviebrock\EloquentSluggable\SluggableInterface;
-use Cviebrock\EloquentSluggable\SluggableTrait;
-use Illuminate\Database\Eloquent\Model;
+use Kommercio\Models\Abstracts\SluggableModel;
 use Kommercio\Models\Interfaces\ProductIndexInterface;
 use Kommercio\Traits\Model\MediaAttachable;
 
-class Manufacturer extends Model implements SluggableInterface, ProductIndexInterface
+class Manufacturer extends SluggableModel implements ProductIndexInterface
 {
-    use MediaAttachable, SluggableTrait;
+    use MediaAttachable;
 
     protected $fillable = ['name'];
-    protected $sluggable = [
-        'build_from' => 'name',
-        'save_to'    => 'slug',
-        'on_update' => TRUE,
-    ];
 
     //Accessors
     public function getProductCountAttribute()
@@ -52,6 +45,16 @@ class Manufacturer extends Model implements SluggableInterface, ProductIndexInte
         $rows = collect([$this]);
 
         return $rows;
+    }
+
+    public function sluggable()
+    {
+        return [
+            'slug' => [
+                'source' => 'name',
+                'onUpdate' => TRUE
+            ],
+        ];
     }
 
     //Static

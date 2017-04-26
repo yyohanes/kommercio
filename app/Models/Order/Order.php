@@ -897,12 +897,12 @@ class Order extends Model implements AuthorSignatureInterface
         $profileDetailQuery = with(new Profile())->details();
 
         $query->leftJoin($profileDetailQuery->getRelated()->getTable().' AS BFNAME', function($join) use ($profileDetailQuery){
-            $join->on('BFNAME.'.$profileDetailQuery->getPlainForeignKey(), '=', $this->getTable().'.'.$this->billingProfile()->getForeignKey())
+            $join->on('BFNAME.'.$profileDetailQuery->getForeignKeyName(), '=', $this->getTable().'.'.$this->billingProfile()->getForeignKey())
                 ->where('BFNAME.identifier', '=', 'first_name');
         });
 
         $query->leftJoin($profileDetailQuery->getRelated()->getTable().' AS BLNAME', function($join) use ($profileDetailQuery){
-            $join->on('BLNAME.'.$profileDetailQuery->getPlainForeignKey(), '=', $this->getTable().'.'.$this->billingProfile()->getForeignKey())
+            $join->on('BLNAME.'.$profileDetailQuery->getForeignKeyName(), '=', $this->getTable().'.'.$this->billingProfile()->getForeignKey())
                 ->where('BLNAME.identifier', '=', 'last_name');
         });
 
@@ -914,12 +914,12 @@ class Order extends Model implements AuthorSignatureInterface
         $profileDetailQuery = with(new Profile())->details();
 
         $query->leftJoin($profileDetailQuery->getRelated()->getTable().' AS SFNAME', function($join) use ($profileDetailQuery){
-            $join->on('SFNAME.'.$profileDetailQuery->getPlainForeignKey(), '=', $this->getTable().'.'.$this->shippingProfile()->getForeignKey())
+            $join->on('SFNAME.'.$profileDetailQuery->getForeignKeyName(), '=', $this->getTable().'.'.$this->shippingProfile()->getForeignKey())
                 ->where('SFNAME.identifier', '=', 'first_name');
         });
 
         $query->leftJoin($profileDetailQuery->getRelated()->getTable().' AS SLNAME', function($join) use ($profileDetailQuery){
-            $join->on('SLNAME.'.$profileDetailQuery->getPlainForeignKey(), '=', $this->getTable().'.'.$this->shippingProfile()->getForeignKey())
+            $join->on('SLNAME.'.$profileDetailQuery->getForeignKeyName(), '=', $this->getTable().'.'.$this->shippingProfile()->getForeignKey())
                 ->where('SLNAME.identifier', '=', 'last_name');
         });
 

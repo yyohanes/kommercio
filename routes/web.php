@@ -48,17 +48,12 @@ Route::group(['middleware' => ['web']], function () {
         // Register Routes...
         Route::get('register', [
             'as' => 'frontend.register_form',
-            'uses' => 'Auth\AuthController@getRegister'
+            'uses' => 'Auth\AuthController@showRegistrationForm'
         ]);
 
         Route::post('register', [
             'as' => 'frontend.register',
-            'uses' => 'Auth\AuthController@postRegister'
-        ]);
-
-        Route::post('password/reset', [
-            'as' => 'frontend.password.reset',
-            'uses' => 'Auth\PasswordController@reset'
+            'uses' => 'Auth\AuthController@register'
         ]);
 
         Route::group(['middleware' => 'auth'], function(){

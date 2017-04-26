@@ -2,6 +2,9 @@
 
 namespace Kommercio\Http\Controllers\Frontend\Auth;
 
+use Illuminate\Auth\Events\Registered;
+use Illuminate\Foundation\Auth\AuthenticatesUsers;
+use Illuminate\Foundation\Auth\RegistersUsers;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -10,10 +13,8 @@ use Kommercio\Facades\NewsletterSubscriptionHelper;
 use Kommercio\Facades\ProjectHelper;
 use Kommercio\Models\User;
 use Kommercio\Models\Customer;
-use Validator;
+use Illuminate\Support\Facades\Validator;
 use Kommercio\Http\Controllers\Controller;
-use Illuminate\Foundation\Auth\ThrottlesLogins;
-use Illuminate\Foundation\Auth\AuthenticatesAndRegistersUsers;
 
 class AuthController extends Controller
 {
@@ -28,11 +29,16 @@ class AuthController extends Controller
     |
     */
 
-    use AuthenticatesAndRegistersUsers, ThrottlesLogins {
+    use AuthenticatesUsers{
         showLoginForm as parentShowLoginForm;
+        sendFailedLoginResponse as parentSendFailedLoginResponse;
+        AuthenticatesUsers::guard insteadof RegistersUsers;
+        AuthenticatesUsers::redirectPath insteadof RegistersUsers;
+    }
+
+    use RegistersUsers{
         showRegistrationForm as parentShowRegistrationForm;
         register as parentRegister;
-        sendFailedLoginResponse as parentSendFailedLoginResponse;
     }
 
     /**
@@ -121,15 +127,11 @@ class AuthController extends Controller
      */
     public function register(Request $request)
     {
-        $validator = $this->validator($request->all());
+        $this->validator($request->all())->validate();
 
-        if ($validator->fails()) {
-            $this->throwValidationException(
-                $request, $validator
-            );
-        }
+        event(new Registered($user = $this->create($request->all())));
 
-        Auth::guard($this->getGuard())->login($this->create($request->all()));
+        $this->guard()->login($user);
 
         if ($request->ajax()) {
             return new JsonResponse([
@@ -138,7 +140,8 @@ class AuthController extends Controller
             ]);
         }
 
-        return redirect($this->redirectPath());
+        return $this->registered($request, $user)
+            ?: redirect($this->redirectPath());
     }
 
     /*
@@ -200,8 +203,10 @@ class AuthController extends Controller
         return $customer->user;
     }
 
-    public function getLogout()
+    public function getLogout(Request $request)
     {
-        return $this->logout();
+        $this->logout($request);
+
+        return redirect($this->redirectAfterLogout);
     }
 }

@@ -12,12 +12,12 @@ trait Profileable
         $profileDetailQuery = with(new Profile())->details();
 
         $query->leftJoin($profileDetailQuery->getRelated()->getTable().' AS VFNAME', function($join) use ($profileDetailQuery){
-            $join->on('VFNAME.'.$profileDetailQuery->getPlainForeignKey(), '=', $this->getTable().'.'.$this->profile()->getForeignKey())
+            $join->on('VFNAME.'.$profileDetailQuery->getForeignKeyName(), '=', $this->getTable().'.'.$this->profile()->getForeignKey())
                 ->where('VFNAME.identifier', '=', 'first_name');
         });
 
         $query->leftJoin($profileDetailQuery->getRelated()->getTable().' AS VLNAME', function($join) use ($profileDetailQuery){
-            $join->on('VLNAME.'.$profileDetailQuery->getPlainForeignKey(), '=', $this->getTable().'.'.$this->profile()->getForeignKey())
+            $join->on('VLNAME.'.$profileDetailQuery->getForeignKeyName(), '=', $this->getTable().'.'.$this->profile()->getForeignKey())
                 ->where('VLNAME.identifier', '=', 'last_name');
         });
 
@@ -30,7 +30,7 @@ trait Profileable
 
         foreach($fields as $field){
             $query->leftJoin($profileDetailQuery->getRelated()->getTable().' AS JOIN_'.$field, function($join) use ($profileDetailQuery, $field){
-                $join->on('JOIN_'.$field.'.'.$profileDetailQuery->getPlainForeignKey(), '=', $this->getTable().'.'.$this->profile()->getForeignKey())
+                $join->on('JOIN_'.$field.'.'.$profileDetailQuery->getForeignKeyName(), '=', $this->getTable().'.'.$this->profile()->getForeignKey())
                     ->where('JOIN_'.$field.'.identifier', '=', $field);
             });
 
@@ -57,7 +57,7 @@ trait Profileable
         $profileDetailQuery = with(new Profile())->details();
 
         $query->leftJoin($profileDetailQuery->getRelated()->getTable().' AS OV', function($join) use ($profileDetailQuery, $key){
-            $join->on('OV.'.$profileDetailQuery->getPlainForeignKey(), '=', $this->getTable().'.'.$this->profile()->getForeignKey())
+            $join->on('OV.'.$profileDetailQuery->getForeignKeyName(), '=', $this->getTable().'.'.$this->profile()->getForeignKey())
                 ->where('OV.identifier', '=', $key);
         })
         ->orderBy('OV.value', $dir);

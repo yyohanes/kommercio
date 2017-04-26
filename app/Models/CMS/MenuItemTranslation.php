@@ -2,8 +2,6 @@
 
 namespace Kommercio\Models\CMS;
 
-use Cviebrock\EloquentSluggable\SluggableInterface;
-use Cviebrock\EloquentSluggable\SluggableTrait;
 use Illuminate\Database\Eloquent\Model;
 use Kommercio\Traits\Model\HasDataColumn;
 

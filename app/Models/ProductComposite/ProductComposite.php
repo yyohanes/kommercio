@@ -2,15 +2,13 @@
 
 namespace Kommercio\Models\ProductComposite;
 
-use Cviebrock\EloquentSluggable\SluggableInterface;
-use Cviebrock\EloquentSluggable\SluggableTrait;
 use Dimsav\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Model;
 use Kommercio\Models\Product;
 
-class ProductComposite extends Model implements SluggableInterface
+class ProductComposite extends SluggableModel
 {
-    use Translatable, SluggableTrait;
+    use Translatable;
 
     public $translatedAttributes = ['label'];
 
@@ -22,13 +20,13 @@ class ProductComposite extends Model implements SluggableInterface
     ];
 
     //Methods
-    public function newPivot(Model $parent, array $attributes, $table, $exists)
+    public function newPivot(Model $parent, array $attributes, $table, $exists, $using = null)
     {
         if ($parent instanceof Product) {
-            return new ProductCompositeConfigurationPivot($parent, $attributes, $table, $exists);
+            return new ProductCompositeConfigurationPivot($parent, $attributes, $table, $exists, $using);
         }
 
-        return parent::newPivot($parent, $attributes, $table, $exists);
+        return parent::newPivot($parent, $attributes, $table, $exists, $using);
     }
 
     //Relations

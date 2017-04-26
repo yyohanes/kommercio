@@ -9,7 +9,7 @@ class NavigationHelper
 {
     public function activeClass($url)
     {
-        $routeUri = Request::route()->getUri();
+        $routeUri = Request::route()->uri();
 
         return strpos($routeUri, config('kommercio.backend_prefix').'/'.$url) !== FALSE;
     }

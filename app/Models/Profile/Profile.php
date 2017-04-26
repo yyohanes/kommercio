@@ -237,37 +237,37 @@ class Profile extends Model
         $areaTable = with(new Area())->getTable();
 
         $query->leftJoin($profileDetailQuery->getRelated()->getTable().' AS VADDRESS1', function($join) use ($profileDetailQuery){
-            $join->on('VADDRESS1.'.$profileDetailQuery->getPlainForeignKey(), '=', $this->getQualifiedKeyName())
+            $join->on('VADDRESS1.'.$profileDetailQuery->getForeignKeyName(), '=', $this->getQualifiedKeyName())
                 ->where('VADDRESS1.identifier', '=', 'address_1');
         });
 
         $query->leftJoin($profileDetailQuery->getRelated()->getTable().' AS VADDRESS2', function($join) use ($profileDetailQuery){
-            $join->on('VADDRESS2.'.$profileDetailQuery->getPlainForeignKey(), '=', $this->getQualifiedKeyName())
+            $join->on('VADDRESS2.'.$profileDetailQuery->getForeignKeyName(), '=', $this->getQualifiedKeyName())
                 ->where('VADDRESS2.identifier', '=', 'address_2');
         });
 
         $query->leftJoin($profileDetailQuery->getRelated()->getTable().' AS VSTATE', function($join) use ($profileDetailQuery){
-            $join->on('VSTATE.'.$profileDetailQuery->getPlainForeignKey(), '=', $this->getQualifiedKeyName())
+            $join->on('VSTATE.'.$profileDetailQuery->getForeignKeyName(), '=', $this->getQualifiedKeyName())
                 ->where('VSTATE.identifier', '=', 'state_id');
         })->leftJoin($stateTable.' AS STATE', 'STATE.id', '=', 'VSTATE.value');
 
         $query->leftJoin($profileDetailQuery->getRelated()->getTable().' AS VCITY', function($join) use ($profileDetailQuery){
-            $join->on('VCITY.'.$profileDetailQuery->getPlainForeignKey(), '=', $this->getQualifiedKeyName())
+            $join->on('VCITY.'.$profileDetailQuery->getForeignKeyName(), '=', $this->getQualifiedKeyName())
                 ->where('VCITY.identifier', '=', 'city_id');
         })->leftJoin($cityTable.' AS CITY', 'CITY.id', '=', 'VCITY.value');
 
         $query->leftJoin($profileDetailQuery->getRelated()->getTable().' AS VDISTRICT', function($join) use ($profileDetailQuery){
-            $join->on('VDISTRICT.'.$profileDetailQuery->getPlainForeignKey(), '=', $this->getQualifiedKeyName())
+            $join->on('VDISTRICT.'.$profileDetailQuery->getForeignKeyName(), '=', $this->getQualifiedKeyName())
                 ->where('VDISTRICT.identifier', '=', 'district_id');
         })->leftJoin($districtTable.' AS DISTRICT', 'DISTRICT.id', '=', 'VDISTRICT.value');
 
         $query->leftJoin($profileDetailQuery->getRelated()->getTable().' AS VAREA', function($join) use ($profileDetailQuery){
-            $join->on('VAREA.'.$profileDetailQuery->getPlainForeignKey(), '=', $this->getQualifiedKeyName())
+            $join->on('VAREA.'.$profileDetailQuery->getForeignKeyName(), '=', $this->getQualifiedKeyName())
                 ->where('VAREA.identifier', '=', 'area_id');
         })->leftJoin($areaTable.' AS AREA', 'AREA.id', '=', 'VAREA.value');
 
         $query->leftJoin($profileDetailQuery->getRelated()->getTable().' AS VPOSTAL', function($join) use ($profileDetailQuery){
-            $join->on('VPOSTAL.'.$profileDetailQuery->getPlainForeignKey(), '=', $this->getQualifiedKeyName())
+            $join->on('VPOSTAL.'.$profileDetailQuery->getForeignKeyName(), '=', $this->getQualifiedKeyName())
                 ->where('VPOSTAL.identifier', '=', 'postal_code');
         });
 

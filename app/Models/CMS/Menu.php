@@ -2,21 +2,12 @@
 
 namespace Kommercio\Models\CMS;
 
-use Cviebrock\EloquentSluggable\SluggableInterface;
-use Cviebrock\EloquentSluggable\SluggableTrait;
-use Illuminate\Database\Eloquent\Model;
 use Kommercio\Facades\RuntimeCache;
+use Kommercio\Models\Abstracts\SluggableModel;
 
-class Menu extends Model implements SluggableInterface
+class Menu extends SluggableModel
 {
-    use SluggableTrait;
-
     protected $fillable = ['name', 'description'];
-    protected $sluggable = [
-        'build_from' => 'name',
-        'save_to'    => 'slug',
-        'on_update' => TRUE,
-    ];
 
     //Methods
     public function getTrails($path)

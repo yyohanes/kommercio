@@ -18,19 +18,7 @@ return [
      * Defaults to null, which uses the toString() method on your model.
      */
 
-    'build_from' => null,
-
-    /**
-     * What field to we store the slug in?  Defaults to "slug".
-     * You need to configure this when building the SQL for your database, e.g.:
-     *
-     * Schema::create('users', function($table)
-     * {
-     *    $table->string('slug');
-     * });
-     */
-
-    'save_to' => 'slug',
+    'source' => 'name',
 
     /**
      * The maximum length of a generated slug.  Defaults to "null", which means
@@ -38,7 +26,7 @@ return [
      * want to make sure your slugs aren't too long.
      */
 
-    'max_length' => null,
+    'maxLength' => null,
 
     /**
      * If left to "null", then use the cocur/slugify package to generate the slug
@@ -77,21 +65,24 @@ return [
     'unique' => true,
 
     /**
+     * If you are enforcing unique slugs, the default is to add an
+     * incremental value to the end of the base slug.  Alternatively, you
+     * can change this value to a closure that accepts three parameters:
+     * the base slug, the separator, and a Collection of the other
+     * "similar" slugs.  The closure should return the new unique
+     * suffix to append to the slug.
+     */
+    
+    'uniqueSuffix' => null,
+
+    /**
      * Should we include the trashed items when generating a unique slug?
      * This only applies if the softDelete property is set for the Eloquent model.
      * If set to "false", then a new slug could duplicate one that exists on a trashed model.
      * If set to "true", then uniqueness is enforced across trashed and existing models.
      */
 
-    'include_trashed' => false,
-
-    /**
-     * Whether to update the slug value when a model is being
-     * re-saved (i.e. already exists).  Defaults to false, which
-     * means slugs are not updated.
-     */
-
-    'on_update' => false,
+    'includeTrashed' => false,
 
     /**
      * An array of slug names that can never be used for this model,
@@ -112,11 +103,24 @@ return [
      * In the case of a slug that gets generated with one of these reserved names,
      * we will do:
      *
-     *    $slug .= $seperator + "1"
+     *    $slug .= $separator + "1"
      *
      * and continue from there.
      */
 
     'reserved' => null,
+
+    /**
+     * Whether to update the slug value when a model is being
+     * re-saved (i.e. already exists).  Defaults to false, which
+     * means slugs are not updated.
+     *
+     * Be careful! If you are using slugs to generate URLs, then
+     * updating your slug automatically might change your URLs which
+     * is probably not a good idea from an SEO point of view.
+     * Only set this to true if you understand the possible consequences.
+     */
+    
+    'onUpdate' => false,
 
 ];

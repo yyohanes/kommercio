@@ -2,6 +2,7 @@
 
 namespace Kommercio\Http\Controllers\Frontend\Auth;
 
+use Illuminate\Foundation\Auth\SendsPasswordResetEmails;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Kommercio\Facades\LanguageHelper;
@@ -25,13 +26,14 @@ class PasswordController extends Controller
 
     protected $linkRequestView;
 
-    use ResetsPasswords {
+    use SendsPasswordResetEmails, ResetsPasswords {
         showLinkRequestForm as parentShowLinkRequestForm;
         showResetForm as parentShowResetForm;
-        getSendResetLinkEmailSuccessResponse as parentGetSendResetLinkEmailSuccessResponse;
-        getSendResetLinkEmailFailureResponse as parentGetSendResetLinkEmailFailureResponse;
-        getResetSuccessResponse as parentGetResetSuccessResponse;
-        getResetFailureResponse as parentGetResetFailureResponse;
+        sendResetLinkResponse as parentSendResetLinkResponse;
+        sendResetLinkFailedResponse as parentSendResetLinkFailedResponse;
+        sendResetResponse as parentSendResetResponse;
+        sendResetFailedResponse as parentSendResetFailedResponse;
+        SendsPasswordResetEmails::broker insteadof ResetsPasswords;
     }
 
     /**
@@ -72,7 +74,7 @@ class PasswordController extends Controller
     public function showResetForm(Request $request, $token = null)
     {
         if (is_null($token)) {
-            return $this->getEmail();
+            return $this->showLinkRequestForm();
         }
 
         $email = $request->input('email');
@@ -92,7 +94,7 @@ class PasswordController extends Controller
         return view('auth.reset')->with(compact('token', 'email'));
     }
 
-    protected function getSendResetLinkEmailSuccessResponse($response)
+    protected function sendResetLinkResponse($response)
     {
         if (RequestFacade::ajax()) {
             return new JsonResponse([
@@ -106,7 +108,7 @@ class PasswordController extends Controller
         return redirect()->back()->with('success', [trans($response)]);
     }
 
-    protected function getSendResetLinkEmailFailureResponse($response)
+    protected function sendResetLinkFailedResponse($response)
     {
         if (RequestFacade::ajax()) {
             return new JsonResponse(
@@ -116,7 +118,7 @@ class PasswordController extends Controller
         return redirect()->back()->withErrors(['email' => trans($response)]);
     }
 
-    protected function getResetSuccessResponse($response)
+    protected function sendResetResponse($response)
     {
         if (RequestFacade::ajax()) {
             return new JsonResponse([
@@ -130,7 +132,7 @@ class PasswordController extends Controller
         return redirect($this->redirectPath())->with('success', [trans($response)]);
     }
 
-    protected function getResetFailureResponse(Request $request, $response)
+    protected function sendResetFailedResponse(Request $request, $response)
     {
         if ($request->ajax()) {
             return new JsonResponse(

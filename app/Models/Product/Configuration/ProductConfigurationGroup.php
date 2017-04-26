@@ -2,21 +2,14 @@
 
 namespace Kommercio\Models\Product\Configuration;
 
-use Cviebrock\EloquentSluggable\SluggableInterface;
-use Cviebrock\EloquentSluggable\SluggableTrait;
 use Dimsav\Translatable\Translatable;
-use Illuminate\Database\Eloquent\Model;
+use Kommercio\Models\Abstracts\SluggableModel;
 
-class ProductConfigurationGroup extends Model implements SluggableInterface
+class ProductConfigurationGroup extends SluggableModel
 {
-    use SluggableTrait, Translatable;
+    use Translatable;
 
     protected $fillable = ['name', 'slug'];
-    protected $sluggable = [
-        'build_from' => 'name',
-        'save_to' => 'slug',
-        'on_update' => TRUE
-    ];
 
     public $translatedAttributes = ['name'];
 

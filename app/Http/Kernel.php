@@ -15,6 +15,9 @@ class Kernel extends HttpKernel
      */
     protected $middleware = [
         \Illuminate\Foundation\Http\Middleware\CheckForMaintenanceMode::class,
+        \Illuminate\Foundation\Http\Middleware\ValidatePostSize::class,
+        \Kommercio\Http\Middleware\TrimStrings::class,
+        \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,
         \Kommercio\Http\Middleware\UrlAlias::class,
     ];
 
@@ -28,13 +31,15 @@ class Kernel extends HttpKernel
             \Kommercio\Http\Middleware\EncryptCookies::class,
             \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
             \Illuminate\Session\Middleware\StartSession::class,
+            \Illuminate\Session\Middleware\AuthenticateSession::class,
             \Illuminate\View\Middleware\ShareErrorsFromSession::class,
             \Kommercio\Http\Middleware\VerifyCsrfToken::class,
+            \Illuminate\Routing\Middleware\SubstituteBindings::class,
         ],
 
         'api' => [
             'throttle:60,1',
-            'auth:api',
+            'bindings',
         ],
     ];
 
@@ -47,11 +52,13 @@ class Kernel extends HttpKernel
      */
     protected $routeMiddleware = [
         'auth' => \Kommercio\Http\Middleware\Authenticate::class,
-        'backend.auth' => \Kommercio\Http\Middleware\Authenticate::class,
         'auth.basic' => \Illuminate\Auth\Middleware\AuthenticateWithBasicAuth::class,
         'guest' => \Kommercio\Http\Middleware\RedirectIfAuthenticated::class,
-        'backend.guest' => \Kommercio\Http\Middleware\RedirectIfAuthenticated::class,
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
+        'bindings' => \Illuminate\Routing\Middleware\SubstituteBindings::class,
+        'can' => \Illuminate\Auth\Middleware\Authorize::class,
+        'backend.auth' => \Kommercio\Http\Middleware\Authenticate::class,
+        'backend.guest' => \Kommercio\Http\Middleware\RedirectIfAuthenticated::class,
         'backend.order_editable' => \Kommercio\Http\Middleware\Backend\OrderEditable::class,
         'backend.order_deleteable' => \Kommercio\Http\Middleware\Backend\OrderDeleteable::class,
         'backend.access' => \Kommercio\Http\Middleware\Backend\Access::class,

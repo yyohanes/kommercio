@@ -57,7 +57,7 @@ class FacetedNavigation
             $manufacturers = [];
             foreach(explode('--', $options['manufacturer']) as $manufacturerSlug){
                 $manufacturer = RuntimeCache::getOrSet('manufacturer['.$manufacturerSlug.']', function() use ($manufacturerSlug){
-                    return Manufacturer::findBySlug($manufacturerSlug);
+                    return Manufacturer::where('slug', $manufacturerSlug)->first();
                 });
 
                 if($manufacturer){

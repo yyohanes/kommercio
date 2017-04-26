@@ -1,8 +1,8 @@
 <?php
 
 return [
-    'default_name' => 'Kommercio',
-    'default_subtitle' => 'Artisan E-commerce',
+    'client_name' => 'Kommercio',
+    'client_subtitle' => 'Artisan E-commerce',
     'backend_prefix' => 'backoffice',
     'images_path' => 'images',
     'image_styles' => [

@@ -2,27 +2,20 @@
 
 namespace Kommercio\Models\Product\Configuration;
 
-use Cviebrock\EloquentSluggable\SluggableInterface;
-use Cviebrock\EloquentSluggable\SluggableTrait;
 use Dimsav\Translatable\Translatable;
-use Illuminate\Database\Eloquent\Model;
 use Kommercio\Facades\ProjectHelper;
+use Kommercio\Models\Abstracts\SluggableModel;
 use Kommercio\Models\Product;
 use Kommercio\Traits\Model\HasDataColumn;
 
-class ProductConfiguration extends Model implements SluggableInterface
+class ProductConfiguration extends SluggableModel
 {
-    use SluggableTrait, Translatable, HasDataColumn;
+    use Translatable, HasDataColumn;
 
     const TYPE_TEXTFIELD = 'textfield';
     const TYPE_TEXTAREA = 'textarea';
 
     protected $fillable = ['name', 'slug', 'type'];
-    protected $sluggable = [
-        'build_from' => 'name',
-        'save_to' => 'slug',
-        'on_update' => TRUE
-    ];
 
     public $translatedAttributes = ['name'];
 

@@ -32,7 +32,7 @@ class BookmarkController extends LoggedInController
 
     public function addToBookmark(Request $request, $slug, $product_sku)
     {
-        $bookmarkType = BookmarkType::findBySlugOrFail($slug);
+        $bookmarkType = BookmarkType::where('slug', $slug)->firstOrFail();
 
         if($this->customer){
             $product = RuntimeCache::getOrSet('product_sku.'.$product_sku, function() use ($product_sku){
@@ -59,7 +59,7 @@ class BookmarkController extends LoggedInController
 
     public function removeFromBookmark(Request $request, $slug, $product_sku)
     {
-        $bookmarkType = BookmarkType::findBySlugOrFail($slug);
+        $bookmarkType = BookmarkType::where('slug', $slug)->firstOrFail();
 
         if($this->customer){
             $product = RuntimeCache::getOrSet('product_sku.'.$product_sku, function() use ($product_sku){
@@ -86,10 +86,10 @@ class BookmarkController extends LoggedInController
 
     public function toggleBookmark(Request $request, $slug, $product_sku)
     {
-        $bookmarkType = BookmarkType::findBySlugOrFail($slug);
+        $bookmarkType = BookmarkType::where('slug', $slug)->firstOrFail();
 
         if($this->customer){
-            $bookmarkType = BookmarkType::findBySlugOrFail($slug);
+            $bookmarkType = BookmarkType::where('slug', $slug)->firstOrFail();
 
             $product = RuntimeCache::getOrSet('product_sku.'.$product_sku, function() use ($product_sku){
                 return Product::where('sku', $product_sku)->firstOrFail();

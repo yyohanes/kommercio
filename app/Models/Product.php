@@ -1479,7 +1479,7 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
         $productDetailTable = $this->productDetails()->getRelated()->getTable();
 
         $query->leftJoin($productDetailTable.' AS D', function($join) use ($productDetailTable, $store){
-            $join->on('D.'.$this->productDetails()->getPlainForeignKey(), '=', $this->getTable().'.id')
+            $join->on('D.'.$this->productDetails()->getForeignKeyName(), '=', $this->getTable().'.id')
                 ->where('D.store_id', '=', $store);
         });
 
