@@ -2,7 +2,11 @@
 return [
     'order' => [
         'line_item_notes' => false,
-        'order_limit' => false
+        'order_limit' => false,
+        'delivery_order' => false,
+        'print' => [
+            'packaging_slip' => false
+        ]
     ],
     'catalog' => [
         'product_attributes' => true,

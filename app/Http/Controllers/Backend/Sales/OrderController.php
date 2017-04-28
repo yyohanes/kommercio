@@ -305,9 +305,13 @@ class OrderController extends Controller{
             if(Gate::allows('access', ['print_invoice']) && $order->isPrintable):
                 $printActions .= '<li><a href="' . route('backend.sales.order.print', ['id' => $order->id]) . '" target="_blank">Invoice</a></li>';
             endif;
-            if(Gate::allows('access', ['print_delivery_note']) && $order->isPrintable && config('project.enable_delivery_note', false)):
+            if(Gate::allows('access', ['print_delivery_note']) && $order->isPrintable && ProjectHelper::isFeatureEnabled('order.delivery_order', false)):
                 $printActions .= '<li><a href="' . route('backend.sales.order.print', ['id' => $order->id, 'type' => 'delivery_note']) . '" target="_blank">Delivery Note</a></li>';
             endif;
+
+            if(Gate::allows('access', ['print_delivery_note']) && $order->isPrintable && ProjectHelper::isFeatureEnabled('order.print.packaging_slip', false)){
+                $printActions .= '<li><a href="' . route('backend.sales.order.print', ['id' => $order->id, 'type' => 'packaging_slip']) . '" target="_blank">Packaging Slip</a></li>';
+            }
 
             if(!empty($printActions)){
                 $orderAction .= '<div class="btn-group btn-group-xs"><button type="button" class="btn btn-default hold-on-click dropdown-toggle" data-toggle="dropdown" data-hover="dropdown" data-close-others="true" aria-expanded="true"><i class="fa fa-print"></i></button><ul class="dropdown-menu" role="menu">'.$printActions.'</ul></div>';
@@ -541,6 +545,24 @@ class OrderController extends Controller{
             }
 
             return view(ProjectHelper::getViewTemplate('print.order.delivery_note'), [
+                'order' => $order
+            ]);
+        }elseif($type == 'packaging_slip'){
+            OrderHelper::saveOrderComment('Print Packaging Slip.', 'print_packaging_slip', $order, $user);
+
+            if(config('project.print_format', config('kommercio.print_format')) == 'xls'){
+                Excel::create('Packacing Slip #'.$order->reference, function($excel) use ($order) {
+                    $excel->setDescription('Packacing Slip #'.$order->reference);
+                    $excel->sheet('Sheet 1', function($sheet) use ($order, $excel){
+                        $sheet->loadView(ProjectHelper::getViewTemplate('print.excel.order.packaging_slip'), [
+                            'order' => $order,
+                            'excel' => $excel
+                        ]);
+                    });
+                })->download('xls');
+            }
+
+            return view(ProjectHelper::getViewTemplate('print.order.packaging_slip'), [
                 'order' => $order
             ]);
         }
