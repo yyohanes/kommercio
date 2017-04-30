@@ -47,13 +47,13 @@ var KommercioFrontend = function(){
     },
     selectHelper: {
       convertToOptions: function (data, $first_option) {
-        $return = '';
+        var $return = '';
 
         if (typeof $first_option !== 'undefined') {
           $return += '<option value="">' + $first_option + '</option>';
         }
 
-        for (val in data) {
+        for (var val in data) {
           $return += '<option value="' + val + '">' + data[val] + '</option>';
         }
 

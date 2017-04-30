@@ -13,6 +13,9 @@ require('./common_helper');
 
 import KommercioFrontend from './kommercio_frontend';
 
+// Add KommercioFrontend to global so legacy JS can use it
+window.KommercioFrontend = KommercioFrontend;
+
 $(document).ready(function(){
   KommercioFrontend.init();
 });

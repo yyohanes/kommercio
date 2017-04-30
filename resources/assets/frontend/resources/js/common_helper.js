@@ -1,5 +1,4 @@
-function handleAddressSelector(context)
-{
+window.handleAddressSelector = (context) => {
     $('.address-groups', context).each(function(idx, obj){
         var $countrySelect = $('.country-select', obj);
         var $stateSelect = $('.state-select', obj);
@@ -112,8 +111,7 @@ function handleAddressSelector(context)
     });
 }
 
-function removeEmptyP(context)
-{
+window.removeEmptyP = (context) => {
     //Remove empty <p> from tab content
     $('p:empty', context).remove();
 }
