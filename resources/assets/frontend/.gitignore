@@ -1,7 +1,7 @@
-js
-css
-node_modules
-.idea
+/js
+/css
+/node_modules
+/.idea
 .DS_store
 mix-manifest.json
 *.log
