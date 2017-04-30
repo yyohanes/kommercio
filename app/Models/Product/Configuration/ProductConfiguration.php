@@ -76,12 +76,12 @@ class ProductConfiguration extends SluggableModel
     {
         $array = [
             self::TYPE_TEXTFIELD => [
-                'min' => 'integer',
-                'max' => 'integer',
+                'min' => 'nullable|integer',
+                'max' => 'nullable|integer',
             ],
             self::TYPE_TEXTAREA => [
-                'min' => 'integer',
-                'max' => 'integer',
+                'min' => 'nullable|integer',
+                'max' => 'nullable|integer',
             ],
         ];
 

@@ -30,7 +30,7 @@ class MenuItemFormRequest extends Request
         $rules = [
             'name' => 'required',
             'menu_id' => 'required|integer|in:'.$allowedMenuIds,
-            'parent_id' => 'integer|not_in:'.$menuId,
+            'parent_id' => 'nullable|integer|not_in:'.$menuId,
             'active' => 'boolean'
         ];
 

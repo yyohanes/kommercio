@@ -27,9 +27,9 @@ class PageFormRequest extends Request
 
         $rules = [
             'name' => 'required',
-            'parent_id' => 'integer|not_in:'.$pageId,
+            'parent_id' => 'nullable|integer|not_in:'.$pageId,
             'slug' => 'required',
-            'sort_order' => 'integer'
+            'sort_order' => 'nullable|integer'
         ];
 
         return $rules;

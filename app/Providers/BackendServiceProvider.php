@@ -2,6 +2,7 @@
 
 namespace Kommercio\Providers;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\ServiceProvider;
 use Kommercio\Facades\ProductIndexHelper;
@@ -13,6 +14,7 @@ use Kommercio\Models\Interfaces\ConfigVariableInterface;
 use Kommercio\Models\Interfaces\ProductIndexInterface;
 use Kommercio\Models\Interfaces\UrlAliasInterface;
 use Kommercio\Models\UrlAlias;
+use Kommercio\Observers\UrlAliasObserver;
 
 class BackendServiceProvider extends ServiceProvider
 {
@@ -25,27 +27,34 @@ class BackendServiceProvider extends ServiceProvider
     {
         $this->app->singleton('navigation_helper', 'Kommercio\Helpers\NavigationHelper');
 
-        $this->app['events']->listen('eloquent.creating*', function ($model) {
+        $this->app['events']->listen('eloquent.creating*', function ($eventName, $models) {
+            $model = $models[0];
+
             if ($model instanceof AuthorSignatureInterface) {
                 $model->authorSign('creating');
             }
         });
 
-        $this->app['events']->listen('eloquent.updating*', function ($model) {
+        $this->app['events']->listen('eloquent.updating*', function ($eventName, $models) {
+            $model = $models[0];
+
             if ($model instanceof AuthorSignatureInterface) {
                 $model->authorSign('updating');
             }
         });
 
-        $this->app['events']->listen('eloquent.saved*', function ($model) {
+        $this->app['events']->listen('eloquent.saved*', function ($eventName, $models) {
+            $model = $models[0];
+
             if ($model instanceof UrlAliasInterface) {
                 UrlAlias::saveAlias($model->getUrlAlias(), $model);
             }
         });
 
-        $this->app['events']->listen('eloquent.deleting*', function ($model) {
+        $this->app['events']->listen('eloquent.deleting*', function ($eventName, $models) {
+            $model = $models[0];
+
             if ($model instanceof UrlAliasInterface) {
-                //Bug in Laravel 5.2. Should have function isForceDeleting
                 if(!property_exists($model, 'forceDeleting') || $model['forceDeleting']){
                     UrlAlias::deleteAlias($model->getInternalPathSlug().'/'.$model->id);
                 }

@@ -1,0 +1,6 @@
+node_modules
+resources
+.idea
+.DS_store
+mix-manifest.json
+*.log

@@ -27,7 +27,7 @@ class ProductCategoryFormRequest extends Request
 
         $rules = [
             'name' => 'required',
-            'parent_id' => 'integer|not_in:'.$categoryId,
+            'parent_id' => 'nullable|integer|not_in:'.$categoryId,
             'slug' => 'required'
         ];
 

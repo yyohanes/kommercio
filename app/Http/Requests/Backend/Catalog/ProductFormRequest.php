@@ -47,7 +47,7 @@ class ProductFormRequest extends Request
             'productDetail.retail_price' => 'required|numeric',
             'productDetail.manage_stock' => 'boolean',
             'productDetail.taxable' => 'boolean',
-            'productDetail.sort_order' => 'integer',
+            'productDetail.sort_order' => 'nullable|integer',
             'stock' => 'numeric',
             'variation.*.stock' => 'numeric',
             'variation.*.productDetail.manage_stock' => 'boolean',
