@@ -40,6 +40,16 @@ return [
         'blur'      => 2,
         'invert'    => true,
         'contrast'  => -5,
-    ]
+    ],
+
+    'plain'   => [
+        'length'    => 5,
+        'width'     => 120,
+        'height'    => 30,
+        'quality'   => 90,
+        'bgColor'   => '#ffffff',
+        'bgImage'   => false,
+        'lines'     => 0,
+    ],
 
 ];
