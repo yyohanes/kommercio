@@ -73,6 +73,14 @@ class ProductFeature extends Model implements ProductIndexInterface
     }
 
     //Statics
+    public static function getBySlug($slug)
+    {
+        $qb = self::whereTranslation('slug', $slug);
+        $productFeature = $qb->first();
+
+        return $productFeature;
+    }
+
     public static function getProductFeatureWithValueOptions()
     {
         $options = [];

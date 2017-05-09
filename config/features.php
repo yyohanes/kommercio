@@ -17,8 +17,8 @@ return [
         'import' => false
     ],
     'cms' => [
-        'gallery' => true,
-        'post' => true,
+        'gallery' => false,
+        'post' => false,
         'menu' => true
     ],
     'customer' => [

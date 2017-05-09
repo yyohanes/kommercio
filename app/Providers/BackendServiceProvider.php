@@ -71,7 +71,7 @@ class BackendServiceProvider extends ServiceProvider
 
             if ($model instanceof ProductIndexInterface) {
                 foreach($model->getProductIndexRows() as $row){
-                    ProductIndexHelper::getProductIndexQuery()->where('type', $model->getProductIndexType())->where('value', $row->id)->delete();
+                    ProductIndexHelper::getProductIndexQuery(false)->where('type', $model->getProductIndexType())->where('value', $row->id)->delete();
                 }
             }
         });

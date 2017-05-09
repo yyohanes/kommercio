@@ -7,7 +7,7 @@ use Kommercio\Models\Abstracts\SluggableModel;
 
 class Menu extends SluggableModel
 {
-    protected $fillable = ['name', 'description'];
+    protected $fillable = ['name', 'slug', 'description'];
 
     //Methods
     public function getTrails($path)
@@ -72,13 +72,22 @@ class Menu extends SluggableModel
         return null;
     }
 
-    //Scope
+    // Static
+    public static function getBySlug($slug)
+    {
+        $qb = self::whereTranslation('slug', $slug);
+        $menu = $qb->first();
+
+        return $menu;
+    }
+
+    // Scope
     public function scopeActive($query)
     {
         $query->where('active', true);
     }
 
-    //Relations
+    // Relations
     public function menuItems()
     {
         return $this->hasMany('Kommercio\Models\CMS\MenuItem')->orderBy('sort_order', 'ASC');

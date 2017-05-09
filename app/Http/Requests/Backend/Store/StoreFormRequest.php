@@ -33,7 +33,7 @@ class StoreFormRequest extends Request
             'code' => 'required|unique:stores,code'.($this->route('id')?','.$this->route('id'):null),
             'type' => 'required|in:'.implode(',', $typeAllowedOptions),
             'warehouses' => 'required',
-            'warehouses.*' => 'in:'.implode(',', $warehouseAllowedOptions),
+            'warehouses.*' => 'nullable|in:'.implode(',', $warehouseAllowedOptions),
             'contacts.*.name' => 'required_with:contacts.*.email',
             'contacts.*.email' => 'required_with:contacts.*.name',
         ];

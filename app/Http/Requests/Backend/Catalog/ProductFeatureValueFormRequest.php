@@ -26,9 +26,22 @@ class ProductFeatureValueFormRequest extends Request
         $rules = [
             'name' => 'required',
             'slug' => 'required',
-            'sort_order' => 'numeric',
+            'sort_order' => 'nullable|numeric',
         ];
 
         return $rules;
+    }
+
+    public function all()
+    {
+        $attributes = parent::all();
+
+        if(empty($attributes['sort_order'])){
+            $attributes['sort_order'] = 0;
+        }
+
+        $this->replace($attributes);
+
+        return parent::all();
     }
 }

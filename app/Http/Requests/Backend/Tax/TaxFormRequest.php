@@ -33,10 +33,10 @@ class TaxFormRequest extends Request
         $rules = [
             'name' => 'required',
             'rate' => 'required|numeric',
-            'currency' => 'in:'.$allowedCurrencies,
-            'store_id' => 'in:'.$allowedStores,
+            'currency' => 'nullable|in:'.$allowedCurrencies,
+            'store_id' => 'nullable|in:'.$allowedStores,
             'active' => 'boolean',
-            'country' => 'in:'.$allowedCountries
+            'country' => 'nullable|in:'.$allowedCountries
         ];
 
         return $rules;

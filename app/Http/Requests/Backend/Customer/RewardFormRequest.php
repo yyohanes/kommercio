@@ -30,8 +30,8 @@ class RewardFormRequest extends Request
             'name' => 'required',
             'type' => 'required|in:'.$allowedTypes,
             'store_id' => 'exists:stores,id',
-            'active_date_from' => 'date_format:Y-m-d H:i',
-            'active_date_to' => 'date_format:Y-m-d H:i',
+            'active_date_from' => 'nullable|date_format:Y-m-d H:i',
+            'active_date_to' => 'nullable|date_format:Y-m-d H:i',
             'points' => 'required|min:0',
         ];
 

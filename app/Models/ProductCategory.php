@@ -119,6 +119,51 @@ class ProductCategory extends Model implements UrlAliasInterface, SeoModelInterf
     }
 
     //Methods
+    public function getActiveChildren()
+    {
+        $children = $this->children->reject(function($value){
+            return !$value->active;
+        });
+
+        return $children;
+    }
+
+    public function getProducts($options = [])
+    {
+        $defaultOptions = [
+            'visibility' => ProductDetail::VISIBILITY_EVERYWHERE,
+            'active' => TRUE,
+            'available' => NULL
+        ];
+
+        $options = array_merge($defaultOptions, $options);
+
+        $products = $this->products;
+        $products = $products->reject(function($value) use ($options){
+            $visibility = [ProductDetail::VISIBILITY_EVERYWHERE, ProductDetail::VISIBILITY_CATALOG, ProductDetail::VISIBILITY_SEARCH];
+
+            if($options['visibility'] != ProductDetail::VISIBILITY_EVERYWHERE){
+                $visibility = [$options['visibility']];
+            }
+
+            if(!in_array($value->productDetail->visibility, $visibility)){
+                return TRUE;
+            }
+
+            if($options['active'] !== null && $value->productDetail->active != $options['active']){
+                return TRUE;
+            }
+
+            if($options['available'] !== null && $value->productDetail->available != $options['available']){
+                return TRUE;
+            }
+
+            return FALSE;
+        });
+
+        return $products;
+    }
+
     public function getViewSuggestions()
     {
         $viewSuggestions = [];
@@ -178,6 +223,11 @@ class ProductCategory extends Model implements UrlAliasInterface, SeoModelInterf
         $query->where('active', true);
     }
 
+    public function scopeIsRoot($query)
+    {
+        $query->whereNull('parent_id');
+    }
+
     //Statics
     public static function getRootCategories()
     {
@@ -196,6 +246,14 @@ class ProductCategory extends Model implements UrlAliasInterface, SeoModelInterf
         self::_loopChildrenOptions($options, $roots, 0, $exclude);
 
         return $options;
+    }
+
+    public static function getBySlug($slug)
+    {
+        $qb = self::whereTranslation('slug', $slug);
+        $category = $qb->first();
+
+        return $category;
     }
 
     private static function _loopChildrenOptions(&$options, $children, $level, $exclude=null)

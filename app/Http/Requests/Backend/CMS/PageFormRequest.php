@@ -47,6 +47,10 @@ class PageFormRequest extends Request
             $attributes['active'] = 0;
         }
 
+        if(empty($attributes['sort_order'])){
+            $attributes['sort_order'] = 0;
+        }
+
         $this->replace($attributes);
 
         return parent::all();

@@ -34,11 +34,11 @@ class CartPriceRuleFormRequest extends Request
         $rules = [
             'name' => 'required',
             'coupon_code' => 'unique:cart_price_rules,coupon_code'.($this->route('id')?','.$this->route('id'):''),
-            'offer_type' => 'in:'.$allowedOfferTypeType,
-            'store_id' => 'in:'.$allowedStores,
-            'currency' => 'in:'.$allowedCurrencies,
-            'active_date_from' => 'date_format:Y-m-d H:i',
-            'active_date_to' => 'date_format:Y-m-d H:i',
+            'offer_type' => 'nullable|in:'.$allowedOfferTypeType,
+            'store_id' => 'nullable|in:'.$allowedStores,
+            'currency' => 'nullable|in:'.$allowedCurrencies,
+            'active_date_from' => 'nullable|date_format:Y-m-d H:i',
+            'active_date_to' => 'nullable|date_format:Y-m-d H:i',
             'max_usage' => 'min:0',
             'max_usage_per_customer' => 'min:0',
             'minimum_subtotal' => 'min:0',
@@ -47,7 +47,7 @@ class CartPriceRuleFormRequest extends Request
         if($this->input('offer_type') != CartPriceRule::OFFER_TYPE_FREE_SHIPPING){
             $rules += ['price' => 'required_without:modification|numeric|min:0',
                 'modification' => 'required_without:price|numeric',
-                'modification_type' => 'in:'.$allowedModificationType
+                'modification_type' => 'nullable|in:'.$allowedModificationType
             ];
         }
 

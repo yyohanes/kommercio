@@ -55,7 +55,7 @@ class FacetedNavigation
 
         if(isset($options['manufacturer']) && $layer != 'manufacturer_0'){
             $manufacturers = [];
-            foreach(explode('--', $options['manufacturer']) as $manufacturerSlug){
+            foreach(FacetedLayer::parseCurrentOptions($options['manufacturer']) as $manufacturerSlug){
                 $manufacturer = RuntimeCache::getOrSet('manufacturer['.$manufacturerSlug.']', function() use ($manufacturerSlug){
                     return Manufacturer::where('slug', $manufacturerSlug)->first();
                 });
@@ -72,7 +72,7 @@ class FacetedNavigation
 
         if(isset($options['category']) && $layer != 'product_category_0'){
             $categories = [];
-            foreach(explode('--', $options['category']) as $categorySlug){
+            foreach(FacetedLayer::parseCurrentOptions($options['category']) as $categorySlug){
                 $category = RuntimeCache::getOrSet('product_category['.$categorySlug.']', function() use ($categorySlug){
                     return ProductCategory::whereTranslation('slug', $categorySlug)->first();
                 });
@@ -98,7 +98,7 @@ class FacetedNavigation
                 $attributeValues = [];
 
                 if($layer != 'product_attribute_'.$attribute){
-                    foreach(explode('--', $attributeParameter) as $attributeValue){
+                    foreach(FacetedLayer::parseCurrentOptions($attributeParameter) as $attributeValue){
                         $attributeValue = RuntimeCache::getOrSet('product_attribute_value['.$attributeValue.']', function() use ($attributeValue){
                             return ProductAttributeValue::whereTranslation('slug', $attributeValue)->first();
                         });
@@ -127,7 +127,7 @@ class FacetedNavigation
                 $attributeValues = [];
 
                 if($layer != 'product_feature_'.$feature){
-                    foreach(explode('--', $featureParameter) as $featureValue){
+                    foreach(FacetedLayer::parseCurrentOptions($featureParameter) as $featureValue){
                         $featureValue = RuntimeCache::getOrSet('product_feature_value['.$featureValue.']', function() use ($featureValue){
                             return ProductFeatureValue::whereTranslation('slug', $featureValue)->first();
                         });

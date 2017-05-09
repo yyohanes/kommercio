@@ -28,7 +28,7 @@ class Block extends Model
 
     public function render()
     {
-        $view_name = ProjectHelper::findViewTemplate(['frontend.block.view_'.$this->id, 'frontend.block.view']);
+        $view_name = ProjectHelper::findViewTemplate(['frontend.block.view_'.$this->machine_name, 'frontend.block.view']);
 
         return view($view_name, [
             'block' => $this,

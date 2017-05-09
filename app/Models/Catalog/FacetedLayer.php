@@ -76,7 +76,7 @@ class FacetedLayer
         $structure = array_dot($this->getValueStructure($option));
 
         $current = Request::input(key($structure), null);
-        $current = explode('--', $current);
+        $current = self::parseCurrentOptions($current);
 
         return in_array($option['model']->slug, $current);
     }
@@ -140,7 +140,7 @@ class FacetedLayer
 
     protected function topOption($add, $current)
     {
-        $current = $current?explode('--', $current):[];
+        $current = self::parseCurrentOptions($current);
 
         if(!in_array($add, $current)){
             $current[] = $add;
@@ -151,7 +151,7 @@ class FacetedLayer
 
     protected function tailOption($add, $current)
     {
-        $current = $current?explode('--', $current):[];
+        $current = self::parseCurrentOptions($current);
 
         $position = array_search($add, $current);
 
@@ -190,5 +190,12 @@ class FacetedLayer
         }
 
         return $type;
+    }
+
+    public static function parseCurrentOptions($current)
+    {
+        $current = $current?(is_string($current)?explode('--', $current):$current):[];
+
+        return $current;
     }
 }
