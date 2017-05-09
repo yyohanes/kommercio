@@ -404,7 +404,7 @@ class CatalogController extends Controller
             });
         }
 
-        if(isset($facetOptions['manufacturer'])){
+        if(!empty($facetOptions['manufacturer'])){
             $manufacturers = [];
             foreach(explode('--', $facetOptions['manufacturer']) as $manufacturerSlug){
                 $manufacturer = RuntimeCache::getOrSet('manufacturer['.$manufacturerSlug.']', function() use ($manufacturerSlug){
@@ -421,8 +421,12 @@ class CatalogController extends Controller
             $qb->whereIn('manufacturer_id', $manufacturers);
         }
 
-        if(isset($facetOptions['categories'])){
+        if(!empty($facetOptions['categories'])){
             foreach($facetOptions['categories'] as $categorySlug => $categoriesInString){
+                if(empty($categoriesInString)){
+                    continue;
+                }
+
                 $categories = [];
                 foreach(explode('--', $categoriesInString) as $categorySlug){
                     $category = RuntimeCache::getOrSet('product_category['.$categorySlug.']', function() use ($categorySlug){
@@ -442,7 +446,7 @@ class CatalogController extends Controller
             }
         }
 
-        if(isset($facetOptions['category'])){
+        if(!empty($facetOptions['category'])){
             $categories = [];
             foreach(explode('--', $facetOptions['category']) as $categorySlug){
                 $category = RuntimeCache::getOrSet('product_category['.$categorySlug.']', function() use ($categorySlug){
@@ -461,7 +465,7 @@ class CatalogController extends Controller
             });
         }
 
-        if(isset($facetOptions['category'])){
+        if(!empty($facetOptions['category'])){
             $categories = [];
             foreach(explode('--', $facetOptions['category']) as $categorySlug){
                 $category = RuntimeCache::getOrSet('product_category['.$categorySlug.']', function() use ($categorySlug){
@@ -480,7 +484,7 @@ class CatalogController extends Controller
             });
         }
 
-        if(isset($facetOptions['attribute'])){
+        if(!empty($facetOptions['attribute'])){
             foreach($facetOptions['attribute'] as $attribute => $attributeParameter){
                 $attributeValues = [];
 
@@ -512,7 +516,7 @@ class CatalogController extends Controller
             }
         }
 
-        if(isset($facetOptions['feature'])){
+        if(!empty($facetOptions['feature'])){
             foreach($facetOptions['feature'] as $feature => $featureParameter){
                 $featureValues = [];
 
