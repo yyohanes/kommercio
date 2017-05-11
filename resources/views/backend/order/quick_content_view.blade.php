@@ -1,7 +1,7 @@
 <table class="table table-hover table-bordered table-striped quick-content-table">
     <thead>
     <tr>
-        <th> Item </th>
+        <th colspan="2"> Item </th>
         <!--
         <th style="width: 20%;"> Original Price </th>
         -->

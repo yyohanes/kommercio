@@ -99,7 +99,6 @@ class ImportController extends Controller
     public function product(Request $request)
     {
         $return = $this->processBatch($request, [], function($result){
-            \Log::info(Session::get('import.redownload_images', false));
             $product = Product::where('sku', $result->sku)->first();
 
             if($product && !Session::get('import.override_existing', true)){

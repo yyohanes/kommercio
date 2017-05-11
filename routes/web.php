@@ -1154,6 +1154,20 @@ Route::group(['middleware' => ['web']], function () {
                         'permissions' => ['create_order', 'edit_order']
                     ]);
 
+                    Route::group(['prefix' => 'delivery-order'], function(){
+                        Route::get('{id}/print', [
+                            'as' => 'backend.sales.order.delivery_order.print',
+                            'uses' => 'DeliveryOrderController@printDeliveryOrder',
+                            'permissions' => ['view_delivery_order']
+                        ]);
+
+                        Route::any('{id}/quick-status-update/{status}', [
+                            'as' => 'backend.sales.order.delivery_order.quick_status_update',
+                            'uses' => 'DeliveryOrderController@quickStatusUpdate',
+                            'permissions' => ['cancel_delivery_order', 'complete_delivery_order']
+                        ]);
+                    });
+
                     Route::group(['prefix' => 'payment'], function(){
                         Route::get('{order_id}/index', [
                             'as' => 'backend.sales.order.payment.index',
