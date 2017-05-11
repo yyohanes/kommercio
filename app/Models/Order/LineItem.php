@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\DB;
 use Kommercio\Facades\OrderHelper;
 use Kommercio\Facades\ProjectHelper;
 use Kommercio\Models\File;
+use Kommercio\Models\Order\DeliveryOrder\DeliveryOrder;
+use Kommercio\Models\Order\DeliveryOrder\DeliveryOrderItem;
 use Kommercio\Models\PriceRule\CartPriceRule;
 use Kommercio\Models\PriceRule\Coupon;
 use Kommercio\Models\Product;
@@ -437,6 +439,25 @@ class LineItem extends Model
         return $this->attributes['quantity'] + 0.00;
     }
 
+    public function getShippedQuantityAttribute()
+    {
+        $quantity = 0;
+        $this->load('deliveryOrderItems');
+
+        foreach($this->deliveryOrderItems as $this->deliveryOrderItem){
+            if(!in_array($this->deliveryOrderItem->deliveryOrder->status, [DeliveryOrder::STATUS_CANCELLED])){
+                $quantity += $this->deliveryOrderItem->quantity;
+            }
+        }
+
+        return $quantity;
+    }
+
+    public function getIsFullyShippedAttribute()
+    {
+        return $this->quantity <= $this->shippedQuantity;
+    }
+
     //Scopes
     public function scopeIsProduct($query, $product_id)
     {
@@ -509,6 +530,11 @@ class LineItem extends Model
     public function productConfigurations()
     {
         return $this->belongsToMany('Kommercio\Models\Product\Configuration\ProductConfiguration')->withPivot(['type', 'label', 'value']);
+    }
+
+    public function deliveryOrderItems()
+    {
+        return $this->hasMany(DeliveryOrderItem::class);
     }
 
     //Shipping Specifics

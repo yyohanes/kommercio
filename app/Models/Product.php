@@ -1072,7 +1072,7 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
                         $disabledDates[] = $dayToRun->format($format);
                     }
 
-                    \Log::info($dayCategoryOrderLimit['object']->total);
+                    //\Log::info($dayCategoryOrderLimit['object']->total);
                 }
 
                 $dayToRun->addDay();

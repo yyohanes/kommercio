@@ -264,8 +264,6 @@ class CustomerController extends Controller{
         $search = $request->get('query', '');
 
         if(!empty($search)){
-            $qb = Customer::query();
-
             $filters[] = [
                 'key' => 'first_name',
                 'value' => '%'.$search.'%',
@@ -290,7 +288,9 @@ class CustomerController extends Controller{
                 'operator' => 'LIKE'
             ];
 
-            $qb->whereFields($filters, TRUE);
+            $profiles = Profile::whereFields($filters, TRUE)->pluck('id')->all();
+
+            $qb = Customer::whereIn('profile_id', $profiles);
 
             $results = $qb->get();
 

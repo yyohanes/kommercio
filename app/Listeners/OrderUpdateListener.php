@@ -46,8 +46,6 @@ class OrderUpdateListener
 
     public function onShippedOrder(OrderUpdate $event)
     {
-        OrderHelper::saveOrderComment('Order is shipped.', 'shipped', $event->order, $this->request->user());
-
         if($event->notify_customer){
             OrderHelper::sendOrderEmail($event->order, 'shipped');
         }

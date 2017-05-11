@@ -56,12 +56,13 @@ return [
             'status' => ['processing', 'shipped', 'completed'],
         ],
         'shipped' => [
-            'status' => ['processing'],
-            'printed' => TRUE,
+            'status' => ['processing', 'shipped'],
+            'fully_shipped' => FALSE
         ],
         'completed' => [
             'status' => ['shipped', 'processing'],
             'outstanding' => 0,
+            'fully_shipped' => TRUE,
         ]
     ],
     'print_format' => 'default',
@@ -73,6 +74,10 @@ return [
     ],
     'invoice_options' => [
         'reference_format' => 'store_code:invoice_year:invoice_month:invoice_day:counter',
+        'reference_counter_length' => 4
+    ],
+    'delivery_order_options' => [
+        'reference_format' => 'store_code:delivey_order_year:delivey_order_month:delivey_order_day:counter',
         'reference_counter_length' => 4
     ],
     'catalog_options' => [

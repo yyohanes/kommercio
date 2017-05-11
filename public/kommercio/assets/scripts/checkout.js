@@ -202,7 +202,10 @@
         method: 'POST',
         data: $checkoutForm.serialize() + '&month=' + (month+1) + '&year=' + year,
         success: function(data){
-          $disabledDates = $.makeArray(data.disabled_dates);
+          $disabledDates = Object.keys(data.disabled_dates).map(function(e) {
+            return data.disabled_dates[e];
+          });
+
           $(e.target).datepicker('setDatesDisabled', $disabledDates);
           $(e.target).datepicker('update', e.date);
         },

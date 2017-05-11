@@ -6,7 +6,7 @@
             </h4>
         </td>
 
-        <td class="text-right" style="vertical-align: middle;">DELIVERY NOTE</td>
+        <td class="text-right" style="vertical-align: middle;">DELIVERY ORDER</td>
     </tr>
 </table>
 
@@ -49,4 +49,4 @@
     </tr>
 </table>
 
-@include('print.order.order_table', ['order' => $order])
+@include('print.order.order_table', ['order' => $order, 'deliveryOrder' => $deliveryOrder, 'showPrice' => FALSE])

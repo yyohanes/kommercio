@@ -45,6 +45,9 @@ trait Profileable
         });
     }
 
+    /*
+     * TODO: Check why this doesn't respect $filters
+     */
     public function scopeWhereFields($query, $filters, $or=FALSE)
     {
         $query->whereHas('profile', function($qb) use ($filters, $or){
