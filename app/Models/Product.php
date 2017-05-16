@@ -6,12 +6,14 @@ use Carbon\Carbon;
 use Dimsav\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Kommercio\Facades\CurrencyHelper;
 use Kommercio\Facades\FrontendHelper;
 use Kommercio\Facades\ProductIndexHelper;
 use Kommercio\Facades\ProjectHelper;
 use Kommercio\Facades\RuntimeCache;
+use Kommercio\Models\Interfaces\CacheableInterface;
 use Kommercio\Models\Interfaces\SeoModelInterface;
 use Kommercio\Models\Interfaces\UrlAliasInterface;
 use Kommercio\Models\Order\LineItem;
@@ -24,7 +26,7 @@ use Kommercio\Traits\Frontend\ProductHelper as FrontendProductHelper;
 use Kommercio\Traits\Model\SeoTrait;
 use Kommercio\Facades\PriceFormatter;
 
-class Product extends Model implements UrlAliasInterface, SeoModelInterface
+class Product extends Model implements UrlAliasInterface, SeoModelInterface, CacheableInterface
 {
     use SoftDeletes, Translatable, SeoTrait, FrontendProductHelper;
 
@@ -41,10 +43,6 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
     private $_store;
     private $_currency;
     private $_productDetail;
-    private $_retailPrice;
-    private $_retailPriceWithTax;
-    private $_netPrice;
-    private $_netPriceWithTax;
     private $_rewardPoints;
 
     public $translatedAttributes = ['name', 'description_short', 'description', 'slug', 'meta_title', 'meta_description', 'locale', 'thumbnail', 'thumbnails', 'images'];
@@ -319,7 +317,7 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
 
     public function getRetailPrice($tax = false)
     {
-        if(!isset($this->_retailPrice)){
+        $retailPrice = Cache::rememberForever($this->getTable().'_'.$this->id.'.retail_price', function(){
             if($this->combination_type == self::COMBINATION_TYPE_VARIATION){
                 $price = $this->productDetail->retail_price?$this->productDetail->retail_price:$this->parent->productDetail->retail_price;
             }else{
@@ -332,35 +330,27 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
                 $price = $priceRule->getValue($price);
             }
 
-            $this->_retailPrice = $price;
+            return $price;
+        });
+
+        if($tax && $this->productDetail->taxable){
+            $retailPrice += $this->calculateTax($retailPrice);
         }
 
-        if(!isset($this->_retailPriceWithTax)){
-            if($this->productDetail->taxable){
-                $this->_retailPriceWithTax = $this->_retailPrice + $this->calculateTax($this->_retailPrice);
-            }else{
-                $this->_retailPriceWithTax = $this->_retailPrice;
-            }
-        }
-
-        return $tax?$this->_retailPriceWithTax:$this->_retailPrice;
+        return $retailPrice;
     }
 
     public function getNetPrice($tax = false)
     {
-        if(!isset($this->_netPrice)){
-            $this->_netPrice = $this->_calculateNetPrice();
+        $netPrice = Cache::rememberForever($this->getTable().'_'.$this->id.'.net_price', function(){
+            return $this->_calculateNetPrice();
+        });
+
+        if($tax && $this->productDetail->taxable){
+            $netPrice += $this->calculateTax($netPrice);
         }
 
-        if(!isset($this->_netPriceWithTax)){
-            if($this->productDetail->taxable){
-                $this->_netPriceWithTax = $this->_netPrice + $this->calculateTax($this->_netPrice);
-            }else{
-                $this->_netPriceWithTax = $this->_netPrice;
-            }
-        }
-
-        return $tax?$this->_netPriceWithTax:$this->_netPrice;
+        return $netPrice;
     }
 
     private function _calculateNetPrice()
@@ -601,11 +591,11 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
             return null;
         }
 
-        $warehouses = $this->warehouses;
-
         if(!$warehouse_id){
             $warehouse_id = $this->warehouse->id;
         }
+
+        $warehouses = $this->warehouses;
 
         $warehouse = $warehouses->find($warehouse_id);
 
@@ -1184,6 +1174,20 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
     public function getMetaImage()
     {
         return $this->thumbnail?$this->thumbnail->getImagePath('original'):null;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getCacheKeys()
+    {
+        $tableName = $this->getTable();
+        $keys = [
+            $tableName.'_'.$this->id.'.retail_price',
+            $tableName.'_'.$this->id.'.net_price',
+        ];
+
+        return $keys;
     }
 
     //Accessors

@@ -146,8 +146,10 @@ class FrontendHelper
         }
 
         foreach($menu_slugs as $menu_slug){
-            $menu = Menu::with('rootMenuItems')->where('slug', $menu_slug)->first();
-            $rootMenuItems = $menu->rootMenuItems()->active()->get();
+            $menu = Menu::where('slug', $menu_slug)->first();
+            $rootMenuItems = $menu->rootMenuItems->filter(function($value, $key){
+                return $value->active;
+            });
 
             $menuItems += ($rootMenuItems->count() > 0)?$rootMenuItems->all():[];
         }

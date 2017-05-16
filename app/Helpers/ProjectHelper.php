@@ -63,7 +63,9 @@ class ProjectHelper
 
     public function getDefaultStore()
     {
-        $defaultStore = Store::where('default', 1)->first();
+        $defaultStore = \Kommercio\Facades\RuntimeCache::getOrSet('default_store', function(){
+            return Store::where('default', 1)->first();
+        });
 
         return $defaultStore;
     }
@@ -88,33 +90,9 @@ class ProjectHelper
             }
         });
 
-        $activeStore = Store::find($activeStoreId);
-
-        /*
-        if(!Auth::check()){
-            $activeStore = Store::where('default', 1)->first();
-        }else{
-            $user = Auth::user();
-
-            if($user->isCustomer){
-                $activeStore = Store::where('default', 1)->first();
-            }else{
-                $activeStoreId = Session::get('active_store', function() use ($user){
-                    if($user->isSuperAdmin){
-                        $activeStore = $this->getDefaultStore();
-                    }else{
-                        $activeStore = $user->stores->first();
-                    }
-
-                    Session::put('active_store', $activeStore->id);
-
-                    return $activeStore->id;
-                });
-
-                $activeStore = Store::find($activeStoreId);
-            }
-        }
-        */
+        $activeStore = \Kommercio\Facades\RuntimeCache::getOrSet('store_'.$activeStoreId, function() use ($activeStoreId){
+            return Store::find($activeStoreId);
+        });
 
         return $activeStore?:$this->getDefaultStore();
     }

@@ -59,8 +59,6 @@ trait ProductHelper
 
     public function isInStock()
     {
-        $return = true;
-
         if($this->combination_type == Product::COMBINATION_TYPE_VARIABLE){
             return count($this->getInStockVariations()) > 0;
         }else{

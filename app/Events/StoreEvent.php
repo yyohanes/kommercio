@@ -12,7 +12,7 @@ class StoreEvent extends Event
 {
     use SerializesModels;
 
-    public $request;
+    public $store;
     public $type;
 
     /**
@@ -20,10 +20,10 @@ class StoreEvent extends Event
      *
      * @return void
      */
-    public function __construct($type, Request $request)
+    public function __construct($type, Store $store)
     {
         $this->type = $type;
-        $this->request = $request;
+        $this->store = $store;
     }
 
     /**
