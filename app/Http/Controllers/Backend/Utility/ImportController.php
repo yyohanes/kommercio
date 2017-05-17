@@ -2,6 +2,7 @@
 
 namespace Kommercio\Http\Controllers\Backend\Utility;
 
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -163,7 +164,14 @@ class ImportController extends Controller
             }
 
             $product->name = $result->name;
+            $product->description = $result->description;
+
+            $result->created_at = empty($result->created_at)?Carbon::now():new Carbon($result->created_at);
+            $product->setCreatedAt($result->created_at);
+            $product->setUpdatedAt($result->created_at);
             $product->sku = $result->sku;
+
+            $parentProduct = null;
 
             if($result->parent_sku == $result->sku){
                 if(!$product->exists){
@@ -177,9 +185,7 @@ class ImportController extends Controller
                     return 'Parent Product "'.$result->parent_sku.'" not found';
                 }
 
-                $parentProduct->update([
-                    'combination_type' => Product::COMBINATION_TYPE_VARIABLE
-                ]);
+                $product->parent()->associate($parentProduct);
             }
 
             $product->save();
@@ -232,6 +238,8 @@ class ImportController extends Controller
             $product->save();
 
             if($product->images->count() < 1 || ($product->images->count() > 0 && Session::get('import.redownload_images', false))) {
+                $product->getTranslation()->clearMedia('image', TRUE);
+
                 $newMedia = [];
                 if ($result->images) {
                     $images = explode(';', $result->images);
@@ -249,9 +257,27 @@ class ImportController extends Controller
                 }
 
                 $product->getTranslation()->syncMedia($newMedia, 'image');
+
+                if($parentProduct){
+                    $parentImages = [];
+                    foreach($parentProduct->images as $image){
+                        $parentImages[$image->id] = [
+                            'type' => $image->pivot->type,
+                            'locale' => $image->pivot->locale
+                        ];
+                    }
+
+                    $parentImages += $newMedia;
+
+                    if(!empty($parentImages)){
+                        $parentProduct->getTranslation()->syncMedia($parentImages, 'image');
+                    }
+                }
             }
 
             if($product->thumbnails->count() < 1 || ($product->thumbnails->count() > 0 && Session::get('import.redownload_images', false))) {
+                $product->getTranslation()->clearMedia('thumbnail', TRUE);
+
                 $newThumbnail = [];
                 if($result->images){
                     $images = explode(';', $result->images);
@@ -271,10 +297,43 @@ class ImportController extends Controller
                 }
 
                 $product->getTranslation()->syncMedia($newThumbnail, 'thumbnail');
+
+                if($parentProduct){
+                    $parentImages = [];
+                    foreach($parentProduct->thumbnails as $image){
+                        $parentImages[$image->id] = [
+                            'type' => $image->pivot->type,
+                            'locale' => $image->pivot->locale
+                        ];
+                    }
+
+                    $parentImages += $newThumbnail;
+
+                    if(!empty($parentImages)){
+                        $parentProduct->getTranslation()->syncMedia($parentImages, 'thumbnail');
+                    }
+                }
             }
 
-            //Save product to index
+            // Save product to index
             $product->saveToIndex();
+
+            // Save translation as well to cache will be purged
+            $product->getTranslation()->save();
+
+            if($parentProduct){
+                $parentProduct->productDetail->fill([
+                    'retail_price' => floatval($result->price),
+                ]);
+                $parentProduct->productDetail->save();
+
+                $parentProduct->combination_type = Product::COMBINATION_TYPE_VARIABLE;
+
+                $parentProduct->save();
+                $parentProduct->getTranslation()->save();
+
+                $parentProduct->saveToIndex();
+            }
         });
 
         return $this->processResponse('backend.utility.import.form.product', $return, $request);

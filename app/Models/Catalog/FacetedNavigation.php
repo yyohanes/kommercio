@@ -40,6 +40,7 @@ class FacetedNavigation
         }
 
         $qb->groupBy('PI.type', 'pivot');
+        $qb->orderBy('product_count', 'DESC');
         $layers = $qb->get();
 
         foreach($layers as $layer){

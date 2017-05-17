@@ -5,7 +5,9 @@ namespace Kommercio\Console\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Kommercio\Models\File;
 use Kommercio\Models\Manufacturer;
+use Kommercio\Models\Media;
 use Kommercio\Models\Order\Order;
 use Kommercio\Models\Product;
 
@@ -42,7 +44,7 @@ class WipeData extends Command
      */
     public function handle()
     {
-        $type = $this->choice('Choose what data you want to wipe out', ['Order', 'Product', 'Manufacturer']);
+        $type = $this->choice('Choose what data you want to wipe out', ['Order', 'Product', 'Manufacturer', 'Unused Files']);
 
         switch($type){
             case 'Order':
@@ -80,7 +82,7 @@ class WipeData extends Command
                 $bar = $this->output->createProgressBar($products->count());
 
                 foreach($products as $product){
-                    $product->delete();
+                    $product->forceDelete();
                     $bar->advance();
                 }
 
@@ -142,6 +144,28 @@ class WipeData extends Command
 
                 $bar->finish();
 
+                break;
+            case 'Unused Files':
+                $files = Media::all();
+                $bar = $this->output->createProgressBar($files->count());
+
+                foreach($files as $file){
+                    $mediaAttachables = DB::table('media_attachables')->where('media_id', $file->id)->get();
+
+                    $count = 0;
+
+                    foreach($mediaAttachables as $mediaAttachable){
+                        $model = $mediaAttachable->media_attachable_type;
+                        if($model::where('id', $mediaAttachable->media_attachable_id)->count() > 0){
+                            $count += 1;
+                        }
+                    }
+
+                    if($count < 1){
+                        $file->delete();
+                    }
+                    $bar->advance();
+                }
                 break;
             default:
                 $this->error('Unknown selection.');

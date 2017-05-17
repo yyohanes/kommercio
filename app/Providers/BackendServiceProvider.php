@@ -62,6 +62,17 @@ class BackendServiceProvider extends ServiceProvider
         $this->app['events']->listen('eloquent.deleting*', function ($eventName, $models) {
             $model = $models[0];
 
+            $traits = class_uses($model);
+
+            // Delete media when model deleted
+            if(in_array('Kommercio\Traits\Model\MediaAttachable', $traits)){
+                foreach($model->media as $modelMedia){
+                    if(!property_exists($model, 'forceDeleting') || $model->isForceDeleting()) {
+                        $modelMedia->delete();
+                    }
+                }
+            }
+
             if ($model instanceof UrlAliasInterface) {
                 if(!property_exists($model, 'forceDeleting') || $model['forceDeleting']){
                     UrlAlias::deleteAlias($model->getInternalPathSlug().'/'.$model->id);
