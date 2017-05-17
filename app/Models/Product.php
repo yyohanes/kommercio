@@ -200,8 +200,12 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface, Cac
     {
         $defaultCategory = $this->defaultCategory;
 
-        $breadcrumbs = $defaultCategory->getBreadcrumbTrails();
-        $breadcrumbs[] = $defaultCategory;
+        if($defaultCategory){
+            $breadcrumbs = $defaultCategory->getBreadcrumbTrails();
+            $breadcrumbs[] = $defaultCategory;
+        }else{
+            $breadcrumbs = [];
+        }
 
         return $breadcrumbs;
     }
