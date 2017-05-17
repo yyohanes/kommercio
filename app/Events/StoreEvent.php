@@ -21,7 +21,7 @@ class StoreEvent extends Event
      *
      * @return void
      */
-    public function __construct($type, Store $store, Request $request)
+    public function __construct($type, Store $store, Request $request = null)
     {
         $this->type = $type;
         $this->store = $store;

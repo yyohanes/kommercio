@@ -48,7 +48,7 @@ class ProjectHelper
             $store = $this->getActiveStore();
         }
 
-        $returnedStore = Event::fire(new StoreEvent('determine_store_by_request', $request));
+        $returnedStore = Event::fire(new StoreEvent('determine_store_by_request', $store, $request));
 
         if(!isset($returnedStore[0]) || empty($returnedStore[0])){
             if($request->has('store_id')){
