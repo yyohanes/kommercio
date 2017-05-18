@@ -5,6 +5,7 @@ namespace Kommercio\Models\ProductComposite;
 use Dimsav\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Model;
 use Kommercio\Models\Product;
+use Kommercio\Models\Abstracts\SluggableModel;
 
 class ProductComposite extends SluggableModel
 {
