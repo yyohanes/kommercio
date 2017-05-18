@@ -34,9 +34,10 @@
           success: function(data){
             var $productDetail = $(plugin.settings.detail_wrapper_selector, data);
 
-            $element.trigger('productOrderForm.variationLoaded', [$productDetail]);
-
             $(plugin.settings.detail_wrapper_selector).html($productDetail.html());
+            plugin.initComponent(plugin.settings.detail_wrapper_selector);
+
+            $element.trigger('productOrderForm.variationLoaded', [$productDetail]);
           }
         });
       });
