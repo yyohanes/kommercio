@@ -1573,6 +1573,18 @@ Route::group(['middleware' => ['web']], function () {
                         'permissions' => ['import_product']
                     ]);
                 });
+
+                Route::group(['prefix' => 'export'], function(){
+                    Route::any('customer', [
+                        'as' => 'backend.utility.export.customer',
+                        'uses' => 'ExportController@customer',
+                    ]);
+
+                    Route::get('download/{batch_id}', [
+                        'as' => 'backend.utility.export.download',
+                        'uses' => 'ExportController@download',
+                    ]);
+                });
             });
 
             //Customers

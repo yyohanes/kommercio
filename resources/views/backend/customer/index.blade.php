@@ -33,6 +33,11 @@
                     @can('access', ['create_customer'])
                     <a href="{{ route('backend.customer.create', ['backUrl' => Request::fullUrl()]) }}" class="btn btn-sm btn-info">
                         <i class="fa fa-plus"></i> Add </a>
+
+                    @if(ProjectHelper::isFeatureEnabled('customer.export'))
+                    <a href="{{ route('backend.utility.export.customer', ['backUrl' => Request::fullUrl()]) }}" class="btn btn-sm btn-default">
+                        <i class="fa fa-file-o"></i> Export </a>
+                    @endif
                     @endcan
                 </div>
             </div>
