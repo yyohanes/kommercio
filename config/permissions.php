@@ -334,7 +334,7 @@ $permissions = [
             'import_manufacturer' => 'Import Manufacturer',
         ],
         'feature' => 'catalog.import',
-    ],
+    ]
 ];
 
 if(file_exists(base_path('packages/project/src/Project/config/permissions.php'))){

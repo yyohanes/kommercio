@@ -167,24 +167,32 @@ class AddressHelper
         return $options->pluck('name', 'id')->all();
     }
 
-    public function printAddress($data)
+    public function extractAddressFields($data)
     {
-        $addressLineElements = [];
-        $addressElements = [];
+        $addressElements = [
+            'address_1' => null,
+            'address_2' => null,
+            'area' => null,
+            'district' => null,
+            'city' => null,
+            'state' => null,
+            'country' => null,
+            'postal_code' => null,
+        ];
 
         if(!empty($data['address_1'])){
-            $addressLineElements[] = $data['address_1'];
+            $addressLineElements['address_1'] = $data['address_1'];
         }
 
         if(!empty($data['address_2'])){
-            $addressLineElements[] = $data['address_2'];
+            $addressLineElements['address_2'] = $data['address_2'];
         }
 
         if(!empty($data['area_id'])){
             $area = Area::find($data['area_id']);
 
             if($area){
-                $addressElements[] = $area->name;
+                $addressElements['area'] = $area->name;
             }
         }
 
@@ -192,7 +200,7 @@ class AddressHelper
             $district = District::find($data['district_id']);
 
             if($district){
-                $addressElements[] = $district->name;
+                $addressElements['district'] = $district->name;
             }
         }
 
@@ -200,7 +208,7 @@ class AddressHelper
             $city = City::find($data['city_id']);
 
             if($city){
-                $addressElements[] = $city->name;
+                $addressElements['city'] = $city->name;
             }
         }
 
@@ -208,7 +216,7 @@ class AddressHelper
             $state = State::find($data['state_id']);
 
             if($state){
-                $addressElements[] = $state->name;
+                $addressElements['state'] = $state?$state->name:'';
             }
         }
 
@@ -216,16 +224,36 @@ class AddressHelper
             $country = Country::find($data['country_id']);
 
             if($country){
-                $addressElements[] = $country->name;
+                $addressElements['country'] = $country->name;
             }
         }
 
-        if($addressElements){
-            $addressLineElements[] = implode(', ', $addressElements);
+        if(!empty($data['postal_code'])){
+            $addressElements['postal_code'] = $data['postal_code'];
         }
 
-        if(!empty($data['postal_code'])){
-            $addressLineElements[] = $data['postal_code'];
+        return $addressElements;
+    }
+
+    public function printAddress($data)
+    {
+        $addressElements = $this->extractAddressFields($data);
+
+        foreach($addressElements as $idx => $addressElement){
+            if(empty($addressElement)){
+                unset($addressElements[$idx]);
+            }
+        }
+
+        $addressLineElements = [];
+
+        if(isset($addressElements['postal_code'])){
+            $addressLineElements['postal_code'] = $addressElements['postal_code'];
+            unset($addressElements['postal_code']);
+        }
+
+        if($addressElements){
+            array_unshift($addressLineElements, implode(', ', $addressElements));
         }
 
         return implode('<br/>', $addressLineElements);
