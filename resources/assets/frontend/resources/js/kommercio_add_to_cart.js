@@ -1,5 +1,4 @@
 (function($) {
-
   $.productOrderForm = function(element, options) {
 
     var defaults = {
@@ -53,7 +52,7 @@
             data: $element.serialize(),
             success: function(data){
               if(data.success){
-                $element.trigger('productOrderForm.addedToCart', [data.data]);
+                $element.trigger('productOrderForm.addedToCart', [data]);
               }
             },
             error: function(xhr){
@@ -61,6 +60,9 @@
                 alert(xhr.responseJSON[i][0]);
                 break;
               }
+            },
+            complete: function(){
+              $element.trigger('productOrderForm.onComplete');
             }
           }
         );
@@ -72,14 +74,11 @@
   }
 
   $.fn.productOrderForm = function(options) {
-
     return this.each(function() {
       if (undefined == $(this).data('productOrderForm')) {
         var plugin = new $.productOrderForm(this, options);
         $(this).data('productOrderForm', plugin);
       }
     });
-
   }
-
 })(jQuery);

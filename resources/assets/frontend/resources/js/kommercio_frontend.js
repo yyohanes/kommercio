@@ -1,4 +1,4 @@
-var KommercioFrontend = function(){
+const KommercioFrontend = function(){
   var loadedScripts = [];
 
   function isFunction(x) {

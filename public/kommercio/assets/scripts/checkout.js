@@ -46,8 +46,6 @@
         method: 'POST',
         data: $form.serialize() + '&process=' + $process,
         success: function(data){
-          $form.triggerHandler('after_step_change', [data.step, checkoutData.step]);
-
           var $html = null;
 
           for(var i in data.data){
@@ -62,6 +60,9 @@
 
             initComponent($('#'+ i +'-wrapper', element));
             checkoutData.step = data.step;
+
+            $element.trigger('after_step_change', [data.step, checkoutData.step]);
+            $form.triggerHandler('after_step_change', [data.step, checkoutData.step]);
           }
         },
         complete: function(){

@@ -10,6 +10,7 @@ window.axios.defaults.headers.common = {
 };
 
 require('./common_helper');
+require('./kommercio_add_to_cart');
 
 import KommercioFrontend from './kommercio_frontend';
 

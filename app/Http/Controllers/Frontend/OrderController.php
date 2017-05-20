@@ -3,6 +3,7 @@
 namespace Kommercio\Http\Controllers\Frontend;
 
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Request as RequestFacade;
@@ -994,6 +995,24 @@ class OrderController extends Controller
 
         $seoData = [
             'meta_title' => trans(LanguageHelper::getTranslationKey('frontend.seo.order.checkout_complete.meta_title'))
+        ];
+
+        return view($view_name, ['order' => $order, 'seoData' => $seoData]);
+    }
+
+    public function view($public_id)
+    {
+        $order = Order::findPublic($public_id);
+        if(!$order){
+            throw (new ModelNotFoundException)->setModel(
+                get_class($order), $public_id
+            );
+        }
+
+        $view_name = ProjectHelper::getViewTemplate('frontend.order.view');
+
+        $seoData = [
+            'meta_title' => trans(LanguageHelper::getTranslationKey('frontend.seo.order.view.meta_title'), ['reference' => $order->reference])
         ];
 
         return view($view_name, ['order' => $order, 'seoData' => $seoData]);
