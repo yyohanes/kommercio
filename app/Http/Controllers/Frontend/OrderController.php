@@ -906,6 +906,8 @@ class OrderController extends Controller
 
             OrderHelper::processLineItems($request, $order, false);
 
+            Event::fire(new OrderEvent('before_checkout_calculate_total', $order));
+
             $order->load('lineItems');
             $order->calculateTotal();
 

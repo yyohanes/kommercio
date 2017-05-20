@@ -47,16 +47,16 @@ class OrderFormRequest extends Request
 
         foreach($this->input('line_items', []) as $idx => $lineItem){
             if($lineItem['line_item_type'] == 'product'){
-                $rules['line_items.'.$idx.'.sku'] = 'product_sku|required_with:line_items.'.$idx.'.net_price,line_items.'.$idx.'.quantity';
-                $rules['line_items.'.$idx.'.net_price'] = 'numeric|required_with:line_items.'.$idx.'.sku,line_items.'.$idx.'.quantity';
-                $rules['line_items.'.$idx.'.quantity'] = 'numeric|min:0,required_with:line_items.'.$idx.'.sku,line_items.'.$idx.'.net_price';
+                $rules['line_items.'.$idx.'.sku'] = 'product_sku|nullable|required_with:line_items.'.$idx.'.net_price,line_items.'.$idx.'.quantity';
+                $rules['line_items.'.$idx.'.net_price'] = 'numeric|nullable|required_with:line_items.'.$idx.'.sku,line_items.'.$idx.'.quantity';
+                $rules['line_items.'.$idx.'.quantity'] = 'numeric|nullable|min:0,required_with:line_items.'.$idx.'.sku,line_items.'.$idx.'.net_price';
 
                 foreach($this->input('line_items.'.$idx.'.children', []) as $compositeId => $compositeLineItems){
                     $quantity = 0;
                     $productComposite = ProductComposite::findOrFail($compositeId);
                     foreach($compositeLineItems as $compositeLineItemIdx => $compositeLineItem){
                         $quantity += $compositeLineItem['quantity'];
-                        $rules['line_items.'.$idx.'.children.'.$compositeId.'.'.$compositeLineItemIdx.'.sku'] = ($productComposite->minimum>0?'required|':'').'product_sku';
+                        $rules['line_items.'.$idx.'.children.'.$compositeId.'.'.$compositeLineItemIdx.'.sku'] = ($productComposite->minimum>0?'required|':'').'product_sku|nullable';
 
                         if(isset($compositeLineItem['product_configuration'])){
                             $product = Product::findOrFail($compositeLineItem['line_item_id']);
@@ -74,8 +74,8 @@ class OrderFormRequest extends Request
                     }
                 }
             }elseif($lineItem['line_item_type'] == 'fee'){
-                $rules['line_items.'.$idx.'.name'] = 'required_with:line_items.'.$idx.'.lineitem_total_amount';
-                $rules['line_items.'.$idx.'.lineitem_total_amount'] = 'numeric|required_with:line_items.'.$idx.'.name';
+                $rules['line_items.'.$idx.'.name'] = 'nullable|required_with:line_items.'.$idx.'.lineitem_total_amount';
+                $rules['line_items.'.$idx.'.lineitem_total_amount'] = 'numeric|nullable|required_with:line_items.'.$idx.'.name';
             }
         }
 

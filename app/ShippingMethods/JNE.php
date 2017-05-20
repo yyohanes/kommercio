@@ -71,14 +71,14 @@ class JNE extends ShippingMethodAbstract
             $origin = City::find(ProjectHelper::getStoreByRequest($request)->getDefaultWarehouse()->city_id);
             $destination = $request->has('shipping_profile.district_id')?District::find($request->input('shipping_profile.district_id')):City::find($request->input('shipping_profile.city_id'));
             $destinationType = $request->has('shipping_profile.district_id')?'subdistrict':'city';
-        }
-
-        //From saved order
-        if($order && $order->store && !empty($order->store->getDefaultWarehouse()->city_id) && $order->shippingInformation){
-            $country = Country::find($order->shippingInformation->country_id);
-            $origin = City::find($order->store->getDefaultWarehouse()->city_id);
-            $destination = $order->shippingInformation->district_id?District::find($order->shippingInformation->district_id):City::find($order->shippingInformation->city_id);
-            $destinationType = $order->shippingInformation->district_id?'subdistrict':'city';
+        }else{
+            //From saved order
+            if($order && $order->store && !empty($order->store->getDefaultWarehouse()->city_id) && $order->shippingInformation){
+                $country = Country::find($order->shippingInformation->country_id);
+                $origin = City::find($order->store->getDefaultWarehouse()->city_id);
+                $destination = $order->shippingInformation->district_id?District::find($order->shippingInformation->district_id):City::find($order->shippingInformation->city_id);
+                $destinationType = $order->shippingInformation->district_id?'subdistrict':'city';
+            }
         }
 
         if(!empty($country) && $country->iso_code == 'ID' && !empty($origin) && !empty($destination)){
