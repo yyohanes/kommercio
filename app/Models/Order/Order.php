@@ -1074,7 +1074,7 @@ class Order extends Model implements AuthorSignatureInterface
 
     public function getIsEditableAttribute()
     {
-        return in_array($this->status, [self::STATUS_ADMIN_CART, self::STATUS_CART, self::STATUS_PENDING]) || (Gate::allows('access', ['edit_settled_order']) && !in_array($this->status, [Order::STATUS_COMPLETED]));
+        return in_array($this->status, [self::STATUS_ADMIN_CART, self::STATUS_CART]) || (Gate::allows('access', ['edit_settled_order']) && in_array($this->status, [self::STATUS_PENDING]));
     }
 
     public function getIsDeleteableAttribute()

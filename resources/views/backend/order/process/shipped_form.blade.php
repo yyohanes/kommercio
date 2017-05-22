@@ -39,7 +39,7 @@
                                 'defaultValue' => $max
                             ])
                         </td>
-                        <td>{{ $productLineItem->deliveredQuantity }}</td>
+                        <td>{{ $productLineItem->shippedQuantity }}</td>
                         <td>{{ $productLineItem->quantity }}</td>
                     </tr>
                 @endforeach
