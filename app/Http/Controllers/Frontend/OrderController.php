@@ -942,6 +942,9 @@ class OrderController extends Controller
                         'data' => [
                             'checkout' => $this->checkoutComplete($request, $order)->render()
                         ],
+                        'order' => [
+                            'public_id' => $order->public_id
+                        ],
                         'step' => 'complete',
                         '_token' => csrf_token()
                     ]);

@@ -61,14 +61,15 @@
             initComponent($('#'+ i +'-wrapper', element));
             checkoutData.step = data.step;
 
-            $element.trigger('after_step_change', [data.step, checkoutData.step]);
-            $form.triggerHandler('after_step_change', [data.step, checkoutData.step]);
+            $form.trigger('after_step_change', [data.step, checkoutData.step, data]);
           }
         },
         complete: function(){
           KommercioFrontend.toggleOverlay($element, false);
         },
         error: function(data){
+          $form.triggerHandler('error', [checkoutData.step, data]);
+
           if($process != 'place_order'){
             for(var i in data.responseJSON){
               KommercioFrontend.addError(i, data.responseJSON[i][0], element);
