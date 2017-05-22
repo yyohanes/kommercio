@@ -34,7 +34,7 @@ class PriceFormatter
         if(isset($options['store_id'])){
             $store = Store::find($options['store_id']);
         }elseif(isset($options['store'])){
-            $store = Store::find($options['store']);
+            $store = $options['store'];
         }
 
         if(!$store){

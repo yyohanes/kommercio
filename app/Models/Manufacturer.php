@@ -2,11 +2,13 @@
 
 namespace Kommercio\Models;
 
+use Illuminate\Support\Facades\Cache;
 use Kommercio\Models\Abstracts\SluggableModel;
+use Kommercio\Models\Interfaces\CacheableInterface;
 use Kommercio\Models\Interfaces\ProductIndexInterface;
 use Kommercio\Traits\Model\MediaAttachable;
 
-class Manufacturer extends SluggableModel implements ProductIndexInterface
+class Manufacturer extends SluggableModel implements ProductIndexInterface, CacheableInterface
 {
     use MediaAttachable;
 
@@ -31,8 +33,13 @@ class Manufacturer extends SluggableModel implements ProductIndexInterface
     //Methods
     public function getLogoAttribute()
     {
-        $qb = $this->media('logo');
-        return $qb->first();
+        $logo = Cache::rememberForever($this->getTable().'_'.$this->id.'.logo', function(){
+            $qb = $this->media('logo');
+
+            return $qb->first();
+        });
+
+        return $logo;
     }
 
     public function getProductIndexType()
@@ -55,6 +62,20 @@ class Manufacturer extends SluggableModel implements ProductIndexInterface
                 'onUpdate' => TRUE
             ],
         ];
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getCacheKeys()
+    {
+        $tableName = $this->getTable();
+
+        $keys = [
+            $tableName.'_'.$this->id.'.logo'
+        ];
+
+        return $keys;
     }
 
     //Static

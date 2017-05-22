@@ -2,10 +2,12 @@
 
 namespace Kommercio\Models\CMS;
 
+use Illuminate\Support\Facades\Cache;
 use Kommercio\Facades\RuntimeCache;
 use Kommercio\Models\Abstracts\SluggableModel;
+use Kommercio\Models\Interfaces\CacheableInterface;
 
-class Menu extends SluggableModel
+class Menu extends SluggableModel implements CacheableInterface
 {
     protected $fillable = ['name', 'slug', 'description'];
 
@@ -45,7 +47,9 @@ class Menu extends SluggableModel
         $menu = $this;
 
         if(is_null($menuitem->parent_id)){
-            $menuItems = $menu->rootMenuItems()->active()->pluck('parent_id')->all();
+            $menuItems = $menu->rootMenuItems->filter(function($value){
+                return $value->active;
+            })->pluck('parent_id')->all();
         }else{
             $menuItems = [$menuitem->parent_id];
         }
@@ -72,6 +76,32 @@ class Menu extends SluggableModel
         return null;
     }
 
+    /**
+     * @inheritdoc
+     */
+    public function getCacheKeys()
+    {
+        $tableName = $this->getTable();
+
+        $keys = [
+            $tableName.'_'.$this->id.'.root_menu_items'
+        ];
+
+        return $keys;
+    }
+
+    // Accessors
+    public function getRootMenuItemsAttribute()
+    {
+        $rootMenuItems = Cache::rememberForever($this->getTable().'_'.$this->id.'.root_menu_items', function(){
+            return $this->menuItems->filter(function($value, $key){
+                return empty($value->parent_id);
+            });
+        });
+
+        return $rootMenuItems;
+    }
+
     // Static
     public static function getBySlug($slug)
     {
@@ -91,10 +121,5 @@ class Menu extends SluggableModel
     public function menuItems()
     {
         return $this->hasMany('Kommercio\Models\CMS\MenuItem')->orderBy('sort_order', 'ASC');
-    }
-
-    public function rootMenuItems()
-    {
-        return $this->hasMany('Kommercio\Models\CMS\MenuItem')->whereNull('parent_id')->orderBy('sort_order', 'ASC');
     }
 }

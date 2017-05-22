@@ -2,37 +2,57 @@
 
 namespace Kommercio\Models;
 
+use Illuminate\Support\Facades\Cache;
 use Kommercio\Models\Abstracts\SluggableModel;
+use Kommercio\Models\Interfaces\CacheableInterface;
 use Kommercio\Traits\Model\AuthorSignature;
 use Kommercio\Traits\Model\MediaAttachable;
 use Kommercio\Models\Interfaces\AuthorSignatureInterface;
 
-class ProductTranslation extends SluggableModel implements AuthorSignatureInterface
+class ProductTranslation extends SluggableModel implements AuthorSignatureInterface, CacheableInterface
 {
     use AuthorSignature, MediaAttachable;
 
     public $timestamps = FALSE;
 
-    //Methods
+    // Methods
 
-    //Accessors
+    /**
+     * @inheritdoc
+     */
+    public function getCacheKeys()
+    {
+        $tableName = $this->getTable();
+
+        $keys = [
+            $tableName.'_'.$this->id.'_'.$this->locale.'.thumbnails',
+            $tableName.'_'.$this->id.'_'.$this->locale.'.images',
+        ];
+
+        return $keys;
+    }
+
+    // Accessors
     public function getThumbnailAttribute()
     {
-        if(!$this->relationLoaded('thumbnails')){
-            $this->load('thumbnails');
-        }
-
         return $this->thumbnails->first();
     }
 
-    //Relations
-    public function thumbnails()
+    public function getThumbnailsAttribute()
     {
-        return $this->media('thumbnail')->where('locale', $this->locale);
+        $thumbnails = Cache::rememberForever($this->getTable().'_'.$this->id.'_'.$this->locale.'.thumbnails', function(){
+            return $this->media('thumbnail')->where('locale', $this->locale)->get();
+        });
+
+        return $thumbnails;
     }
 
-    public function images()
+    public function getImagesAttribute()
     {
-        return $this->media('image')->where('locale', $this->locale);
+        $images = Cache::rememberForever($this->getTable().'_'.$this->id.'_'.$this->locale.'.images', function(){
+            return $this->media('image')->where('locale', $this->locale)->get();
+        });
+
+        return $images;
     }
 }

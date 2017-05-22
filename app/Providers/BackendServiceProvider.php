@@ -4,12 +4,14 @@ namespace Kommercio\Providers;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\ServiceProvider;
 use Kommercio\Facades\ProductIndexHelper;
 use Kommercio\Facades\ProjectHelper;
 use Kommercio\Models\File;
 use Kommercio\Models\Interfaces\AuthorSignatureInterface;
 use Illuminate\Support\Facades\Storage;
+use Kommercio\Models\Interfaces\CacheableInterface;
 use Kommercio\Models\Interfaces\ConfigVariableInterface;
 use Kommercio\Models\Interfaces\ProductIndexInterface;
 use Kommercio\Models\Interfaces\UrlAliasInterface;
@@ -49,10 +51,27 @@ class BackendServiceProvider extends ServiceProvider
             if ($model instanceof UrlAliasInterface) {
                 UrlAlias::saveAlias($model->getUrlAlias(), $model);
             }
+
+            if ($model instanceof CacheableInterface) {
+                foreach($model->getCacheKeys() as $cacheKey){
+                    Cache::forget($cacheKey);
+                }
+            }
         });
 
         $this->app['events']->listen('eloquent.deleting*', function ($eventName, $models) {
             $model = $models[0];
+
+            $traits = class_uses($model);
+
+            // Delete media when model deleted
+            if(in_array('Kommercio\Traits\Model\MediaAttachable', $traits)){
+                foreach($model->media as $modelMedia){
+                    if(!property_exists($model, 'forceDeleting') || $model->isForceDeleting()) {
+                        $modelMedia->delete();
+                    }
+                }
+            }
 
             if ($model instanceof UrlAliasInterface) {
                 if(!property_exists($model, 'forceDeleting') || $model['forceDeleting']){
@@ -72,6 +91,12 @@ class BackendServiceProvider extends ServiceProvider
             if ($model instanceof ProductIndexInterface) {
                 foreach($model->getProductIndexRows() as $row){
                     ProductIndexHelper::getProductIndexQuery(false)->where('type', $model->getProductIndexType())->where('value', $row->id)->delete();
+                }
+            }
+
+            if ($model instanceof CacheableInterface) {
+                foreach($model->getCacheKeys() as $cacheKey){
+                    Cache::forget($cacheKey);
                 }
             }
         });

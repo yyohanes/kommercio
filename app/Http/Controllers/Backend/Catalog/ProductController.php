@@ -333,9 +333,11 @@ class ProductController extends Controller{
 
         if($product->combination_type != Product::COMBINATION_TYPE_VARIABLE){
             foreach($request->input('product_attributes', []) as $attributeId => $attributeValue){
-                $toSyncAttributeValues[$attributeValue] = [
-                    'product_attribute_id' => $attributeId
-                ];
+                if(!empty($attributeValue)){
+                    $toSyncAttributeValues[$attributeValue] = [
+                        'product_attribute_id' => $attributeId
+                    ];
+                }
             }
         }
 

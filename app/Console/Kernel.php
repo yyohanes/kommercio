@@ -5,6 +5,7 @@ namespace Kommercio\Console;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 use Illuminate\Support\Facades\Event;
+use Kommercio\Console\Commands\WipeData;
 use Kommercio\Events\Cron as CronEvent;
 
 class Kernel extends ConsoleKernel
@@ -15,7 +16,7 @@ class Kernel extends ConsoleKernel
      * @var array
      */
     protected $commands = [
-        // Commands\Inspire::class,
+        WipeData::class
     ];
 
     /**
