@@ -285,6 +285,11 @@ Route::group(['middleware' => ['web']], function () {
             'uses' => 'OrderController@checkoutComplete'
         ]);
 
+        Route::get('order/view/{public_id}', [
+            'as' => 'frontend.order.view',
+            'uses' => 'OrderController@view'
+        ]);
+
         Route::get('order/invoice/{public_id}', [
             'as' => 'frontend.order.invoice.view',
             'uses' => 'InvoiceController@view'
