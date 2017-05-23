@@ -14,7 +14,7 @@ class Menu extends SluggableModel implements CacheableInterface
     //Methods
     public function getTrails($path)
     {
-        if(!RuntimeCache::has($this->slug.'.'.$path)){
+        if(!RuntimeCache::has($this->slug.'_'.$path)){
             $bag = [];
 
             $this->getActiveMenuItems($path, $this->rootMenuItems, 99, 1, $bag);
@@ -36,10 +36,10 @@ class Menu extends SluggableModel implements CacheableInterface
                 $bag = collect(array_reverse($bag));
             }
 
-            RuntimeCache::set($this->slug.'.'.$path, $bag);
+            RuntimeCache::set($this->slug.'_'.$path, $bag);
         }
 
-        return RuntimeCache::get($this->slug.'.'.$path);
+        return RuntimeCache::get($this->slug.'_'.$path);
     }
 
     public function getMenuItemSiblings($menuitem)
@@ -47,9 +47,9 @@ class Menu extends SluggableModel implements CacheableInterface
         $menu = $this;
 
         if(is_null($menuitem->parent_id)){
-            $menuItems = $menu->rootMenuItems->filter(function($value){
-                return $value->active;
-            })->pluck('parent_id')->all();
+            $menuItems = $menu->rootMenuItems;
+
+            return $menuItems;
         }else{
             $menuItems = [$menuitem->parent_id];
         }

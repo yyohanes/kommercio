@@ -165,13 +165,13 @@ class AuthController extends Controller
     protected function sendFailedLoginResponse(Request $request)
     {
         if ($request->ajax()) {
-            return new JsonResponse([$this->loginUsername() => [$this->getFailedLoginMessage()]], 403);
+            return new JsonResponse([$this->username() => [trans('auth.failed')]], 403);
         }
 
         return redirect()->back()
-            ->withInput($request->only($this->loginUsername(), 'remember'))
+            ->withInput($request->only($this->username(), 'remember'))
             ->withErrors([
-                $this->loginUsername() => $this->getFailedLoginMessage(),
+                $this->username() => trans('auth.failed'),
             ]);
     }
 

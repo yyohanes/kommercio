@@ -118,11 +118,31 @@ class FrontendHelper
             $paths = [$path];
         }
 
-        $currentPath = substr(RequestFacade::getPathInfo().'/', 1);
+        $currentPath = substr(RequestFacade::getPathInfo(), 1);
 
         foreach($paths as $path){
-            if(!empty($path) && strpos($currentPath, $path) === 0){
+            if(!empty($path) && strpos($currentPath.'/', $path) === 0){
                 return true;
+            }
+        }
+
+        // If couldn't find anything by internal path, we turn to external path
+        // We have to use global $_SERVER['REQUEST_URI'] because Request::getRequestUri has been changed in the UrlAlias middleware
+        $requestUri = $_SERVER['REQUEST_URI'];
+
+        $baseUrl = RequestFacade::getBaseUrl().'/';
+
+        if (substr($requestUri, 0, strlen($baseUrl)) == $baseUrl) {
+            $requestUri = substr($requestUri, strlen($baseUrl));
+        }
+
+        foreach($paths as $path){
+            $externalPath = UrlAlias::where('internal_path', $path)->first();
+
+            if($externalPath){
+                if(strpos($requestUri, $externalPath->external_path.'/') === 0){
+                    return true;
+                }
             }
         }
 
@@ -159,9 +179,17 @@ class FrontendHelper
         return $menuItems;
     }
 
-    public function getMenuItemSiblings($path, $menu_slug, $level = 1)
+    public function getMenuItemSiblings($path, $menu_slug = null, $level = 1)
     {
-        $menu = Menu::where('slug', $menu_slug)->firstOrFail();
+        if($menu_slug){
+            $menu = Menu::where('slug', $menu_slug)->firstOrFail();
+        }else{
+            if($menuItem = MenuItem::whereTranslation('url', $path)->first()){
+                $menu = $menuItem->menu;
+            }else{
+                return collect([]);
+            }
+        }
 
         $trails = $menu->getTrails($path);
 

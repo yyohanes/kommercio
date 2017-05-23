@@ -13,11 +13,11 @@ var formBehaviors = function(){
             selector: '.wysiwyg-editor',
             height: 250,
             plugins: [
-                'advlist autolink lists link image charmap print preview anchor',
+                'advlist autolink lists link image charmap print preview anchor hr',
                 'searchreplace visualblocks code fullscreen',
                 'insertdatetime media table contextmenu paste code'
             ],
-            toolbar: 'insertfile undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image media',
+            toolbar: 'insertfile undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | hr link image media',
             relative_urls : false,
             document_base_url : global_vars.base_path,
             remove_trailing_brs: false,

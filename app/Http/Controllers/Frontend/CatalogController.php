@@ -243,7 +243,7 @@ class CatalogController extends Controller
 
         return view($view_name, [
             'products' => $products,
-            'totalProducts' => $total,
+            'total' => $total,
             'options' => $options,
             'facetOptions' => $facetOptions,
             'seoData' => $seoData,

@@ -108,7 +108,7 @@ class PasswordController extends Controller
         return redirect()->back()->with('success', [trans($response)]);
     }
 
-    protected function sendResetLinkFailedResponse($response)
+    protected function sendResetLinkFailedResponse(Request $request, $response)
     {
         if (RequestFacade::ajax()) {
             return new JsonResponse(
