@@ -84,14 +84,26 @@ class PasswordController extends Controller
         ];
 
         if (property_exists($this, 'resetView')) {
-            return view($this->resetView)->with(compact('token', 'email'));
+            return view($this->resetView)->with([
+                'email' => $email,
+                'token' => $token,
+                'seoData' => $seoData
+            ]);
         }
 
         if (view()->exists('auth.passwords.reset')) {
-            return view('auth.passwords.reset')->with(compact('token', 'email'));
+            return view('auth.passwords.reset')->with([
+                'email' => $email,
+                'token' => $token,
+                'seoData' => $seoData
+            ]);
         }
 
-        return view('auth.reset')->with(compact('token', 'email'));
+        return view('auth.reset')->with([
+            'email' => $email,
+            'token' => $token,
+            'seoData' => $seoData
+        ]);
     }
 
     protected function sendResetLinkResponse($response)
