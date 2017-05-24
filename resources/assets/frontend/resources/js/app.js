@@ -11,6 +11,7 @@ window.axios.defaults.headers.common = {
 
 require('./common_helper');
 require('./kommercio_add_to_cart');
+require('./kommercio_checkout');
 
 import KommercioFrontend from './kommercio_frontend';
 
