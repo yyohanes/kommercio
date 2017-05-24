@@ -70,7 +70,7 @@ class OrderLimit extends Model implements StoreManagedInterface
         }
 
         if(!$return && $this->productCategories->count() > 0){
-            $intersect = $this->productCategories->intersect($product->categories);
+            $intersect = $this->productCategories->pluck('id')->intersect($product->categories->pluck('id'));
             $return = $intersect->count() > 0;
         }
 
@@ -270,6 +270,12 @@ class OrderLimit extends Model implements StoreManagedInterface
                     ->orWhereHas('productCategories', function($qb) use ($options){
                         $qb->whereIn('id', $options['product']->categories->pluck('id')->all());
                     });
+            });
+        }
+
+        if(!empty($options['category'])){
+            $qb->whereHas('productCategories', function($qb) use ($options){
+                $qb->whereIn('id', [$options['category']->id]);
             });
         }
 
