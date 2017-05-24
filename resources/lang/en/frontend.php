@@ -149,7 +149,10 @@ return [
             ],
             'confirm_payment' => [
                 'meta_title' => 'Confirm Payment'
-            ]
+            ],
+            'view' => [
+                'meta_title' => 'Order #:reference',
+            ],
         ]
     ]
 ];

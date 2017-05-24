@@ -21,12 +21,13 @@ use Kommercio\Models\ProductAttribute\ProductAttribute;
 use Kommercio\Models\ProductAttribute\ProductAttributeValue;
 use Kommercio\Models\RewardPoint\RewardRule;
 use Kommercio\Traits\Frontend\ProductHelper as FrontendProductHelper;
+use Kommercio\Traits\Model\OrderLimitTrait;
 use Kommercio\Traits\Model\SeoTrait;
 use Kommercio\Facades\PriceFormatter;
 
 class Product extends Model implements UrlAliasInterface, SeoModelInterface
 {
-    use SoftDeletes, Translatable, SeoTrait, FrontendProductHelper;
+    use SoftDeletes, Translatable, SeoTrait, FrontendProductHelper, OrderLimitTrait;
 
     const TYPE_DEFAULT = 'default';
 
@@ -814,71 +815,6 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
             ->get();
 
         return $priceRules;
-
-        /*
-         * AND per Option Group
-         */
-        /*$qb = PriceRule::notProductSpecific()->active()->orderBy('sort_order', 'ASC');
-        $qb->where(function($qb){
-            $categories = $this->categories;
-            $manufacturer = $this->manufacturer_id;
-            $features = $this->productFeatureValues;
-            $attributeValueIds = [];
-
-            if($this->isVariation){
-                $attributeValues = $this->productAttributeValues;
-                $attributeValueIds = $attributeValues->pluck('id')->all();
-            }else{
-                if($this->variations->count() > 0){
-                    $attributeValues = ProductAttributeValue::whereHas('products', function($query){
-                        $query->whereIn('product_id', $this->variations->pluck('id')->all());
-                    })->get();
-                    $attributeValueIds = $attributeValues->pluck('id')->all();
-                }
-            }
-
-            $firstValidation = true;
-
-            if($categories->count() > 0){
-                $validationFunction = $firstValidation?'whereHas':'orWhereHas';
-
-                $qb->$validationFunction('priceRuleOptionGroups.categories', function($query) use ($categories){
-                    $query->whereIn('id', $categories->pluck('id')->all());
-                });
-                $firstValidation = false;
-            }
-
-            if($features->count() > 0){
-                $validationFunction = $firstValidation?'whereHas':'orWhereHas';
-
-                $qb->$validationFunction('priceRuleOptionGroups.featureValues', function($query) use ($features){
-                    $query->whereIn('id', $features->pluck('id')->all());
-                });
-                $firstValidation = false;
-            }
-
-            if($manufacturer){
-                $validationFunction = $firstValidation?'whereHas':'orWhereHas';
-
-                $qb->$validationFunction('priceRuleOptionGroups.manufacturers', function($query) use ($manufacturer){
-                    $query->whereIn('id', [$manufacturer]);
-                });
-                $firstValidation = false;
-            }
-
-            if($attributeValueIds){
-                $validationFunction = $firstValidation?'whereHas':'orWhereHas';
-
-                $qb->$validationFunction('priceRuleOptionGroups.attributeValues', function($query) use ($attributeValueIds){
-                    $query->whereIn('id', $attributeValueIds);
-                });
-                $firstValidation = false;
-            }
-        });
-
-        $includedPriceRules = $qb->get();
-
-        return $includedPriceRules;*/
     }
 
     public function getOrderCount($options = [])
@@ -923,9 +859,9 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
             'product' => $this
         ]);
 
-        $orderLimit = (count($orderLimits) > 0)?$this->extractOrderLimit($orderLimits)->limit:null;
+        $orderLimit = (count($orderLimits) > 0)?$this->extractOrderLimit($orderLimits):null;
 
-        return $orderLimit;
+        return $orderLimit?['limit_type' => $orderLimit->type, 'limit' => $orderLimit->limit, 'object' => $orderLimit]:null;
     }
 
     public function getOrderLimit($options = [])
@@ -937,7 +873,7 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
         $deliveryOrderLimit = null;
 
         if($deliveryDate){
-            //Delivery Limit
+            // Delivery Limit
             $deliveryOrderLimits = OrderLimit::getOrderLimits([
                 'limit_type' => OrderLimit::LIMIT_DELIVERY_DATE,
                 'date' => $deliveryDate,
@@ -949,7 +885,7 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
             $deliveryOrderLimit = (count($deliveryOrderLimits) > 0)?$this->extractOrderLimit($deliveryOrderLimits):null;
         }
 
-        //Order Total Limit
+        // Order Total Limit
         $totalOrderLimit = null;
         if($date){
             $totalOrderLimits = OrderLimit::getOrderLimits([
@@ -974,9 +910,7 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
             }
         }
 
-        $limitType = OrderLimit::LIMIT_ORDER_DATE;
-
-        if(isset($orderLimits['checkout_at']) && $totalOrderLimit->limit <= $deliveryOrderLimit){
+        if(isset($orderLimits['checkout_at']) && (!$deliveryOrderLimit || $totalOrderLimit->limit <= $deliveryOrderLimit->limit)){
             $limitObj = $totalOrderLimit;
             $limitType = OrderLimit::LIMIT_ORDER_DATE;
         }elseif(isset($orderLimits['delivery_date'])){
@@ -984,7 +918,7 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
             $limitType = OrderLimit::LIMIT_DELIVERY_DATE;
         }
 
-        return $orderLimits?['limit_type' => $limitType, 'limit' => $orderLimits[$limitType]->limit, 'object' => $limitObj]:null;
+        return isset($limitObj)?['limit_type' => $limitType, 'limit' => $orderLimits[$limitType]->limit, 'object' => $limitObj]:null;
     }
 
     public function getUnavailableDeliveryDates($options)
@@ -1028,7 +962,7 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
                     $dayOrderCount -= $saved_quantity;
                 }
 
-                //Product Limit
+                // Product Limit
                 $dayProductOrderLimit = $this->getOrderLimit([
                     'delivery_date' => $dayToRun->format('Y-m-d'),
                     'store' => $store,
@@ -1039,40 +973,29 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
                     $disabledDates[] = $dayToRun->format($format);
                 }
 
-                //Category Limit
+                // Category Limit
                 $dayCategoryOrderLimit = $this->getOrderLimit([
                     'delivery_date' => $dayToRun->format('Y-m-d'),
                     'store' => $store,
                     'type' => OrderLimit::TYPE_PRODUCT_CATEGORY
                 ]);
 
-                foreach($productLineItems as $productLineItem){
-                    if($productLineItem->product->id != $this->id){
-                        if($dayCategoryOrderLimit->productRulesPassed($productLineItem->product)){
-                            $dayCategoryOrderLimit->total += $productLineItem->quantity;
+                if(is_array($dayCategoryOrderLimit)){
+                    foreach($productLineItems as $productLineItem){
+                        if($dayCategoryOrderLimit['object']->productRulesPassed($productLineItem->product)){
+                            $dayCategoryOrderLimit['object']->total += $productLineItem->quantity;
                         }
                     }
-                }
 
-                if(is_array($dayCategoryOrderLimit)){
-                    //Get ordered products by date
-                    if($dayCategoryOrderLimit['limit_type'] == OrderLimit::LIMIT_DELIVERY_DATE){
-                        $orderDate = $dayToRun;
-                    }else{
-                        $orderDate = Carbon::now();
+                    foreach($dayCategoryOrderLimit['object']->productCategories as $productCategory){
+                        $dayCategoryOrderCount = $productCategory->getOrderCount([
+                            'delivery_date' => $dayToRun->format('Y-m-d'),
+                            'store' => $store,
+                        ]);
+                        if($dayCategoryOrderLimit['limit'] == 0 || $dayCategoryOrderCount + $quantity > $dayCategoryOrderLimit['limit']){
+                            $disabledDates[] = $dayToRun->format($format);
+                        }
                     }
-
-                    $orders = Order::getOrdersByDate($orderDate, $dayCategoryOrderLimit['limit_type']);
-
-                    if($dayCategoryOrderLimit['object']->productRulesPassed($this)){
-                        $dayCategoryOrderLimit['object']->total += $quantity;
-                    }
-
-                    if($dayCategoryOrderLimit['object']->total > $dayCategoryOrderLimit['object']->limit){
-                        $disabledDates[] = $dayToRun->format($format);
-                    }
-
-                    //\Log::info($dayCategoryOrderLimit['object']->total);
                 }
 
                 $dayToRun->addDay();
@@ -1139,46 +1062,6 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
         $viewSuggestions += ['frontend.catalog.product.view_'.$this->id, 'frontend.catalog.product.view'];
 
         return $viewSuggestions;
-    }
-
-    protected function extractOrderLimit($orderLimits)
-    {
-        $sorted = [
-            'has_date' => [
-                OrderLimit::TYPE_PRODUCT => [],
-                OrderLimit::TYPE_PRODUCT_CATEGORY => []
-            ],
-            'no_date' => [
-                OrderLimit::TYPE_PRODUCT => [],
-                OrderLimit::TYPE_PRODUCT_CATEGORY => []
-            ]
-        ];
-
-        //Has date
-        foreach($orderLimits as $orderLimit){
-            if($orderLimit->hasDate()){
-                $sorted['has_date'][$orderLimit->type][] = $orderLimit;
-            }
-        }
-
-        //No date
-        foreach($orderLimits as $orderLimit){
-            if(!$orderLimit->hasDate()){
-                $sorted['no_date'][$orderLimit->type][] = $orderLimit;
-            }
-        }
-
-        foreach($sorted['has_date'] as $sortedWalk){
-            if(!empty($sortedWalk)){
-                return $sortedWalk[0];
-            }
-        }
-
-        foreach($sorted['no_date'] as $sortedWalk){
-            if(!empty($sortedWalk)){
-                return $sortedWalk[0];
-            }
-        }
     }
 
     public function getMetaImage()

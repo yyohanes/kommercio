@@ -2,18 +2,22 @@
 
 namespace Kommercio\Models;
 
+use Carbon\Carbon;
 use Dimsav\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Model;
 use Kommercio\Facades\FrontendHelper;
 use Kommercio\Models\Interfaces\ProductIndexInterface;
 use Kommercio\Models\Interfaces\SeoModelInterface;
 use Kommercio\Models\Interfaces\UrlAliasInterface;
+use Kommercio\Models\Order\LineItem;
+use Kommercio\Models\Order\OrderLimit;
 use Kommercio\Traits\AuthorSignature;
+use Kommercio\Traits\Model\OrderLimitTrait;
 use Kommercio\Traits\Model\SeoTrait;
 
 class ProductCategory extends Model implements UrlAliasInterface, SeoModelInterface, ProductIndexInterface
 {
-    use Translatable, SeoTrait;
+    use Translatable, SeoTrait, OrderLimitTrait;
 
     protected $fillable = ['name', 'description', 'parent_id', 'active', 'sort_order', 'slug', 'meta_title', 'meta_description'];
     protected $casts = [
@@ -95,6 +99,53 @@ class ProductCategory extends Model implements UrlAliasInterface, SeoModelInterf
         $rows->merge($this->children);
 
         return $rows;
+    }
+
+    public function getOrderCount($options = [])
+    {
+        $qb = LineItem::lineItemType('product')->whereIn('line_item_id', $this->products->pluck('id')->all())
+            ->whereHas('order', function($query) use ($options){
+                $query->usageCounted();
+
+                if(!empty($options['store'])){
+                    $query->where('store_id', $options['store']);
+                }
+
+                if(!empty($options['delivery_date'])){
+                    $query->whereRaw('DATE_FORMAT(delivery_date, \'%Y-%m-%d\') = ?', [$options['delivery_date']]);
+                }
+
+                if(!empty($options['checkout_at'])){
+                    $query->whereRaw('DATE_FORMAT(checkout_at, \'%Y-%m-%d\') = ?', [$options['checkout_at']]);
+                }
+
+                if(!empty($options['exclude_order_id'])){
+                    $query->whereNotIn('id', [$options['exclude_order_id']]);
+                }
+            });
+
+        $orderCount = floatval($qb->sum('quantity'));
+
+        return $orderCount;
+    }
+
+    public function getPerOrderLimit($options = [])
+    {
+        $store = isset($options['store'])?$options['store']:null;
+        $date = isset($options['date'])?Carbon::createFromFormat('Y-m-d', $options['date']):null;
+
+        //Per Order Limit
+        $orderLimits = OrderLimit::getOrderLimits([
+            'limit_type' => OrderLimit::LIMIT_PER_ORDER,
+            'date' => $date,
+            'store' => $store,
+            'type' => OrderLimit::TYPE_PRODUCT_CATEGORY,
+            'category' => $this
+        ]);
+
+        $orderLimit = (count($orderLimits) > 0)?$this->extractOrderLimit($orderLimits):null;
+
+        return $orderLimit?['limit_type' => $orderLimit->type, 'limit' => $orderLimit->limit, 'object' => $orderLimit]:null;
     }
 
     //Relations
