@@ -191,6 +191,33 @@
                 </div>
             </div>
 
+            @if(ProjectHelper::isFeatureEnabled('catalog.product_features'))
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h5 class="panel-title">
+                        <a class="accordion-toggle accordion-toggle-styled collapsed" data-toggle="collapse" data-parent="#product-variation-form-accordion" href="#variation-product-features"> Product Features </a>
+                    </h5>
+                </div>
+                <div id="variation-product-features" class="panel-collapse collapse">
+                    <div class="panel-body">
+                        @foreach($product->productFeatures as $feature)
+                            <div class="row form-group">
+                                <label class="control-label col-sm-2 col-xs-4">
+                                    {{ $feature->name }}
+                                </label>
+                                <div class="col-sm-3 col-xs-4">
+                                    {!! Form::select('variation[features]['.$feature->id.']', ['' => '-'] + $feature->getValueOptions(), old('variation.features.'.$feature->id, $variation->getProductFeatureValue($feature->id)), ['class' => 'form-control']) !!}
+                                </div>
+                                <div class="col-sm-3 col-xs-4">
+                                    {!! Form::text('variation[features_custom]['.$feature->id.']', null, ['class' => 'form-control', 'placeholder' => 'Custom value']) !!}
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+            @endif
+
             <div class="panel panel-default">
                 <div class="panel-heading">
                     <h5 class="panel-title">

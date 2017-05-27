@@ -48,6 +48,15 @@ class BackendServiceProvider extends ServiceProvider
         $this->app['events']->listen('eloquent.saved*', function ($eventName, $models) {
             $model = $models[0];
 
+            // Because translations are not saved if model is not dirty, force save it for cache busting
+            if (count($model->getDirty()) < 1) {
+                if(method_exists($model, 'translations')){
+                    foreach($model->translations as $translation){
+                        $translation->save();
+                    }
+                }
+            }
+
             if ($model instanceof UrlAliasInterface) {
                 UrlAlias::saveAlias($model->getUrlAlias(), $model);
             }
