@@ -4,6 +4,7 @@ namespace Kommercio\Models\PaymentMethod;
 
 use Dimsav\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Model;
+use Kommercio\Facades\ProjectHelper;
 use Kommercio\Models\Order\Order;
 use Kommercio\Models\Order\Payment;
 use Kommercio\Traits\Model\HasDataColumn;
@@ -78,11 +79,23 @@ class PaymentMethod extends Model
     //Statics
     public static function getPaymentMethods($options = null)
     {
+        $order = isset($options['order'])?$options['order']:new Order();
+        $frontend = isset($options['frontend'])?$options['frontend']:TRUE;
         $paymentMethods = self::orderBy('sort_order', 'ASC')->get();
+
+        $request = isset($options['request'])?$options['request']:null;
+
+        $store = $order->store;
+
+        if(!$store && $request){
+            $store = ProjectHelper::getStoreByRequest($request);
+        }elseif(!$store){
+            $store = ProjectHelper::getActiveStore();
+        }
 
         $return = [];
         foreach($paymentMethods as $paymentMethod){
-            if($paymentMethod->getProcessor() && $paymentMethod->getProcessor()->validate($options)){
+            if(($paymentMethod->stores->count() < 1 || $paymentMethod->stores->pluck('id')->contains($store->id) || !$frontend) && $paymentMethod->getProcessor() && $paymentMethod->getProcessor()->validate($options)){
                 $return[] = $paymentMethod;
             }
         }

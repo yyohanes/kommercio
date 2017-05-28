@@ -41,7 +41,9 @@ class PaymentController extends Controller{
 
         $currencyOptions = CurrencyHelper::getCurrencyOptions();
 
-        $paymentMethods = PaymentMethod::getPaymentMethods();
+        $paymentMethods = PaymentMethod::getPaymentMethods([
+            'order' => $order
+        ]);
 
         $paymentMethodOptions = [];
         foreach($paymentMethods as $paymentMethod){
