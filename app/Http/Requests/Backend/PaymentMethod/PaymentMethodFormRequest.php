@@ -28,6 +28,9 @@ class PaymentMethodFormRequest extends Request
         $rules = [
             'name' => 'required',
             'class' => 'required',
+            'store_scope' => 'in:all,selected',
+            'stores' => 'required_if:store_scope,selected',
+            'stores.*' => 'nullable|exists:stores,id'
         ];
 
         if($this->route('id')){
