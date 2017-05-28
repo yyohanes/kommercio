@@ -6,6 +6,7 @@ use Dimsav\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Model;
 use Kommercio\Facades\CurrencyHelper;
 use Kommercio\Facades\PriceFormatter;
+use Kommercio\Facades\ProjectHelper;
 use Kommercio\Models\Order\Order;
 
 class ShippingMethod extends Model
@@ -26,7 +27,7 @@ class ShippingMethod extends Model
         return $this->morphToMany('Kommercio\Models\Store', 'store_attachable');
     }
 
-    //Methods
+    // Methods
     public function getProcessor()
     {
         if(!isset($this->_processor)){
@@ -112,11 +113,22 @@ class ShippingMethod extends Model
 
     public static function getShippingMethods($options = null)
     {
+        $order = isset($options['order'])?$options['order']:new Order();
         $shippingMethods = self::orderBy('sort_order', 'ASC')->get();
+
+        $request = isset($options['request'])?$options['request']:null;
+
+        $store = $order->store;
+
+        if(!$store && $request){
+            $store = ProjectHelper::getStoreByRequest($request);
+        }elseif(!$store){
+            $store = ProjectHelper::getActiveStore();
+        }
 
         $return = [];
         foreach($shippingMethods as $shippingMethod){
-            if($shippingMethod->validate($options)){
+            if(($shippingMethod->stores->count() < 1 || $shippingMethod->stores->pluck('id')->contains($store->id)) && $shippingMethod->validate($options)){
                 $shippingReturnedMethods = $shippingMethod->getPrices($options);
 
                 if($shippingReturnedMethods){

@@ -1258,7 +1258,8 @@ class OrderController extends Controller
     {
         $shippingMethodOptions = ShippingMethod::getShippingMethods([
             'order' => $order,
-            'frontend' => true
+            'frontend' => true,
+            'request' => $request
         ]);
 
         return [
@@ -1271,6 +1272,7 @@ class OrderController extends Controller
         $paymentMethods = PaymentMethod::getPaymentMethods([
             'frontend' => true,
             'order' => $order,
+            'request' => $request
         ]);
 
         $paymentMethodOptions = [];

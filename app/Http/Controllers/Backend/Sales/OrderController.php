@@ -240,7 +240,7 @@ class OrderController extends Controller{
         $stickyProducts = Product::joinDetail($store_id)->selectSelf()->active()->where('sticky_line_item', 1)->orderBy('sort_order', 'ASC')->get();
 
         $paymentMethodOptions = [];
-        foreach(PaymentMethod::getPaymentMethods() as $paymentMethod){
+        foreach(PaymentMethod::getPaymentMethods(['order' => new Order()]) as $paymentMethod){
             $paymentMethodOptions[$paymentMethod->id] = $paymentMethod->name;
         }
 
