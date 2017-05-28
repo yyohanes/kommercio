@@ -20,6 +20,12 @@ class ShippingMethod extends Model
 
     private $_processor;
 
+    // Relations
+    public function stores()
+    {
+        return $this->morphToMany('Kommercio\Models\Store', 'store_attachable');
+    }
+
     //Methods
     public function getProcessor()
     {

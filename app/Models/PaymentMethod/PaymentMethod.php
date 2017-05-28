@@ -29,6 +29,11 @@ class PaymentMethod extends Model
         return $this->hasMany('Kommercio\Models\Order\Order');
     }
 
+    public function stores()
+    {
+        return $this->morphToMany('Kommercio\Models\Store', 'store_attachable');
+    }
+
     //Methods
     public function getProcessor()
     {

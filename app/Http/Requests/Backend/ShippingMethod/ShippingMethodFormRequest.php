@@ -26,7 +26,10 @@ class ShippingMethodFormRequest extends Request
         $rules = [
             'name' => 'required',
             'class' => 'required',
-            'taxable' => 'boolean'
+            'taxable' => 'boolean',
+            'store_scope' => 'in:all,selected',
+            'stores' => 'required_if:store_scope,selected',
+            'stores.*' => 'nullable|exists:stores,id'
         ];
 
         return $rules;
