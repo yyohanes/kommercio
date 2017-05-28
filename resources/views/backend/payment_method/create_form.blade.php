@@ -21,6 +21,19 @@
     'required' => TRUE
 ])
 
+@include('backend.master.form.fields.checkbox', [
+    'name' => 'active',
+    'label' => 'Active',
+    'key' => 'active',
+    'value' => 1,
+    'attr' => [
+        'class' => 'make-switch',
+        'id' => 'active',
+        'data-on-color' => 'warning'
+    ],
+    'checked' => $paymentMethod->active,
+])
+
 @include('backend.master.form.fields.textarea', [
     'name' => 'message',
     'label' => 'Display Message',

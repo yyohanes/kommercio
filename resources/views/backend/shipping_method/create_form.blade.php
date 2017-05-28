@@ -22,6 +22,19 @@
 ])
 
 @include('backend.master.form.fields.checkbox', [
+    'name' => 'active',
+    'label' => 'Active',
+    'key' => 'active',
+    'value' => 1,
+    'attr' => [
+        'class' => 'make-switch',
+        'id' => 'active',
+        'data-on-color' => 'warning'
+    ],
+    'checked' => $shippingMethod->active,
+])
+
+@include('backend.master.form.fields.checkbox', [
     'name' => 'taxable',
     'label' => 'Taxable',
     'key' => 'taxable',

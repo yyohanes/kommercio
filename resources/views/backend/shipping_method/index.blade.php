@@ -52,6 +52,9 @@
                         <tr>
                             <td><i class="fa fa-reorder"></i> <span class="shipping-name" data-shipping_id="{{ $shippingMethod->id }}">{{ $shippingMethod->name }}</span></td>
                             <td>{!! $shippingMethod->stores->count() > 0?$shippingMethod->stores->map(function($store){ return '<span class="label label-success">'.$store->name.'</span>'; })->implode(' '):'<span class="label label-default">All Stores</span>' !!}</td>
+                            <td>
+                                {!! '<i class="fa fa-'.($shippingMethod->active?'check text-success':'remove text-danger').'"></i>' !!}
+                            </td>
                             <td class="text-center">
                                 {!! Form::open(['route' => ['backend.shipping_method.delete', 'id' => $shippingMethod->id]]) !!}
                                 <div class="btn-group btn-group-sm">

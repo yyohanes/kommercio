@@ -17,7 +17,10 @@ class ShippingMethod extends Model
 
     public $translatedAttributes = ['name','message'];
 
-    protected $fillable = ['name', 'class', 'taxable', 'message', 'sort_order'];
+    protected $fillable = ['name', 'class', 'taxable', 'message', 'sort_order', 'active'];
+    protected $casts = [
+        'active' => 'boolean'
+    ];
 
     private $_processor;
 
@@ -128,7 +131,7 @@ class ShippingMethod extends Model
 
         $return = [];
         foreach($shippingMethods as $shippingMethod){
-            if(($shippingMethod->stores->count() < 1 || $shippingMethod->stores->pluck('id')->contains($store->id)) && $shippingMethod->validate($options)){
+            if(($shippingMethod->stores->count() < 1 || $shippingMethod->stores->pluck('id')->contains($store->id)) && $shippingMethod->active && $shippingMethod->validate($options)){
                 $shippingReturnedMethods = $shippingMethod->getPrices($options);
 
                 if($shippingReturnedMethods){

@@ -16,7 +16,11 @@ class PaymentMethod extends Model
     public $timestamps = FALSE;
     public $translatedAttributes = ['name', 'message'];
 
-    protected $fillable = ['name', 'class', 'message', 'sort_order'];
+    protected $fillable = ['name', 'class', 'message', 'sort_order', 'active'];
+    protected $casts = [
+        'active' => 'boolean'
+    ];
+
     private $_processor;
 
     //Relations
@@ -95,7 +99,7 @@ class PaymentMethod extends Model
 
         $return = [];
         foreach($paymentMethods as $paymentMethod){
-            if(($paymentMethod->stores->count() < 1 || $paymentMethod->stores->pluck('id')->contains($store->id) || !$frontend) && $paymentMethod->getProcessor() && $paymentMethod->getProcessor()->validate($options)){
+            if(($paymentMethod->stores->count() < 1 || $paymentMethod->stores->pluck('id')->contains($store->id) || !$frontend) && $paymentMethod->active && $paymentMethod->getProcessor() && $paymentMethod->getProcessor()->validate($options)){
                 $return[] = $paymentMethod;
             }
         }

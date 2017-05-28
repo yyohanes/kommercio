@@ -47,4 +47,17 @@ class PaymentMethodFormRequest extends Request
 
         return $rules;
     }
+
+    public function all()
+    {
+        $attributes = parent::all();
+
+        if(!isset($attributes['active'])){
+            $attributes['active'] = 0;
+        }
+
+        $this->replace($attributes);
+
+        return parent::all();
+    }
 }
