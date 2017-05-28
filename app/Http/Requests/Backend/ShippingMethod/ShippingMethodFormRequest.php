@@ -43,6 +43,10 @@ class ShippingMethodFormRequest extends Request
             $attributes['taxable'] = 0;
         }
 
+        if(!isset($attributes['active'])){
+            $attributes['active'] = 0;
+        }
+
         $this->replace($attributes);
 
         return parent::all();
