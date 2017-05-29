@@ -19,19 +19,21 @@
         ])
 
         <div class="clearfix"></div>
-
-        <div class="form-group" style="margin-top: 1em;">
-            <div class="checkbox-list">
-                <label class="checkbox-inline">
-                    {!! Form::checkbox('send_notification', 1, true) !!} Send email notification to customer
-                </label>
-            </div>
-        </div>
     </div>
 </div>
 <div class="modal-footer text-center">
-    <button class="btn btn-primary"><i class="fa fa-check"></i> Confirm </button>
-    <button type="button" class="btn btn-default" data-dismiss="modal"><i class="fa fa-remove"></i> Cancel</button>
-    {!! Form::hidden('backUrl', $backUrl) !!}
+    <div class="pull-left">
+        <div class="checkbox-list">
+            <label class="checkbox-inline">
+                {!! Form::checkbox('send_notification', 1, true) !!} Send email notification to customer
+            </label>
+        </div>
+    </div>
+
+    <div class="pull-right">
+        <button class="btn btn-primary"><i class="fa fa-check"></i> Confirm </button>
+        <button type="button" class="btn btn-default" data-dismiss="modal"><i class="fa fa-remove"></i> Cancel</button>
+        {!! Form::hidden('backUrl', $backUrl) !!}
+    </div>
 </div>
 {!! Form::close() !!}

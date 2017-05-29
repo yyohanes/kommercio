@@ -60,7 +60,6 @@ class Payment extends Model implements AuthorSignatureInterface
         return $this->morphMany('Kommercio\Models\Log', 'loggable');
     }
 
-    //Relations
     public function attachments()
     {
         return $this->media('attachment');

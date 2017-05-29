@@ -8,6 +8,17 @@ var OrderView = function () {
         });
     }
 
+    var handleDeliveryOrderRows = function()
+    {
+        $('.delivery-order-view-btn', '#delivery-order-index-wrapper').on('click', function(e){
+            e.preventDefault();
+
+            orderDeliveryOrderBehaviors.toggleView($(this).data('delivery_order_id'));
+        });
+
+        $('.delivery-order-view-row', '#delivery-order-index-wrapper').hide();
+    }
+
     var handleOrderInternalMemoForm = function()
     {
         $('#internal-memo-add-btn').on('click', function(e){
@@ -23,6 +34,7 @@ var OrderView = function () {
         init: function () {
             handleOrderPaymentForm();
             handleOrderInternalMemoForm();
+          handleDeliveryOrderRows();
 
             $(document).ajaxComplete(function( event,request, settings ) {
                 App.unblockUI('#order-wrapper');
@@ -30,6 +42,12 @@ var OrderView = function () {
         }
     };
 }();
+
+var orderDeliveryOrderBehaviors = {
+    toggleView: function($id){
+        $('#delivery-order-'+$id+'-view').toggle();
+    }
+};
 
 var orderPaymentFormBehaviors = {
     initAjax: function(context){

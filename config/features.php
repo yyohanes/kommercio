@@ -24,6 +24,7 @@ return [
     'customer' => [
         'reward_points' => false,
         'customer_group' => false,
-        'wishlist' => false
-    ]
+        'wishlist' => false,
+        'export' => true
+    ],
 ];

@@ -167,9 +167,8 @@ var formBehaviors = function(){
                 },
 
                 errorPlacement: function (error, element) { // render error placement for each input type
-                    var icon = $(element).parent('.input-icon').children('i');
-                    icon.removeClass('fa-check').addClass("fa-warning");
-                    icon.attr("data-original-title", error.text()).tooltip({'container': 'body'});
+                    $(element).parent().find('.help-block').remove();
+                    $(element).parent().append('<div class="help-block">'+error.text()+'</div>');
                 },
 
                 highlight: function (element) { // hightlight error inputs
@@ -178,13 +177,12 @@ var formBehaviors = function(){
                 },
 
                 unhighlight: function (element) { // revert the change done by hightlight
-
+                  $(element)
+                      .closest('.form-group').removeClass("has-error").addClass('has-success'); // set error class to the control group
                 },
 
                 success: function (label, element) {
-                    var icon = $(element).parent('.input-icon').children('i');
-                    $(element).closest('.form-group').removeClass('has-error').addClass('has-success'); // set success class to the control group
-                    icon.removeClass("fa-warning").addClass("fa-check");
+                    $(element).parent().find('.help-block').remove();
                 },
 
                 submitHandler: function (form) {

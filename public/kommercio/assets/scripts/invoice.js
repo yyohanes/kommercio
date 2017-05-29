@@ -1,6 +1,5 @@
 (function($) {
   $.invoiceForm = function(element, options) {
-
     var defaults = {
       errorMessageClass: 'messages alert alert-danger'
     }
