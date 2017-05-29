@@ -86,6 +86,9 @@ return [
         'sort_by' => 'order',
         'sort_dir' => 'DESC',
     ],
+    'post_options' => [
+        'limit' => 20,
+    ],
     'order_history_options' => [
         'limit' => 20,
         'sort_by' => 'checkout_at',

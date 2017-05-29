@@ -26,7 +26,7 @@ class PostController extends Controller
         $postCategory = PostCategory::findOrFail($id);
 
         $qb = $postCategory->posts()->active();
-        $posts = $qb->get();
+        $posts = $qb->paginate(ProjectHelper::getConfig('post_options.limit'));
 
         $view_name = ProjectHelper::findViewTemplate($postCategory->getViewSuggestions());
 
