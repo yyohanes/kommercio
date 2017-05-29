@@ -232,12 +232,12 @@ class AddressHelper
             $addressElements['postal_code'] = $data['postal_code'];
         }
 
-        return $addressElements;
+        return [$addressLineElements, $addressElements];
     }
 
     public function printAddress($data)
     {
-        $addressElements = $this->extractAddressFields($data);
+        list($addressLineElements, $addressElements) = $this->extractAddressFields($data);
 
         foreach($addressElements as $idx => $addressElement){
             if(empty($addressElement)){
@@ -245,15 +245,13 @@ class AddressHelper
             }
         }
 
-        $addressLineElements = [];
+        if($addressElements){
+            $addressLineElements[] = implode(', ', $addressElements);
+        }
 
         if(isset($addressElements['postal_code'])){
             $addressLineElements['postal_code'] = $addressElements['postal_code'];
             unset($addressElements['postal_code']);
-        }
-
-        if($addressElements){
-            array_unshift($addressLineElements, implode(', ', $addressElements));
         }
 
         return implode('<br/>', $addressLineElements);
