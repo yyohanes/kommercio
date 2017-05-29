@@ -284,7 +284,44 @@ class Profile extends Model
 
     public function scopeWhereFields($query, $filters, $or=FALSE)
     {
-        $method = 'whereHas';
+        $qb = ProfileDetail::query();
+
+        $method = 'where';
+
+        if($or){
+            $method = 'orWhere';
+        }
+
+        foreach($filters as $idx=>$filter) {
+            $filter['operator'] = isset($filter['operator']) ? $filter['operator'] : '=';
+
+            if(in_array($filter['key'], ['state', 'country', 'city', 'district', 'area'])){
+                $qb->$method(function($innerQb) use ($filter){
+                    $addressClass = '\Kommercio\Models\Address\\'.studly_case($filter['key']);
+                    $addressModel = call_user_func($addressClass.'::find', $filter['value']);
+
+                    if($addressModel){
+                        $addressId = $addressModel->id;
+                    }else{
+                        $addressId = 'FALSE_ID';
+                    }
+
+                    $innerQb->where('identifier', $filter['key'].'_id')
+                        ->where('value', $filter['operator'], $addressId);
+                });
+            }else{
+                $qb->$method(function($innerQb) use ($filter){
+                    $innerQb->where('identifier', $filter['key'])
+                        ->where('value', $filter['operator'], $filter['value']);
+                });
+            }
+        };
+
+        $ids = $qb->pluck('profile_id')->all();
+
+        $query->whereIn('id', $ids);
+
+        /*$method = 'whereHas';
 
         if($or){
             $method = 'orWhereHas';
@@ -308,6 +345,6 @@ class Profile extends Model
                         ->where('value', $filter['operator'], $filter['value']);
                 });
             }
-        }
+        }*/
     }
 }
