@@ -181,11 +181,11 @@ class AddressHelper
         ];
 
         if(!empty($data['address_1'])){
-            $addressLineElements['address_1'] = $data['address_1'];
+            $addressElements['address_1'] = $data['address_1'];
         }
 
         if(!empty($data['address_2'])){
-            $addressLineElements['address_2'] = $data['address_2'];
+            $addressElements['address_2'] = $data['address_2'];
         }
 
         if(!empty($data['area_id'])){
@@ -232,12 +232,12 @@ class AddressHelper
             $addressElements['postal_code'] = $data['postal_code'];
         }
 
-        return [$addressLineElements, $addressElements];
+        return $addressElements;
     }
 
     public function printAddress($data)
     {
-        list($addressLineElements, $addressElements) = $this->extractAddressFields($data);
+        $addressElements = $this->extractAddressFields($data);
 
         foreach($addressElements as $idx => $addressElement){
             if(empty($addressElement)){
@@ -245,13 +245,15 @@ class AddressHelper
             }
         }
 
-        if($addressElements){
-            $addressLineElements[] = implode(', ', $addressElements);
-        }
+        $addressLineElements = [];
 
         if(isset($addressElements['postal_code'])){
             $addressLineElements['postal_code'] = $addressElements['postal_code'];
             unset($addressElements['postal_code']);
+        }
+
+        if($addressElements){
+            array_unshift($addressLineElements, implode(', ', $addressElements));
         }
 
         return implode('<br/>', $addressLineElements);
