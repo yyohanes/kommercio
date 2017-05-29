@@ -52,19 +52,10 @@ class OrderController extends Controller{
             foreach($request->input('filter', []) as $searchKey=>$search){
                 if(is_array($search) || trim($search) != ''){
                     if($searchKey == 'billing') {
-                        $qb->whereRaw('CONCAT_WS(" ", BFNAME.value, BLNAME.value) LIKE ?', ['%'.$search.'%']);
-                        $qb->whereHas('billingProfile', function($qb) use ($search){
-                            /*$qb->whereFields([
-                                [
-                                    'operator' => 'LIKE',
-                                    'key' => 'first_name',
-                                    'value' => '%'.$search.'%'
-                                ],
-                                [
-                                    'operator' => 'LIKE',
-                                    'key' => 'last_name',
-                                    'value' => '%'.$search.'%'
-                                ],
+                        $qb->where(function($innerQb) use ($search){
+                            $innerQb->whereRaw('CONCAT_WS(" ", BFNAME.value, BLNAME.value) LIKE ?', ['%'.$search.'%']);
+
+                            $billingFilters = [
                                 [
                                     'operator' => 'LIKE',
                                     'key' => 'phone_number',
@@ -110,23 +101,16 @@ class OrderController extends Controller{
                                     'key' => 'area',
                                     'value' => '%'.$search.'%'
                                 ]
-                            ], TRUE);*/
+                            ];
+                            $profiles = Profile::whereFields($billingFilters, TRUE)->pluck('id')->all();
+
+                            $innerQb->orWhereIn('billing_profile_id', $profiles);
                         });
                     }elseif($searchKey == 'shipping') {
-                        $qb->whereRaw('CONCAT_WS(" ", SFNAME.value, SLNAME.value) LIKE ?', ['%'.$search.'%']);
-                        $qb->whereHas('shippingProfile', function($qb) use ($search){
-                            /*
-                            $qb->whereFields([
-                                [
-                                    'operator' => 'LIKE',
-                                    'key' => 'first_name',
-                                    'value' => '%'.$search.'%'
-                                ],
-                                [
-                                    'operator' => 'LIKE',
-                                    'key' => 'last_name',
-                                    'value' => '%'.$search.'%'
-                                ],
+                        $qb->where(function($innerQb) use ($search){
+                            $innerQb->whereRaw('CONCAT_WS(" ", SFNAME.value, SLNAME.value) LIKE ?', ['%'.$search.'%']);
+
+                            $shippingFilters = [
                                 [
                                     'operator' => 'LIKE',
                                     'key' => 'phone_number',
@@ -172,8 +156,10 @@ class OrderController extends Controller{
                                     'key' => 'area',
                                     'value' => '%'.$search.'%'
                                 ]
-                            ], TRUE);
-                            */
+                            ];
+                            $profiles = Profile::whereFields($shippingFilters, TRUE)->pluck('id')->all();
+
+                            $innerQb->orWhereIn('shipping_profile_id', $profiles);
                         });
                     }elseif($searchKey == 'reference'){
                         $qb->where($searchKey, 'LIKE', '%'.$search.'%');
