@@ -2,6 +2,8 @@
 
 namespace Kommercio\Http\Controllers\Frontend;
 
+use Illuminate\Http\Request;
+use Kommercio\Facades\FrontendHelper;
 use Kommercio\Models\CMS\Post;
 use Kommercio\Http\Controllers\Controller;
 use Kommercio\Facades\ProjectHelper;
@@ -21,12 +23,14 @@ class PostController extends Controller
         ]);
     }
 
-    public function viewCategory($id)
+    public function viewCategory(Request $request, $id)
     {
         $postCategory = PostCategory::findOrFail($id);
 
         $qb = $postCategory->posts()->active();
+
         $posts = $qb->paginate(ProjectHelper::getConfig('post_options.limit'));
+        $posts->setPath(FrontendHelper::getUrl($request->path()));
 
         $view_name = ProjectHelper::findViewTemplate($postCategory->getViewSuggestions());
 

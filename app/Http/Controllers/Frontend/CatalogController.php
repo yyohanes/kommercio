@@ -303,7 +303,7 @@ class CatalogController extends Controller
             }
         }
 
-        $products->setPath(FrontendHelper::get_url($request->path()))->appends($appendedOptions);
+        $products->setPath(FrontendHelper::getUrl($request->path()))->appends($appendedOptions);
 
         $view_name = ProjectHelper::findViewTemplate($productCategory->getViewSuggestions());
 
