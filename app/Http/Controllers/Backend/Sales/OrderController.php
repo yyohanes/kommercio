@@ -52,8 +52,9 @@ class OrderController extends Controller{
             foreach($request->input('filter', []) as $searchKey=>$search){
                 if(is_array($search) || trim($search) != ''){
                     if($searchKey == 'billing') {
+                        $qb->whereRaw('CONCAT_WS(" ", BFNAME.value, BLNAME.value) LIKE ?', ['%'.$search.'%']);
                         $qb->whereHas('billingProfile', function($qb) use ($search){
-                            $qb->whereFields([
+                            /*$qb->whereFields([
                                 [
                                     'operator' => 'LIKE',
                                     'key' => 'first_name',
@@ -109,10 +110,12 @@ class OrderController extends Controller{
                                     'key' => 'area',
                                     'value' => '%'.$search.'%'
                                 ]
-                            ], TRUE);
+                            ], TRUE);*/
                         });
                     }elseif($searchKey == 'shipping') {
+                        $qb->whereRaw('CONCAT_WS(" ", SFNAME.value, SLNAME.value) LIKE ?', ['%'.$search.'%']);
                         $qb->whereHas('shippingProfile', function($qb) use ($search){
+                            /*
                             $qb->whereFields([
                                 [
                                     'operator' => 'LIKE',
@@ -170,6 +173,7 @@ class OrderController extends Controller{
                                     'value' => '%'.$search.'%'
                                 ]
                             ], TRUE);
+                            */
                         });
                     }elseif($searchKey == 'reference'){
                         $qb->where($searchKey, 'LIKE', '%'.$search.'%');
@@ -240,7 +244,7 @@ class OrderController extends Controller{
         $stickyProducts = Product::joinDetail($store_id)->selectSelf()->active()->where('sticky_line_item', 1)->orderBy('sort_order', 'ASC')->get();
 
         $paymentMethodOptions = [];
-        foreach(PaymentMethod::getPaymentMethods(['order' => new Order()]) as $paymentMethod){
+        foreach(PaymentMethod::getPaymentMethods() as $paymentMethod){
             $paymentMethodOptions[$paymentMethod->id] = $paymentMethod->name;
         }
 
