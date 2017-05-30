@@ -944,9 +944,6 @@ class OrderController extends Controller
                         'order' => [
                             'public_id' => $order->public_id
                         ],
-                        'order' => [
-                            'public_id' => $order->public_id
-                        ],
                         'step' => 'complete',
                         '_token' => csrf_token()
                     ]);
