@@ -129,6 +129,8 @@ class ShippingMethod extends Model
             $store = ProjectHelper::getActiveStore();
         }
 
+        $options['frontend'] = !isset($options['frontend'])?TRUE:$options['frontend'];
+
         $return = [];
         foreach($shippingMethods as $shippingMethod){
             if(($shippingMethod->stores->count() < 1 || $shippingMethod->stores->pluck('id')->contains($store->id)) && $shippingMethod->active && $shippingMethod->validate($options)){

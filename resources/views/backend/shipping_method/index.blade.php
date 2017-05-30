@@ -44,6 +44,7 @@
                     <tr>
                         <th>Name</th>
                         <th>Stores</th>
+                        <th>Active</th>
                         <th style="width: 20%;">Action</th>
                     </tr>
                     </thead>

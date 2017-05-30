@@ -84,7 +84,7 @@ class PaymentMethod extends Model
     public static function getPaymentMethods($options = null)
     {
         $order = isset($options['order'])?$options['order']:new Order();
-        $frontend = isset($options['frontend'])?$options['frontend']:TRUE;
+        $options['frontend'] = !isset($options['frontend'])?TRUE:$options['frontend'];
         $paymentMethods = self::orderBy('sort_order', 'ASC')->get();
 
         $request = isset($options['request'])?$options['request']:null;
@@ -99,7 +99,7 @@ class PaymentMethod extends Model
 
         $return = [];
         foreach($paymentMethods as $paymentMethod){
-            if(($paymentMethod->stores->count() < 1 || $paymentMethod->stores->pluck('id')->contains($store->id) || !$frontend) && $paymentMethod->active && $paymentMethod->getProcessor() && $paymentMethod->getProcessor()->validate($options)){
+            if(($paymentMethod->stores->count() < 1 || $paymentMethod->stores->pluck('id')->contains($store->id) || !$options['frontend']) && $paymentMethod->active && $paymentMethod->getProcessor() && $paymentMethod->getProcessor()->validate($options)){
                 $return[] = $paymentMethod;
             }
         }
