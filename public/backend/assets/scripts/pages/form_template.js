@@ -136,10 +136,16 @@ var formBehaviors = function(){
     var handleFormSubmit = function(context){
         $('form:not(.form-client-validation)', context).each(function(idx, obj){
             $(obj).on('submit', function(){
-                App.blockUI({
-                    target: obj,
-                    animate: true
-                });
+              App.blockUI({
+                  target: obj,
+                  animate: true
+              });
+
+              // Block everything on modal
+              App.blockUI({
+                target: $(obj).find('.modal-dialog'),
+                animate: false
+              });
             });
         })
     }
