@@ -929,7 +929,7 @@ class Order extends Model implements AuthorSignatureInterface
                 'name' => $productLineItem->name,
                 'quantity' => $deliveredLineItems[$productLineItem->id]['quantity'],
                 'price' => $productLineItem->calculateNet(),
-                'weight' => $productLineItem->product->weight,
+                'weight' => $productLineItem->product->weight?:0,
                 'sort_order' => $count
             ]);
 
