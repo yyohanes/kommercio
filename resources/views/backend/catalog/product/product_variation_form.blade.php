@@ -206,7 +206,7 @@
                                     {{ $feature->name }}
                                 </label>
                                 <div class="col-sm-3 col-xs-4">
-                                    {!! Form::select('variation[features]['.$feature->id.']', ['' => '-'] + $feature->getValueOptions(), old('variation.features.'.$feature->id, $variation->getProductFeatureValue($feature->id)), ['class' => 'form-control']) !!}
+                                    {!! Form::select('variation[features]['.$feature->id.']', ['' => '-'] + $feature->getValueOptions(), old('variation.features.'.$feature->id, $variation?$variation->getProductFeatureValue($feature->id):null), ['class' => 'form-control']) !!}
                                 </div>
                                 <div class="col-sm-3 col-xs-4">
                                     {!! Form::text('variation[features_custom]['.$feature->id.']', null, ['class' => 'form-control', 'placeholder' => 'Custom value']) !!}
