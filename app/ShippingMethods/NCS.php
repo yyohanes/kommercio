@@ -39,7 +39,7 @@ class NCS extends ShippingMethodAbstract
 
         //From request (if from backend)
         $request = isset($options['request'])?$options['request']:null;
-        if($request && !empty($order->store->getDefaultWarehouse()->city_id)){
+        if(!$options['frontend'] && $request && !empty($order->store->getDefaultWarehouse()->city_id)){
             $country = Country::find(ProjectHelper::getStoreByRequest($request)->getDefaultWarehouse()->country_id);
             $origin = City::find(ProjectHelper::getStoreByRequest($request)->getDefaultWarehouse()->city_id);
             $destination = City::find($request->input('shipping_profile.city_id'));

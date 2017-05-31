@@ -25,7 +25,13 @@ class ImageController extends GlideImageController
 
         $server = $this->setGlideServer($this->setImageSource($file->storage), $this->setImageCache($style), $style);
 
-        return $server->outputImage($this->request->path(), $this->getPresets($style));
+        try{
+            $imageOutput = $server->outputImage($this->request->path(), $this->getPresets($style));
+        }catch(\Exception $e){
+            abort($e->getCode(), $e->getMessage());
+        }
+
+        return $imageOutput;
     }
 
     protected function getPresets($style)

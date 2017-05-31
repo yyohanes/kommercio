@@ -101,7 +101,6 @@ class OrderController extends Controller
                     'is_active',
                     'is_purchaseable',
                     'is_in_stock:'.$inputProduct['quantity'],
-                    'category_order_limit:'.$inputProduct['quantity'].','.$order->id,
                     'per_order_limit:'.$inputProduct['quantity'].','.$order->id,
                     'delivery_order_limit:'.$inputProduct['quantity'].','.$order->id.($order->delivery_date?','.$order->delivery_date->format('Y-m-d'):null),
                     'today_order_limit:'.$inputProduct['quantity'].','.$order->id,
@@ -940,7 +939,7 @@ class OrderController extends Controller
                 if($viewData['step'] == 'complete'){
                     $response = new JsonResponse([
                         'data' => [
-                            'checkout' => $this->checkoutComplete($request, $order)->render()
+                            'checkout' => $this->checkoutComplete($request, $order)->render(),
                         ],
                         'order' => [
                             'public_id' => $order->public_id
@@ -1261,7 +1260,8 @@ class OrderController extends Controller
     {
         $shippingMethodOptions = ShippingMethod::getShippingMethods([
             'order' => $order,
-            'frontend' => true
+            'frontend' => true,
+            'request' => $request
         ]);
 
         return [
@@ -1274,6 +1274,7 @@ class OrderController extends Controller
         $paymentMethods = PaymentMethod::getPaymentMethods([
             'frontend' => true,
             'order' => $order,
+            'request' => $request
         ]);
 
         $paymentMethodOptions = [];
@@ -1391,7 +1392,6 @@ class OrderController extends Controller
                     'is_active',
                     'is_in_stock:'.$productLineItem->quantity,
                     'is_purchaseable',
-                    'category_order_limit:'.$productLineItem->quantity.','.$order->id,
                     'per_order_limit:'.$productLineItem->quantity.','.$order->id,
                     'delivery_order_limit:'.$productLineItem->quantity.','.$order->id.($order->delivery_date?','.$order->delivery_date->format('Y-m-d'):null),
                     'today_order_limit:'.$productLineItem->quantity.','.$order->id,

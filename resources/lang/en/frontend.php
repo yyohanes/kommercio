@@ -151,8 +151,8 @@ return [
                 'meta_title' => 'Confirm Payment'
             ],
             'view' => [
-                'meta_title' => 'Pesanan #:reference'
-            ]
+                'meta_title' => 'Order #:reference',
+            ],
         ]
     ]
 ];

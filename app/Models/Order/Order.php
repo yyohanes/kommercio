@@ -11,6 +11,8 @@ use Kommercio\Facades\CurrencyHelper;
 use Kommercio\Facades\PriceFormatter;
 use Kommercio\Facades\ProjectHelper;
 use Kommercio\Models\Interfaces\AuthorSignatureInterface;
+use Kommercio\Models\Order\DeliveryOrder\DeliveryOrder;
+use Kommercio\Models\Order\DeliveryOrder\DeliveryOrderItem;
 use Kommercio\Models\PriceRule\CartPriceRule;
 use Kommercio\Models\PriceRule\Coupon;
 use Kommercio\Models\Product;
@@ -84,6 +86,11 @@ class Order extends Model implements AuthorSignatureInterface
     public function payments()
     {
         return $this->hasMany('Kommercio\Models\Order\Payment')->counted();
+    }
+
+    public function deliveryOrders()
+    {
+        return $this->hasMany('Kommercio\Models\Order\DeliveryOrder\DeliveryOrder');
     }
 
     public function invoices()
@@ -891,6 +898,56 @@ class Order extends Model implements AuthorSignatureInterface
         return $eligible;
     }
 
+    public function createDeliveryOrder($deliveredLineItems, $options = [])
+    {
+        $deliveryOrder = new DeliveryOrder($options);
+        $deliveryOrder->store()->associate($this->store);
+        $deliveryOrder->customer()->associate($this->customer);
+        $deliveryOrder->order()->associate($this);
+        $deliveryOrder->generateReference();
+
+        if(!empty($options['data'])){
+            $deliveryOrder->saveData($options['data']);
+        }
+
+        $deliveryOrder->save();
+
+        if(!empty($options['shippingProfile'])){
+            $shippingProfile = $deliveryOrder->getProfileOrNew();
+            $shippingProfile->saveDetails($options['shippingProfile']);
+        }
+
+        $count = 0;
+        foreach($this->getProductLineItems() as $idx => $productLineItem){
+            if(!isset($deliveredLineItems[$productLineItem->id]) || empty($deliveredLineItems[$productLineItem->id]['quantity'])){
+                continue;
+            }
+
+            $count += 1;
+
+            $deliveryLineItem = new DeliveryOrderItem([
+                'name' => $productLineItem->name,
+                'quantity' => $deliveredLineItems[$productLineItem->id]['quantity'],
+                'price' => $productLineItem->calculateNet(),
+                'weight' => $productLineItem->product->weight,
+                'sort_order' => $count
+            ]);
+
+            $deliveryLineItem->product()->associate($productLineItem->product->id);
+            $deliveryLineItem->lineItem()->associate($productLineItem);
+            $deliveryLineItem->deliveryOrder()->associate($deliveryOrder->id);
+            $deliveryLineItem->save();
+
+            $deliveryOrder->load('items');
+        }
+
+        $deliveryOrder->calculateTotalWeight();
+        $deliveryOrder->calculateTotalQuantity();
+        $deliveryOrder->save();
+
+        return $deliveryOrder;
+    }
+
     //Scopes
     public function scopeJoinBillingProfile($query)
     {
@@ -1017,7 +1074,7 @@ class Order extends Model implements AuthorSignatureInterface
 
     public function getIsEditableAttribute()
     {
-        return in_array($this->status, [self::STATUS_ADMIN_CART, self::STATUS_CART, self::STATUS_PENDING]) || (Gate::allows('access', ['edit_settled_order']) && !in_array($this->status, [Order::STATUS_COMPLETED]));
+        return in_array($this->status, [self::STATUS_ADMIN_CART, self::STATUS_CART]) || (Gate::allows('access', ['edit_settled_order']) && in_array($this->status, [self::STATUS_PENDING]));
     }
 
     public function getIsDeleteableAttribute()
@@ -1028,6 +1085,21 @@ class Order extends Model implements AuthorSignatureInterface
     public function getIsCheckoutAttribute()
     {
         return !in_array($this->status, [self::STATUS_ADMIN_CART, self::STATUS_CART]);
+    }
+
+    public function getIsFullyShippedAttribute()
+    {
+        $fully = false;
+
+        foreach($this->getProductLineItems() as $productLineItem){
+            $fully = $productLineItem->isFullyShipped;
+
+            if(!$fully){
+                break;
+            }
+        }
+
+        return $fully;
     }
 
     public function getStatusLabelAttribute()

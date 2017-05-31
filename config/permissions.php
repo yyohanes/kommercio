@@ -114,6 +114,13 @@ $permissions = [
             'print_delivery_note' => 'Print Delivery Note'
         ]
     ],
+    'Delivery Order' => [
+        'permissions' => [
+            'view_delivery_order' => 'View Delivery Order',
+            'cancel_delivery_order' => 'Void Delivery Order',
+            'complete_delivery_order' => 'Complete Delivery Order',
+        ]
+    ],
     'Payments' => [
         'permissions' => [
             'view_payment' => 'View Payment',
@@ -327,7 +334,7 @@ $permissions = [
             'import_manufacturer' => 'Import Manufacturer',
         ],
         'feature' => 'catalog.import',
-    ],
+    ]
 ];
 
 if(file_exists(base_path('packages/project/src/Project/config/permissions.php'))){

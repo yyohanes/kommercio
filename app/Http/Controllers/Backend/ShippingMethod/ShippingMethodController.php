@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Kommercio\Http\Controllers\Controller;
 use Kommercio\Http\Requests\Backend\ShippingMethod\ShippingMethodFormRequest;
 use Kommercio\Models\ShippingMethod\ShippingMethod;
+use Kommercio\Models\Store;
 
 class ShippingMethodController extends Controller{
     public function index()
@@ -22,9 +23,21 @@ class ShippingMethodController extends Controller{
     public function create()
     {
         $shippingMethod = new ShippingMethod();
+        $stores = Store::all();
+
+        $storeOptions = [];
+        foreach($stores as $store){
+            $type = strtoupper($store->type);
+
+            if(!isset($type)){
+                $storeOptions[$type] = [];
+            }
+            $storeOptions[$type][$store->id] = $store->name;
+        }
 
         return view('backend.shipping_method.create', [
-            'shippingMethod' => $shippingMethod
+            'shippingMethod' => $shippingMethod,
+            'storeOptions' => $storeOptions,
         ]);
     }
 
@@ -34,15 +47,33 @@ class ShippingMethodController extends Controller{
         $shippingMethod->fill($request->all());
         $shippingMethod->save();
 
+        if($request->input('store_scope') == 'selected'){
+            $shippingMethod->stores()->sync($request->input('stores', []));
+        }else{
+            $shippingMethod->stores()->sync([]);
+        }
+
         return redirect($request->get('backUrl', route('backend.shipping_method.index')))->with('success', [$shippingMethod->name.' has successfully been created.']);
     }
 
     public function edit($id)
     {
         $shippingMethod = ShippingMethod::findOrFail($id);
+        $stores = Store::all();
+
+        $storeOptions = [];
+        foreach($stores as $store){
+            $type = strtoupper($store->type);
+
+            if(!isset($type)){
+                $storeOptions[$type] = [];
+            }
+            $storeOptions[$type][$store->id] = $store->name;
+        }
 
         return view('backend.shipping_method.edit', [
-            'shippingMethod' => $shippingMethod
+            'shippingMethod' => $shippingMethod,
+            'storeOptions' => $storeOptions,
         ]);
     }
 
@@ -52,6 +83,12 @@ class ShippingMethodController extends Controller{
 
         $shippingMethod->fill($request->all());
         $shippingMethod->save();
+
+        if($request->input('store_scope') == 'selected'){
+            $shippingMethod->stores()->sync($request->input('stores', []));
+        }else{
+            $shippingMethod->stores()->sync([]);
+        }
 
         return redirect($request->get('backUrl', route('backend.shipping_method.index')))->with('success', [$shippingMethod->name.' has successfully been updated.']);
     }

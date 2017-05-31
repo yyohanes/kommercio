@@ -43,6 +43,8 @@
                     <thead>
                     <tr>
                         <th>Name</th>
+                        <th>Stores</th>
+                        <th>Active</th>
                         <th style="width: 20%;">Action</th>
                     </tr>
                     </thead>
@@ -50,6 +52,10 @@
                     @foreach($paymentMethods as $paymentMethod)
                         <tr>
                             <td><i class="fa fa-reorder"></i> <span class="payment-name" data-payment_id="{{ $paymentMethod->id }}">{{ $paymentMethod->name }}</span></td>
+                            <td>{!! $paymentMethod->stores->count() > 0?$paymentMethod->stores->map(function($store){ return '<span class="label label-success">'.$store->name.'</span>'; })->implode(' '):'<span class="label label-default">All Stores</span>' !!}</td>
+                            <td>
+                                {!! '<i class="fa fa-'.($paymentMethod->active?'check text-success':'remove text-danger').'"></i>' !!}
+                            </td>
                             <td class="text-center">
                                 {!! Form::open(['route' => ['backend.payment_method.delete', 'id' => $paymentMethod->id]]) !!}
                                 <div class="btn-group btn-group-sm">

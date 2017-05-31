@@ -66,6 +66,10 @@ class AuthServiceProvider extends ServiceProvider
                         }
 
                         break;
+                    case 'fully_shipped':
+                        $valid = $order->isFullyShipped == $condition;
+
+                        break;
                     case 'outstanding':
                         $valid = $order->getOutstandingAmount() <= $condition;
                         break;

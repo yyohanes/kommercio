@@ -105,6 +105,13 @@ class PostCategory extends Model implements UrlAliasInterface, SeoModelInterface
         return $this->images->count() > 0?$this->images->get(0)->getImagePath('original'):null;
     }
 
+    public function getActivePosts()
+    {
+        return $this->children->filter(function($post){
+            return $post->active;
+        });
+    }
+
     //Accessors
     public function getChildrenCountAttribute()
     {

@@ -17,7 +17,7 @@ class Role extends Model
     {
         if(!isset($this->_permissions)){
             $qb = DB::table($this->role_permissions_table)->where('role_id', $this->id);
-            $this->_permissions = $qb->pluck('permission');
+            $this->_permissions = $qb->pluck('permission')->all();
         }
 
         return $this->_permissions;

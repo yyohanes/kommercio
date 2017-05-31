@@ -63,12 +63,14 @@
 
             $form.trigger('after_step_change', [data.step, checkoutData.step, data]);
           }
+
+          $form.trigger('after_step_change', [data.step, checkoutData.step, data]);
         },
         complete: function(){
           KommercioFrontend.toggleOverlay($element, false);
         },
         error: function(data){
-          $form.triggerHandler('error', [checkoutData.step, data]);
+          $form.trigger('error', [checkoutData.step, data]);
 
           if($process != 'place_order'){
             for(var i in data.responseJSON){
@@ -204,7 +206,10 @@
         method: 'POST',
         data: $checkoutForm.serialize() + '&month=' + (month+1) + '&year=' + year,
         success: function(data){
-          $disabledDates = $.makeArray(data.disabled_dates);
+          $disabledDates = Object.keys(data.disabled_dates).map(function(e) {
+            return data.disabled_dates[e];
+          });
+
           $(e.target).datepicker('setDatesDisabled', $disabledDates);
           $(e.target).datepicker('update', e.date);
         },

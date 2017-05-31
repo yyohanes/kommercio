@@ -45,6 +45,7 @@ var KommercioApp = function(){
 
       $(document).ajaxComplete(function( event,request, settings ) {
         if(typeof request.responseJSON !== 'undefined' && typeof request.responseJSON._token !== 'undefined'){
+          console.log(request.responseJSON);
           KommercioApp.csrfHeaderSetup(request.responseJSON._token);
 
           $('input[name="_token"]').val(request.responseJSON._token);
