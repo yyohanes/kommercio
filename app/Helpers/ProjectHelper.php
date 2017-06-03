@@ -147,6 +147,21 @@ class ProjectHelper
         return (env('APP_ENV') != 'production') || in_array(RequestFacade::ip(), $this->getConfig('test_ips'));
     }
 
+    public function flattenArrayToKey($array)
+    {
+        $keys = [];
+
+        ksort($array);
+
+        foreach($array as $idx => $arrayValue){
+            if($arrayValue !== null){
+                $keys[] = $idx.':'.$arrayValue;
+            }
+        }
+
+        return implode(';', $keys);
+    }
+
     //Configs
     public function saveSiteConfig($key, $value)
     {

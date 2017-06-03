@@ -675,10 +675,13 @@ class OrderController extends Controller{
         $order->saveProfile('billing', $request->input('profile'));
         $order->saveProfile('shipping', $request->input('shipping_profile'));
 
-        //Use free form line items
+        // Set original line items
+        $order->originalLineItems = $order->lineItems;
+
+        // Use free form line items
         $order->setRelation('lineItems', OrderHelper::processLineItems($request, $order, true, true));
 
-        //Process configurations HAS TO BE here because above OrderHelper::processLineItems is dummy
+        // Process configurations HAS TO BE here because above OrderHelper::processLineItems is dummy
         $this->processConfigurations($request);
 
         OrderHelper::processLineItems($request, $order);
@@ -687,7 +690,6 @@ class OrderController extends Controller{
         $order->calculateTotal();
 
         Event::fire(new OrderEvent('before_update_order', $order));
-
 
         if($request->input('action') == 'place_order'){
             //If order is not cart, return all stocks first

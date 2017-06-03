@@ -4,6 +4,8 @@ namespace Kommercio\Providers;
 
 use Illuminate\Contracts\Events\Dispatcher as DispatcherContract;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
+use Kommercio\Models\Order\Order;
+use Kommercio\Observers\OrderObserver;
 
 class EventServiceProvider extends ServiceProvider
 {
@@ -102,6 +104,6 @@ class EventServiceProvider extends ServiceProvider
     {
         parent::boot();
 
-        //
+        Order::observe(OrderObserver::class);
     }
 }

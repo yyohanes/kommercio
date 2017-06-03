@@ -39,6 +39,7 @@ class Order extends Model implements AuthorSignatureInterface
 
     public static $processedStatus = [self::STATUS_PENDING, self::STATUS_PROCESSING];
 
+    protected $originalLineItems;
     protected $guarded = ['shippingProfile', 'billingProfile'];
     protected $dates = ['deleted_at', 'delivery_date', 'checkout_at'];
 
@@ -1002,7 +1003,7 @@ class Order extends Model implements AuthorSignatureInterface
 
     public function scopeUsageCounted($query)
     {
-        $query->whereIn('status', [self::STATUS_PENDING, self::STATUS_PROCESSING, self::STATUS_SHIPPED, self::STATUS_COMPLETED]);
+        $query->whereIn('status', self::getUsageCountedStatus());
     }
 
     public function scopeProcessed($query)
@@ -1028,6 +1029,18 @@ class Order extends Model implements AuthorSignatureInterface
     }
 
     //Accessors
+
+    /**
+     * Get original line items
+     * @return \Illuminate\Database\Eloquent\Collection $lineItems
+     */
+    public function getOriginalLineItemsAttribute()
+    {
+        $this->originalLineItems = $this->originalLineItems?:new \Illuminate\Database\Eloquent\Collection([]);
+
+        return $this->originalLineItems;
+    }
+
     public function getItemsCountAttribute()
     {
         $productLineItems = $this->getProductLineItems();
@@ -1154,6 +1167,19 @@ class Order extends Model implements AuthorSignatureInterface
     }
 
     //Mutators
+
+    /**
+     * Set original line items
+     * @param \Illuminate\Database\Eloquent\Collection $lineItems
+     */
+    public function setOriginalLineItemsAttribute($lineItems)
+    {
+        $this->originalLineItems = new \Illuminate\Database\Eloquent\Collection([]);
+        foreach($lineItems as $lineItem){
+            $this->originalLineItems->push($lineItem->replicate());
+        }
+    }
+
     public function setAdditionalFieldsAttribute($additionalFields)
     {
         $this->saveData(['additional_fields' => $additionalFields]);
@@ -1182,6 +1208,15 @@ class Order extends Model implements AuthorSignatureInterface
         }
 
         return (isset($array[$option]))?$array[$option]:$array;
+    }
+
+    /**
+     * Return status of Order that are considered as counted (In Cart shouldn't be considered as counted)
+     * @return array
+     */
+    public static function getUsageCountedStatus()
+    {
+        return [Order::STATUS_PENDING, Order::STATUS_PROCESSING, Order::STATUS_SHIPPED, Order::STATUS_COMPLETED];
     }
 
     public static function processAndStatusMap($process)
@@ -1223,28 +1258,5 @@ class Order extends Model implements AuthorSignatureInterface
     public static function findPublic($public_id)
     {
         return self::where('public_id', $public_id)->first();
-    }
-
-    protected static function boot()
-    {
-        parent::boot();
-
-        static::saving(function($model){
-            if(empty($model->public_id)){
-                $model->generatePublicId();
-            }
-        });
-
-        static::deleted(function($model){
-            if($model->forceDeleting){
-                if($model->billingProfile){
-                    $model->billingProfile->delete();
-                }
-
-                if($model->shippingProfile){
-                    $model->shippingProfile->delete();
-                }
-            }
-        });
     }
 }

@@ -101,30 +101,23 @@ class ProductCategory extends Model implements UrlAliasInterface, SeoModelInterf
         return $rows;
     }
 
+    /**
+     * Get number of purchased per product category
+     * We will go through category's products and get each product's order count
+     * If product order count has been cached, this will be fast process, otherwise, product order count will be calculated.
+     *
+     * @TODO Rethink this function logic. Imagine if category has lots of products, this function can crash
+     *
+     * @param array $options Possible options are store_id, checkout_at, delivery_date, exclude_order_id
+     * @return float|int
+     */
     public function getOrderCount($options = [])
     {
-        $qb = LineItem::lineItemType('product')->whereIn('line_item_id', $this->products->pluck('id')->all())
-            ->whereHas('order', function($query) use ($options){
-                $query->usageCounted();
+        $orderCount = 0;
 
-                if(!empty($options['store'])){
-                    $query->where('store_id', $options['store']);
-                }
-
-                if(!empty($options['delivery_date'])){
-                    $query->whereRaw('DATE_FORMAT(delivery_date, \'%Y-%m-%d\') = ?', [$options['delivery_date']]);
-                }
-
-                if(!empty($options['checkout_at'])){
-                    $query->whereRaw('DATE_FORMAT(checkout_at, \'%Y-%m-%d\') = ?', [$options['checkout_at']]);
-                }
-
-                if(!empty($options['exclude_order_id'])){
-                    $query->whereNotIn('id', [$options['exclude_order_id']]);
-                }
-            });
-
-        $orderCount = floatval($qb->sum('quantity'));
+        foreach($this->products as $product){
+            $orderCount += $product->getOrderCount($options);
+        }
 
         return $orderCount;
     }

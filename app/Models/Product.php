@@ -811,32 +811,49 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface, Cac
         return $priceRules;
     }
 
+    /**
+     * Get number of products purchased
+     *
+     * @param array $options Possible options are store_id, checkout_at, delivery_date, exclude_order_id
+     * @return float
+     */
     public function getOrderCount($options = [])
     {
-        $qb = LineItem::isProduct($this->id)
-            ->whereHas('order', function($query) use ($options){
-                $query->usageCounted();
+        $countOptions = $options + ['product_id' => $this->id];
 
-                if(!empty($options['store'])){
-                    $query->where('store_id', $options['store']);
-                }
+        if(isset($countOptions['exclude_order_id'])){
+            unset($countOptions['exclude_order_id']);
+        }
 
-                if(!empty($options['delivery_date'])){
-                    $query->whereRaw('DATE_FORMAT(delivery_date, \'%Y-%m-%d\') = ?', [$options['delivery_date']]);
-                }
+        $total = Cache::rememberForever(ProjectHelper::flattenArrayToKey($countOptions), function() use ($countOptions){
+            $lineItemQb = LineItem::isProduct($this->id)
+                ->isRoot()
+                ->join('orders as O', 'O.id', '=', 'line_items.order_id')
+                ->whereIn('O.status', Order::getUsageCountedStatus());
 
-                if(!empty($options['checkout_at'])){
-                    $query->whereRaw('DATE_FORMAT(checkout_at, \'%Y-%m-%d\') = ?', [$options['checkout_at']]);
-                }
+            if(!empty($countOptions['store_id'])){
+                $lineItemQb->where('O.store_id', $countOptions['store_id']);
+            }
 
-                if(!empty($options['exclude_order_id'])){
-                    $query->whereNotIn('id', [$options['exclude_order_id']]);
-                }
-            });
+            if(!empty($countOptions['delivery_date'])){
+                $lineItemQb->whereRaw('DATE_FORMAT(O.delivery_date, \'%Y-%m-%d\') = ?', [$countOptions['delivery_date']]);
+            }
 
-        $orderCount = floatval($qb->sum('quantity'));
+            if(!empty($countOptions['checkout_at'])){
+                $lineItemQb->whereRaw('DATE_FORMAT(O.checkout_at, \'%Y-%m-%d\') = ?', [$countOptions['checkout_at']]);
+            }
 
-        return $orderCount;
+            $updatedCount = $lineItemQb->sum('quantity');
+
+            return $updatedCount;
+        });
+
+        if(!empty($options['exclude_order_id'])){
+            $excludedOrder = Order::findOrFail($options['exclude_order_id']);
+            $total -= $excludedOrder->getProductQuantity($this->id);
+        }
+
+        return $total;
     }
 
     public function getPerOrderLimit($options = [])
@@ -942,14 +959,14 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface, Cac
             $dayToRun->setTime(0, 0, 0);
 
             $lastDayOfMonth = clone $dayToRun;
-            $lastDayOfMonth->modify('last day of next month');
+            $lastDayOfMonth->modify('last day of this month')->modify('+10 days');
 
-            $dayToRun->modify('-1 month');
+            $dayToRun->modify('-10 days');
 
             while($dayToRun->lte($lastDayOfMonth)){
                 $dayOrderCount = $this->getOrderCount([
                     'delivery_date' => $dayToRun->format('Y-m-d'),
-                    'store' => $store,
+                    'store_id' => $store,
                 ]);
 
                 if($dayToRun->format('j-n-Y') == $saved_delivery_date){
@@ -984,7 +1001,7 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface, Cac
                     foreach($dayCategoryOrderLimit['object']->productCategories as $productCategory){
                         $dayCategoryOrderCount = $productCategory->getOrderCount([
                             'delivery_date' => $dayToRun->format('Y-m-d'),
-                            'store' => $store,
+                            'store_id' => $store,
                         ]);
                         if($dayCategoryOrderLimit['limit'] == 0 || $dayCategoryOrderCount + $quantity > $dayCategoryOrderLimit['limit']){
                             $disabledDates[] = $dayToRun->format($format);

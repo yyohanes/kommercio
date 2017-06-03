@@ -367,7 +367,7 @@ class CustomValidator extends Validator
             $orderCount = $product->getOrderCount([
                 'delivery_date' => $delivery_date,
                 'checkout_at' => $today,
-                'store' => $store_id?:(!empty($order->store)?$order->store->id:null),
+                'store_id' => $store_id?:(!empty($order->store)?$order->store->id:null),
             ]);
 
             $orderLimit = $product->getOrderLimit([
@@ -406,7 +406,7 @@ class CustomValidator extends Validator
                         $categoryOrderCount = $productCategory->getOrderCount([
                             'delivery_date' => $delivery_date,
                             'checkout_at' => $today,
-                            'store' => $store_id?:(!empty($order->store)?$order->store->id:null),
+                            'store_id' => $store_id?:(!empty($order->store)?$order->store->id:null),
                         ]);
 
                         $categoryLimitPassed = ($categoryOrderLimit['limit'] - $categoryOrderCount) >= $quantity;

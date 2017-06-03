@@ -464,6 +464,15 @@ class LineItem extends Model
         $query->where('line_item_id', $product_id)->where('line_item_type', 'product');
     }
 
+    public function scopeIsRoot($query, $isRoot = true)
+    {
+        if($isRoot){
+            $query->whereNull('parent_id');
+        }else{
+            $query->whereNotNull('parent_id');
+        }
+    }
+
     public function scopeLineItemType($query, $type)
     {
         $query->where('line_item_type', $type);

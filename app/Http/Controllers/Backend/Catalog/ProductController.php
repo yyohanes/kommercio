@@ -1046,7 +1046,7 @@ class ProductController extends Controller{
             if($options['delivery_date']){
                 $totalOrderedByDelivery = $product->getOrderCount([
                     'delivery_date' => $options['delivery_date'],
-                    'store' => $store_id,
+                    'store_id' => $store_id,
                     'exclude_order_id' => $request->input('order_id')
                 ]);
             }
@@ -1055,7 +1055,7 @@ class ProductController extends Controller{
         }else{
             $totalOrderedByDate = $product->getOrderCount([
                 'checkout_at' => $options['date'],
-                'store' => $store_id,
+                'store_id' => $store_id,
                 'exclude_order_id' => $request->input('order_id')
             ]);
 
@@ -1106,8 +1106,12 @@ class ProductController extends Controller{
             $order = FrontendHelper::getCurrentOrder();
 
             foreach($order->getProductLineItems() as $idx => $productLineItem) {
-                $products[$idx] = $productLineItem->product;
-                $orderedQuantities[$idx] = $productLineItem->quantity;
+                if(!isset($products[$productLineItem->line_item_id])){
+                    $products[$productLineItem->line_item_id] = $productLineItem->product;
+                    $orderedQuantities[$productLineItem->line_item_id] = 0;
+                }
+
+                $orderedQuantities[$productLineItem->line_item_id] += $productLineItem->quantity;
             }
 
             $store = ProjectHelper::getStoreByRequest($request, $order->store);
