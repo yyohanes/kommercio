@@ -28,7 +28,7 @@ class OrderObserver
                 'delivery_date' => []
             ];
 
-            if(isset($dirty['checkout_at'])){
+            if(isset($dirty['checkout_at']) && $dirty['checkout_at'] instanceof Carbon){
                 $toUpdate['checkout_at'][] = Carbon::createFromFormat('Y-m-d H:i:s', $order->getOriginal('checkout_at'))->format('Y-m-d');
             }
 
@@ -36,7 +36,7 @@ class OrderObserver
                 $toUpdate['checkout_at'][] = $order->checkout_at->format('Y-m-d');
             }
 
-            if(isset($dirty['delivery_date'])){
+            if(isset($dirty['delivery_date']) && $dirty['delivery_date'] instanceof Carbon){
                 $toUpdate['delivery_date'][] = Carbon::createFromFormat('Y-m-d H:i:s', $order->getOriginal('delivery_date'))->format('Y-m-d');
             }
 
