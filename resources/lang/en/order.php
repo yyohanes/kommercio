@@ -45,10 +45,11 @@ return [
             'confirmation' => 'Order is placed.',
             'processing' => 'Order is being processed.',
             'completed' => 'Order is complete.',
-            'partially_shipped' => 'Order is partially being delivered.',
-            'fully_shipped' => 'All items in your order are being delivered.',
+            'partially_shipped' => 'Order is partially being delivered.<br/>Tracking Number: :tracking_number. Delivered by: :delivered_by.',
+            'fully_shipped' => 'All items in your order are being delivered.<br/>Tracking Number: :tracking_number. Delivered by: :delivered_by.',
             'cancelled' => 'Order is cancelled due to <em>:reason</em>',
-            'payment_received' => 'Payment with amount of :amount is received.'
+            'payment_received' => 'Payment with amount of :amount is received.',
+            'payment_voided' => 'Payment with amount of :amount is voided.',
         ]
     ]
 ];
