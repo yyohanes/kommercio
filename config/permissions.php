@@ -110,6 +110,10 @@ $permissions = [
             'add_inactive_product' => 'Add Inactive Product',
             'view_order_internal_memo' => 'View Internal Memo',
             'create_order_internal_memo' => 'Create Internal Memo',
+            'view_order_external_memo' => 'View External Memo',
+            'create_order_external_memo' => 'Create External Memo',
+            'edit_order_external_memo' => 'Edit External Memo',
+            'delete_order_external_memo' => 'Delete External Memo',
             'print_invoice' => 'Print Invoice',
             'print_delivery_note' => 'Print Delivery Note'
         ]

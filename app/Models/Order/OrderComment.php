@@ -29,6 +29,11 @@ class OrderComment extends Model implements AuthorSignatureInterface
         $query->whereIn('type', [self::TYPE_INTERNAL_MEMO, self::TYPE_INTERNAL]);
     }
 
+    public function scopeExternalMemo($query)
+    {
+        $query->whereIn('type', [self::TYPE_EXTERNAL_MEMO]);
+    }
+
     //Statics
     public static function getTypeOptions($option=null)
     {

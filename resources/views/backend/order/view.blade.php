@@ -128,9 +128,15 @@
                             </li>
                             @endcan
 
+                            @can('access', ['view_order_external_memo'])
+                                <li role="presentation">
+                                    <a href="#tab_external_memo" data-toggle="tab"> External Memo </a>
+                                </li>
+                            @endcan
+
                             @can('access', ['view_order_internal_memo'])
                             <li role="presentation">
-                                <a href="#tab_internal_memo" data-toggle="tab"> Order Memo </a>
+                                <a href="#tab_internal_memo" data-toggle="tab"> Internal Memo </a>
                             </li>
                             @endcan
                         </ul>
@@ -185,7 +191,7 @@
                                                 @if($shippingLineItem)
                                                     <div class="row static-info">
                                                         <div class="col-md-5 name"> Shipping: </div>
-                                                        <div class="col-md-7 value"> {{ $shippingLineItem->getSelectedMethod()['name'] }} </div>
+                                                        <div class="col-md-7 value"> {{ $shippingLineItem->name }} </div>
                                                     </div>
                                                 @endif
                                             </div>
@@ -553,6 +559,40 @@
                             </div>
                             @endcan
 
+                            @can('access', ['view_order_external_memo'])
+                                <div class="tab-pane" id="tab_external_memo">
+                                    <div class="form-body">
+                                        <div class="margin-bottom-10">
+                                            @can('access', ['create_order_external_memo'])
+                                                <a class="btn btn-default" id="external-memo-add-btn" href="#">
+                                                    <i class="icon-plus"></i> Add External Memo
+                                                </a>
+                                            @endcan
+                                        </div>
+
+                                        <div id="external-memo-form-wrapper"
+                                             data-external_memo_form="{{ route('backend.sales.order.external_memo.form', ['order_id' => $order->id]) }}"
+                                             data-external_memo_index="{{ route('backend.sales.order.external_memo.index', ['order_id' => $order->id]) }}"></div>
+
+                                        <div class="table-scrollable">
+                                            <table class="table table-striped table-hover">
+                                                <thead>
+                                                <tr>
+                                                    <th style="width: 60%;">Memo</th>
+                                                    <th>By</th>
+                                                    <th>Date</th>
+                                                    <th></th>
+                                                </tr>
+                                                </thead>
+                                                <tbody id="external-memo-index-wrapper">
+                                                @include('backend.order.memos.external.index')
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endcan
+
                             @can('access', ['view_order_internal_memo'])
                             <div class="tab-pane" id="tab_internal_memo">
                                 <div class="form-body">
@@ -578,7 +618,7 @@
                                             </tr>
                                             </thead>
                                             <tbody id="internal-memo-index-wrapper">
-                                            @include('backend.order.internal_memos.index')
+                                            @include('backend.order.memos.internal.index')
                                             </tbody>
                                         </table>
                                     </div>

@@ -1199,23 +1199,49 @@ Route::group(['middleware' => ['web']], function () {
                         ]);
                     });
 
-                    Route::group(['prefix' => 'internal-memo'], function(){
-                        Route::get('{order_id}/index', [
+                    Route::group(['prefix' => 'memo'], function(){
+                        // Internal
+                        Route::get('internal/{order_id}/index', [
                             'as' => 'backend.sales.order.internal_memo.index',
-                            'uses' => 'OrderCommentController@orderCommentIndex',
+                            'uses' => 'OrderCommentController@internalIndex',
                             'permissions' => ['view_order_internal_memo']
                         ]);
 
-                        Route::get('{order_id}/form', [
+                        Route::get('internal/{order_id}/form', [
                             'as' => 'backend.sales.order.internal_memo.form',
-                            'uses' => 'OrderCommentController@orderCommentForm',
+                            'uses' => 'OrderCommentController@internalForm',
                             'permissions' => ['create_order_internal_memo']
                         ]);
 
-                        Route::post('{order_id}/save', [
+                        Route::post('internal/{order_id}/save', [
                             'as' => 'backend.sales.order.internal_memo.save',
-                            'uses' => 'OrderCommentController@orderCommentSave',
+                            'uses' => 'OrderCommentController@internalSave',
                             'permissions' => ['create_order_internal_memo']
+                        ]);
+
+                        // External
+                        Route::get('external/{order_id}/index', [
+                            'as' => 'backend.sales.order.external_memo.index',
+                            'uses' => 'OrderCommentController@externalIndex',
+                            'permissions' => ['view_order_external_memo']
+                        ]);
+
+                        Route::get('external/{order_id}/form/{id?}', [
+                            'as' => 'backend.sales.order.external_memo.form',
+                            'uses' => 'OrderCommentController@externalForm',
+                            'permissions' => ['create_order_external_memo']
+                        ]);
+
+                        Route::post('external/{order_id}/save/{id?}', [
+                            'as' => 'backend.sales.order.external_memo.save',
+                            'uses' => 'OrderCommentController@externalSave',
+                            'permissions' => ['create_order_external_memo']
+                        ]);
+
+                        Route::post('external/{order_id}/delete/{id}', [
+                            'as' => 'backend.sales.order.external_memo.delete',
+                            'uses' => 'OrderCommentController@externalDelete',
+                            'permissions' => ['delete_order_external_memo']
                         ]);
                     });
                 });

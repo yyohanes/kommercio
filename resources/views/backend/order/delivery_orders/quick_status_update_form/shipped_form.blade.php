@@ -12,7 +12,7 @@
 
         @include('backend.master.form.fields.textarea', [
             'name' => 'notes',
-            'label' => 'Notes',
+            'label' => 'Internal Notes',
             'key' => 'notes',
             'attr' => [
                 'class' => 'form-control',

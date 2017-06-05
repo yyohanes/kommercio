@@ -40,4 +40,15 @@ return [
     'shipping' => [
         'estimated_working_day' => 'Approximately :estimated working day|Approximately :estimated working days',
     ],
+    'memos' => [
+        'external' => [
+            'confirmation' => 'Order is placed.',
+            'processing' => 'Order is being processed.',
+            'completed' => 'Order is complete.',
+            'partially_shipped' => 'Order is partially being delivered.',
+            'fully_shipped' => 'All items in your order are being delivered.',
+            'cancelled' => 'Order is cancelled due to <em>:reason</em>',
+            'payment_received' => 'Payment with amount of :amount is received.'
+        ]
+    ]
 ];

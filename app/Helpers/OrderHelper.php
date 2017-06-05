@@ -351,15 +351,15 @@ class OrderHelper
         return $priceRules;
     }
 
-    public function saveOrderComment($message, $key, Order $order, User $author = NULL, $type = OrderComment::TYPE_INTERNAL)
+    public function saveOrderComment($message, $key, Order $order, User $author = NULL, $type = OrderComment::TYPE_INTERNAL, $additionalData = [])
     {
         $comment = new OrderComment([
             'body' => $message,
             'type' => $type
         ]);
-        $comment->saveData([
+        $comment->saveData(array_merge($additionalData, [
             'key' => $key
-        ]);
+        ]));
 
         $comment->order()->associate($order);
 

@@ -19,7 +19,7 @@
         ])
 
         <div class="margin-top-15 text-center">
-            <button id="internal-memo-save" data-internal_memo_save="{{ route('backend.sales.order.internal_memo.save', ['order_id' => $order->id]) }}" class="btn btn-info"><i class="fa fa-save"></i> Submit Memo</button>
+            <button id="internal-memo-save" data-internal_memo_save="{{ route('backend.sales.order.internal_memo.save', ['order_id' => $order->id]) }}" class="btn btn-info"><i class="fa fa-save"></i> Save Memo</button>
             <button id="internal-memo-cancel" class="btn btn-default"><i class="fa fa-remove"></i> Cancel</button>
         </div>
         {!! Form::close() !!}

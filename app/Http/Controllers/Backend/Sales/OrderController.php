@@ -25,6 +25,7 @@ use Kommercio\Models\Order\LineItem;
 use Kommercio\Http\Requests\Backend\Order\OrderFormRequest;
 use Collective\Html\FormFacade;
 use Illuminate\Support\Facades\Request as RequestFacade;
+use Kommercio\Models\Order\OrderComment;
 use Kommercio\Models\Order\OrderLimit;
 use Kommercio\Models\PaymentMethod\PaymentMethod;
 use Kommercio\Models\PriceRule\CartPriceRule;
@@ -230,7 +231,7 @@ class OrderController extends Controller{
         $stickyProducts = Product::joinDetail($store_id)->selectSelf()->active()->where('sticky_line_item', 1)->orderBy('sort_order', 'ASC')->get();
 
         $paymentMethodOptions = [];
-        foreach(PaymentMethod::getPaymentMethods() as $paymentMethod){
+        foreach(PaymentMethod::getPaymentMethods(['frontend' => FALSE]) as $paymentMethod){
             $paymentMethodOptions[$paymentMethod->id] = $paymentMethod->name;
         }
 
@@ -486,7 +487,8 @@ class OrderController extends Controller{
             'lineItems' => $lineItems,
             'billingProfile' => $billingProfile,
             'shippingProfile' => $shippingProfile,
-            'internalMemos' => $order->internalMemos
+            'internalMemos' => $order->internalMemos,
+            'externalMemos' => $order->externalMemos,
         ]);
     }
 
@@ -846,11 +848,17 @@ class OrderController extends Controller{
 
                     if($order->isFullyShipped){
                         OrderHelper::saveOrderComment('Delivery Order #'.$deliveryOrder->reference.' is created. Order is fully shipped.', 'fully_shipped', $order, $user);
+                        OrderHelper::saveOrderComment('Order is fully shipped.', 'fully_shipped', $order, $user, OrderComment::TYPE_EXTERNAL_MEMO, [
+                            'delivery_order_id' => $deliveryOrder->id
+                        ]);
 
                         $order->status = Order::STATUS_SHIPPED;
                         $message = 'Order has been <span class="label bg-'.OrderHelper::getOrderStatusLabelClass($order->status).' bg-font-'.OrderHelper::getOrderStatusLabelClass($order->status).'">fully shipped.</span>';
                     }else{
                         OrderHelper::saveOrderComment('Delivery Order #'.$deliveryOrder->reference.' is created. Order is partially shipped.', 'partially_shipped', $order, $user);
+                        OrderHelper::saveOrderComment('Order is partially shipped.', 'partially_shipped', $order, $user, OrderComment::TYPE_EXTERNAL_MEMO, [
+                            'delivery_order_id' => $deliveryOrder->id
+                        ]);
                         $message = 'Order has been partially shipped with Delivery Order <span class="label bg-'.OrderHelper::getOrderStatusLabelClass($order->status).' bg-font-'.OrderHelper::getOrderStatusLabelClass($order->status).'">#'.$deliveryOrder->reference.'.</span>';
                     }
                     break;
@@ -1156,7 +1164,8 @@ class OrderController extends Controller{
 
         $shippingOptions = ShippingMethod::getShippingMethods([
             'order' => $order,
-            'request' => $request
+            'request' => $request,
+            'frontend' => FALSE
         ]);
 
         foreach($shippingOptions as $idx=>$shippingOption){

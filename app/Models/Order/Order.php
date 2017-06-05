@@ -109,6 +109,11 @@ class Order extends Model implements AuthorSignatureInterface
         return $this->comments()->internalMemo()->orderBy('created_at', 'DESC');
     }
 
+    public function externalMemos()
+    {
+        return $this->comments()->externalMemo()->orderBy('created_at', 'DESC');
+    }
+
     public function rewardPointTransactions()
     {
         return $this->hasMany('Kommercio\Models\RewardPoint\RewardPointTransaction')->orderBy('created_at', 'DESC');
