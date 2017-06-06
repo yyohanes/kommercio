@@ -4,7 +4,6 @@ var KommercioPaypalExpressCheckout = function(){
       if(typeof KommercioFrontend.runtimeObjects.checkoutForm != 'undefined'){
         if($form.find('input[name="shipping_method"]:checked').length > 0){
           var $placeOrderBtn = $form.find('[name="process"][value="place_order"]');
-          $placeOrderBtn.hide();
 
           if($('#paypal-btn').length == 0){
             $placeOrderBtn.after('<div id="paypal-btn"></div>');

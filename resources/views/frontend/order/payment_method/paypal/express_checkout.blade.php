@@ -19,6 +19,12 @@
 
 <script type="text/javascript">
     (function(){
+      $(document).ready(function(){
+        var $form = $('#paypal-express-checkout-wrapper').parents('form');
+        var $placeOrderBtn = $form.find('[name="process"][value="place_order"]');
+        $placeOrderBtn.hide();
+      });
+
         KommercioFrontend.loadJSScript('https://www.paypalobjects.com/api/checkout.js', function(){
             KommercioFrontend.loadJSScript('{{ asset('kommercio/assets/scripts/PaymentMethods/paypal_express_checkout.js') }}', function(){
                 KommercioPaypalExpressCheckout.init(
