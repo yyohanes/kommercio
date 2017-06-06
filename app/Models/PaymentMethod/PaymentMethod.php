@@ -13,8 +13,13 @@ class PaymentMethod extends Model
 {
     use Translatable, HasDataColumn;
 
+    const LOCATION_CHECKOUT = 'checkout';
+    const LOCATION_INVOICE = 'invoice';
+    const LOCATION_BACKOFFICE = 'backoffice';
+
     public $timestamps = FALSE;
     public $translatedAttributes = ['name', 'message'];
+    public $location;
 
     protected $fillable = ['name', 'class', 'message', 'sort_order', 'active'];
     protected $casts = [
@@ -81,14 +86,24 @@ class PaymentMethod extends Model
     }
 
     //Statics
-    public static function getPaymentMethods($options = null)
+
+    /**
+     * Get payment method options
+     *
+     * @param null $options Possible keys: order | request
+     * @param string $location Location where payment methods will be shown
+     * @return array
+     */
+    public static function getPaymentMethods($options = null, $location = self::LOCATION_CHECKOUT)
     {
         $order = isset($options['order'])?$options['order']:new Order();
-        $options['frontend'] = !isset($options['frontend'])?TRUE:$options['frontend'];
+        $options['frontend'] = in_array($location, [self::LOCATION_CHECKOUT, self::LOCATION_INVOICE]);
+        $options['location'] = $location;
         $paymentMethods = self::orderBy('sort_order', 'ASC')->get();
 
         $request = isset($options['request'])?$options['request']:null;
 
+        // Determine store
         $store = $order->store;
 
         if(!$store && $request){
@@ -97,8 +112,12 @@ class PaymentMethod extends Model
             $store = ProjectHelper::getActiveStore();
         }
 
+        // Loop through all active payment methods and validate by:
+        // Is active, can be used at selected store, is frontend request, custom validation in the processor
         $return = [];
         foreach($paymentMethods as $paymentMethod){
+            $paymentMethod->location = $location;
+
             if(($paymentMethod->stores->count() < 1 || $paymentMethod->stores->pluck('id')->contains($store->id) || !$options['frontend']) && $paymentMethod->active && $paymentMethod->getProcessor() && $paymentMethod->getProcessor()->validate($options)){
                 $return[] = $paymentMethod;
             }

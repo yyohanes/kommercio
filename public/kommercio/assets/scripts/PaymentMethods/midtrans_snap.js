@@ -1,11 +1,11 @@
 var KommercioMidtransSnap = function(){
   return {
     init: function(order_id, $form, options){
-      if(typeof KommercioFrontend.runtimeObjects.checkoutForm != 'undefined'){
+      if(typeof KommercioFrontend.runtimeObjects.checkoutForm != 'undefined' || typeof KommercioFrontend.runtimeObjects.invoiceForm != 'undefined'){
         var blocked = true;
 
-        if($form.find('input[name="shipping_method"]:checked').length > 0){
-          var $placeOrderBtn = $form.find('[name="process"][value="place_order"]');
+        if($form.find('input[name="shipping_method"]:checked').length > 0 || options.location == 'invoice'){
+          var $placeOrderBtn = $form.find('[name="process"][value="pay"], [name="process"][value="place_order"]');
 
           $placeOrderBtn.on('click', function(e){
             KommercioFrontend.toggleOverlay($form, true);

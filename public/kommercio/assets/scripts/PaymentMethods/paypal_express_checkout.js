@@ -1,9 +1,9 @@
 var KommercioPaypalExpressCheckout = function(){
   return {
     init: function(order_id, $form, options){
-      if(typeof KommercioFrontend.runtimeObjects.checkoutForm != 'undefined'){
-        if($form.find('input[name="shipping_method"]:checked').length > 0){
-          var $placeOrderBtn = $form.find('[name="process"][value="place_order"]');
+      if(typeof KommercioFrontend.runtimeObjects.checkoutForm != 'undefined' || typeof KommercioFrontend.runtimeObjects.invoiceForm != 'undefined'){
+        if($form.find('input[name="shipping_method"]:checked').length > 0 || options.location == 'invoice'){
+          var $placeOrderBtn = $form.find('[name="process"][value="pay"], [name="process"][value="place_order"]');
 
           if($('#paypal-btn').length == 0){
             $placeOrderBtn.after('<div id="paypal-btn"></div>');

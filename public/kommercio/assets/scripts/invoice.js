@@ -15,12 +15,20 @@
       plugin.settings = $.extend({}, defaults, options);
 
       plugin.initComponent(element);
+      KommercioFrontend.runtimeObjects.invoiceForm = $element;
+      $element.trigger('invoice_form.initialized', [plugin]);
     }
 
     plugin.initComponent = function(context)
     {
+      // Submit form with appended input[hidden][name="payment_method"]
+      $element.find('[name="payment_method"]').on('change', function(){
+        $element.append('<input name="change_payment_method" type="hidden" value="1" />');
+        $element.submit();
+      });
+
       $element.on('submit', function(){
-        $element.triggerHandler('submit_payment', [invoiceFormData]);
+        $element.trigger('submit_payment', [invoiceFormData]);
 
         KommercioFrontend.clearErrors(element);
 

@@ -14,9 +14,19 @@ abstract class PaymentMethodAbstract
      */
     public function validate($options = null)
     {
-        $valid = TRUE;
+        $valid = $this->paymentMethod->active
+            && (count($this->availableLocations()) == 0 || in_array($options['location'],  $this->availableLocations()));
 
         return $valid;
+    }
+
+    /**
+     * Determine locations where this Payment Method can be used
+     * Empty array means available in all location
+     */
+    public function availableLocations()
+    {
+        return [];
     }
 
     /**

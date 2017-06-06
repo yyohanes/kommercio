@@ -20,8 +20,9 @@
 <script type="text/javascript">
     (function(){
       $(document).ready(function(){
+        // Purposely hide checkout button because we want to checkout with Paypal button instead
         var $form = $('#paypal-express-checkout-wrapper').parents('form');
-        var $placeOrderBtn = $form.find('[name="process"][value="place_order"]');
+        var $placeOrderBtn = $form.find('[name="process"][value="pay"], [name="process"][value="place_order"]');
         $placeOrderBtn.hide();
       });
 
@@ -31,8 +32,9 @@
                     '{{ $order->public_id }}',
                     $('#paypal-express-checkout-wrapper').parents('form'),
                     {
-                        environment: '{{ $paymentMethod->getEnvironment() }}',
-                        createPaymentUrl: '{{ route('frontend.payment_method.paypal.express_checkout.create') }}'
+                      environment: '{{ $paymentMethod->getEnvironment() }}',
+                      createPaymentUrl: '{{ route('frontend.payment_method.paypal.express_checkout.create') }}',
+                      location: '{{ $paymentMethod->paymentMethod->location  }}'
                     }
                 );
             });

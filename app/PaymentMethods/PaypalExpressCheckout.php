@@ -20,6 +20,9 @@ class PaypalExpressCheckout extends PaymentMethodAbstract implements PaymentMeth
 {
     private $_apiContext;
 
+    /**
+     * @inheritdoc
+     */
     public function getSummary(Order $order, $options = null)
     {
         $view = ProjectHelper::getViewTemplate('frontend.order.payment_method.paypal.express_checkout');

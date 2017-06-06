@@ -14,6 +14,12 @@ use Kommercio\Models\PaymentMethod\PaymentMethod;
 
 class InvoiceController extends Controller
 {
+    /**
+     * Render public invoice page
+     *
+     * @param $public_id Public id of the invoice
+     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View View response
+     */
     public function view($public_id)
     {
         $invoice = Invoice::findPublic($public_id);
@@ -31,7 +37,7 @@ class InvoiceController extends Controller
     }
 
     /**
-     * Process the payment. Payment processing follows one-page-checkout process.
+     * Process the payment. Payment processing copies one-page-checkout process.
      * Thus, so we don't need to create different payment process for invoice payment
      * @param Request $request
      * @param $public_id
@@ -56,6 +62,14 @@ class InvoiceController extends Controller
             'payment_method' => 'required|exists:payment_methods,id'
         ];
         $this->validate($request, $rules);
+
+        // If change_payment_method is true, we save new payment method and reload
+        if($request->input('change_payment_method', false)){
+            $order->paymentMethod()->associate($request->input('payment_method'));
+            $order->save();
+
+            return redirect()->route('frontend.order.invoice.view', ['public_id' => $public_id]);
+        }
 
         $paymentMethod = PaymentMethod::find($request->input('payment_method'));
 
@@ -93,7 +107,7 @@ class InvoiceController extends Controller
         $paymentMethods = PaymentMethod::getPaymentMethods([
             'frontend' => true,
             'order' => $order,
-        ]);
+        ], 'invoice');
 
         return $paymentMethods;
     }

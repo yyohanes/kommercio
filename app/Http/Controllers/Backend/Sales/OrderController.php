@@ -231,7 +231,7 @@ class OrderController extends Controller{
         $stickyProducts = Product::joinDetail($store_id)->selectSelf()->active()->where('sticky_line_item', 1)->orderBy('sort_order', 'ASC')->get();
 
         $paymentMethodOptions = [];
-        foreach(PaymentMethod::getPaymentMethods(['frontend' => FALSE]) as $paymentMethod){
+        foreach(PaymentMethod::getPaymentMethods(null, PaymentMethod::LOCATION_BACKOFFICE) as $paymentMethod){
             $paymentMethodOptions[$paymentMethod->id] = $paymentMethod->name;
         }
 
@@ -356,9 +356,8 @@ class OrderController extends Controller{
         $order = new Order();
 
         $paymentMethods = PaymentMethod::getPaymentMethods([
-            'order' => $order,
-            'frontend' => FALSE
-        ]);
+            'order' => $order
+        ], PaymentMethod::LOCATION_BACKOFFICE);
 
         $paymentMethodOptions = [];
         foreach($paymentMethods as $paymentMethod){
@@ -565,9 +564,8 @@ class OrderController extends Controller{
         $lineItems = old('line_items', $order->lineItems);
 
         $paymentMethods = PaymentMethod::getPaymentMethods([
-            'order' => $order,
-            'frontend' => FALSE
-        ]);
+            'order' => $order
+        ], PaymentMethod::LOCATION_BACKOFFICE);
 
         $paymentMethodOptions = [];
         foreach($paymentMethods as $paymentMethod){

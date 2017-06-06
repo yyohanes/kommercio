@@ -13,7 +13,8 @@
                     {
                         environment: '{{ $paymentMethod->getEnvironment() }}',
                         getToken: '{{ route('frontend.payment_method.midtrans.snap.token') }}',
-                        errorMessage: '{{ LanguageHelper::getTranslationKey('frontend.checkout.payment.error') }}'
+                        errorMessage: '{{ LanguageHelper::getTranslationKey('frontend.checkout.payment.error') }}',
+                      location: '{{ $paymentMethod->paymentMethod->location  }}'
                     }
                 );
             });
