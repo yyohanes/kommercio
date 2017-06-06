@@ -75,7 +75,7 @@ class Bookmark extends Model
             if(is_int($type)){
                 $bookmarkType = BookmarkType::find($type);
             }elseif(is_string($type)){
-                $bookmarkType = BookmarkType::findBySlug($type);
+                $bookmarkType = BookmarkType::where('slug', $type)->first();
             }elseif($type instanceof BookmarkType){
                 $bookmarkType = $type;
             }

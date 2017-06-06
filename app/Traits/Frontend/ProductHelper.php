@@ -59,8 +59,6 @@ trait ProductHelper
 
     public function isInStock()
     {
-        $return = true;
-
         if($this->combination_type == Product::COMBINATION_TYPE_VARIABLE){
             return count($this->getInStockVariations()) > 0;
         }else{
@@ -242,14 +240,21 @@ trait ProductHelper
         return route('frontend.catalog.product.composite.view', $pathParams);
     }
 
-    public function bookmarked(Customer $customer, $type)
+    /**
+     * @param Customer|null $customer
+     * @param $type
+     * @return bool
+     */
+    public function bookmarked($customer, $type)
     {
-        $bookmark = $customer->bookmarks->filter(function($bookmark) use ($type){
-            return $bookmark->bookmarkType->slug == $type;
-        })->first();
+        if($customer){
+            $bookmark = $customer->bookmarks->filter(function($bookmark) use ($type){
+                return $bookmark->bookmarkType->slug == $type;
+            })->first();
 
-        if($bookmark){
-            return $bookmark->products->pluck('id')->contains($this->id);
+            if($bookmark){
+                return $bookmark->products->pluck('id')->contains($this->id);
+            }
         }
 
         return false;

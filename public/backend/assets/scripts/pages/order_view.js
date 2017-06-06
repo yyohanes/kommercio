@@ -8,6 +8,17 @@ var OrderView = function () {
         });
     }
 
+    var handleDeliveryOrderRows = function()
+    {
+        $('.delivery-order-view-btn', '#delivery-order-index-wrapper').on('click', function(e){
+            e.preventDefault();
+
+            orderDeliveryOrderBehaviors.toggleView($(this).data('delivery_order_id'));
+        });
+
+        $('.delivery-order-view-row', '#delivery-order-index-wrapper').hide();
+    }
+
     var handleOrderInternalMemoForm = function()
     {
         $('#internal-memo-add-btn').on('click', function(e){
@@ -17,12 +28,25 @@ var OrderView = function () {
         });
     }
 
+    var handleOrderExternalMemoForm = function()
+    {
+      $('#external-memo-add-btn').on('click', function(e){
+        e.preventDefault();
+
+        orderExternalMemoFormBehaviors.loadForm('?new_form');
+      });
+
+      orderExternalMemoFormBehaviors.handleBtns('#external-memo-index-wrapper');
+    }
+
     return {
 
         //main function to initiate the module
         init: function () {
             handleOrderPaymentForm();
             handleOrderInternalMemoForm();
+            handleOrderExternalMemoForm();
+            handleDeliveryOrderRows();
 
             $(document).ajaxComplete(function( event,request, settings ) {
                 App.unblockUI('#order-wrapper');
@@ -30,6 +54,12 @@ var OrderView = function () {
         }
     };
 }();
+
+var orderDeliveryOrderBehaviors = {
+    toggleView: function($id){
+        $('#delivery-order-'+$id+'-view').toggle();
+    }
+};
 
 var orderPaymentFormBehaviors = {
     initAjax: function(context){
@@ -179,7 +209,7 @@ var orderInternalMemoFormBehaviors = {
                         });
 
                         orderInternalMemoFormBehaviors.closeForm();
-                        orderInternalMemoFormBehaviors.refreshOrderPaymentIndex();
+                        orderInternalMemoFormBehaviors.refreshInternalMemoIndex();
                     }
                 },
                 'error': function(xhr){
@@ -246,7 +276,7 @@ var orderInternalMemoFormBehaviors = {
     {
         $('#internal-memo-form-wrapper').empty();
     },
-    refreshOrderPaymentIndex: function()
+    refreshInternalMemoIndex: function()
     {
         $.ajax($('#internal-memo-form-wrapper').data('internal_memo_index'), {
             'method': 'GET',
@@ -260,6 +290,159 @@ var orderInternalMemoFormBehaviors = {
             }
         });
     }
+};
+
+var orderExternalMemoFormBehaviors = {
+    handleBtns: function(context){
+      $('.external-memo-edit-btn', context).on('click', function(e){
+        e.preventDefault();
+
+        orderExternalMemoFormBehaviors.loadForm('?edit_form', $(this).attr('href'));
+      });
+
+      $('[data-external_memo_delete]', context).on('click', function (e) {
+        e.preventDefault();
+      });
+    },
+  initAjax: function(context){
+    $('#external-memo-save', context).click(function(e){
+      e.preventDefault();
+
+      formHelper.clearFormError({
+        'wrapper': '#external-memo-form-wrapper'
+      });
+
+      App.blockUI({
+        target: '#order-wrapper',
+        boxed: true,
+        message: 'Saving external memo...'
+      });
+
+      $.ajax($(this).data('external_memo_save'), {
+        'method': 'POST',
+        'data': $('#external-memo-form-wrapper :input').serialize(),
+        'success': function(data){
+          if(data.result == 'success'){
+            $.bootstrapGrowl(data.message, {
+              ele: 'body', // which element to append to
+              type: 'success', // (null, 'info', 'danger', 'success')
+              offset: {from: 'top', amount: 20}, // 'top', or 'bottom'
+              align: 'right', // ('left', 'right', or 'center')
+              width: 250, // (integer, or 'auto')
+              delay: 4000, // Time while the message will be displayed. It's not equivalent to the *demo* timeOut!
+              allow_dismiss: true, // If true then will display a cross to close the popup.
+              stackup_spacing: 10 // spacing between consecutively stacked growls.
+            });
+
+            orderExternalMemoFormBehaviors.closeForm();
+            orderExternalMemoFormBehaviors.refreshExternalMemoIndex();
+          }
+        },
+        'error': function(xhr){
+          for(var i in xhr.responseJSON){
+            var $errorName = formHelper.convertDotToSquareBracket(i);
+            formHelper.addFieldError({
+              'name': $errorName,
+              'message': xhr.responseJSON[i][0],
+              'context': '#external-memo-form-wrapper',
+              'messagesWrapper' : '#external-memo-form-messages'
+            });
+
+            App.scrollTo($('#external-memo-form-wrapper'));
+          }
+
+          formBehaviors.initComponents(context);
+        }
+      });
+    });
+
+    $('#external-memo-cancel', context).on('click', function(e){
+      e.preventDefault();
+
+      orderExternalMemoFormBehaviors.closeForm();
+    });
+  },
+  loadForm: function(formData, formUrl, method, message){
+    if(typeof method === 'undefined'){
+      method = 'GET';
+    }
+
+    if(typeof message === 'undefined'){
+      message = 'Loading form...';
+    }
+
+    if(typeof formUrl === 'undefined'){
+      formUrl = $('#external-memo-form-wrapper').data('external_memo_form');
+    }
+
+    App.blockUI({
+      target: '#order-wrapper',
+      boxed: true,
+      message: message
+    });
+
+    $.ajax(formUrl, {
+      'method': method,
+      'data': formData,
+      'success': function(data){
+        var $externalMemoForm = $(data.html);
+
+        $('#external-memo-form-wrapper').html($externalMemoForm);
+
+        formBehaviors.init($externalMemoForm);
+        orderExternalMemoFormBehaviors.initAjax($externalMemoForm);
+        App.initAjax();
+      },
+      'error': function(xhr){
+        alert('An error occured. Please refresh this page.');
+      }
+    });
+  },
+  closeForm: function()
+  {
+    $('#external-memo-form-wrapper').empty();
+  },
+  refreshExternalMemoIndex: function()
+  {
+    $.ajax($('#external-memo-form-wrapper').data('external_memo_index'), {
+      'method': 'GET',
+      'success': function(data){
+        var $externalMemoIndex = $(data.html);
+
+        $('#external-memo-index-wrapper').html($externalMemoIndex);
+
+        orderExternalMemoFormBehaviors.handleBtns($externalMemoIndex);
+        formBehaviors.init($externalMemoIndex);
+        App.initAjax();
+      }
+    });
+  },
+  deleteExternalMemo: function()
+  {
+    App.blockUI({
+      target: '#order-wrapper',
+      boxed: true,
+      message: 'Deleting external memo...'
+    });
+
+    $.ajax($(this).data('external_memo_delete'), {
+      method: 'POST',
+      success: function(data){
+        $.bootstrapGrowl(data.message, {
+          ele: 'body', // which element to append to
+          type: 'success', // (null, 'info', 'danger', 'success')
+          offset: {from: 'top', amount: 20}, // 'top', or 'bottom'
+          align: 'right', // ('left', 'right', or 'center')
+          width: 250, // (integer, or 'auto')
+          delay: 4000, // Time while the message will be displayed. It's not equivalent to the *demo* timeOut!
+          allow_dismiss: true, // If true then will display a cross to close the popup.
+          stackup_spacing: 10 // spacing between consecutively stacked growls.
+        });
+
+        orderExternalMemoFormBehaviors.refreshExternalMemoIndex();
+      }
+    });
+  }
 };
 
 jQuery(document).ready(function() {

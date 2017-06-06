@@ -4,7 +4,6 @@ namespace Kommercio\Models\ProductFeature;
 
 use Illuminate\Database\Eloquent\Model;
 use Dimsav\Translatable\Translatable;
-use Kommercio\Facades\ProductIndexHelper;
 use Kommercio\Models\Product;
 
 class ProductFeatureValue extends Model
@@ -20,13 +19,13 @@ class ProductFeatureValue extends Model
     ];
 
     //Methods
-    public function newPivot(Model $parent, array $attributes, $table, $exists)
+    public function newPivot(Model $parent, array $attributes, $table, $exists, $using = null)
     {
         if ($parent instanceof Product) {
-            return new FeatureValuePivot($parent, $attributes, $table, $exists);
+            return new FeatureValuePivot($parent, $attributes, $table, $exists, $using);
         }
 
-        return parent::newPivot($parent, $attributes, $table, $exists);
+        return parent::newPivot($parent, $attributes, $table, $exists, $using);
     }
 
     //Relations

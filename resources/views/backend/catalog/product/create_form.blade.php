@@ -464,6 +464,9 @@
                                 <th> Price </th>
                                 <th> Net Price </th>
                                 <th> Attributes </th>
+                                @if(ProjectHelper::isFeatureEnabled('catalog.product_features'))
+                                <th> Features </th>
+                                @endif
                                 <th> Actions </th>
                             </tr>
                             </thead>

@@ -2,25 +2,18 @@
 
 namespace Kommercio\Models\Product\Composite;
 
-use Cviebrock\EloquentSluggable\SluggableInterface;
-use Cviebrock\EloquentSluggable\SluggableTrait;
 use Dimsav\Translatable\Translatable;
-use Illuminate\Database\Eloquent\Model;
 use Kommercio\Facades\RuntimeCache;
+use Kommercio\Models\Abstracts\SluggableModel;
 use Kommercio\Models\Product;
 
-class ProductComposite extends Model implements SluggableInterface
+class ProductComposite extends SluggableModel
 {
-    use Translatable, SluggableTrait;
+    use Translatable;
 
     public $translatedAttributes = ['label'];
 
     protected $fillable = ['name', 'slug', 'label', 'minimum', 'maximum', 'sort_order', 'free'];
-    protected $sluggable = [
-        'build_from' => 'name',
-        'save_to'    => 'slug',
-        'on_update' => TRUE,
-    ];
     protected $casts = [
         'free' => 'boolean'
     ];

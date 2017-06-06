@@ -33,23 +33,23 @@ class ProductFormRequest extends Request
             'name' => 'required',
             'slug' => 'required',
             'default_category' => 'required_with:categories',
-            'manufacturer_id' => 'in:'.$allowedManufacturerOptions,
-            'width' => 'numeric',
-            'length' => 'numeric',
-            'depth' => 'numeric',
-            'weight' => 'numeric',
+            'manufacturer_id' => 'nullable|in:'.$allowedManufacturerOptions,
+            'width' => 'nullable|numeric',
+            'length' => 'nullable|numeric',
+            'depth' => 'nullable|numeric',
+            'weight' => 'nullable|numeric',
             'store_id' => 'required|integer',
             'productDetail.visibility' => 'required',
-            'productDetail.available_date_from' => 'date_format:Y-m-d H:i',
-            'productDetail.available_date_to' => 'date_format:Y-m-d H:i',
-            'productDetail.active_date_from' => 'date_format:Y-m-d H:i',
-            'productDetail.active_date_to' => 'date_format:Y-m-d H:i',
+            'productDetail.available_date_from' => 'nullable|date_format:Y-m-d H:i',
+            'productDetail.available_date_to' => 'nullable|date_format:Y-m-d H:i',
+            'productDetail.active_date_from' => 'nullable|date_format:Y-m-d H:i',
+            'productDetail.active_date_to' => 'nullable|date_format:Y-m-d H:i',
             'productDetail.retail_price' => 'required|numeric',
             'productDetail.manage_stock' => 'boolean',
             'productDetail.taxable' => 'boolean',
-            'productDetail.sort_order' => 'integer',
-            'stock' => 'numeric',
-            'variation.*.stock' => 'numeric',
+            'productDetail.sort_order' => 'nullable|integer',
+            'stock' => 'nullable|numeric',
+            'variation.*.stock' => 'nullable|numeric',
             'variation.*.productDetail.manage_stock' => 'boolean',
             'product_composite_group.*' => 'exists:product_composite_groups,id',
             'product_configuration_group.*' => 'exists:product_configuration_groups,id'
@@ -62,7 +62,7 @@ class ProductFormRequest extends Request
 
             foreach($this->input('compositeConfigurations', []) as $idx => $compositeConfiguration){
                 $rules['composite_products_'.$idx.'_product'] = 'required|array';
-                $rules['composite_products_'.$idx.'_product.*'] = 'numeric|exists:products,id';
+                $rules['composite_products_'.$idx.'_product.*'] = 'nullable|numeric|exists:products,id';
             }
         }
 
@@ -93,6 +93,9 @@ class ProductFormRequest extends Request
         }
         if(!$this->has('productDetail.manage_stock')){
             $attributes['productDetail']['manage_stock'] = 0;
+        }
+        if(empty($attributes['productDetail.sort_order'])){
+            $attributes['productDetail']['sort_order'] = 0;
         }
 
 

@@ -33,9 +33,9 @@ class CustomerFormRequest extends Request
 
         $rules = [
             'profile.email' => 'email|required_with:user.create_account|unique:users,email'.($user?','.$user->id:null),
-            'profile.salute' => 'in:'.implode(',', $saluteAllowedOptions),
+            'profile.salute' => 'nullable|in:'.implode(',', $saluteAllowedOptions),
             'profile.full_name' => 'required',
-            'profile.birthday' => 'date_format:Y-m-d',
+            'profile.birthday' => 'nullable|date_format:Y-m-d',
             'user.password' => 'confirmed|min:6',
             'user.status' => 'required_with:user.create_account|in:'.implode(',', $statusAllowedOptions),
             'store_id' => 'required|integer',

@@ -3,11 +3,13 @@
 namespace Kommercio\Models;
 
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+use Kommercio\Notifications\Auth\ResetPasswordNotification;
 use Kommercio\Traits\Model\Profileable;
 
 class User extends Authenticatable
 {
-    use Profileable;
+    use Profileable, Notifiable;
 
     const STATUS_ACTIVE = 'active';
     const STATUS_INACTIVE = 'inactive';
@@ -49,6 +51,11 @@ class User extends Authenticatable
         }
 
         return $this->_managed_stores;
+    }
+
+    public function sendPasswordResetNotification($token)
+    {
+        $this->notify(new ResetPasswordNotification($this, $token));
     }
 
     //Accessors
@@ -123,7 +130,12 @@ class User extends Authenticatable
 
     public function customer()
     {
-        return $this->hasOne('Kommercio\Models\Customer');
+        return $this->hasOne(Customer::class);
+    }
+
+    public function socialAccounts()
+    {
+        return $this->hasMany(SocialAccount::class);
     }
 
     //Statics

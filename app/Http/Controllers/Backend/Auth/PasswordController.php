@@ -2,6 +2,7 @@
 
 namespace Kommercio\Http\Controllers\Backend\Auth;
 
+use Illuminate\Foundation\Auth\SendsPasswordResetEmails;
 use Kommercio\Http\Controllers\Controller;
 use Illuminate\Foundation\Auth\ResetsPasswords;
 
@@ -20,7 +21,7 @@ class PasswordController extends Controller
 
     protected $linkRequestView;
 
-    use ResetsPasswords;
+    use SendsPasswordResetEmails, ResetsPasswords;
 
     /**
      * Create a new password controller instance.

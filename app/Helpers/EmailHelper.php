@@ -4,6 +4,7 @@ namespace Kommercio\Helpers;
 
 use Illuminate\Support\Facades\Mail;
 use Kommercio\Facades\ProjectHelper as ProjectHelperFacade;
+use Kommercio\Mail\DefaultMail;
 use Kommercio\Models\Store;
 
 class EmailHelper
@@ -35,20 +36,15 @@ class EmailHelper
 
     public function sendMail($to, $subject, $template, $data, $contact='general', $callback = null, $queue = true, $preview=FALSE)
     {
-        $contact = $this->getContact($contact, (isset($data['store'])?$data['store']:null));
-        $template = $this->getTemplate($template);
-
         if(!$preview){
             $sendFunction = $queue?'queue':'send';
-            $result = Mail::$sendFunction($template, $data, function ($message) use ($contact, $data, $subject, $to, $callback) {
-                if ($callback && $callback instanceof \Closure) {
-                    call_user_func($callback, $message);
-                }
 
-                $message->from($contact['email'], $contact['name']);
-                $message->to($to);
-                $message->subject($subject);
-            });
+            $mail = new DefaultMail($to, $subject, $template, $data, $contact);
+            if ($callback && $callback instanceof \Closure) {
+                call_user_func($callback, $mail);
+            }
+
+            $result = Mail::$sendFunction($mail);
         }else{
             $result = view($template, $data);
         }

@@ -24,7 +24,7 @@ class FrontendServiceProvider extends ServiceProvider
 
             $user = Auth::user();
             $view->with('loggedInUser', $user);
-            $view->with('loggedInCustomer', $user?$user->customer:new Customer());
+            $view->with('loggedInCustomer', $user?$user->customer:null);
 
             $viewsData = $view->getData();
 

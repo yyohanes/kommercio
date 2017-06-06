@@ -16,6 +16,7 @@ class ShippingController extends Controller
         $order = OrderHelper::createDummyOrderFromRequest($request);
 
         $shippingOptions = ShippingMethod::getShippingMethods([
+            'order' => $order,
             'subtotal' => $order->calculateSubtotal()
         ]);
 

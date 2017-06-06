@@ -3,6 +3,7 @@
 namespace Kommercio\Http\Controllers\Frontend;
 
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Request as RequestFacade;
@@ -100,7 +101,6 @@ class OrderController extends Controller
                     'is_active',
                     'is_purchaseable',
                     'is_in_stock:'.$inputProduct['quantity'],
-                    'category_order_limit:'.$inputProduct['quantity'].','.$order->id,
                     'per_order_limit:'.$inputProduct['quantity'].','.$order->id,
                     'delivery_order_limit:'.$inputProduct['quantity'].','.$order->id.($order->delivery_date?','.$order->delivery_date->format('Y-m-d'):null),
                     'today_order_limit:'.$inputProduct['quantity'].','.$order->id,
@@ -905,6 +905,8 @@ class OrderController extends Controller
 
             OrderHelper::processLineItems($request, $order, false);
 
+            Event::fire(new OrderEvent('before_checkout_calculate_total', $order));
+
             $order->load('lineItems');
             $order->calculateTotal();
 
@@ -937,7 +939,10 @@ class OrderController extends Controller
                 if($viewData['step'] == 'complete'){
                     $response = new JsonResponse([
                         'data' => [
-                            'checkout' => $this->checkoutComplete($request, $order)->render()
+                            'checkout' => $this->checkoutComplete($request, $order)->render(),
+                        ],
+                        'order' => [
+                            'public_id' => $order->public_id
                         ],
                         'step' => 'complete',
                         '_token' => csrf_token()
@@ -994,6 +999,24 @@ class OrderController extends Controller
 
         $seoData = [
             'meta_title' => trans(LanguageHelper::getTranslationKey('frontend.seo.order.checkout_complete.meta_title'))
+        ];
+
+        return view($view_name, ['order' => $order, 'seoData' => $seoData]);
+    }
+
+    public function view($public_id)
+    {
+        $order = Order::findPublic($public_id);
+        if(!$order){
+            throw (new ModelNotFoundException)->setModel(
+                get_class($order), $public_id
+            );
+        }
+
+        $view_name = ProjectHelper::getViewTemplate('frontend.order.view');
+
+        $seoData = [
+            'meta_title' => trans(LanguageHelper::getTranslationKey('frontend.seo.order.view.meta_title'), ['reference' => $order->reference])
         ];
 
         return view($view_name, ['order' => $order, 'seoData' => $seoData]);
@@ -1237,7 +1260,8 @@ class OrderController extends Controller
     {
         $shippingMethodOptions = ShippingMethod::getShippingMethods([
             'order' => $order,
-            'frontend' => true
+            'frontend' => true,
+            'request' => $request
         ]);
 
         return [
@@ -1250,6 +1274,7 @@ class OrderController extends Controller
         $paymentMethods = PaymentMethod::getPaymentMethods([
             'frontend' => true,
             'order' => $order,
+            'request' => $request
         ]);
 
         $paymentMethodOptions = [];
@@ -1367,7 +1392,6 @@ class OrderController extends Controller
                     'is_active',
                     'is_in_stock:'.$productLineItem->quantity,
                     'is_purchaseable',
-                    'category_order_limit:'.$productLineItem->quantity.','.$order->id,
                     'per_order_limit:'.$productLineItem->quantity.','.$order->id,
                     'delivery_order_limit:'.$productLineItem->quantity.','.$order->id.($order->delivery_date?','.$order->delivery_date->format('Y-m-d'):null),
                     'today_order_limit:'.$productLineItem->quantity.','.$order->id,

@@ -39,7 +39,7 @@ class UserFormRequest extends Request
             'password' => ($user_id?'':'required|').'confirmed|min:6',
             'status' => 'required|in:'.implode(',', $statusAllowedOptions),
             'role' => 'required|in:'.implode(',', $roleAllowedOptions),
-            'stores.*' => 'in:'.implode(',', $storeAllowedOptions),
+            'stores.*' => 'nullable|in:'.implode(',', $storeAllowedOptions),
         ];
 
         return $rules;

@@ -1,24 +1,23 @@
 /*! HTML5 Boilerplate v5.0 | MIT License | http://h5bp.com/ */
 /* line 3, sass/print.scss */
 html {
-  color: #222;
   font-size: 1em;
   line-height: 1.4;
 }
 
-/* line 9, sass/print.scss */
+/* line 8, sass/print.scss */
 ::-moz-selection {
   background: #b3d4fc;
   text-shadow: none;
 }
 
-/* line 14, sass/print.scss */
+/* line 13, sass/print.scss */
 ::selection {
   background: #b3d4fc;
   text-shadow: none;
 }
 
-/* line 19, sass/print.scss */
+/* line 18, sass/print.scss */
 hr {
   display: block;
   height: 1px;
@@ -28,7 +27,7 @@ hr {
   padding: 0;
 }
 
-/* line 28, sass/print.scss */
+/* line 27, sass/print.scss */
 audio,
 canvas,
 iframe,
@@ -38,19 +37,19 @@ video {
   vertical-align: middle;
 }
 
-/* line 37, sass/print.scss */
+/* line 36, sass/print.scss */
 fieldset {
   border: 0;
   margin: 0;
   padding: 0;
 }
 
-/* line 43, sass/print.scss */
+/* line 42, sass/print.scss */
 textarea {
   resize: vertical;
 }
 
-/* line 47, sass/print.scss */
+/* line 46, sass/print.scss */
 .browserupgrade {
   margin: 0.2em 0;
   background: #ccc;
@@ -61,12 +60,12 @@ textarea {
 /* ===== Initializr Styles ==================================================
    Author: Jonathan Verrecchia - verekia.com/initializr/responsive-template
    ========================================================================== */
-/* line 59, sass/print.scss */
+/* line 58, sass/print.scss */
 body {
   font: 14px/24px Helvetica, Helvetica Neue, Arial;
 }
 
-/* line 63, sass/print.scss */
+/* line 62, sass/print.scss */
 .wrapper {
   width: 90%;
   margin: 0 5%;
@@ -75,14 +74,14 @@ body {
 /* ==============
     MOBILE: Menu
    ============== */
-/* line 72, sass/print.scss */
+/* line 71, sass/print.scss */
 nav ul {
   margin: 0;
   padding: 0;
   list-style-type: none;
 }
 
-/* line 78, sass/print.scss */
+/* line 77, sass/print.scss */
 nav a {
   display: block;
   margin-bottom: 10px;
@@ -94,13 +93,13 @@ nav a {
   background: #e44d26;
 }
 
-/* line 91, sass/print.scss */
+/* line 90, sass/print.scss */
 nav a:hover,
 nav a:visited {
   color: white;
 }
 
-/* line 96, sass/print.scss */
+/* line 95, sass/print.scss */
 nav a:hover {
   text-decoration: underline;
 }
@@ -108,23 +107,23 @@ nav a:hover {
 /* ==============
     MOBILE: Main
    ============== */
-/* line 104, sass/print.scss */
+/* line 103, sass/print.scss */
 .main {
   padding: 30px 0;
 }
 
-/* line 108, sass/print.scss */
+/* line 107, sass/print.scss */
 .main article h1 {
   font-size: 2em;
 }
 
-/* line 112, sass/print.scss */
+/* line 111, sass/print.scss */
 .main aside {
   color: white;
   padding: 0px 5% 10px;
 }
 
-/* line 117, sass/print.scss */
+/* line 116, sass/print.scss */
 .footer-container footer {
   color: white;
   padding: 20px 0;
@@ -133,7 +132,7 @@ nav a:hover {
 /* ===============
     ALL: IE Fixes
    =============== */
-/* line 126, sass/print.scss */
+/* line 125, sass/print.scss */
 .ie7 .title {
   padding-top: 20px;
 }
@@ -141,101 +140,101 @@ nav a:hover {
 /* ==========================================================================
    Author's custom styles
    ========================================================================== */
-/* line 133, sass/print.scss */
+/* line 132, sass/print.scss */
 body {
   font-size: 12px;
   line-height: 1.25em;
 }
 
-/* line 138, sass/print.scss */
+/* line 137, sass/print.scss */
 .text-left {
   text-align: left;
 }
 
-/* line 142, sass/print.scss */
+/* line 141, sass/print.scss */
 .text-right {
   text-align: right;
 }
 
-/* line 146, sass/print.scss */
+/* line 145, sass/print.scss */
 .text-center {
   text-align: center;
 }
 
-/* line 150, sass/print.scss */
+/* line 149, sass/print.scss */
 .vertical-top {
   vertical-align: top;
 }
 
-/* line 154, sass/print.scss */
+/* line 153, sass/print.scss */
 .vertical-middle {
   vertical-align: middle;
 }
 
-/* line 158, sass/print.scss */
+/* line 157, sass/print.scss */
 .vertical-bottom {
   vertical-align: bottom;
 }
 
-/* line 162, sass/print.scss */
+/* line 161, sass/print.scss */
 ul, ol {
   padding: 0 0 0 1.4em;
 }
 
-/* line 163, sass/print.scss */
+/* line 162, sass/print.scss */
 ul li, ol li {
   margin: 0.25em 0;
 }
 
-/* line 165, sass/print.scss */
+/* line 164, sass/print.scss */
 table.no-border tr, table.no-border tr td {
   border: none;
 }
 
-/* line 167, sass/print.scss */
+/* line 166, sass/print.scss */
 table {
   width: 100%;
 }
 
-/* line 168, sass/print.scss */
+/* line 167, sass/print.scss */
 table td {
   vertical-align: top;
 }
 
-/* line 170, sass/print.scss */
+/* line 169, sass/print.scss */
 table tr td.no-border {
   border: none;
 }
 
-/* line 172, sass/print.scss */
+/* line 171, sass/print.scss */
 table.content-table {
   border-collapse: collapse;
   margin: 0 0 1.5em;
 }
 
-/* line 173, sass/print.scss */
+/* line 172, sass/print.scss */
 table.content-table td, table.content-table th {
   padding: 3px;
   border: 1px solid #999;
 }
 
-/* line 175, sass/print.scss */
+/* line 174, sass/print.scss */
 .bordered-box {
   padding: 1em;
   border: 1px solid #999;
 }
 
-/* line 177, sass/print.scss */
+/* line 176, sass/print.scss */
 .vertical-spacer {
   height: 50px;
 }
 
-/* line 179, sass/print.scss */
+/* line 178, sass/print.scss */
 .page-break {
   page-break-before: always;
 }
 
-/* line 181, sass/print.scss */
+/* line 180, sass/print.scss */
 hr {
   margin: 0;
 }
@@ -247,7 +246,7 @@ hr {
   /* ====================
       INTERMEDIATE: Menu
      ==================== */
-  /* line 195, sass/print.scss */
+  /* line 194, sass/print.scss */
   nav a {
     float: left;
     width: 27%;
@@ -256,12 +255,12 @@ hr {
     margin-bottom: 0;
   }
 
-  /* line 203, sass/print.scss */
+  /* line 202, sass/print.scss */
   nav li:first-child a {
     margin-left: 0;
   }
 
-  /* line 207, sass/print.scss */
+  /* line 206, sass/print.scss */
   nav li:last-child a {
     margin-right: 0;
   }
@@ -269,12 +268,12 @@ hr {
   /* ========================
       INTERMEDIATE: IE Fixes
      ======================== */
-  /* line 215, sass/print.scss */
+  /* line 214, sass/print.scss */
   nav ul li {
     display: inline;
   }
 
-  /* line 219, sass/print.scss */
+  /* line 218, sass/print.scss */
   .oldie nav a {
     margin: 0 0.7%;
   }
@@ -283,12 +282,12 @@ hr {
   /* ============
       WIDE: Menu
      ============ */
-  /* line 230, sass/print.scss */
+  /* line 229, sass/print.scss */
   .title {
     float: left;
   }
 
-  /* line 234, sass/print.scss */
+  /* line 233, sass/print.scss */
   nav {
     float: right;
     width: 38%;
@@ -297,13 +296,13 @@ hr {
   /* ============
       WIDE: Main
      ============ */
-  /* line 243, sass/print.scss */
+  /* line 242, sass/print.scss */
   .main article {
     float: left;
     width: 57%;
   }
 
-  /* line 248, sass/print.scss */
+  /* line 247, sass/print.scss */
   .main aside {
     float: right;
     width: 28%;
@@ -313,7 +312,7 @@ hr {
   /* ===============
       Maximal Width
      =============== */
-  /* line 260, sass/print.scss */
+  /* line 259, sass/print.scss */
   .wrapper {
     width: 1026px;
     /* 1140px - 10% for margins */
@@ -323,13 +322,13 @@ hr {
 /* ==========================================================================
    Helper classes
    ========================================================================== */
-/* line 270, sass/print.scss */
+/* line 269, sass/print.scss */
 .hidden {
   display: none !important;
   visibility: hidden;
 }
 
-/* line 275, sass/print.scss */
+/* line 274, sass/print.scss */
 .visuallyhidden {
   border: 0;
   clip: rect(0 0 0 0);
@@ -341,7 +340,7 @@ hr {
   width: 1px;
 }
 
-/* line 286, sass/print.scss */
+/* line 285, sass/print.scss */
 .visuallyhidden.focusable:active,
 .visuallyhidden.focusable:focus {
   clip: auto;
@@ -352,29 +351,29 @@ hr {
   width: auto;
 }
 
-/* line 296, sass/print.scss */
+/* line 295, sass/print.scss */
 .invisible {
   visibility: hidden;
 }
 
-/* line 300, sass/print.scss */
+/* line 299, sass/print.scss */
 .clearfix:before,
 .clearfix:after {
   content: " ";
   display: table;
 }
 
-/* line 306, sass/print.scss */
+/* line 305, sass/print.scss */
 .clearfix:after {
   clear: both;
 }
 
-/* line 310, sass/print.scss */
+/* line 309, sass/print.scss */
 .clearfix {
   *zoom: 1;
 }
 
-/* line 314, sass/print.scss */
+/* line 313, sass/print.scss */
 .print-hidden {
   display: none;
 }
@@ -383,68 +382,67 @@ hr {
    Print styles
    ========================================================================== */
 @media print {
-  /* line 323, sass/print.scss */
+  /* line 322, sass/print.scss */
   html, body {
     font-family: 'Calibri';
     font-size: 11pt;
   }
 
-  /* line 328, sass/print.scss */
+  /* line 327, sass/print.scss */
   *,
   *:before,
   *:after {
     background: transparent !important;
-    color: #000 !important;
     box-shadow: none !important;
     text-shadow: none !important;
   }
 
-  /* line 337, sass/print.scss */
+  /* line 335, sass/print.scss */
   a,
   a:visited {
     text-decoration: underline;
   }
 
-  /* line 342, sass/print.scss */
+  /* line 340, sass/print.scss */
   a[href]:after {
     content: " (" attr(href) ")";
   }
 
-  /* line 346, sass/print.scss */
+  /* line 344, sass/print.scss */
   abbr[title]:after {
     content: " (" attr(title) ")";
   }
 
-  /* line 350, sass/print.scss */
+  /* line 348, sass/print.scss */
   a[href^="#"]:after,
   a[href^="javascript:"]:after {
     content: "";
   }
 
-  /* line 355, sass/print.scss */
+  /* line 353, sass/print.scss */
   pre,
   blockquote {
     border: 1px solid #999;
     page-break-inside: avoid;
   }
 
-  /* line 361, sass/print.scss */
+  /* line 359, sass/print.scss */
   thead {
     display: table-header-group;
   }
 
-  /* line 365, sass/print.scss */
+  /* line 363, sass/print.scss */
   tr,
   img {
     page-break-inside: avoid;
   }
 
-  /* line 370, sass/print.scss */
+  /* line 368, sass/print.scss */
   img {
     max-width: 100% !important;
   }
 
-  /* line 374, sass/print.scss */
+  /* line 372, sass/print.scss */
   p,
   h2,
   h3 {
@@ -452,13 +450,13 @@ hr {
     widows: 3;
   }
 
-  /* line 381, sass/print.scss */
+  /* line 379, sass/print.scss */
   h2,
   h3 {
     page-break-after: avoid;
   }
 
-  /* line 386, sass/print.scss */
+  /* line 384, sass/print.scss */
   footer {
     page-break-after: always;
   }

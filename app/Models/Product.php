@@ -6,12 +6,14 @@ use Carbon\Carbon;
 use Dimsav\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Kommercio\Facades\CurrencyHelper;
 use Kommercio\Facades\FrontendHelper;
 use Kommercio\Facades\ProductIndexHelper;
 use Kommercio\Facades\ProjectHelper;
 use Kommercio\Facades\RuntimeCache;
+use Kommercio\Models\Interfaces\CacheableInterface;
 use Kommercio\Models\Interfaces\SeoModelInterface;
 use Kommercio\Models\Interfaces\UrlAliasInterface;
 use Kommercio\Models\Order\LineItem;
@@ -21,12 +23,13 @@ use Kommercio\Models\ProductAttribute\ProductAttribute;
 use Kommercio\Models\ProductAttribute\ProductAttributeValue;
 use Kommercio\Models\RewardPoint\RewardRule;
 use Kommercio\Traits\Frontend\ProductHelper as FrontendProductHelper;
+use Kommercio\Traits\Model\OrderLimitTrait;
 use Kommercio\Traits\Model\SeoTrait;
 use Kommercio\Facades\PriceFormatter;
 
-class Product extends Model implements UrlAliasInterface, SeoModelInterface
+class Product extends Model implements UrlAliasInterface, SeoModelInterface, CacheableInterface
 {
-    use SoftDeletes, Translatable, SeoTrait, FrontendProductHelper;
+    use SoftDeletes, Translatable, SeoTrait, FrontendProductHelper, OrderLimitTrait;
 
     const TYPE_DEFAULT = 'default';
 
@@ -41,10 +44,6 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
     private $_store;
     private $_currency;
     private $_productDetail;
-    private $_retailPrice;
-    private $_retailPriceWithTax;
-    private $_netPrice;
-    private $_netPriceWithTax;
     private $_rewardPoints;
 
     public $translatedAttributes = ['name', 'description_short', 'description', 'slug', 'meta_title', 'meta_description', 'locale', 'thumbnail', 'thumbnails', 'images'];
@@ -202,8 +201,12 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
     {
         $defaultCategory = $this->defaultCategory;
 
-        $breadcrumbs = $defaultCategory->getBreadcrumbTrails();
-        $breadcrumbs[] = $defaultCategory;
+        if($defaultCategory){
+            $breadcrumbs = $defaultCategory->getBreadcrumbTrails();
+            $breadcrumbs[] = $defaultCategory;
+        }else{
+            $breadcrumbs = [];
+        }
 
         return $breadcrumbs;
     }
@@ -319,7 +322,7 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
 
     public function getRetailPrice($tax = false)
     {
-        if(!isset($this->_retailPrice)){
+        $retailPrice = Cache::rememberForever($this->getTable().'_'.$this->id.'.retail_price', function(){
             if($this->combination_type == self::COMBINATION_TYPE_VARIATION){
                 $price = $this->productDetail->retail_price?$this->productDetail->retail_price:$this->parent->productDetail->retail_price;
             }else{
@@ -332,35 +335,27 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
                 $price = $priceRule->getValue($price);
             }
 
-            $this->_retailPrice = $price;
+            return $price;
+        });
+
+        if($tax && $this->productDetail->taxable){
+            $retailPrice += $this->calculateTax($retailPrice);
         }
 
-        if(!isset($this->_retailPriceWithTax)){
-            if($this->productDetail->taxable){
-                $this->_retailPriceWithTax = $this->_retailPrice + $this->calculateTax($this->_retailPrice);
-            }else{
-                $this->_retailPriceWithTax = $this->_retailPrice;
-            }
-        }
-
-        return $tax?$this->_retailPriceWithTax:$this->_retailPrice;
+        return $retailPrice;
     }
 
     public function getNetPrice($tax = false)
     {
-        if(!isset($this->_netPrice)){
-            $this->_netPrice = $this->_calculateNetPrice();
+        $netPrice = Cache::rememberForever($this->getTable().'_'.$this->id.'.net_price', function(){
+            return $this->_calculateNetPrice();
+        });
+
+        if($tax && $this->productDetail->taxable){
+            $netPrice += $this->calculateTax($netPrice);
         }
 
-        if(!isset($this->_netPriceWithTax)){
-            if($this->productDetail->taxable){
-                $this->_netPriceWithTax = $this->_netPrice + $this->calculateTax($this->_netPrice);
-            }else{
-                $this->_netPriceWithTax = $this->_netPrice;
-            }
-        }
-
-        return $tax?$this->_netPriceWithTax:$this->_netPrice;
+        return $netPrice;
     }
 
     private function _calculateNetPrice()
@@ -601,11 +596,11 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
             return null;
         }
 
-        $warehouses = $this->warehouses;
-
         if(!$warehouse_id){
             $warehouse_id = $this->warehouse->id;
         }
+
+        $warehouses = $this->warehouses;
 
         $warehouse = $warehouses->find($warehouse_id);
 
@@ -814,99 +809,51 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
             ->get();
 
         return $priceRules;
-
-        /*
-         * AND per Option Group
-         */
-        /*$qb = PriceRule::notProductSpecific()->active()->orderBy('sort_order', 'ASC');
-        $qb->where(function($qb){
-            $categories = $this->categories;
-            $manufacturer = $this->manufacturer_id;
-            $features = $this->productFeatureValues;
-            $attributeValueIds = [];
-
-            if($this->isVariation){
-                $attributeValues = $this->productAttributeValues;
-                $attributeValueIds = $attributeValues->pluck('id')->all();
-            }else{
-                if($this->variations->count() > 0){
-                    $attributeValues = ProductAttributeValue::whereHas('products', function($query){
-                        $query->whereIn('product_id', $this->variations->pluck('id')->all());
-                    })->get();
-                    $attributeValueIds = $attributeValues->pluck('id')->all();
-                }
-            }
-
-            $firstValidation = true;
-
-            if($categories->count() > 0){
-                $validationFunction = $firstValidation?'whereHas':'orWhereHas';
-
-                $qb->$validationFunction('priceRuleOptionGroups.categories', function($query) use ($categories){
-                    $query->whereIn('id', $categories->pluck('id')->all());
-                });
-                $firstValidation = false;
-            }
-
-            if($features->count() > 0){
-                $validationFunction = $firstValidation?'whereHas':'orWhereHas';
-
-                $qb->$validationFunction('priceRuleOptionGroups.featureValues', function($query) use ($features){
-                    $query->whereIn('id', $features->pluck('id')->all());
-                });
-                $firstValidation = false;
-            }
-
-            if($manufacturer){
-                $validationFunction = $firstValidation?'whereHas':'orWhereHas';
-
-                $qb->$validationFunction('priceRuleOptionGroups.manufacturers', function($query) use ($manufacturer){
-                    $query->whereIn('id', [$manufacturer]);
-                });
-                $firstValidation = false;
-            }
-
-            if($attributeValueIds){
-                $validationFunction = $firstValidation?'whereHas':'orWhereHas';
-
-                $qb->$validationFunction('priceRuleOptionGroups.attributeValues', function($query) use ($attributeValueIds){
-                    $query->whereIn('id', $attributeValueIds);
-                });
-                $firstValidation = false;
-            }
-        });
-
-        $includedPriceRules = $qb->get();
-
-        return $includedPriceRules;*/
     }
 
+    /**
+     * Get number of products purchased
+     *
+     * @param array $options Possible options are store_id, checkout_at, delivery_date, exclude_order_id
+     * @return float
+     */
     public function getOrderCount($options = [])
     {
-        $qb = LineItem::isProduct($this->id)
-            ->whereHas('order', function($query) use ($options){
-                $query->usageCounted();
+        $countOptions = $options + ['product_id' => $this->id];
 
-                if(!empty($options['store'])){
-                    $query->where('store_id', $options['store']);
-                }
+        if(isset($countOptions['exclude_order_id'])){
+            unset($countOptions['exclude_order_id']);
+        }
 
-                if(!empty($options['delivery_date'])){
-                    $query->whereRaw('DATE_FORMAT(delivery_date, \'%Y-%m-%d\') = ?', [$options['delivery_date']]);
-                }
+        $total = Cache::rememberForever(ProjectHelper::flattenArrayToKey($countOptions), function() use ($countOptions){
+            $lineItemQb = LineItem::isProduct($this->id)
+                ->isRoot()
+                ->join('orders as O', 'O.id', '=', 'line_items.order_id')
+                ->whereIn('O.status', Order::getUsageCountedStatus());
 
-                if(!empty($options['checkout_at'])){
-                    $query->whereRaw('DATE_FORMAT(checkout_at, \'%Y-%m-%d\') = ?', [$options['checkout_at']]);
-                }
+            if(!empty($countOptions['store_id'])){
+                $lineItemQb->where('O.store_id', $countOptions['store_id']);
+            }
 
-                if(!empty($options['exclude_order_id'])){
-                    $query->whereNotIn('id', [$options['exclude_order_id']]);
-                }
-            });
+            if(!empty($countOptions['delivery_date'])){
+                $lineItemQb->whereRaw('DATE_FORMAT(O.delivery_date, \'%Y-%m-%d\') = ?', [$countOptions['delivery_date']]);
+            }
 
-        $orderCount = floatval($qb->sum('quantity'));
+            if(!empty($countOptions['checkout_at'])){
+                $lineItemQb->whereRaw('DATE_FORMAT(O.checkout_at, \'%Y-%m-%d\') = ?', [$countOptions['checkout_at']]);
+            }
 
-        return $orderCount;
+            $updatedCount = $lineItemQb->sum('quantity');
+
+            return $updatedCount;
+        });
+
+        if(!empty($options['exclude_order_id'])){
+            $excludedOrder = Order::findOrFail($options['exclude_order_id']);
+            $total -= $excludedOrder->getProductQuantity($this->id);
+        }
+
+        return $total;
     }
 
     public function getPerOrderLimit($options = [])
@@ -923,9 +870,9 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
             'product' => $this
         ]);
 
-        $orderLimit = (count($orderLimits) > 0)?$this->extractOrderLimit($orderLimits)->limit:null;
+        $orderLimit = (count($orderLimits) > 0)?$this->extractOrderLimit($orderLimits):null;
 
-        return $orderLimit;
+        return $orderLimit?['limit_type' => $orderLimit->type, 'limit' => $orderLimit->limit, 'object' => $orderLimit]:null;
     }
 
     public function getOrderLimit($options = [])
@@ -937,7 +884,7 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
         $deliveryOrderLimit = null;
 
         if($deliveryDate){
-            //Delivery Limit
+            // Delivery Limit
             $deliveryOrderLimits = OrderLimit::getOrderLimits([
                 'limit_type' => OrderLimit::LIMIT_DELIVERY_DATE,
                 'date' => $deliveryDate,
@@ -949,7 +896,7 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
             $deliveryOrderLimit = (count($deliveryOrderLimits) > 0)?$this->extractOrderLimit($deliveryOrderLimits):null;
         }
 
-        //Order Total Limit
+        // Order Total Limit
         $totalOrderLimit = null;
         if($date){
             $totalOrderLimits = OrderLimit::getOrderLimits([
@@ -974,9 +921,7 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
             }
         }
 
-        $limitType = OrderLimit::LIMIT_ORDER_DATE;
-
-        if(isset($orderLimits['checkout_at']) && $totalOrderLimit->limit <= $deliveryOrderLimit){
+        if(isset($orderLimits['checkout_at']) && (!$deliveryOrderLimit || $totalOrderLimit->limit <= $deliveryOrderLimit->limit)){
             $limitObj = $totalOrderLimit;
             $limitType = OrderLimit::LIMIT_ORDER_DATE;
         }elseif(isset($orderLimits['delivery_date'])){
@@ -984,7 +929,7 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
             $limitType = OrderLimit::LIMIT_DELIVERY_DATE;
         }
 
-        return $orderLimits?['limit_type' => $limitType, 'limit' => $orderLimits[$limitType]->limit, 'object' => $limitObj]:null;
+        return isset($limitObj)?['limit_type' => $limitType, 'limit' => $orderLimits[$limitType]->limit, 'object' => $limitObj]:null;
     }
 
     public function getUnavailableDeliveryDates($options)
@@ -1014,21 +959,21 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
             $dayToRun->setTime(0, 0, 0);
 
             $lastDayOfMonth = clone $dayToRun;
-            $lastDayOfMonth->modify('last day of next month');
+            $lastDayOfMonth->modify('last day of this month')->modify('+10 days');
 
-            $dayToRun->modify('-1 month');
+            $dayToRun->modify('-10 days');
 
             while($dayToRun->lte($lastDayOfMonth)){
                 $dayOrderCount = $this->getOrderCount([
                     'delivery_date' => $dayToRun->format('Y-m-d'),
-                    'store' => $store,
+                    'store_id' => $store,
                 ]);
 
                 if($dayToRun->format('j-n-Y') == $saved_delivery_date){
                     $dayOrderCount -= $saved_quantity;
                 }
 
-                //Product Limit
+                // Product Limit
                 $dayProductOrderLimit = $this->getOrderLimit([
                     'delivery_date' => $dayToRun->format('Y-m-d'),
                     'store' => $store,
@@ -1039,40 +984,29 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
                     $disabledDates[] = $dayToRun->format($format);
                 }
 
-                //Category Limit
+                // Category Limit
                 $dayCategoryOrderLimit = $this->getOrderLimit([
                     'delivery_date' => $dayToRun->format('Y-m-d'),
                     'store' => $store,
                     'type' => OrderLimit::TYPE_PRODUCT_CATEGORY
                 ]);
 
-                foreach($productLineItems as $productLineItem){
-                    if($productLineItem->product->id != $this->id){
-                        if($dayCategoryOrderLimit->productRulesPassed($productLineItem->product)){
-                            $dayCategoryOrderLimit->total += $productLineItem->quantity;
+                if(is_array($dayCategoryOrderLimit)){
+                    foreach($productLineItems as $productLineItem){
+                        if($dayCategoryOrderLimit['object']->productRulesPassed($productLineItem->product)){
+                            $dayCategoryOrderLimit['object']->total += $productLineItem->quantity;
                         }
                     }
-                }
 
-                if(is_array($dayCategoryOrderLimit)){
-                    //Get ordered products by date
-                    if($dayCategoryOrderLimit['limit_type'] == OrderLimit::LIMIT_DELIVERY_DATE){
-                        $orderDate = $dayToRun;
-                    }else{
-                        $orderDate = Carbon::now();
+                    foreach($dayCategoryOrderLimit['object']->productCategories as $productCategory){
+                        $dayCategoryOrderCount = $productCategory->getOrderCount([
+                            'delivery_date' => $dayToRun->format('Y-m-d'),
+                            'store_id' => $store,
+                        ]);
+                        if($dayCategoryOrderLimit['limit'] == 0 || $dayCategoryOrderCount + $quantity > $dayCategoryOrderLimit['limit']){
+                            $disabledDates[] = $dayToRun->format($format);
+                        }
                     }
-
-                    $orders = Order::getOrdersByDate($orderDate, $dayCategoryOrderLimit['limit_type']);
-
-                    if($dayCategoryOrderLimit['object']->productRulesPassed($this)){
-                        $dayCategoryOrderLimit['object']->total += $quantity;
-                    }
-
-                    if($dayCategoryOrderLimit['object']->total > $dayCategoryOrderLimit['object']->limit){
-                        $disabledDates[] = $dayToRun->format($format);
-                    }
-
-                    \Log::info($dayCategoryOrderLimit['object']->total);
                 }
 
                 $dayToRun->addDay();
@@ -1141,49 +1075,23 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
         return $viewSuggestions;
     }
 
-    protected function extractOrderLimit($orderLimits)
-    {
-        $sorted = [
-            'has_date' => [
-                OrderLimit::TYPE_PRODUCT => [],
-                OrderLimit::TYPE_PRODUCT_CATEGORY => []
-            ],
-            'no_date' => [
-                OrderLimit::TYPE_PRODUCT => [],
-                OrderLimit::TYPE_PRODUCT_CATEGORY => []
-            ]
-        ];
-
-        //Has date
-        foreach($orderLimits as $orderLimit){
-            if($orderLimit->hasDate()){
-                $sorted['has_date'][$orderLimit->type][] = $orderLimit;
-            }
-        }
-
-        //No date
-        foreach($orderLimits as $orderLimit){
-            if(!$orderLimit->hasDate()){
-                $sorted['no_date'][$orderLimit->type][] = $orderLimit;
-            }
-        }
-
-        foreach($sorted['has_date'] as $sortedWalk){
-            if(!empty($sortedWalk)){
-                return $sortedWalk[0];
-            }
-        }
-
-        foreach($sorted['no_date'] as $sortedWalk){
-            if(!empty($sortedWalk)){
-                return $sortedWalk[0];
-            }
-        }
-    }
-
     public function getMetaImage()
     {
         return $this->thumbnail?$this->thumbnail->getImagePath('original'):null;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getCacheKeys()
+    {
+        $tableName = $this->getTable();
+        $keys = [
+            $tableName.'_'.$this->id.'.retail_price',
+            $tableName.'_'.$this->id.'.net_price',
+        ];
+
+        return $keys;
     }
 
     //Accessors
@@ -1479,7 +1387,7 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface
         $productDetailTable = $this->productDetails()->getRelated()->getTable();
 
         $query->leftJoin($productDetailTable.' AS D', function($join) use ($productDetailTable, $store){
-            $join->on('D.'.$this->productDetails()->getPlainForeignKey(), '=', $this->getTable().'.id')
+            $join->on('D.'.$this->productDetails()->getForeignKeyName(), '=', $this->getTable().'.id')
                 ->where('D.store_id', '=', $store);
         });
 

@@ -1,8 +1,8 @@
 <?php
 
 return [
-    'default_name' => 'Kommercio',
-    'default_subtitle' => 'Artisan E-commerce',
+    'client_name' => 'Kommercio',
+    'client_subtitle' => 'Artisan E-commerce',
     'backend_prefix' => 'backoffice',
     'images_path' => 'images',
     'image_styles' => [
@@ -56,12 +56,13 @@ return [
             'status' => ['processing', 'shipped', 'completed'],
         ],
         'shipped' => [
-            'status' => ['processing'],
-            'printed' => TRUE,
+            'status' => ['processing', 'shipped'],
+            'fully_shipped' => FALSE
         ],
         'completed' => [
             'status' => ['shipped', 'processing'],
             'outstanding' => 0,
+            'fully_shipped' => TRUE,
         ]
     ],
     'print_format' => 'default',
@@ -75,11 +76,18 @@ return [
         'reference_format' => 'store_code:invoice_year:invoice_month:invoice_day:counter',
         'reference_counter_length' => 4
     ],
+    'delivery_order_options' => [
+        'reference_format' => 'store_code:delivey_order_year:delivey_order_month:delivey_order_day:counter',
+        'reference_counter_length' => 4
+    ],
     'catalog_options' => [
         'shop_url' => 'shop',
         'limit' => 20,
         'sort_by' => 'order',
         'sort_dir' => 'DESC',
+    ],
+    'post_options' => [
+        'limit' => 20,
     ],
     'order_history_options' => [
         'limit' => 20,
@@ -108,5 +116,5 @@ return [
     'test_ips' => [
         '127.0.0.1',
         '::1'
-    ],
+    ]
 ];

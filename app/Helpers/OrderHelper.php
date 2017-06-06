@@ -10,6 +10,7 @@ use Kommercio\Facades\ProjectHelper as ProjectHelperFacade;
 use Kommercio\Facades\EmailHelper as EmailHelperFacade;
 use Kommercio\Facades\LanguageHelper as LanguageHelperFacade;
 use Kommercio\Models\Customer;
+use Kommercio\Models\Order\DeliveryOrder\DeliveryOrder;
 use Kommercio\Models\Order\LineItem;
 use Kommercio\Models\Order\Order;
 use Kommercio\Models\Order\OrderComment;
@@ -44,6 +45,17 @@ class OrderHelper
             Payment::STATUS_PENDING => 'grey-mint',
             Payment::STATUS_REVIEW => 'yellow-lemon',
             Payment::STATUS_SUCCESS=> 'green-jungle',
+        ];
+
+        return isset($array[$status])?$array[$status]:'default';
+    }
+
+    public function getDeliveryOrderStatusLabelClass($status)
+    {
+        $array = [
+            DeliveryOrder::STATUS_CANCELLED => 'grey-steel',
+            DeliveryOrder::STATUS_PENDING => 'yellow-lemon',
+            DeliveryOrder::STATUS_SHIPPED=> 'green-jungle',
         ];
 
         return isset($array[$status])?$array[$status]:'default';
@@ -339,15 +351,15 @@ class OrderHelper
         return $priceRules;
     }
 
-    public function saveOrderComment($message, $key, Order $order, User $author = NULL, $type = OrderComment::TYPE_INTERNAL)
+    public function saveOrderComment($message, $key, Order $order, User $author = NULL, $type = OrderComment::TYPE_INTERNAL, $additionalData = [])
     {
         $comment = new OrderComment([
             'body' => $message,
             'type' => $type
         ]);
-        $comment->saveData([
+        $comment->saveData(array_merge($additionalData, [
             'key' => $key
-        ]);
+        ]));
 
         $comment->order()->associate($order);
 

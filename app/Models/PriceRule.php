@@ -24,7 +24,7 @@ class PriceRule extends Model implements StoreManagedInterface
 
     private $_products;
 
-    //Methods
+    // Methods
     public function getProducts()
     {
         if(!isset($this->_products)){
@@ -42,7 +42,7 @@ class PriceRule extends Model implements StoreManagedInterface
         return $this->_products;
     }
 
-    //Relations
+    // Relations
     public function product()
     {
         return $this->belongsTo('Kommercio\Models\Product');
@@ -63,7 +63,7 @@ class PriceRule extends Model implements StoreManagedInterface
         return $this->hasMany('Kommercio\Models\PriceRuleOptionGroup');
     }
 
-    //Scopes
+    // Scopes
     public function scopeNotProductSpecific($query)
     {
         $query->whereNull('product_id');
@@ -86,7 +86,7 @@ class PriceRule extends Model implements StoreManagedInterface
         $query->where('active', 1);
     }
 
-    //Methods
+    // Methods
     public function getValue($price = null)
     {
         $return = 0;
@@ -126,7 +126,7 @@ class PriceRule extends Model implements StoreManagedInterface
         return $this->store_id && in_array($this->store_id, $user->getManagedStores()->pluck('id')->all());
     }
 
-    //Statics
+    // Statics
     public static function getModificationTypeOptions($option=null)
     {
         $array = [

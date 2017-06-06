@@ -2,22 +2,17 @@
 
 namespace Kommercio\Models;
 
-use Cviebrock\EloquentSluggable\SluggableInterface;
-use Cviebrock\EloquentSluggable\SluggableTrait;
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Cache;
+use Kommercio\Models\Abstracts\SluggableModel;
+use Kommercio\Models\Interfaces\CacheableInterface;
 use Kommercio\Models\Interfaces\ProductIndexInterface;
 use Kommercio\Traits\Model\MediaAttachable;
 
-class Manufacturer extends Model implements SluggableInterface, ProductIndexInterface
+class Manufacturer extends SluggableModel implements ProductIndexInterface, CacheableInterface
 {
-    use MediaAttachable, SluggableTrait;
+    use MediaAttachable;
 
     protected $fillable = ['name'];
-    protected $sluggable = [
-        'build_from' => 'name',
-        'save_to'    => 'slug',
-        'on_update' => TRUE,
-    ];
 
     //Accessors
     public function getProductCountAttribute()
@@ -38,8 +33,13 @@ class Manufacturer extends Model implements SluggableInterface, ProductIndexInte
     //Methods
     public function getLogoAttribute()
     {
-        $qb = $this->media('logo');
-        return $qb->first();
+        $logo = Cache::rememberForever($this->getTable().'_'.$this->id.'.logo', function(){
+            $qb = $this->media('logo');
+
+            return $qb->first();
+        });
+
+        return $logo;
     }
 
     public function getProductIndexType()
@@ -52,6 +52,30 @@ class Manufacturer extends Model implements SluggableInterface, ProductIndexInte
         $rows = collect([$this]);
 
         return $rows;
+    }
+
+    public function sluggable()
+    {
+        return [
+            'slug' => [
+                'source' => 'name',
+                'onUpdate' => TRUE
+            ],
+        ];
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getCacheKeys()
+    {
+        $tableName = $this->getTable();
+
+        $keys = [
+            $tableName.'_'.$this->id.'.logo'
+        ];
+
+        return $keys;
     }
 
     //Static

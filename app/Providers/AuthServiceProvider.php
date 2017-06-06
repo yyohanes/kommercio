@@ -2,8 +2,7 @@
 
 namespace Kommercio\Providers;
 
-use Illuminate\Contracts\Auth\Access\Gate as GateContract;
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Gate;
 use Kommercio\Models\Interfaces\StoreManagedInterface;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 
@@ -22,11 +21,11 @@ class AuthServiceProvider extends ServiceProvider
      * @param  \Illuminate\Contracts\Auth\Access\Gate  $gate
      * @return void
      */
-    public function boot(GateContract $gate)
+    public function boot()
     {
-        $this->registerPolicies($gate);
+        $this->registerPolicies();
 
-        $gate->define('access', function ($user, $permission) {
+        Gate::define('access', function ($user, $permission) {
             if(empty($permission)){
                 return TRUE;
             }
@@ -34,11 +33,11 @@ class AuthServiceProvider extends ServiceProvider
             return $user->role->hasPermission($permission);
         });
 
-        $gate->define('manage_store', function($user, StoreManagedInterface $object){
+        Gate::define('manage_store', function($user, StoreManagedInterface $object){
             return $object->checkStorePermissionByUser($user);
         });
 
-        $gate->define('process_order', function ($user, $order, $process_type) {
+        Gate::define('process_order', function ($user, $order, $process_type) {
             $orderProcessConditions = config('project.order_process_condition', config('kommercio.order_process_condition'));
 
             if(!isset($orderProcessConditions[$process_type])){
@@ -67,6 +66,10 @@ class AuthServiceProvider extends ServiceProvider
                         }
 
                         break;
+                    case 'fully_shipped':
+                        $valid = $order->isFullyShipped == $condition;
+
+                        break;
                     case 'outstanding':
                         $valid = $order->getOutstandingAmount() <= $condition;
                         break;
@@ -83,7 +86,7 @@ class AuthServiceProvider extends ServiceProvider
             return $valid;
         });
 
-        $gate->before(function ($user, $ability) {
+        Gate::before(function ($user, $ability) {
             if ($ability == 'access' && $user->isSuperAdmin) {
                 return true;
             }

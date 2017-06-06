@@ -19,11 +19,13 @@ use Kommercio\Facades\ProjectHelper;
 use Kommercio\Facades\RuntimeCache;
 use Kommercio\Http\Controllers\Controller;
 use Kommercio\Models\Customer;
+use Kommercio\Models\Order\DeliveryOrder\DeliveryOrder;
 use Kommercio\Models\Order\Order;
 use Kommercio\Models\Order\LineItem;
 use Kommercio\Http\Requests\Backend\Order\OrderFormRequest;
 use Collective\Html\FormFacade;
 use Illuminate\Support\Facades\Request as RequestFacade;
+use Kommercio\Models\Order\OrderComment;
 use Kommercio\Models\Order\OrderLimit;
 use Kommercio\Models\PaymentMethod\PaymentMethod;
 use Kommercio\Models\PriceRule\CartPriceRule;
@@ -51,18 +53,10 @@ class OrderController extends Controller{
             foreach($request->input('filter', []) as $searchKey=>$search){
                 if(is_array($search) || trim($search) != ''){
                     if($searchKey == 'billing') {
-                        $qb->whereHas('billingProfile', function($qb) use ($search){
-                            $qb->whereFields([
-                                [
-                                    'operator' => 'LIKE',
-                                    'key' => 'first_name',
-                                    'value' => '%'.$search.'%'
-                                ],
-                                [
-                                    'operator' => 'LIKE',
-                                    'key' => 'last_name',
-                                    'value' => '%'.$search.'%'
-                                ],
+                        $qb->where(function($innerQb) use ($search){
+                            $innerQb->whereRaw('CONCAT_WS(" ", BFNAME.value, BLNAME.value) LIKE ?', ['%'.$search.'%']);
+
+                            $billingFilters = [
                                 [
                                     'operator' => 'LIKE',
                                     'key' => 'phone_number',
@@ -108,21 +102,16 @@ class OrderController extends Controller{
                                     'key' => 'area',
                                     'value' => '%'.$search.'%'
                                 ]
-                            ], TRUE);
+                            ];
+                            $profiles = Profile::whereFields($billingFilters, TRUE)->pluck('id')->all();
+
+                            $innerQb->orWhereIn('billing_profile_id', $profiles);
                         });
                     }elseif($searchKey == 'shipping') {
-                        $qb->whereHas('shippingProfile', function($qb) use ($search){
-                            $qb->whereFields([
-                                [
-                                    'operator' => 'LIKE',
-                                    'key' => 'first_name',
-                                    'value' => '%'.$search.'%'
-                                ],
-                                [
-                                    'operator' => 'LIKE',
-                                    'key' => 'last_name',
-                                    'value' => '%'.$search.'%'
-                                ],
+                        $qb->where(function($innerQb) use ($search){
+                            $innerQb->whereRaw('CONCAT_WS(" ", SFNAME.value, SLNAME.value) LIKE ?', ['%'.$search.'%']);
+
+                            $shippingFilters = [
                                 [
                                     'operator' => 'LIKE',
                                     'key' => 'phone_number',
@@ -168,7 +157,10 @@ class OrderController extends Controller{
                                     'key' => 'area',
                                     'value' => '%'.$search.'%'
                                 ]
-                            ], TRUE);
+                            ];
+                            $profiles = Profile::whereFields($shippingFilters, TRUE)->pluck('id')->all();
+
+                            $innerQb->orWhereIn('shipping_profile_id', $profiles);
                         });
                     }elseif($searchKey == 'reference'){
                         $qb->where($searchKey, 'LIKE', '%'.$search.'%');
@@ -239,7 +231,7 @@ class OrderController extends Controller{
         $stickyProducts = Product::joinDetail($store_id)->selectSelf()->active()->where('sticky_line_item', 1)->orderBy('sort_order', 'ASC')->get();
 
         $paymentMethodOptions = [];
-        foreach(PaymentMethod::getPaymentMethods() as $paymentMethod){
+        foreach(PaymentMethod::getPaymentMethods(['frontend' => FALSE]) as $paymentMethod){
             $paymentMethodOptions[$paymentMethod->id] = $paymentMethod->name;
         }
 
@@ -305,9 +297,10 @@ class OrderController extends Controller{
             if(Gate::allows('access', ['print_invoice']) && $order->isPrintable):
                 $printActions .= '<li><a href="' . route('backend.sales.order.print', ['id' => $order->id]) . '" target="_blank">Invoice</a></li>';
             endif;
-            if(Gate::allows('access', ['print_delivery_note']) && $order->isPrintable && config('project.enable_delivery_note', false)):
-                $printActions .= '<li><a href="' . route('backend.sales.order.print', ['id' => $order->id, 'type' => 'delivery_note']) . '" target="_blank">Delivery Note</a></li>';
-            endif;
+
+            if(Gate::allows('access', ['view_delivery_order']) && $order->isPrintable && ProjectHelper::isFeatureEnabled('order.print.packaging_slip', false)){
+                $printActions .= '<li><a href="' . route('backend.sales.order.print', ['id' => $order->id, 'type' => 'packaging_slip']) . '" target="_blank">Packaging Slip</a></li>';
+            }
 
             if(!empty($printActions)){
                 $orderAction .= '<div class="btn-group btn-group-xs"><button type="button" class="btn btn-default hold-on-click dropdown-toggle" data-toggle="dropdown" data-hover="dropdown" data-close-others="true" aria-expanded="true"><i class="fa fa-print"></i></button><ul class="dropdown-menu" role="menu">'.$printActions.'</ul></div>';
@@ -494,7 +487,8 @@ class OrderController extends Controller{
             'lineItems' => $lineItems,
             'billingProfile' => $billingProfile,
             'shippingProfile' => $shippingProfile,
-            'internalMemos' => $order->internalMemos
+            'internalMemos' => $order->internalMemos,
+            'externalMemos' => $order->externalMemos,
         ]);
     }
 
@@ -525,14 +519,14 @@ class OrderController extends Controller{
         $user = $request->user();
         $order = Order::findOrFail($id);
 
-        if($type == 'delivery_note'){
-            OrderHelper::saveOrderComment('Print Delivery Note.', 'print_delivery_note', $order, $user);
+        if($type == 'packaging_slip'){
+            OrderHelper::saveOrderComment('Print Packaging Slip.', 'print_packaging_slip', $order, $user);
 
             if(config('project.print_format', config('kommercio.print_format')) == 'xls'){
-                Excel::create('Delivery Note #'.$order->reference, function($excel) use ($order) {
-                    $excel->setDescription('Delivery Note #'.$order->reference);
+                Excel::create('Packacing Slip #'.$order->reference, function($excel) use ($order) {
+                    $excel->setDescription('Packacing Slip #'.$order->reference);
                     $excel->sheet('Sheet 1', function($sheet) use ($order, $excel){
-                        $sheet->loadView(ProjectHelper::getViewTemplate('print.excel.order.delivery_note'), [
+                        $sheet->loadView(ProjectHelper::getViewTemplate('print.excel.order.packaging_slip'), [
                             'order' => $order,
                             'excel' => $excel
                         ]);
@@ -540,7 +534,7 @@ class OrderController extends Controller{
                 })->download('xls');
             }
 
-            return view(ProjectHelper::getViewTemplate('print.order.delivery_note'), [
+            return view(ProjectHelper::getViewTemplate('print.order.packaging_slip'), [
                 'order' => $order
             ]);
         }
@@ -683,10 +677,13 @@ class OrderController extends Controller{
         $order->saveProfile('billing', $request->input('profile'));
         $order->saveProfile('shipping', $request->input('shipping_profile'));
 
-        //Use free form line items
+        // Set original line items
+        $order->originalLineItems = $order->lineItems;
+
+        // Use free form line items
         $order->setRelation('lineItems', OrderHelper::processLineItems($request, $order, true, true));
 
-        //Process configurations HAS TO BE here because above OrderHelper::processLineItems is dummy
+        // Process configurations HAS TO BE here because above OrderHelper::processLineItems is dummy
         $this->processConfigurations($request);
 
         OrderHelper::processLineItems($request, $order);
@@ -695,7 +692,6 @@ class OrderController extends Controller{
         $order->calculateTotal();
 
         Event::fire(new OrderEvent('before_update_order', $order));
-
 
         if($request->input('action') == 'place_order'){
             //If order is not cart, return all stocks first
@@ -803,23 +799,68 @@ class OrderController extends Controller{
                         abort(403);
                     }
 
+                    // Delivery order validation if from single form
+                    $totalDelivered = 0;
+
+                    if($request->has('line_items')){
+                        $rules = [];
+                        foreach($order->getProductLineItems() as $productLineItem){
+                            $maxAllowed = $productLineItem->quantity - $productLineItem->deliveredQuantity;
+                            $rules['line_items.'.$productLineItem->id.'.quantity'] = 'required|integer|min:0|max:'.$maxAllowed;
+                        }
+
+                        $this->validate($request, $rules);
+
+                        $deliveredLineItems = $request->input('line_items', []);
+                    }else{
+                        $deliveredLineItems = [];
+
+                        foreach($order->getProductLineItems() as $productLineItem){
+                            $deliveredLineItems[$productLineItem->id] = [
+                                'quantity' => $productLineItem->quantity - $productLineItem->shippedQuantity
+                            ];
+                        }
+                    }
+
+                    array_walk($deliveredLineItems, function($item, $key) use (&$totalDelivered){
+                        $totalDelivered += $item['quantity'];
+                    });
+
+                    if(!$totalDelivered){
+                        return redirect()->back()->withErrors(['Delivered quantity must be higher than 0.']);
+                    }
+
+                    $deliveryOrderData = [
+                        'notes' => $request->input('notes', null),
+                        'shippingProfile' => $order->shippingInformation->getDetails(),
+                        'data' => []
+                    ];
+
                     if(!empty($request->input('tracking_number'))){
-                        $order->saveData([
-                            'tracking_number' => $request->input('tracking_number')
-                        ]);
+                        $deliveryOrderData['data']['tracking_number'] = $request->input('tracking_number');
                     }
 
                     if(!empty($request->input('delivered_by'))){
-                        $order->saveData([
-                            'delivered_by' => $request->input('delivered_by')
-                        ]);
-
-                        OrderHelper::saveOrderComment('Order was delivered by '.$request->input('delivered_by'), 'delivered_by', $order, $user);
+                        $deliveryOrderData['data']['delivered_by'] = $request->input('delivered_by');
                     }
 
-                    $order->status = Order::STATUS_SHIPPED;
+                    $deliveryOrder = $order->createDeliveryOrder($deliveredLineItems, $deliveryOrderData);
 
-                    $message = 'Order has been set to <span class="label bg-'.OrderHelper::getOrderStatusLabelClass($order->status).' bg-font-'.OrderHelper::getOrderStatusLabelClass($order->status).'">Shipped.</span>';
+                    if($order->isFullyShipped){
+                        OrderHelper::saveOrderComment('Delivery Order #'.$deliveryOrder->reference.' is created. Order is fully shipped.', 'fully_shipped', $order, $user);
+                        OrderHelper::saveOrderComment('Order is fully shipped.', 'fully_shipped', $order, $user, OrderComment::TYPE_EXTERNAL_MEMO, [
+                            'delivery_order_id' => $deliveryOrder->id
+                        ]);
+
+                        $order->status = Order::STATUS_SHIPPED;
+                        $message = 'Order has been <span class="label bg-'.OrderHelper::getOrderStatusLabelClass($order->status).' bg-font-'.OrderHelper::getOrderStatusLabelClass($order->status).'">fully shipped.</span>';
+                    }else{
+                        OrderHelper::saveOrderComment('Delivery Order #'.$deliveryOrder->reference.' is created. Order is partially shipped.', 'partially_shipped', $order, $user);
+                        OrderHelper::saveOrderComment('Order is partially shipped.', 'partially_shipped', $order, $user, OrderComment::TYPE_EXTERNAL_MEMO, [
+                            'delivery_order_id' => $deliveryOrder->id
+                        ]);
+                        $message = 'Order has been partially shipped with Delivery Order <span class="label bg-'.OrderHelper::getOrderStatusLabelClass($order->status).' bg-font-'.OrderHelper::getOrderStatusLabelClass($order->status).'">#'.$deliveryOrder->reference.'.</span>';
+                    }
                     break;
                 case 'completed':
                     if(!Gate::allows('access', ['complete_order'])){
@@ -1123,7 +1164,8 @@ class OrderController extends Controller{
 
         $shippingOptions = ShippingMethod::getShippingMethods([
             'order' => $order,
-            'request' => $request
+            'request' => $request,
+            'frontend' => FALSE
         ]);
 
         foreach($shippingOptions as $idx=>$shippingOption){

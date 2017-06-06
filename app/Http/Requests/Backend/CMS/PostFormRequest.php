@@ -27,7 +27,7 @@ class PostFormRequest extends Request
 
         $rules = [
             'name' => 'required',
-            'parent_id' => 'integer|not_in:'.$pageId,
+            'parent_id' => 'nullable|integer|not_in:'.$pageId,
             'created_at' => 'date',
             'slug' => 'required',
         ];

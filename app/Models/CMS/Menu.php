@@ -2,26 +2,19 @@
 
 namespace Kommercio\Models\CMS;
 
-use Cviebrock\EloquentSluggable\SluggableInterface;
-use Cviebrock\EloquentSluggable\SluggableTrait;
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Cache;
 use Kommercio\Facades\RuntimeCache;
+use Kommercio\Models\Abstracts\SluggableModel;
+use Kommercio\Models\Interfaces\CacheableInterface;
 
-class Menu extends Model implements SluggableInterface
+class Menu extends SluggableModel implements CacheableInterface
 {
-    use SluggableTrait;
-
-    protected $fillable = ['name', 'description'];
-    protected $sluggable = [
-        'build_from' => 'name',
-        'save_to'    => 'slug',
-        'on_update' => TRUE,
-    ];
+    protected $fillable = ['name', 'slug', 'description'];
 
     //Methods
     public function getTrails($path)
     {
-        if(!RuntimeCache::has($this->slug.'.'.$path)){
+        if(!RuntimeCache::has($this->slug.'_'.$path)){
             $bag = [];
 
             $this->getActiveMenuItems($path, $this->rootMenuItems, 99, 1, $bag);
@@ -43,10 +36,10 @@ class Menu extends Model implements SluggableInterface
                 $bag = collect(array_reverse($bag));
             }
 
-            RuntimeCache::set($this->slug.'.'.$path, $bag);
+            RuntimeCache::set($this->slug.'_'.$path, $bag);
         }
 
-        return RuntimeCache::get($this->slug.'.'.$path);
+        return RuntimeCache::get($this->slug.'_'.$path);
     }
 
     public function getMenuItemSiblings($menuitem)
@@ -54,7 +47,9 @@ class Menu extends Model implements SluggableInterface
         $menu = $this;
 
         if(is_null($menuitem->parent_id)){
-            $menuItems = $menu->rootMenuItems()->active()->pluck('parent_id')->all();
+            $menuItems = $menu->rootMenuItems;
+
+            return $menuItems;
         }else{
             $menuItems = [$menuitem->parent_id];
         }
@@ -81,20 +76,50 @@ class Menu extends Model implements SluggableInterface
         return null;
     }
 
-    //Scope
+    /**
+     * @inheritdoc
+     */
+    public function getCacheKeys()
+    {
+        $tableName = $this->getTable();
+
+        $keys = [
+            $tableName.'_'.$this->id.'.root_menu_items'
+        ];
+
+        return $keys;
+    }
+
+    // Accessors
+    public function getRootMenuItemsAttribute()
+    {
+        $rootMenuItems = Cache::rememberForever($this->getTable().'_'.$this->id.'.root_menu_items', function(){
+            return $this->menuItems->filter(function($value, $key){
+                return empty($value->parent_id);
+            });
+        });
+
+        return $rootMenuItems;
+    }
+
+    // Static
+    public static function getBySlug($slug)
+    {
+        $qb = self::whereTranslation('slug', $slug);
+        $menu = $qb->first();
+
+        return $menu;
+    }
+
+    // Scope
     public function scopeActive($query)
     {
         $query->where('active', true);
     }
 
-    //Relations
+    // Relations
     public function menuItems()
     {
         return $this->hasMany('Kommercio\Models\CMS\MenuItem')->orderBy('sort_order', 'ASC');
-    }
-
-    public function rootMenuItems()
-    {
-        return $this->hasMany('Kommercio\Models\CMS\MenuItem')->whereNull('parent_id')->orderBy('sort_order', 'ASC');
     }
 }

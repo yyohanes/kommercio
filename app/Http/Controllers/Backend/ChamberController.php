@@ -4,8 +4,10 @@ namespace Kommercio\Http\Controllers\Backend;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Session;
+use Kommercio\Events\StoreEvent;
 use Kommercio\Http\Controllers\Controller;
 use Kommercio\Models\Store;
 use Kommercio\Models\User;
@@ -27,6 +29,8 @@ class ChamberController extends Controller{
         }
 
         Session::put('active_store', $store->id);
+
+        Event::fire(new StoreEvent('store_change', $store));
 
         return redirect($request->input('backUrl', route('backend.dashboard')));
     }

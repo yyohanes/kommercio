@@ -4,9 +4,11 @@ namespace Kommercio\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
+use Kommercio\Models\Interfaces\CacheableInterface;
 use Kommercio\Traits\Model\HasDataColumn;
 
-class Store extends Model
+class Store extends Model implements CacheableInterface
 {
     use HasDataColumn;
 
@@ -58,16 +60,33 @@ class Store extends Model
 
     public function getTaxes()
     {
-        $taxes = Tax::getTaxes([
-            'store_id' => $this->id,
-            'country_id' => $this->country_id,
-            'state_id' => $this->state_id,
-            'city_id' => $this->city_id,
-            'district_id' => $this->district_id,
-            'area_id' => $this->area_id,
-        ]);
+        $taxes = Cache::rememberForever($this->getTable().'_'.$this->id.'.taxes', function(){
+            $taxes = Tax::getTaxes([
+                'store_id' => $this->id,
+                'country_id' => $this->country_id,
+                'state_id' => $this->state_id,
+                'city_id' => $this->city_id,
+                'district_id' => $this->district_id,
+                'area_id' => $this->area_id,
+            ]);
+
+            return $taxes;
+        });
 
         return $taxes;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getCacheKeys()
+    {
+        $tableName = $this->getTable();
+        $keys = [
+            $tableName.'_'.$this->id.'.taxes'
+        ];
+
+        return $keys;
     }
 
     //Static

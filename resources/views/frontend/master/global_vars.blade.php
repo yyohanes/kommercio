@@ -25,3 +25,5 @@
         get_availability_calendar: '{{ route('catalog.product.availability_calendar') }}'
 };
 </script>
+
+<script type="text/javascript" src="{{ asset('kommercio/assets/scripts/app.js') }}"></script>

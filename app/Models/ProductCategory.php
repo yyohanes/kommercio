@@ -2,18 +2,22 @@
 
 namespace Kommercio\Models;
 
+use Carbon\Carbon;
 use Dimsav\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Model;
 use Kommercio\Facades\FrontendHelper;
 use Kommercio\Models\Interfaces\ProductIndexInterface;
 use Kommercio\Models\Interfaces\SeoModelInterface;
 use Kommercio\Models\Interfaces\UrlAliasInterface;
+use Kommercio\Models\Order\LineItem;
+use Kommercio\Models\Order\OrderLimit;
 use Kommercio\Traits\AuthorSignature;
+use Kommercio\Traits\Model\OrderLimitTrait;
 use Kommercio\Traits\Model\SeoTrait;
 
 class ProductCategory extends Model implements UrlAliasInterface, SeoModelInterface, ProductIndexInterface
 {
-    use Translatable, SeoTrait;
+    use Translatable, SeoTrait, OrderLimitTrait;
 
     protected $fillable = ['name', 'description', 'parent_id', 'active', 'sort_order', 'slug', 'meta_title', 'meta_description'];
     protected $casts = [
@@ -97,6 +101,46 @@ class ProductCategory extends Model implements UrlAliasInterface, SeoModelInterf
         return $rows;
     }
 
+    /**
+     * Get number of purchased per product category
+     * We will go through category's products and get each product's order count
+     * If product order count has been cached, this will be fast process, otherwise, product order count will be calculated.
+     *
+     * @TODO Rethink this function logic. Imagine if category has lots of products, this function can crash
+     *
+     * @param array $options Possible options are store_id, checkout_at, delivery_date, exclude_order_id
+     * @return float|int
+     */
+    public function getOrderCount($options = [])
+    {
+        $orderCount = 0;
+
+        foreach($this->products as $product){
+            $orderCount += $product->getOrderCount($options);
+        }
+
+        return $orderCount;
+    }
+
+    public function getPerOrderLimit($options = [])
+    {
+        $store = isset($options['store'])?$options['store']:null;
+        $date = isset($options['date'])?Carbon::createFromFormat('Y-m-d', $options['date']):null;
+
+        //Per Order Limit
+        $orderLimits = OrderLimit::getOrderLimits([
+            'limit_type' => OrderLimit::LIMIT_PER_ORDER,
+            'date' => $date,
+            'store' => $store,
+            'type' => OrderLimit::TYPE_PRODUCT_CATEGORY,
+            'category' => $this
+        ]);
+
+        $orderLimit = (count($orderLimits) > 0)?$this->extractOrderLimit($orderLimits):null;
+
+        return $orderLimit?['limit_type' => $orderLimit->type, 'limit' => $orderLimit->limit, 'object' => $orderLimit]:null;
+    }
+
     //Relations
     public function parent()
     {
@@ -119,6 +163,51 @@ class ProductCategory extends Model implements UrlAliasInterface, SeoModelInterf
     }
 
     //Methods
+    public function getActiveChildren()
+    {
+        $children = $this->children->reject(function($value){
+            return !$value->active;
+        });
+
+        return $children;
+    }
+
+    public function getProducts($options = [])
+    {
+        $defaultOptions = [
+            'visibility' => ProductDetail::VISIBILITY_EVERYWHERE,
+            'active' => TRUE,
+            'available' => NULL
+        ];
+
+        $options = array_merge($defaultOptions, $options);
+
+        $products = $this->products;
+        $products = $products->reject(function($value) use ($options){
+            $visibility = [ProductDetail::VISIBILITY_EVERYWHERE, ProductDetail::VISIBILITY_CATALOG, ProductDetail::VISIBILITY_SEARCH];
+
+            if($options['visibility'] != ProductDetail::VISIBILITY_EVERYWHERE){
+                $visibility = [$options['visibility']];
+            }
+
+            if(!in_array($value->productDetail->visibility, $visibility)){
+                return TRUE;
+            }
+
+            if($options['active'] !== null && $value->productDetail->active != $options['active']){
+                return TRUE;
+            }
+
+            if($options['available'] !== null && $value->productDetail->available != $options['available']){
+                return TRUE;
+            }
+
+            return FALSE;
+        });
+
+        return $products;
+    }
+
     public function getViewSuggestions()
     {
         $viewSuggestions = [];
@@ -178,6 +267,11 @@ class ProductCategory extends Model implements UrlAliasInterface, SeoModelInterf
         $query->where('active', true);
     }
 
+    public function scopeIsRoot($query)
+    {
+        $query->whereNull('parent_id');
+    }
+
     //Statics
     public static function getRootCategories()
     {
@@ -196,6 +290,14 @@ class ProductCategory extends Model implements UrlAliasInterface, SeoModelInterf
         self::_loopChildrenOptions($options, $roots, 0, $exclude);
 
         return $options;
+    }
+
+    public static function getBySlug($slug)
+    {
+        $qb = self::whereTranslation('slug', $slug);
+        $category = $qb->first();
+
+        return $category;
     }
 
     private static function _loopChildrenOptions(&$options, $children, $level, $exclude=null)

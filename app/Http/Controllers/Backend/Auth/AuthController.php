@@ -2,12 +2,12 @@
 
 namespace Kommercio\Http\Controllers\Backend\Auth;
 
+use Illuminate\Foundation\Auth\AuthenticatesUsers;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 use Kommercio\User;
-use Validator;
+use Illuminate\Support\Facades\Validator;
 use Kommercio\Http\Controllers\Controller;
-use Illuminate\Foundation\Auth\ThrottlesLogins;
-use Illuminate\Foundation\Auth\AuthenticatesAndRegistersUsers;
 
 class AuthController extends Controller
 {
@@ -22,7 +22,7 @@ class AuthController extends Controller
     |
     */
 
-    use AuthenticatesAndRegistersUsers, ThrottlesLogins;
+    use AuthenticatesUsers;
 
     /**
      * Where to redirect users after login / registration.
@@ -30,7 +30,6 @@ class AuthController extends Controller
      * @var string
      */
     protected $redirectTo = '/';
-    protected $loginView = 'backend.auth.login';
     protected $redirectAfterLogout;
 
     /**
@@ -44,6 +43,11 @@ class AuthController extends Controller
 
         $this->redirectAfterLogout = route('backend.login_form');
         $this->redirectTo = route('backend.dashboard');
+    }
+
+    public function showLoginForm()
+    {
+        return view('backend.auth.login');
     }
 
     /**
@@ -76,10 +80,12 @@ class AuthController extends Controller
         ]);
     }
 
-    public function getLogout()
+    public function getLogout(Request $request)
     {
         Session::forget('active_store');
 
-        return $this->logout();
+        $this->logout($request);
+
+        return redirect($this->redirectAfterLogout);
     }
 }

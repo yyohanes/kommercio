@@ -32,13 +32,13 @@ class PriceRuleFormRequest extends Request
         $allowedModificationType = implode(',', array_keys(PriceRule::getModificationTypeOptions()));
 
         $rules = [
-            'price_rule.price' => 'required_without:price_rule.modification|numeric|min:0',
-            'price_rule.modification' => 'required_without:price_rule.price|numeric',
-            'price_rule.modification_type' => 'in:'.$allowedModificationType,
-            'price_rule.store_id' => 'in:'.$allowedStores,
-            'price_rule.currency' => 'in:'.$allowedCurrencies,
-            'price_rule.active_date_from' => 'date_format:Y-m-d H:i',
-            'price_rule.active_date_to' => 'date_format:Y-m-d H:i',
+            'price_rule.price' => 'required_without:price_rule.modification|nullable|numeric|min:0',
+            'price_rule.modification' => 'required_without:price_rule.price|nullable|numeric',
+            'price_rule.modification_type' => 'nullable|in:'.$allowedModificationType,
+            'price_rule.store_id' => 'nullable|in:'.$allowedStores,
+            'price_rule.currency' => 'nullable|in:'.$allowedCurrencies,
+            'price_rule.active_date_from' => 'nullable|date_format:Y-m-d H:i',
+            'price_rule.active_date_to' => 'nullable|date_format:Y-m-d H:i',
         ];
 
         if($this->route('product_id')){
@@ -46,7 +46,7 @@ class PriceRuleFormRequest extends Request
             $allowedVariations = $product->variations->pluck('id')->all();
 
             if($allowedVariations){
-                $rules['price_rule.variation_id'] = 'in:'.implode(',', $allowedVariations);
+                $rules['price_rule.variation_id'] = 'nullable|in:'.implode(',', $allowedVariations);
             }
         }else{
             $rules['price_rule.name'] = 'required';

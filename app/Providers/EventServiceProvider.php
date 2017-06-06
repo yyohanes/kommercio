@@ -4,6 +4,8 @@ namespace Kommercio\Providers;
 
 use Illuminate\Contracts\Events\Dispatcher as DispatcherContract;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
+use Kommercio\Models\Order\Order;
+use Kommercio\Observers\OrderObserver;
 
 class EventServiceProvider extends ServiceProvider
 {
@@ -31,7 +33,9 @@ class EventServiceProvider extends ServiceProvider
         'Kommercio\Events\RewardPointEvent' => [
             'Kommercio\Listeners\RewardPointListener'
         ],
-        'Kommercio\Events\StoreEvent' => [],
+        'Kommercio\Events\StoreEvent' => [
+            'Kommercio\Listeners\StoreListener'
+        ],
         'Kommercio\Events\CatalogQueryBuilder' => [],
         'Kommercio\Events\CartPriceRuleEvent' => [],
     ];
@@ -92,15 +96,14 @@ class EventServiceProvider extends ServiceProvider
     }
 
     /**
-     * Register any other events for your application.
+     * Register any events for your application.
      *
-     * @param  \Illuminate\Contracts\Events\Dispatcher  $events
      * @return void
      */
-    public function boot(DispatcherContract $events)
+    public function boot()
     {
-        parent::boot($events);
+        parent::boot();
 
-        //
+        Order::observe(OrderObserver::class);
     }
 }

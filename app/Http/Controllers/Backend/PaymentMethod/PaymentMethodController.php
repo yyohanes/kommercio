@@ -7,6 +7,7 @@ use Kommercio\Facades\ProjectHelper;
 use Kommercio\Http\Controllers\Controller;
 use Kommercio\Http\Requests\Backend\PaymentMethod\PaymentMethodFormRequest;
 use Kommercio\Models\PaymentMethod\PaymentMethod;
+use Kommercio\Models\Store;
 use Kommercio\PaymentMethods\PaymentMethodSettingFormInterface;
 
 class PaymentMethodController extends Controller{
@@ -24,9 +25,21 @@ class PaymentMethodController extends Controller{
     public function create()
     {
         $paymentMethod = new PaymentMethod();
+        $stores = Store::all();
+
+        $storeOptions = [];
+        foreach($stores as $store){
+            $type = strtoupper($store->type);
+
+            if(!isset($type)){
+                $storeOptions[$type] = [];
+            }
+            $storeOptions[$type][$store->id] = $store->name;
+        }
 
         return view('backend.payment_method.create', [
             'paymentMethod' => $paymentMethod,
+            'storeOptions' => $storeOptions,
             'additionalFieldsForm' => false
         ]);
     }
@@ -36,6 +49,12 @@ class PaymentMethodController extends Controller{
         $paymentMethod = new PaymentMethod();
         $paymentMethod->fill($request->all());
         $paymentMethod->save();
+
+        if($request->input('store_scope') == 'selected'){
+            $paymentMethod->stores()->sync($request->input('stores', []));
+        }else{
+            $paymentMethod->stores()->sync([]);
+        }
 
         return redirect($request->get('backUrl', route('backend.payment_method.index')))->with('success', [$paymentMethod->name.' has successfully been created.']);
     }
@@ -50,9 +69,22 @@ class PaymentMethodController extends Controller{
            $additionalFieldsForm = ProjectHelper::getViewTemplate($paymentMethod->getProcessor()->settingForm());
         }
 
+        $stores = Store::all();
+
+        $storeOptions = [];
+        foreach($stores as $store){
+            $type = strtoupper($store->type);
+
+            if(!isset($type)){
+                $storeOptions[$type] = [];
+            }
+            $storeOptions[$type][$store->id] = $store->name;
+        }
+
         return view('backend.payment_method.edit', [
             'paymentMethod' => $paymentMethod,
-            'additionalFieldsForm' => $additionalFieldsForm
+            'additionalFieldsForm' => $additionalFieldsForm,
+            'storeOptions' => $storeOptions
         ]);
     }
 
@@ -68,6 +100,12 @@ class PaymentMethodController extends Controller{
 
         $paymentMethod->save();
 
+        if($request->input('store_scope') == 'selected'){
+            $paymentMethod->stores()->sync($request->input('stores', []));
+        }else{
+            $paymentMethod->stores()->sync([]);
+        }
+
         if($paymentMethod->getProcessor() instanceof PaymentMethodSettingFormInterface){
             $paymentMethod->getProcessor()->saveForm($request);
         }
@@ -78,6 +116,7 @@ class PaymentMethodController extends Controller{
     public function delete($id)
     {
         $paymentMethod = PaymentMethod::findOrFail($id);
+        $paymentMethod->stores()->sync([]);
 
         $name = $paymentMethod->name;
 

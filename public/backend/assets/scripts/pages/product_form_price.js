@@ -62,7 +62,8 @@ var ProductFormPrice = function () {
                             formHelper.addFieldError({
                                 'name': $errorName,
                                 'message': xhr.responseJSON[i][0],
-                                'context': '#price-rule-form-wrapper'
+                                'context': '#price-rule-form-wrapper',
+                                'messagesWrapper': '#product-price-rule-messages'
                             });
 
                             App.scrollTo($('#price-rule-form-wrapper'));

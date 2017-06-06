@@ -104,6 +104,8 @@ class CatalogController extends Controller
 
         $event_results = Event::fire(new CatalogQueryBuilderEvent('search', $qb, $request, $options));
 
+        $total = $qb->count();
+
         $facetOptions['products'] = $qb->get();
 
         //If not processed, build default query here
@@ -136,7 +138,9 @@ class CatalogController extends Controller
 
         return view($view_name, [
             'products' => $products,
+            'total' => $total,
             'options' => $options,
+            'facetOptions' => $facetOptions,
             'seoData' => $seoData,
             'facetedNavigation' => $facetedNavigation
         ]);
@@ -205,6 +209,8 @@ class CatalogController extends Controller
 
         $event_results = Event::fire(new CatalogQueryBuilderEvent('products', $qb, $request, $options));
 
+        $total = $qb->count();
+
         //If not processed, build default query here
         if(!isset($event_results[0]) || empty($event_results[0])){
             $products = $qb->paginate($options['limit']);
@@ -237,7 +243,9 @@ class CatalogController extends Controller
 
         return view($view_name, [
             'products' => $products,
+            'total' => $total,
             'options' => $options,
+            'facetOptions' => $facetOptions,
             'seoData' => $seoData,
             'facetedNavigation' => $facetedNavigation
         ]);
@@ -277,6 +285,8 @@ class CatalogController extends Controller
 
         $event_results = Event::fire(new CatalogQueryBuilderEvent('product_category_products', $qb, $request, $options));
 
+        $total = $qb->count();
+
         $facetOptions['products'] = $qb->get();
 
         //If not processed, build default query here
@@ -293,7 +303,7 @@ class CatalogController extends Controller
             }
         }
 
-        $products->setPath(FrontendHelper::get_url($request->path()))->appends($appendedOptions);
+        $products->setPath(FrontendHelper::getUrl($request->path()))->appends($appendedOptions);
 
         $view_name = ProjectHelper::findViewTemplate($productCategory->getViewSuggestions());
 
@@ -302,7 +312,9 @@ class CatalogController extends Controller
         return view($view_name, [
             'productCategory' => $productCategory,
             'products' => $products,
+            'total' => $total,
             'options' => $options,
+            'facetOptions' => $facetOptions,
             'seoModel' => $productCategory,
             'facetedNavigation' => $facetedNavigation
         ]);
@@ -347,6 +359,21 @@ class CatalogController extends Controller
 
         $facetOptions = array_diff_key($request->all(), $options);
 
+        // If facetOption is array, reconstruct it to be string
+        foreach($facetOptions as $facetSlug => &$facetOption){
+            if($facetSlug == 'categories'){
+                foreach($facetOption as &$subFacetOption){
+                    if(is_array($subFacetOption)){
+                        $subFacetOption = implode('--', $subFacetOption);
+                    }
+                }
+            }else{
+                if(is_array($facetOption)){
+                    $facetOption = implode('--', $facetOption);
+                }
+            }
+        }
+
         return [
             'options' => $options,
             'facetOptions' => $facetOptions
@@ -377,11 +404,11 @@ class CatalogController extends Controller
             });
         }
 
-        if(isset($facetOptions['manufacturer'])){
+        if(!empty($facetOptions['manufacturer'])){
             $manufacturers = [];
             foreach(explode('--', $facetOptions['manufacturer']) as $manufacturerSlug){
                 $manufacturer = RuntimeCache::getOrSet('manufacturer['.$manufacturerSlug.']', function() use ($manufacturerSlug){
-                    return Manufacturer::findBySlug($manufacturerSlug);
+                    return Manufacturer::where('slug', $manufacturerSlug)->first();
                 });
 
                 if($manufacturer){
@@ -394,7 +421,32 @@ class CatalogController extends Controller
             $qb->whereIn('manufacturer_id', $manufacturers);
         }
 
-        if(isset($facetOptions['category'])){
+        if(!empty($facetOptions['categories'])){
+            foreach($facetOptions['categories'] as $categorySlug => $categoriesInString){
+                if(empty($categoriesInString)){
+                    continue;
+                }
+
+                $categories = [];
+                foreach(explode('--', $categoriesInString) as $categorySlug){
+                    $category = RuntimeCache::getOrSet('product_category['.$categorySlug.']', function() use ($categorySlug){
+                        return ProductCategory::whereTranslation('slug', $categorySlug)->first();
+                    });
+
+                    if($category){
+                        $categories[] = $category->id;
+                    }else{
+                        $categories[] = 'wrong filter';
+                    }
+                }
+
+                $qb->whereHas('categories', function($query) use ($categories){
+                    $query->whereIn('id', $categories);
+                });
+            }
+        }
+
+        if(!empty($facetOptions['category'])){
             $categories = [];
             foreach(explode('--', $facetOptions['category']) as $categorySlug){
                 $category = RuntimeCache::getOrSet('product_category['.$categorySlug.']', function() use ($categorySlug){
@@ -413,7 +465,26 @@ class CatalogController extends Controller
             });
         }
 
-        if(isset($facetOptions['attribute'])){
+        if(!empty($facetOptions['category'])){
+            $categories = [];
+            foreach(explode('--', $facetOptions['category']) as $categorySlug){
+                $category = RuntimeCache::getOrSet('product_category['.$categorySlug.']', function() use ($categorySlug){
+                    return ProductCategory::whereTranslation('slug', $categorySlug)->first();
+                });
+
+                if($category){
+                    $categories[] = $category->id;
+                }else{
+                    $categories[] = 'wrong filter';
+                }
+            }
+
+            $qb->whereHas('categories', function($query) use ($categories){
+                $query->whereIn('id', $categories);
+            });
+        }
+
+        if(!empty($facetOptions['attribute'])){
             foreach($facetOptions['attribute'] as $attribute => $attributeParameter){
                 $attributeValues = [];
 
@@ -445,7 +516,7 @@ class CatalogController extends Controller
             }
         }
 
-        if(isset($facetOptions['feature'])){
+        if(!empty($facetOptions['feature'])){
             foreach($facetOptions['feature'] as $feature => $featureParameter){
                 $featureValues = [];
 

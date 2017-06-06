@@ -13,11 +13,11 @@ var formBehaviors = function(){
             selector: '.wysiwyg-editor',
             height: 250,
             plugins: [
-                'advlist autolink lists link image charmap print preview anchor',
+                'advlist autolink lists link image charmap print preview anchor hr',
                 'searchreplace visualblocks code fullscreen',
                 'insertdatetime media table contextmenu paste code'
             ],
-            toolbar: 'insertfile undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image media',
+            toolbar: 'insertfile undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | hr link image media',
             relative_urls : false,
             document_base_url : global_vars.base_path,
             remove_trailing_brs: false,
@@ -137,9 +137,15 @@ var formBehaviors = function(){
         $('form:not(.form-client-validation)', context).each(function(idx, obj){
             $(obj).on('submit', function(){
                 App.blockUI({
-                    target: obj,
-                    animate: true
-                });
+                  target: obj,
+                  animate: true
+              });
+
+              // Block everything on modal
+              App.blockUI({
+                target: $(obj).find('.modal-dialog'),
+                animate: false
+              });
             });
         })
     }
@@ -162,9 +168,8 @@ var formBehaviors = function(){
                 },
 
                 errorPlacement: function (error, element) { // render error placement for each input type
-                    var icon = $(element).parent('.input-icon').children('i');
-                    icon.removeClass('fa-check').addClass("fa-warning");
-                    icon.attr("data-original-title", error.text()).tooltip({'container': 'body'});
+                    $(element).parent().find('.help-block').remove();
+                    $(element).parent().append('<div class="help-block">'+error.text()+'</div>');
                 },
 
                 highlight: function (element) { // hightlight error inputs
@@ -173,13 +178,12 @@ var formBehaviors = function(){
                 },
 
                 unhighlight: function (element) { // revert the change done by hightlight
-
+                  $(element)
+                      .closest('.form-group').removeClass("has-error").addClass('has-success'); // set error class to the control group
                 },
 
                 success: function (label, element) {
-                    var icon = $(element).parent('.input-icon').children('i');
-                    $(element).closest('.form-group').removeClass('has-error').addClass('has-success'); // set success class to the control group
-                    icon.removeClass("fa-warning").addClass("fa-check");
+                    $(element).parent().find('.help-block').remove();
                 },
 
                 submitHandler: function (form) {

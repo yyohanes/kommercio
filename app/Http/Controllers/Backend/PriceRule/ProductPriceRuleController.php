@@ -99,7 +99,10 @@ class ProductPriceRuleController extends Controller
         $product->priceRules()->save($priceRule);
 
         $priceRule->product->saveToPriceIndex();
-        $priceRule->variation->saveToPriceIndex();
+
+        if($priceRule->variation){
+            $priceRule->variation->saveToPriceIndex();
+        }
 
         if($new){
             $message = 'Price rule is successfully created.';

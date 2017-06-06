@@ -31,11 +31,11 @@ class OrderLimitFormRequest extends Request
         $rules = [
             'limit_type' => 'required|in:'.$allowedLimitTypeOptions,
             'limit' => 'required|numeric|min:0',
-            'date_from' => 'date_format:Y-m-d H:i',
-            'date_to' => 'date_format:Y-m-d H:i',
+            'date_from' => 'nullable|date_format:Y-m-d H:i',
+            'date_to' => 'nullable|date_format:Y-m-d H:i',
             'dayRules' => 'required',
-            'dayRules.*.days.*' => 'in:'.implode(',', array_keys(ProjectHelper::getDaysOptions())),
-            'store_id' => 'in:'.implode(',', array_keys(Store::getStoreOptions()))
+            'dayRules.*.days.*' => 'nullable|in:'.implode(',', array_keys(ProjectHelper::getDaysOptions())),
+            'store_id' => 'nullable|in:'.implode(',', array_keys(Store::getStoreOptions()))
         ];
 
         if($this->input('type') == OrderLimit::TYPE_PRODUCT_CATEGORY){

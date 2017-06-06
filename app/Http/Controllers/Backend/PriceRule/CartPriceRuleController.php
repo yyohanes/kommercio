@@ -272,8 +272,8 @@ class CartPriceRuleController extends Controller
 
         $rules = [
             'coupon_code' => 'required|unique:coupons,coupon_code'.($request->has('coupon_id')?','.$request->input('coupon_id'):null),
-            'customer_id' => 'integer|exists:customers,id',
-            'coupon_id' => 'integer'
+            'customer_id' => 'nullable|integer|exists:customers,id',
+            'coupon_id' => 'nullable|integer'
         ];
 
         $this->validate($request, $rules);

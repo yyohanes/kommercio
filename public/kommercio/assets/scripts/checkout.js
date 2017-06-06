@@ -46,8 +46,6 @@
         method: 'POST',
         data: $form.serialize() + '&process=' + $process,
         success: function(data){
-          $form.triggerHandler('after_step_change', [data.step, checkoutData.step]);
-
           var $html = null;
 
           for(var i in data.data){
@@ -62,12 +60,18 @@
 
             initComponent($('#'+ i +'-wrapper', element));
             checkoutData.step = data.step;
+
+            $form.trigger('after_step_change', [data.step, checkoutData.step, data]);
           }
+
+          $form.trigger('after_step_change', [data.step, checkoutData.step, data]);
         },
         complete: function(){
           KommercioFrontend.toggleOverlay($element, false);
         },
         error: function(data){
+          $form.trigger('error', [checkoutData.step, data]);
+
           if($process != 'place_order'){
             for(var i in data.responseJSON){
               KommercioFrontend.addError(i, data.responseJSON[i][0], element);
@@ -202,7 +206,10 @@
         method: 'POST',
         data: $checkoutForm.serialize() + '&month=' + (month+1) + '&year=' + year,
         success: function(data){
-          $disabledDates = $.makeArray(data.disabled_dates);
+          $disabledDates = Object.keys(data.disabled_dates).map(function(e) {
+            return data.disabled_dates[e];
+          });
+
           $(e.target).datepicker('setDatesDisabled', $disabledDates);
           $(e.target).datepicker('update', e.date);
         },

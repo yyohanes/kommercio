@@ -2,7 +2,11 @@
 return [
     'order' => [
         'line_item_notes' => false,
-        'order_limit' => false
+        'order_limit' => false,
+        'delivery_order' => false,
+        'print' => [
+            'packaging_slip' => false
+        ]
     ],
     'catalog' => [
         'product_attributes' => true,
@@ -13,13 +17,14 @@ return [
         'import' => false
     ],
     'cms' => [
-        'gallery' => true,
-        'post' => true,
+        'gallery' => false,
+        'post' => false,
         'menu' => true
     ],
     'customer' => [
         'reward_points' => false,
         'customer_group' => false,
-        'wishlist' => false
-    ]
+        'wishlist' => false,
+        'export' => true
+    ],
 ];

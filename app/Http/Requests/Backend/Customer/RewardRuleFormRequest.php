@@ -33,10 +33,10 @@ class RewardRuleFormRequest extends Request
         $rules = [
             'name' => 'required',
             'type' => 'required|in:'.$allowedTypes,
-            'store_id' => 'in:'.$allowedStores,
-            'currency' => 'in:'.$allowedCurrencies,
-            'active_date_from' => 'date_format:Y-m-d H:i',
-            'active_date_to' => 'date_format:Y-m-d H:i',
+            'store_id' => 'nullable|in:'.$allowedStores,
+            'currency' => 'nullable|in:'.$allowedCurrencies,
+            'active_date_from' => 'nullable|date_format:Y-m-d H:i',
+            'active_date_to' => 'nullable|date_format:Y-m-d H:i',
             'reward' => 'required|min:0',
         ];
 

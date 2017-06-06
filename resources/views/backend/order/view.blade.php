@@ -115,15 +115,28 @@
                             <li class="active" role="presentation">
                                 <a href="#tab_details" data-toggle="tab"> Details </a>
                             </li>
+
+                            @can('access', ['view_delivery_order'])
+                                <li role="presentation">
+                                    <a href="#tab_delivery_orders" data-toggle="tab"> Delivery Orders </a>
+                                </li>
+                            @endcan
+
                             @can('access', ['view_payment'])
                             <li role="presentation">
                                 <a href="#tab_invoice_payments" data-toggle="tab"> Invoice / Payments </a>
                             </li>
                             @endcan
 
+                            @can('access', ['view_order_external_memo'])
+                                <li role="presentation">
+                                    <a href="#tab_external_memo" data-toggle="tab"> External Memo </a>
+                                </li>
+                            @endcan
+
                             @can('access', ['view_order_internal_memo'])
                             <li role="presentation">
-                                <a href="#tab_internal_memo" data-toggle="tab"> Order Memo </a>
+                                <a href="#tab_internal_memo" data-toggle="tab"> Internal Memo </a>
                             </li>
                             @endcan
                         </ul>
@@ -155,13 +168,6 @@
                                                     <div class="col-md-7 value"> <span class="label bg-{{ OrderHelper::getOrderStatusLabelClass($order->status) }} bg-font-{{ OrderHelper::getOrderStatusLabelClass($order->status) }}">{{ \Kommercio\Models\Order\Order::getStatusOptions($order->status, true) }}</span> </div>
                                                 </div>
 
-                                                @if(!empty($order->getData('tracking_number', null)))
-                                                <div class="row static-info">
-                                                    <div class="col-md-5 name"> Tracking Number: </div>
-                                                    <div class="col-md-7 value"> {{ $order->getData('tracking_number') }} </div>
-                                                </div>
-                                                @endif
-
                                                 <div class="row static-info">
                                                     <div class="col-md-5 name"> Grand Total: </div>
                                                     <div class="col-md-7 value"> {{ PriceFormatter::formatNumber($order->total, $order->currency) }} </div>
@@ -185,7 +191,7 @@
                                                 @if($shippingLineItem)
                                                     <div class="row static-info">
                                                         <div class="col-md-5 name"> Shipping: </div>
-                                                        <div class="col-md-7 value"> {{ $shippingLineItem->getSelectedMethod()['name'] }} </div>
+                                                        <div class="col-md-7 value"> {{ $shippingLineItem->name }} </div>
                                                     </div>
                                                 @endif
                                             </div>
@@ -379,6 +385,96 @@
                                 </div>
                             </div>
 
+                            @can('access', ['view_delivery_order'])
+                                <div class="tab-pane" id="tab_delivery_orders">
+                                    <div class="form-body">
+                                        @if($order->deliveryOrders->count() > 0)
+                                            <div class="margin-bottom-10">
+                                                <div class="portlet">
+                                                    <div class="portlet-title">
+                                                        <div class="caption">
+                                                            <i class="fa fa-truck"></i>
+                                                            <span class="caption-subject">Delivery Orders</span>
+                                                        </div>
+                                                    </div>
+                                                    <div class="portlet-body">
+                                                        <table class="table table-hover">
+                                                            <thead>
+                                                            <tr>
+                                                                <th> </th>
+                                                                <th> Delivery Order No. </th>
+                                                                <th> Total Quantity </th>
+                                                                <th> Status </th>
+                                                                <th> Date </th>
+                                                                <th> Issued by </th>
+                                                                <th></th>
+                                                            </tr>
+                                                            </thead>
+                                                            <tbody id="delivery-order-index-wrapper">
+                                                            @php
+                                                            $count = 0;
+                                                            @endphp
+                                                            @foreach($order->deliveryOrders->sortByDesc('created_at') as $idx => $deliveryOrder)
+                                                                @php
+                                                                $count += 1;
+                                                                @endphp
+                                                                <tr>
+                                                                    <td>{{ $count }}</td>
+                                                                    <td>{{ $deliveryOrder->reference }}</td>
+                                                                    <td>{{ ProjectHelper::formatNumber($deliveryOrder->total_quantity) }}</td>
+                                                                    <td>
+                                                                        @php
+                                                                        $doShippable = $deliveryOrder->isShippable;
+                                                                        $doCancellable = $deliveryOrder->isCancellable;
+                                                                        @endphp
+                                                                        <div class="btn-group">
+                                                                            <span href="#" class="btn btn-sm {{ OrderHelper::getDeliveryOrderStatusLabelClass($deliveryOrder->status) }}">{{ \Kommercio\Models\Order\DeliveryOrder\DeliveryOrder::getStatusOptions($deliveryOrder->status) }}</span>
+                                                                            @if($doCancellable || $doShippable)
+                                                                            <button type="button" class="btn btn-sm {{ OrderHelper::getDeliveryOrderStatusLabelClass($deliveryOrder->status) }} dropdown-toggle" data-toggle="dropdown" aria-expanded="true">
+                                                                                <i class="fa fa-angle-down"></i>
+                                                                            </button>
+                                                                            <ul class="dropdown-menu" role="menu">
+                                                                                @if($doShippable)
+                                                                                <li>
+                                                                                    <a href="{{ route('backend.sales.order.delivery_order.quick_status_update', ['id' => $deliveryOrder->id, 'status' => \Kommercio\Models\Order\DeliveryOrder\DeliveryOrder::STATUS_SHIPPED, 'backUrl' => Request::fullUrl()]) }}" class="modal-ajax">Shipped</a>
+                                                                                </li>
+                                                                                @endif
+                                                                                @if($doShippable)
+                                                                                <li>
+                                                                                    <a href="{{ route('backend.sales.order.delivery_order.quick_status_update', ['id' => $deliveryOrder->id, 'status' => \Kommercio\Models\Order\DeliveryOrder\DeliveryOrder::STATUS_CANCELLED, 'backUrl' => Request::fullUrl()]) }}" class="modal-ajax">Cancel</a>
+                                                                                </li>
+                                                                                @endif
+                                                                            </ul>
+                                                                            @endif
+                                                                        </div>
+                                                                    </td>
+                                                                    <td>{{ $deliveryOrder->created_at->format('d M Y H:i') }}</td>
+                                                                    <td>{{ $deliveryOrder->createdBy?$deliveryOrder->createdBy->email:null }}</td>
+                                                                    <td>
+                                                                        <div class="btn-group btn-group-xs">
+                                                                            <a href="#" class="btn btn-default delivery-order-view-btn" data-delivery_order_id="{{ $deliveryOrder->id }}"><i class="fa fa-search"></i> View</a>
+                                                                            @if(!in_array($deliveryOrder->status, [\Kommercio\Models\Order\DeliveryOrder\DeliveryOrder::STATUS_CANCELLED]))
+                                                                                <a href="{{ route('backend.sales.order.delivery_order.print', ['id' => $deliveryOrder->id]) }}" class="btn btn-default" target="_blank"><i class="fa fa-print"></i> Print</a>
+                                                                            @endif
+                                                                        </div>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr id="delivery-order-{{ $deliveryOrder->id }}-view" class="delivery-order-view-row">
+                                                                    <td colspan="100">
+                                                                        @include('backend.order.delivery_orders.mini_view', ['deliveryOrder' => $deliveryOrder])
+                                                                    </td>
+                                                                </tr>
+                                                            @endforeach
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        @endif
+                                    </div>
+                                </div>
+                            @endcan
+
                             @can('access', ['view_payment'])
                             <div class="tab-pane" id="tab_invoice_payments">
                                 <div class="form-body">
@@ -463,6 +559,40 @@
                             </div>
                             @endcan
 
+                            @can('access', ['view_order_external_memo'])
+                                <div class="tab-pane" id="tab_external_memo">
+                                    <div class="form-body">
+                                        <div class="margin-bottom-10">
+                                            @can('access', ['create_order_external_memo'])
+                                                <a class="btn btn-default" id="external-memo-add-btn" href="#">
+                                                    <i class="icon-plus"></i> Add External Memo
+                                                </a>
+                                            @endcan
+                                        </div>
+
+                                        <div id="external-memo-form-wrapper"
+                                             data-external_memo_form="{{ route('backend.sales.order.external_memo.form', ['order_id' => $order->id]) }}"
+                                             data-external_memo_index="{{ route('backend.sales.order.external_memo.index', ['order_id' => $order->id]) }}"></div>
+
+                                        <div class="table-scrollable">
+                                            <table class="table table-striped table-hover">
+                                                <thead>
+                                                <tr>
+                                                    <th style="width: 60%;">Memo</th>
+                                                    <th>By</th>
+                                                    <th>Date</th>
+                                                    <th></th>
+                                                </tr>
+                                                </thead>
+                                                <tbody id="external-memo-index-wrapper">
+                                                @include('backend.order.memos.external.index')
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endcan
+
                             @can('access', ['view_order_internal_memo'])
                             <div class="tab-pane" id="tab_internal_memo">
                                 <div class="form-body">
@@ -488,7 +618,7 @@
                                             </tr>
                                             </thead>
                                             <tbody id="internal-memo-index-wrapper">
-                                            @include('backend.order.internal_memos.index')
+                                            @include('backend.order.memos.internal.index')
                                             </tbody>
                                         </table>
                                     </div>

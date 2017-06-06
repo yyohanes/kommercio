@@ -21,3 +21,7 @@ Backend
 http://kommercio.webpresso.co.id/backoffice
 Username: admin@kommercio.id
 Password: kommercio123
+
+UPGRADE GUIDE
+-------------
+- Delete your vendor folder and run *composer install* to update to Laravel 5.4

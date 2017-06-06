@@ -17,7 +17,7 @@ class ProductCompositeController extends Controller
 {
     public function viewProduct(Request $request, $slug, $product_slug)
     {
-        $compositeGroup = ProductCompositeGroup::findBySlugOrFail($slug);
+        $compositeGroup = ProductCompositeGroup::where('slug', $slug)->firstOrFail();
         $product = Product::whereTranslation('slug', $product_slug)->firstOrFail();
 
         if($request->has('line_item_id')){

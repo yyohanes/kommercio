@@ -2,22 +2,13 @@
 
 namespace Kommercio\Models\Customer;
 
-use Cviebrock\EloquentSluggable\SluggableInterface;
-use Cviebrock\EloquentSluggable\SluggableTrait;
-use Illuminate\Database\Eloquent\Model;
+use Kommercio\Models\Abstracts\SluggableModel;
 
-class BookmarkType extends Model implements SluggableInterface
+class BookmarkType extends SluggableModel
 {
-    use SluggableTrait;
-
     protected $fillable = ['name', 'default'];
     protected $casts = [
         'default' => 'boolean'
-    ];
-    protected $sluggable = [
-        'build_from' => 'name',
-        'save_to' => 'slug',
-        'on_update' => TRUE
     ];
 
     //Relations

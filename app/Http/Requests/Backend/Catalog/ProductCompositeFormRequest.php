@@ -28,10 +28,10 @@ class ProductCompositeFormRequest extends Request
             'minimum' => 'required|numeric|min:0',
             'maximum' => 'required|numeric|min:0',
             'composite_product' => 'required_without:product_category|array',
-            'composite_product.*' => 'numeric|exists:products,id',
+            'composite_product.*' => 'nullable|numeric|exists:products,id',
             'product_category' => 'required_without:composite_product|array',
-            'product_category.*' => 'numeric|exists:product_categories,id',
-            'default_product.*' => 'numeric|exists:products,id',
+            'product_category.*' => 'nullable|numeric|exists:product_categories,id',
+            'default_product.*' => 'nullable|numeric|exists:products,id',
         ];
 
         return $rules;

@@ -27,9 +27,9 @@ class PageFormRequest extends Request
 
         $rules = [
             'name' => 'required',
-            'parent_id' => 'integer|not_in:'.$pageId,
+            'parent_id' => 'nullable|integer|not_in:'.$pageId,
             'slug' => 'required',
-            'sort_order' => 'integer'
+            'sort_order' => 'nullable|integer'
         ];
 
         return $rules;
@@ -45,6 +45,10 @@ class PageFormRequest extends Request
 
         if(!isset($attributes['active'])){
             $attributes['active'] = 0;
+        }
+
+        if(empty($attributes['sort_order'])){
+            $attributes['sort_order'] = 0;
         }
 
         $this->replace($attributes);

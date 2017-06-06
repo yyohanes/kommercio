@@ -60,7 +60,6 @@ class Payment extends Model implements AuthorSignatureInterface
         return $this->morphMany('Kommercio\Models\Log', 'loggable');
     }
 
-    //Relations
     public function attachments()
     {
         return $this->media('attachment');
@@ -73,8 +72,18 @@ class Payment extends Model implements AuthorSignatureInterface
         $this->status = $status;
         $this->save();
 
-        if($oldStatus != $status && $status == self::STATUS_SUCCESS){
-            Event::fire(new PaymentEvent('accept', $this));
+        if($oldStatus != $status){
+            if($status == self::STATUS_SUCCESS){
+                Event::fire(new PaymentEvent('accept', $this, [
+                    'note' => $note,
+                    'data' => $data
+                ]));
+            }elseif($status == self::STATUS_VOID){
+                Event::fire(new PaymentEvent('void', $this, [
+                    'note' => $note,
+                    'data' => $data
+                ]));
+            }
         }
 
         if(!$by){

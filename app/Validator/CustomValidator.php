@@ -3,6 +3,7 @@
 namespace Kommercio\Validator;
 
 use Carbon\Carbon;
+use Illuminate\Contracts\Translation\Translator;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Validator;
 use Kommercio\Facades\RuntimeCache;
@@ -13,14 +14,14 @@ use Kommercio\Models\Order\OrderLimit;
 use Kommercio\Models\PaymentMethod\PaymentMethod;
 use Kommercio\Models\PriceRule\CartPriceRule;
 use Kommercio\Models\Product;
+use Kommercio\Models\ProductCategory;
 use Kommercio\Models\RewardPoint\Reward;
-use Symfony\Component\Translation\TranslatorInterface;
 
 class CustomValidator extends Validator
 {
     private static $_storage;
 
-    public function __construct(TranslatorInterface $translator, array $data, array $rules, array $messages = [], array $customAttributes = [])
+    public function __construct(Translator $translator, array $data, array $rules, array $messages = [], array $customAttributes = [])
     {
         parent::__construct( $translator, $data, $rules, $messages, $customAttributes );
 
@@ -168,12 +169,17 @@ class CustomValidator extends Validator
         $delivery_date = $parameters[2];
         $delivery_date = Carbon::createFromFormat('Y-m-d', $delivery_date)->format('d F Y');
 
-        $left = static::$_storage['delivery_date_'.$this->getValue($attribute).'_available_quantity']?:0;
-        $left = $left < 1?0:$left;
-
         $message = $this->replaceProductAttribute($message, $attribute, $rule, $parameters);
         $message = str_replace(':date', $delivery_date, $message);
-        $message = str_replace(':quantity', $left, $message);
+
+        if(static::$_storage['order_limit']->type == OrderLimit::TYPE_PRODUCT_CATEGORY){
+            $message = str_replace(':quantity', static::$_storage['order_limit']->limit + 0, $message);
+        }else{
+            $left = static::$_storage['delivery_date_'.$this->getValue($attribute).'_available_quantity']?:0;
+            $left = $left < 1?0:$left;
+
+            $message = str_replace(':quantity', $left, $message);
+        }
 
         return $message;
     }
@@ -185,10 +191,11 @@ class CustomValidator extends Validator
 
     public function replaceTodayOrderLimit($message, $attribute, $rule, $parameters)
     {
+        $message = $this->replaceProductAttribute($message, $attribute, $rule, $parameters);
+
         $left = static::$_storage['checkout_at_'.$this->getValue($attribute).'_available_quantity']?:0;
         $left = $left < 1?0:$left;
 
-        $message = $this->replaceProductAttribute($message, $attribute, $rule, $parameters);
         $message = str_replace(':quantity', $left, $message);
 
         return $message;
@@ -213,10 +220,41 @@ class CustomValidator extends Validator
                 'date' => Carbon::now()->format('Y-m-d')
             ]);
 
-            if($orderLimit){
-                static::$_storage['per_order_'.$product->id.'_available_quantity'] = $orderLimit + 0;
+            $productPassed = true;
 
-                return $orderLimit >= $quantity;
+            if($orderLimit){
+                static::$_storage['per_order_'.$product->id.'_available_quantity'] = $orderLimit['limit'] + 0;
+                static::$_storage['order_limit'] = $orderLimit['object'];
+                static::$_storage['invalidated_object'] = $product;
+
+                $productPassed = $orderLimit['limit'] >= $quantity;
+            }
+
+            if($productPassed){
+                foreach($product->categories as $category){
+                    $orderLimit = $category->getPerOrderLimit([
+                        'store' => !empty($order->store)?$order->store->id:null,
+                        'date' => Carbon::now()->format('Y-m-d')
+                    ]);
+
+                    if($orderLimit){
+                        $currentOrderedTotal = RuntimeCache::getOrSet('per_order_category_total_'.$category->id, function() use ($quantity){
+                            return 0;
+                        });
+
+                        $currentOrderedTotal += $quantity;
+
+                        RuntimeCache::set('per_order_category_total_'.$category->id, $currentOrderedTotal);
+
+                        $productCategoryPassed = $orderLimit['limit'] >= $currentOrderedTotal;
+
+                        if(!$productCategoryPassed){
+                            static::$_storage['order_limit'] = $orderLimit['object'];
+                            static::$_storage['invalidated_object'] = $category;
+                            return $productCategoryPassed;
+                        }
+                    }
+                }
             }
         }
 
@@ -226,88 +264,12 @@ class CustomValidator extends Validator
     public function replacePerOrderLimit($message, $attribute, $rule, $parameters)
     {
         $message = $this->replaceProductAttribute($message, $attribute, $rule, $parameters);
-        $message = str_replace(':quantity', static::$_storage['per_order_'.$this->getValue($attribute).'_available_quantity'], $message);
 
-        return $message;
-    }
-
-    public function validateCategoryOrderLimit($attribute, $value, $parameters)
-    {
-        $product_id = $value;
-        $quantity = $parameters[0];
-        $order_id = $parameters[1];
-
-        if($quantity > 0){
-            $product = RuntimeCache::getOrSet('product_'.$product_id, function() use ($product_id){
-                return Product::findOrFail($product_id);
-            });
-
-            $order = RuntimeCache::getOrSet('order_'.$order_id, function() use ($order_id){
-                return Order::findOrFail($order_id);
-            });
-
-            $orderLimits = RuntimeCache::getOrSet('order_limits_'.$order->id, function() use ($order){
-                $store = $order->store;
-                $store_id = $store?$store->id:null;
-
-                $perOrderLimits = OrderLimit::getOrderLimits([
-                    'limit_type' => OrderLimit::LIMIT_PER_ORDER,
-                    'store' => $store_id,
-                    'type' => OrderLimit::TYPE_PRODUCT_CATEGORY
-                ]);
-
-                if(!empty($order->delivery_date)){
-                    $deliveryOrderLimits = OrderLimit::getOrderLimits([
-                        'limit_type' => OrderLimit::LIMIT_DELIVERY_DATE,
-                        'date' => $order->delivery_date,
-                        'store' => $store_id,
-                        'type' => OrderLimit::TYPE_PRODUCT_CATEGORY
-                    ]);
-                }else{
-                    $deliveryOrderLimits = [];
-                }
-
-                $todayOrderLimits = OrderLimit::getOrderLimits([
-                    'limit_type' => OrderLimit::LIMIT_ORDER_DATE,
-                    'date' => Carbon::now(),
-                    'store' => $store_id,
-                    'type' => OrderLimit::TYPE_PRODUCT_CATEGORY
-                ]);
-
-                $orderLimits = array_merge($perOrderLimits, $deliveryOrderLimits, $todayOrderLimits);
-
-                return $orderLimits;
-            });
-
-            foreach($orderLimits as $orderLimit){
-                if($orderLimit->productRulesPassed($product)){
-                    $orderLimit->total += $quantity;
-                }
-
-                if($orderLimit->total > $orderLimit->limit){
-                    static::$_storage['category_order_limit_'.$product->id] = $orderLimit;
-
-                    return false;
-                }
-            }
+        if(static::$_storage['order_limit']->type == OrderLimit::TYPE_PRODUCT){
+            $message = str_replace(':quantity', static::$_storage['per_order_'.$this->getValue($attribute).'_available_quantity'], $message);
+        }else{
+            $message = str_replace(':quantity', static::$_storage['order_limit']->limit + 0, $message);
         }
-
-        return true;
-    }
-
-    public function replaceCategoryOrderLimit($message, $attribute, $rule, $parameters)
-    {
-        $product_id = $this->getValue($attribute);
-        $product = RuntimeCache::getOrSet('product_'.$product_id, function() use ($product_id){
-            return Product::findOrFail($product_id);
-        });
-        $orderLimit = static::$_storage['category_order_limit_'.$product_id];
-
-        $categories = implode(', ', $orderLimit->productCategories->pluck('name')->all());
-
-        $message = str_replace(':order_limit', $categories, $message);
-        $message = str_replace(':limit', ($orderLimit->limit + 0), $message);
-        $message = str_replace(':product', $product->name, $message);
 
         return $message;
     }
@@ -338,12 +300,9 @@ class CustomValidator extends Validator
 
     protected function replaceProductAttribute($message, $attribute, $rule, $parameters)
     {
-        $product_id = $this->getValue($attribute);
-        $product = RuntimeCache::getOrSet('product_'.$product_id, function() use ($product_id){
-            return Product::findOrFail($product_id);
-        });
+        $invalidatedObject = static::$_storage['invalidated_object'];
 
-        return str_replace(':product', $product->name, $message);
+        return str_replace(':name', $invalidatedObject->name, $message);
     }
 
     protected function validateStepPaymentMethod($attribute, $value, $parameters)
@@ -408,19 +367,59 @@ class CustomValidator extends Validator
             $orderCount = $product->getOrderCount([
                 'delivery_date' => $delivery_date,
                 'checkout_at' => $today,
-                'store' => $store_id?:(!empty($order->store)?$order->store->id:null),
+                'store_id' => $store_id?:(!empty($order->store)?$order->store->id:null),
             ]);
 
             $orderLimit = $product->getOrderLimit([
                 'store' => $store_id?:(!empty($order->store)?$order->store->id:null),
                 'date' => $today,
-                'delivery_date' => $delivery_date
+                'delivery_date' => $delivery_date,
+                'type' => OrderLimit::TYPE_PRODUCT
             ]);
+
+            $productLimitPassed = true;
 
             if(is_array($orderLimit) && $orderLimit['limit_type'] == $type){
                 static::$_storage[$type.'_'.$product->id.'_available_quantity'] = $orderLimit['limit'] - $orderCount;
 
-                return ($orderLimit['limit'] - $orderCount) >= $quantity;
+                $productLimitPassed = ($orderLimit['limit'] - $orderCount) >= $quantity;
+
+                if(!$productLimitPassed){
+                    static::$_storage['order_limit'] = $orderLimit['object'];
+                    static::$_storage['invalidated_object'] = $product;
+
+                    return $productLimitPassed;
+                }
+            }
+
+            // Check Category Limit if product limit passes
+            if($productLimitPassed){
+                $categoryOrderLimit = $product->getOrderLimit([
+                    'store' => $store_id?:(!empty($order->store)?$order->store->id:null),
+                    'date' => $today,
+                    'delivery_date' => $delivery_date,
+                    'type' => OrderLimit::TYPE_PRODUCT_CATEGORY,
+                ]);
+
+                if(is_array($categoryOrderLimit)){
+                    foreach($categoryOrderLimit['object']->productCategories as $productCategory){
+                        $categoryOrderCount = $productCategory->getOrderCount([
+                            'delivery_date' => $delivery_date,
+                            'checkout_at' => $today,
+                            'store_id' => $store_id?:(!empty($order->store)?$order->store->id:null),
+                        ]);
+
+                        $categoryLimitPassed = ($categoryOrderLimit['limit'] - $categoryOrderCount) >= $quantity;
+
+                        if(!$categoryLimitPassed){
+                            static::$_storage[$type.'_'.$product->id.'_available_quantity'] = $categoryOrderLimit['limit'] - $categoryOrderCount;
+                            static::$_storage['order_limit'] = $categoryOrderLimit['object'];
+                            static::$_storage['invalidated_object'] = $productCategory;
+
+                            return $categoryLimitPassed;
+                        }
+                    }
+                }
             }
         }
 

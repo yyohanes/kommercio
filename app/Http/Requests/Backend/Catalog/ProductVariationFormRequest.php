@@ -29,15 +29,15 @@ class ProductVariationFormRequest extends Request
 
         $rules = [
             'variation.sku' => 'required|unique:products,sku'.(!empty($productVariationId)?','.$productVariationId:''),
-            'variation.width' => 'numeric',
-            'variation.length' => 'numeric',
-            'variation.depth' => 'numeric',
-            'variation.weight' => 'numeric',
-            'variation.productDetail.available_date_from' => 'date_format:Y-m-d H:i',
-            'variation.productDetail.available_date_to' => 'date_format:Y-m-d H:i',
-            'variation.productDetail.active_date_from' => 'date_format:Y-m-d H:i',
-            'variation.productDetail.active_date_to' => 'date_format:Y-m-d H:i',
-            'variation.productDetail.retail_price' => 'numeric',
+            'variation.width' => 'nullable|numeric',
+            'variation.length' => 'nullable|numeric',
+            'variation.depth' => 'nullable|numeric',
+            'variation.weight' => 'nullable|numeric',
+            'variation.productDetail.available_date_from' => 'nullable|date_format:Y-m-d H:i',
+            'variation.productDetail.available_date_to' => 'nullable|date_format:Y-m-d H:i',
+            'variation.productDetail.active_date_from' => 'nullable|date_format:Y-m-d H:i',
+            'variation.productDetail.active_date_to' => 'nullable|date_format:Y-m-d H:i',
+            'variation.productDetail.retail_price' => 'nullable|numeric',
         ];
 
         $attributeCount = 0;

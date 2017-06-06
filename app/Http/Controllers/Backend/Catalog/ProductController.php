@@ -209,7 +209,7 @@ class ProductController extends Controller{
 
         if($product->combination_type != Product::COMBINATION_TYPE_VARIABLE){
             foreach($request->input('product_attributes', []) as $attributeId => $attributeValue){
-                if(!empty($attributeValue)) {
+                if(!empty($attributeValue)){
                     $toSyncAttributeValues[$attributeValue] = [
                         'product_attribute_id' => $attributeId
                     ];
@@ -384,33 +384,43 @@ class ProductController extends Controller{
             }
 
             if(!empty($featureValue)){
-                $syncFeatures[$featureValue] = [
-                    'product_feature_id' => $featureId
+                $syncFeatures[$featureId] = [
+                    'product_feature_value_id' => $featureValue
                 ];
             }
         }
-        $product->productFeatureValues()->sync($syncFeatures);
+        $product->productFeatures()->sync($syncFeatures);
 
-        //Cross Sell
+        // Cross Sell
         $product->crossSellTo()->detach();
         foreach($request->input('cross_sell_product', []) as $idx=>$crossSellProduct){
             $product->crossSellTo()->attach($crossSellProduct, ['type' => 'cross_sell', 'sort_order' => $idx]);
         }
 
-        //Update variation
+        // Update variation
         if($product->variations->count() > 0){
             foreach($product->variations as $variation){
                 $variation->productDetail->manage_stock = $request->input('variation.'.$variation->id.'.productDetail.manage_stock', false);
                 $variation->productDetail->taxable = $productDetail->taxable;
                 $variation->productDetail->save();
 
-                //Update children product categories
+                // Update children product categories
                 $variation->categories()->sync($request->input('categories', []));
 
-                //Update children features
-                $variation->productFeatureValues()->sync($syncFeatures);
+                // Update children features
+                $variationFeatures = [];
+                foreach($variation->productFeatures as $variationFeature){
+                    $variationFeatures[$variationFeature->id] = [
+                        'product_feature_value_id' => $variationFeature->pivot->product_feature_value_id
+                    ];
+                }
 
-                //Update manufacturer
+                $variationFeatures = array_intersect_key($variationFeatures, $syncFeatures);
+                $variationFeatures = array_replace($syncFeatures, $variationFeatures);
+
+                $variation->productFeatures()->sync($variationFeatures);
+
+                // Update manufacturer
                 $variation->manufacturer_id = $request->input('manufacturer_id', null);
 
                 if($variation->productDetail->manage_stock){
@@ -419,7 +429,7 @@ class ProductController extends Controller{
 
                 $variation->save();
 
-                //Save variation to index
+                // Save variation to index
                 $variation->saveToIndex();
             }
         }else{
@@ -616,28 +626,51 @@ class ProductController extends Controller{
             ];
         }
 
+        $product->productAttributeValues()->sync($toSyncAttributeValues);
+
         $product->parent()->associate($parentProduct);
 
-        //Update manufacturer
+        // Update manufacturer
         $product->manufacturer_id = $parentProduct->manufacturer_id;
 
         $product->save();
 
-        //Update children product categories
+        // Update children product categories
         $product->categories()->sync($parentProduct->categories->pluck('id')->all());
 
-        //Update children features
-        $features = [];
+        // Update children features
+        $syncFeatures = [];
+        foreach($request->input('variation.features', []) as $featureId=>$featureValue){
+            if($request->has('variation.features_custom.'.$featureId)){
+                $newFeatureValue = ProductFeatureValue::whereTranslation('name', $request->input('variation.features_custom.'.$featureId))->first();
 
-        foreach($parentProduct->productFeatureValues as $parentProductFeature){
-            $features[$parentProductFeature->id] = [
-                'product_feature_id' => $parentProductFeature->pivot->product_feature_id
+                if(!$newFeatureValue){
+                    $newFeatureValue = new ProductFeatureValue();
+                    $newFeatureValue->fill([
+                        'name' => $request->input('variation.features_custom.'.$featureId),
+                        'custom' => TRUE,
+                    ]);
+
+                    $newFeatureValue->productFeature()->associate($featureId);
+                    $newFeatureValue->save();
+                }
+
+                $featureValue = $newFeatureValue->id;
+            }
+
+            if(empty($featureValue)){
+                $featureValue = $parentProduct->productFeatures->filter(function($feature, $key) use ($featureId){
+                    return $feature->id = $featureId;
+                })->first();
+
+                $featureValue = $featureValue->pivot->product_feature_value_id;
+            }
+
+            $syncFeatures[$featureId] = [
+                'product_feature_value_id' => $featureValue
             ];
         }
-
-        $product->productFeatureValues()->sync($features);
-
-        $product->productAttributeValues()->sync($toSyncAttributeValues);
+        $product->productFeatures()->sync($syncFeatures);
 
         $images = [];
 
@@ -1013,7 +1046,7 @@ class ProductController extends Controller{
             if($options['delivery_date']){
                 $totalOrderedByDelivery = $product->getOrderCount([
                     'delivery_date' => $options['delivery_date'],
-                    'store' => $store_id,
+                    'store_id' => $store_id,
                     'exclude_order_id' => $request->input('order_id')
                 ]);
             }
@@ -1022,7 +1055,7 @@ class ProductController extends Controller{
         }else{
             $totalOrderedByDate = $product->getOrderCount([
                 'checkout_at' => $options['date'],
-                'store' => $store_id,
+                'store_id' => $store_id,
                 'exclude_order_id' => $request->input('order_id')
             ]);
 
@@ -1073,8 +1106,12 @@ class ProductController extends Controller{
             $order = FrontendHelper::getCurrentOrder();
 
             foreach($order->getProductLineItems() as $idx => $productLineItem) {
-                $products[$idx] = $productLineItem->product;
-                $orderedQuantities[$idx] = $productLineItem->quantity;
+                if(!isset($products[$productLineItem->line_item_id])){
+                    $products[$productLineItem->line_item_id] = $productLineItem->product;
+                    $orderedQuantities[$productLineItem->line_item_id] = 0;
+                }
+
+                $orderedQuantities[$productLineItem->line_item_id] += $productLineItem->quantity;
             }
 
             $store = ProjectHelper::getStoreByRequest($request, $order->store);

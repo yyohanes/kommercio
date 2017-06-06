@@ -11,6 +11,8 @@ use Kommercio\Facades\CurrencyHelper;
 use Kommercio\Facades\PriceFormatter;
 use Kommercio\Facades\ProjectHelper;
 use Kommercio\Models\Interfaces\AuthorSignatureInterface;
+use Kommercio\Models\Order\DeliveryOrder\DeliveryOrder;
+use Kommercio\Models\Order\DeliveryOrder\DeliveryOrderItem;
 use Kommercio\Models\PriceRule\CartPriceRule;
 use Kommercio\Models\PriceRule\Coupon;
 use Kommercio\Models\Product;
@@ -37,6 +39,7 @@ class Order extends Model implements AuthorSignatureInterface
 
     public static $processedStatus = [self::STATUS_PENDING, self::STATUS_PROCESSING];
 
+    protected $originalLineItems;
     protected $guarded = ['shippingProfile', 'billingProfile'];
     protected $dates = ['deleted_at', 'delivery_date', 'checkout_at'];
 
@@ -86,6 +89,11 @@ class Order extends Model implements AuthorSignatureInterface
         return $this->hasMany('Kommercio\Models\Order\Payment')->counted();
     }
 
+    public function deliveryOrders()
+    {
+        return $this->hasMany('Kommercio\Models\Order\DeliveryOrder\DeliveryOrder');
+    }
+
     public function invoices()
     {
         return $this->hasMany('Kommercio\Models\Order\Invoice');
@@ -99,6 +107,11 @@ class Order extends Model implements AuthorSignatureInterface
     public function internalMemos()
     {
         return $this->comments()->internalMemo()->orderBy('created_at', 'DESC');
+    }
+
+    public function externalMemos()
+    {
+        return $this->comments()->externalMemo()->orderBy('created_at', 'DESC');
     }
 
     public function rewardPointTransactions()
@@ -891,18 +904,68 @@ class Order extends Model implements AuthorSignatureInterface
         return $eligible;
     }
 
+    public function createDeliveryOrder($deliveredLineItems, $options = [])
+    {
+        $deliveryOrder = new DeliveryOrder($options);
+        $deliveryOrder->store()->associate($this->store);
+        $deliveryOrder->customer()->associate($this->customer);
+        $deliveryOrder->order()->associate($this);
+        $deliveryOrder->generateReference();
+
+        if(!empty($options['data'])){
+            $deliveryOrder->saveData($options['data']);
+        }
+
+        $deliveryOrder->save();
+
+        if(!empty($options['shippingProfile'])){
+            $shippingProfile = $deliveryOrder->getProfileOrNew();
+            $shippingProfile->saveDetails($options['shippingProfile']);
+        }
+
+        $count = 0;
+        foreach($this->getProductLineItems() as $idx => $productLineItem){
+            if(!isset($deliveredLineItems[$productLineItem->id]) || empty($deliveredLineItems[$productLineItem->id]['quantity'])){
+                continue;
+            }
+
+            $count += 1;
+
+            $deliveryLineItem = new DeliveryOrderItem([
+                'name' => $productLineItem->name,
+                'quantity' => $deliveredLineItems[$productLineItem->id]['quantity'],
+                'price' => $productLineItem->calculateNet(),
+                'weight' => $productLineItem->product->weight?:0,
+                'sort_order' => $count
+            ]);
+
+            $deliveryLineItem->product()->associate($productLineItem->product->id);
+            $deliveryLineItem->lineItem()->associate($productLineItem);
+            $deliveryLineItem->deliveryOrder()->associate($deliveryOrder->id);
+            $deliveryLineItem->save();
+
+            $deliveryOrder->load('items');
+        }
+
+        $deliveryOrder->calculateTotalWeight();
+        $deliveryOrder->calculateTotalQuantity();
+        $deliveryOrder->save();
+
+        return $deliveryOrder;
+    }
+
     //Scopes
     public function scopeJoinBillingProfile($query)
     {
         $profileDetailQuery = with(new Profile())->details();
 
         $query->leftJoin($profileDetailQuery->getRelated()->getTable().' AS BFNAME', function($join) use ($profileDetailQuery){
-            $join->on('BFNAME.'.$profileDetailQuery->getPlainForeignKey(), '=', $this->getTable().'.'.$this->billingProfile()->getForeignKey())
+            $join->on('BFNAME.'.$profileDetailQuery->getForeignKeyName(), '=', $this->getTable().'.'.$this->billingProfile()->getForeignKey())
                 ->where('BFNAME.identifier', '=', 'first_name');
         });
 
         $query->leftJoin($profileDetailQuery->getRelated()->getTable().' AS BLNAME', function($join) use ($profileDetailQuery){
-            $join->on('BLNAME.'.$profileDetailQuery->getPlainForeignKey(), '=', $this->getTable().'.'.$this->billingProfile()->getForeignKey())
+            $join->on('BLNAME.'.$profileDetailQuery->getForeignKeyName(), '=', $this->getTable().'.'.$this->billingProfile()->getForeignKey())
                 ->where('BLNAME.identifier', '=', 'last_name');
         });
 
@@ -914,12 +977,12 @@ class Order extends Model implements AuthorSignatureInterface
         $profileDetailQuery = with(new Profile())->details();
 
         $query->leftJoin($profileDetailQuery->getRelated()->getTable().' AS SFNAME', function($join) use ($profileDetailQuery){
-            $join->on('SFNAME.'.$profileDetailQuery->getPlainForeignKey(), '=', $this->getTable().'.'.$this->shippingProfile()->getForeignKey())
+            $join->on('SFNAME.'.$profileDetailQuery->getForeignKeyName(), '=', $this->getTable().'.'.$this->shippingProfile()->getForeignKey())
                 ->where('SFNAME.identifier', '=', 'first_name');
         });
 
         $query->leftJoin($profileDetailQuery->getRelated()->getTable().' AS SLNAME', function($join) use ($profileDetailQuery){
-            $join->on('SLNAME.'.$profileDetailQuery->getPlainForeignKey(), '=', $this->getTable().'.'.$this->shippingProfile()->getForeignKey())
+            $join->on('SLNAME.'.$profileDetailQuery->getForeignKeyName(), '=', $this->getTable().'.'.$this->shippingProfile()->getForeignKey())
                 ->where('SLNAME.identifier', '=', 'last_name');
         });
 
@@ -945,7 +1008,7 @@ class Order extends Model implements AuthorSignatureInterface
 
     public function scopeUsageCounted($query)
     {
-        $query->whereIn('status', [self::STATUS_PENDING, self::STATUS_PROCESSING, self::STATUS_SHIPPED, self::STATUS_COMPLETED]);
+        $query->whereIn('status', self::getUsageCountedStatus());
     }
 
     public function scopeProcessed($query)
@@ -971,6 +1034,18 @@ class Order extends Model implements AuthorSignatureInterface
     }
 
     //Accessors
+
+    /**
+     * Get original line items
+     * @return \Illuminate\Database\Eloquent\Collection $lineItems
+     */
+    public function getOriginalLineItemsAttribute()
+    {
+        $this->originalLineItems = $this->originalLineItems?:new \Illuminate\Database\Eloquent\Collection([]);
+
+        return $this->originalLineItems;
+    }
+
     public function getItemsCountAttribute()
     {
         $productLineItems = $this->getProductLineItems();
@@ -1017,7 +1092,7 @@ class Order extends Model implements AuthorSignatureInterface
 
     public function getIsEditableAttribute()
     {
-        return in_array($this->status, [self::STATUS_ADMIN_CART, self::STATUS_CART, self::STATUS_PENDING]) || (Gate::allows('access', ['edit_settled_order']) && !in_array($this->status, [Order::STATUS_COMPLETED]));
+        return in_array($this->status, [self::STATUS_ADMIN_CART, self::STATUS_CART]) || (Gate::allows('access', ['edit_settled_order']) && in_array($this->status, [self::STATUS_PENDING]));
     }
 
     public function getIsDeleteableAttribute()
@@ -1028,6 +1103,21 @@ class Order extends Model implements AuthorSignatureInterface
     public function getIsCheckoutAttribute()
     {
         return !in_array($this->status, [self::STATUS_ADMIN_CART, self::STATUS_CART]);
+    }
+
+    public function getIsFullyShippedAttribute()
+    {
+        $fully = false;
+
+        foreach($this->getProductLineItems() as $productLineItem){
+            $fully = $productLineItem->isFullyShipped;
+
+            if(!$fully){
+                break;
+            }
+        }
+
+        return $fully;
     }
 
     public function getStatusLabelAttribute()
@@ -1082,6 +1172,19 @@ class Order extends Model implements AuthorSignatureInterface
     }
 
     //Mutators
+
+    /**
+     * Set original line items
+     * @param \Illuminate\Database\Eloquent\Collection $lineItems
+     */
+    public function setOriginalLineItemsAttribute($lineItems)
+    {
+        $this->originalLineItems = new \Illuminate\Database\Eloquent\Collection([]);
+        foreach($lineItems as $lineItem){
+            $this->originalLineItems->push($lineItem->replicate());
+        }
+    }
+
     public function setAdditionalFieldsAttribute($additionalFields)
     {
         $this->saveData(['additional_fields' => $additionalFields]);
@@ -1110,6 +1213,15 @@ class Order extends Model implements AuthorSignatureInterface
         }
 
         return (isset($array[$option]))?$array[$option]:$array;
+    }
+
+    /**
+     * Return status of Order that are considered as counted (In Cart shouldn't be considered as counted)
+     * @return array
+     */
+    public static function getUsageCountedStatus()
+    {
+        return [Order::STATUS_PENDING, Order::STATUS_PROCESSING, Order::STATUS_SHIPPED, Order::STATUS_COMPLETED];
     }
 
     public static function processAndStatusMap($process)
@@ -1151,28 +1263,5 @@ class Order extends Model implements AuthorSignatureInterface
     public static function findPublic($public_id)
     {
         return self::where('public_id', $public_id)->first();
-    }
-
-    protected static function boot()
-    {
-        parent::boot();
-
-        static::saving(function($model){
-            if(empty($model->public_id)){
-                $model->generatePublicId();
-            }
-        });
-
-        static::deleted(function($model){
-            if($model->forceDeleting){
-                if($model->billingProfile){
-                    $model->billingProfile->delete();
-                }
-
-                if($model->shippingProfile){
-                    $model->shippingProfile->delete();
-                }
-            }
-        });
     }
 }
