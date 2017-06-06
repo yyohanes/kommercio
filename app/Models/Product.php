@@ -322,7 +322,7 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface, Cac
 
     public function getRetailPrice($tax = false)
     {
-        $retailPrice = Cache::rememberForever($this->getTable().'_'.$this->id.'.retail_price', function(){
+        $retailPrice = Cache::rememberForever($this->getTable().'_'.$this->productDetail->id.'_'.$this->id.'.retail_price', function(){
             if($this->combination_type == self::COMBINATION_TYPE_VARIATION){
                 $price = $this->productDetail->retail_price?$this->productDetail->retail_price:$this->parent->productDetail->retail_price;
             }else{
@@ -347,7 +347,7 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface, Cac
 
     public function getNetPrice($tax = false)
     {
-        $netPrice = Cache::rememberForever($this->getTable().'_'.$this->id.'.net_price', function(){
+        $netPrice = Cache::rememberForever($this->getTable().'_'.$this->productDetail->id.'_'.$this->id.'.net_price', function(){
             return $this->_calculateNetPrice();
         });
 
@@ -1087,8 +1087,8 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface, Cac
     {
         $tableName = $this->getTable();
         $keys = [
-            $tableName.'_'.$this->id.'.retail_price',
-            $tableName.'_'.$this->id.'.net_price',
+            $tableName.'_'.$this->productDetail->id.'_'.$this->id.'.retail_price',
+            $tableName.'_'.$this->productDetail->id.'_'.$this->id.'.net_price',
         ];
 
         return $keys;

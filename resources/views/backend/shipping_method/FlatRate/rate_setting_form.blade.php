@@ -1,7 +1,7 @@
 {!! Form::open(['class' => 'form-horizontal']) !!}
 @include('backend.master.form.fields.number', [
     'name' => 'price',
-    'label' => 'Price per Kilogram',
+    'label' => 'Shipping Cost',
     'key' => 'price',
     'attr' => [
         'class' => 'form-control',

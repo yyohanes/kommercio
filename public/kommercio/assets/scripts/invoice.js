@@ -21,10 +21,10 @@
 
     plugin.initComponent = function(context)
     {
-      // Submit form with appended input[hidden][name="payment_method"]
-      $element.find('[name="payment_method"]').on('change', function(){
+      // Submit form with appended input[hidden][name="change_payment_method"]
+      $element.find('[name="payment_method"]').on('change', function(e){
         $element.append('<input name="change_payment_method" type="hidden" value="1" />');
-        $element.submit();
+        $element.off().submit();
       });
 
       $element.on('submit', function(){
