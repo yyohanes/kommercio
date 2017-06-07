@@ -100,6 +100,8 @@ class ProductPriceRuleController extends Controller
         $priceRule->fill($request->input('price_rule'));
         $product->priceRules()->save($priceRule);
 
+        Event::fire(new ProductPriceRuleEvent('did_change_products', $priceRule));
+
         $priceRule->product->saveToPriceIndex();
 
         if($priceRule->variation){
@@ -239,6 +241,8 @@ class ProductPriceRuleController extends Controller
         if(!$user->can('manage_store', [$priceRule])){
             abort(401);
         }
+
+        Event::fire(new ProductPriceRuleEvent('did_change_products', $priceRule));
 
         $priceRule->delete();
 

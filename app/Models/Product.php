@@ -1206,7 +1206,7 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface, Cac
     }
 
     /*
-     * Save product to index for search
+     * Save product to index for facet search
      *
      * @boolean $to_parent flag to determine whether to save child attributes & features to parent
      */
@@ -1229,10 +1229,11 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface, Cac
                 ];
             }
 
-            ProductIndexHelper::getProductIndexQuery(false)->insert($categoryIndex);
+            ProductIndexHelper::saveToIndex($categoryIndex);
 
+            $manufacturerIndex = [];
             if($this->manufacturer){
-                $manufacturerIndex = [
+                $manufacturerIndex[] = [
                     'root_product_id' => $this->parent?$this->parent->id:$this->id,
                     'product_id' => $this->id,
                     'type' => $this->manufacturer->getProductIndexType(),
@@ -1240,7 +1241,7 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface, Cac
                     'store_id' => $this->store->id
                 ];
 
-                ProductIndexHelper::getProductIndexQuery(false)->insert($manufacturerIndex);
+                ProductIndexHelper::saveToIndex($manufacturerIndex);
             }
         }
 
@@ -1256,7 +1257,7 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface, Cac
             ];
         }
 
-        ProductIndexHelper::getProductIndexQuery(false)->insert($attributeIndex);
+        ProductIndexHelper::saveToIndex($attributeIndex);
 
         $featureIndex = [];
         foreach($this->productFeatureValues as $featureValue){
@@ -1270,7 +1271,7 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface, Cac
             ];
         }
 
-        ProductIndexHelper::getProductIndexQuery(false)->insert($featureIndex);
+        ProductIndexHelper::saveToIndex($featureIndex);
 
         if(!$to_parent){
             $this->saveToPriceIndex();
@@ -1285,13 +1286,17 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface, Cac
     {
         ProductIndexHelper::getProductIndexPriceQuery(false)->where('product_id', $this->id)->where('store_id', $this->store->id)->delete();
 
-        ProductIndexHelper::getProductIndexPriceQuery(false)->insert([
-            'root_product_id' => $this->parent?$this->parent->id:$this->id,
-            'product_id' => $this->id,
-            'value' => $this->_calculateNetPrice(),
-            'currency' => $this->parent?$this->parent->productDetail->currency:$this->productDetail->currency,
-            'store_id' => $this->store->id
-        ]);
+        $priceIndex = [
+            [
+                'root_product_id' => $this->parent?$this->parent->id:$this->id,
+                'product_id' => $this->id,
+                'value' => $this->_calculateNetPrice(),
+                'currency' => $this->parent?$this->parent->productDetail->currency:$this->productDetail->currency,
+                'store_id' => $this->store->id
+            ]
+        ];
+
+        ProductIndexHelper::saveToIndex($priceIndex, 'product_price');
     }
 
     //Mutators

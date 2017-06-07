@@ -25,6 +25,35 @@ class ProductIndexHelper
         return DB::table('product_index_price'.($alias?' AS PIP':''));
     }
 
+    public function saveToIndex($rows, $indexType = 'product')
+    {
+        if(!is_array($rows)){
+            $rows = [$rows];
+        }
+
+        switch($indexType){
+            case 'product':
+                $qb = $this->getProductIndexQuery(false);
+                break;
+            case 'product_price':
+                $qb = $this->getProductIndexPriceQuery(false);
+                break;
+        }
+
+        // Only save once
+        foreach($rows as $row){
+            $findDuplicateQb = clone $qb;
+
+            foreach($row as $key => $datum){
+                $findDuplicateQb->where($key, $datum);
+            }
+
+            if($findDuplicateQb->count() == 0){
+                $qb->insert($row);
+            }
+        }
+    }
+
     public function getModelByType($type, $id)
     {
         switch($type){

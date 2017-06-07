@@ -115,14 +115,14 @@ class CatalogController extends Controller
             $products = $event_results[0];
         }
 
-        $appendedOptions = $options;
+        $appendedOptions = array_merge($options, $facetOptions);
         foreach($appendedOptions as $key => $appendedOption){
             if(!$request->has($key)){
                 unset($appendedOptions[$key]);
             }
         }
 
-        $products->setPath(FrontendHelper::get_url($request->path()))->appends($appendedOptions);
+        $products->setPath(FrontendHelper::getUrl($request->path()))->appends($appendedOptions);
 
         $views = ['frontend.catalog.product.search'];
 
@@ -218,7 +218,7 @@ class CatalogController extends Controller
             $products = $event_results[0];
         }
 
-        $appendedOptions = $options;
+        $appendedOptions = array_merge($options, $facetOptions);
         foreach($appendedOptions as $key => $appendedOption){
             if(!$request->has($key)){
                 unset($appendedOptions[$key]);
@@ -280,14 +280,16 @@ class CatalogController extends Controller
         $facetOptions = $instilledRequest['facetOptions'];
 
         $qb = $productCategory->products();
+
         $this->filterQuery($qb, $options, $facetOptions);
         $this->addSortQuery($qb, $options);
+
+        // Products for limiting facets
+        $facetOptions['products'] = $qb->get();
 
         $event_results = Event::fire(new CatalogQueryBuilderEvent('product_category_products', $qb, $request, $options));
 
         $total = $qb->count();
-
-        $facetOptions['products'] = $qb->get();
 
         //If not processed, build default query here
         if(!isset($event_results[0]) || empty($event_results[0])){
@@ -296,7 +298,7 @@ class CatalogController extends Controller
             $products = $event_results[0];
         }
 
-        $appendedOptions = $options;
+        $appendedOptions = array_merge($options, $facetOptions);
         foreach($appendedOptions as $key => $appendedOption){
             if(!$request->has($key)){
                 unset($appendedOptions[$key]);
@@ -361,7 +363,7 @@ class CatalogController extends Controller
 
         // If facetOption is array, reconstruct it to be string
         foreach($facetOptions as $facetSlug => &$facetOption){
-            if($facetSlug == 'categories'){
+            if(in_array($facetSlug, ['categories', 'attribute', 'feature'])){
                 foreach($facetOption as &$subFacetOption){
                     if(is_array($subFacetOption)){
                         $subFacetOption = implode('--', $subFacetOption);

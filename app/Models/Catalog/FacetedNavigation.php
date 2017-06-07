@@ -34,11 +34,12 @@ class FacetedNavigation
             ->whereRaw('PI.root_product_id = PI.product_id')
             ->where('PI.store_id', ProjectHelper::getActiveStore()->id);
 
-        //Filter by products
-        if(isset($options['products'])){
-            $qb->whereIn('product_id', $options['products']->pluck('id')->all());
-        }
+        /*// Filter by products
+        if(isset($options['products']) && is_array($options['products'])){
+            $qb->whereIn('product_id', $options['products']);
+        }*/
 
+        $qb->groupBy('PI.type', 'pivot');
         $qb->groupBy('PI.type', 'pivot');
         $qb->orderBy('product_count', 'DESC');
         $layers = $qb->get();

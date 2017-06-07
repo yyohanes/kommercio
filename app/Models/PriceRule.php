@@ -163,10 +163,6 @@ class PriceRule extends Model implements StoreManagedInterface
     {
         parent::boot();
 
-        static::deleting(function(PriceRule $priceRule){
-            Event::fire(new ProductPriceRuleEvent('did_change_products', $priceRule));
-        });
-
         static::updated(function(PriceRule $priceRule){
             // Fire event only if date toggling
             if($priceRule->isDateToggling){
