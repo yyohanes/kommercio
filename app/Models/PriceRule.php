@@ -3,6 +3,8 @@
 namespace Kommercio\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Event;
+use Kommercio\Events\ProductPriceRuleEvent;
 use Kommercio\Facades\PriceFormatter;
 use Kommercio\Models\Interfaces\StoreManagedInterface;
 use Kommercio\Traits\Model\ToggleDate;
@@ -28,13 +30,29 @@ class PriceRule extends Model implements StoreManagedInterface
     public function getProducts()
     {
         if(!isset($this->_products)){
-            if($this->product){
-                $this->_products = [$this->product];
+            $this->_products = collect([]);
+
+            if($this->variation || $this->product){
+                if($this->product){
+                    $this->_products = [
+                        $this->product->id => $this->product
+                    ];
+                }elseif($this->variation){
+                    $this->_products = [
+                        $this->variation->id => $this->variation
+                    ];
+                }
             }else{
-                foreach($this->priceRuleOptionGroups as $priceRuleOptionGroup){
-                    foreach($priceRuleOptionGroup->getProducts() as $product){
-                        $this->_products[$product->id] = $product;
+                // Price rule has option groups
+                if($this->priceRuleOptionGroups->count() > 0){
+                    foreach($this->priceRuleOptionGroups as $priceRuleOptionGroup){
+                        foreach($priceRuleOptionGroup->getProducts() as $product){
+                            $this->_products[$product->id] = $product;
+                        }
                     }
+                }else{
+                    // Price rule doesn't have option groups, therefore apply to all products
+                    $this->_products = Product::productEntity()->get();
                 }
             }
         }
@@ -139,5 +157,21 @@ class PriceRule extends Model implements StoreManagedInterface
         }
 
         return (isset($array[$option]))?$array[$option]:$array;
+    }
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::deleting(function(PriceRule $priceRule){
+            Event::fire(new ProductPriceRuleEvent('did_change_products', $priceRule));
+        });
+
+        static::updated(function(PriceRule $priceRule){
+            // Fire event only if date toggling
+            if($priceRule->isDateToggling){
+                Event::fire(new ProductPriceRuleEvent('did_change_products', $priceRule));
+            }
+        });
     }
 }

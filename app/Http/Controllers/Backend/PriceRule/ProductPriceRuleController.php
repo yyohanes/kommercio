@@ -3,7 +3,9 @@
 namespace Kommercio\Http\Controllers\Backend\PriceRule;
 
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Session;
+use Kommercio\Events\ProductPriceRuleEvent;
 use Kommercio\Facades\CurrencyHelper;
 use Kommercio\Http\Controllers\Controller;
 use Illuminate\Http\Request;
@@ -214,6 +216,9 @@ class ProductPriceRuleController extends Controller
         }
 
         $priceRule->fill($request->input('price_rule'));
+
+        Event::fire(new ProductPriceRuleEvent('will_change_products', $priceRule));
+
         $priceRule->save();
 
         $this->processPriceRuleOptionGroups($priceRule, $request);
@@ -301,5 +306,6 @@ class ProductPriceRuleController extends Controller
         }
 
         $priceRule->load('priceRuleOptionGroups');
+        Event::fire(new ProductPriceRuleEvent('did_change_products', $priceRule));
     }
 }

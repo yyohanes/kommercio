@@ -108,7 +108,7 @@ trait ProductHelper
                     'label' => $attributeValue->name,
                     'id' => $attributeValue->id,
                     'object' => $attributeValue,
-                    'canBePurchased' => $variation->canBePurchased()
+                    'canBePurchased' => true//$variation->canBePurchased()
                 ];
             }
         }

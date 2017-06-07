@@ -45,6 +45,17 @@ class BackendServiceProvider extends ServiceProvider
             }
         });
 
+        $this->app['events']->listen('eloquent.saving*', function ($eventName, $models) {
+            $model = $models[0];
+
+            $traits = class_uses($model);
+
+            // Run ToggleDate
+            if(in_array('Kommercio\Traits\Model\ToggleDate', $traits)){
+                $model->toggleByDate();
+            }
+        });
+
         $this->app['events']->listen('eloquent.saved*', function ($eventName, $models) {
             $model = $models[0];
 

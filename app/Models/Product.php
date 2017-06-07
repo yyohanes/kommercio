@@ -792,8 +792,9 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface, Cac
             }
         });
 
-        $priceRules = PriceRule::whereIn('id', $qb->pluck('price_rule_id')->all())
-            ->where(function($query){
+        $priceRuleIds = $qb->pluck('price_rule_id')->all();
+
+        $priceRuleQb = PriceRule::where(function($query){
                 $query->whereNull('currency');
 
                 $query->orWhere('currency', $this->currency['code']);
@@ -805,8 +806,13 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface, Cac
             })
             ->notProductSpecific()
             ->active()
-            ->orderBy('sort_order', 'ASC')
-            ->get();
+            ->orderBy('sort_order', 'ASC');
+
+        if(count($priceRuleIds) > 0){
+            $priceRuleQb->whereIn('id', $priceRuleIds);
+        }
+
+        $priceRules = $priceRuleQb->get();
 
         return $priceRules;
     }
@@ -1294,9 +1300,12 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface, Cac
         $this->_productDetail = $productDetail;
     }
 
-    public function setStoreAttribute($store_id)
+    public function setStoreAttribute($store)
     {
-        $store = Store::find($store_id);
+        if(is_int($store)){
+            $store = Store::find($store);
+        }
+
         $this->_store = $store;
 
         //Unset cached Product Detail

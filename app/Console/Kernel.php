@@ -27,9 +27,6 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        //Run queue every minute
-        $schedule->command('queue:work')->everyMinute()->withoutOverlapping();
-
         //Clear cache every midnight
         $schedule->command('cache:clear')->daily()->withoutOverlapping();
 
@@ -52,5 +49,8 @@ class Kernel extends ConsoleKernel
         $schedule->call(function(){
             Event::fire(new CronEvent('start_of_day'));
         })->name('start-of-day-task')->dailyAt('08:00')->withoutOverlapping();
+
+        //Run queue every minute
+        $schedule->command('queue:work')->everyMinute()->withoutOverlapping();
     }
 }

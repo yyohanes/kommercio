@@ -35,21 +35,11 @@ class CronListener
             }
         }
 
-        $toggleDateModels = [
-            '\Kommercio\Models\ProductDetail',
-            '\Kommercio\Models\PriceRule',
-            '\Kommercio\Models\PriceRule\CartPriceRule',
-            '\Kommercio\Models\CMS\MenuItem',
-            '\Kommercio\Models\CMS\Page',
-            '\Kommercio\Models\CMS\Post',
-            '\Kommercio\Models\CMS\Banner',
-            '\Kommercio\Models\CMS\Block',
-        ];
-
         foreach($toggleDateModels as $toggleDateModel){
             $models = $toggleDateModel::all();
 
             foreach($models as $model){
+                $model->isDateToggling = TRUE;
                 $model->toggleByDate();
                 $model->save();
             }

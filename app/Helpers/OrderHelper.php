@@ -162,7 +162,7 @@ class OrderHelper
                 if($cartPriceRule->offer_type == CartPriceRule::OFFER_TYPE_PRODUCT_DISCOUNT){
                     $productCartPriceRuleProducts = collect($cartPriceRule->getProducts())->pluck('id');
 
-                    if((!$productCartPriceRuleProducts->isEmpty() && !$productCartPriceRuleProducts->contains($lineItem->line_item_id)) || !$lineItem->isProduct){
+                    if(!$productCartPriceRuleProducts->contains($lineItem->line_item_id) || !$lineItem->isProduct){
                         continue;
                     }
                 }elseif($cartPriceRule->offer_type == CartPriceRule::OFFER_TYPE_FREE_SHIPPING) {

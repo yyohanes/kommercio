@@ -6,6 +6,12 @@ use Carbon\Carbon;
 
 trait ToggleDate
 {
+    /**
+     * Determine if updating process is triggered by date toggling
+     * @var bool
+     */
+    public $isDateToggling = FALSE;
+
     protected $toggleDates = [];
     protected $toggleDateFormat = 'Y-m-d H:i';
 
@@ -68,13 +74,5 @@ trait ToggleDate
         foreach($this->toggleFields as $toggleField){
             $this->togglePropertyByTime($toggleField);
         }
-    }
-
-    protected static function boot() {
-        parent::boot();
-
-        static::saving(function($model) {
-            $model->toggleByDate();
-        });
     }
 }

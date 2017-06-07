@@ -4,6 +4,8 @@ namespace Kommercio\Providers;
 
 use Illuminate\Contracts\Events\Dispatcher as DispatcherContract;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
+use Kommercio\Events\ProductPriceRuleEvent;
+use Kommercio\Listeners\ProductPriceRuleListener;
 use Kommercio\Models\Order\Order;
 use Kommercio\Observers\OrderObserver;
 
@@ -38,6 +40,9 @@ class EventServiceProvider extends ServiceProvider
         ],
         'Kommercio\Events\CatalogQueryBuilder' => [],
         'Kommercio\Events\CartPriceRuleEvent' => [],
+        ProductPriceRuleEvent::class => [
+            ProductPriceRuleListener::class
+        ],
     ];
 
     public function __construct($app)
