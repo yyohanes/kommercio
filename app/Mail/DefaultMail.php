@@ -22,7 +22,7 @@ class DefaultMail extends Mailable
     {
         $this->to = [];
         if(!is_array($to)){
-            $to = [$to];
+            $to = explode(',', $to);
         }
 
         foreach($to as $toAddress){

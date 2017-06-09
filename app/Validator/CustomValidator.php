@@ -300,9 +300,17 @@ class CustomValidator extends Validator
 
     protected function replaceProductAttribute($message, $attribute, $rule, $parameters)
     {
+        if(!isset(static::$_storage['invalidated_object'])){
+            $product_id = $this->getValue($attribute);
+
+            static::$_storage['invalidated_object'] = $product = RuntimeCache::getOrSet('product_'.$product_id, function() use ($product_id){
+                return Product::findOrFail($product_id);
+            });
+        }
+
         $invalidatedObject = static::$_storage['invalidated_object'];
 
-        return str_replace(':name', $invalidatedObject->name, $message);
+        return str_replace(':product', $invalidatedObject->name, $message);
     }
 
     protected function validateStepPaymentMethod($attribute, $value, $parameters)

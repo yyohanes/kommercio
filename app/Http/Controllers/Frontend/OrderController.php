@@ -150,6 +150,16 @@ class OrderController extends Controller
         $order->calculateTotal();
         $order->save();
 
+        if($request->expectsJson() || $request->ajax()){
+            return new JsonResponse([
+                'data' => [
+                    'mini_cart_render' => $this->mini_cart($request)
+                ],
+                'success' => [$message],
+                '_token' => csrf_token()
+            ]);
+        }
+
         return redirect()
             ->back()
             ->with('success', [$message]);
@@ -293,12 +303,15 @@ class OrderController extends Controller
 
     public function mini_cart(Request $request)
     {
+        $currentOrder = FrontendHelper::getCurrentOrder();
         $view_name = ProjectHelper::getViewTemplate('frontend.order.mini_cart');
-        $productLineItems = FrontendHelper::getCurrentOrder()->getProductLineItems();
+        $productLineItems = $currentOrder->getProductLineItems();
 
         if($request->ajax()){
             return new JsonResponse([
                 'data' => [
+                    'items_count' => $currentOrder->itemsCount,
+                    'products_count' => $currentOrder->productsCount,
                     'content' => view($view_name, ['productLineItems' => $productLineItems])->render(),
                 ],
                 '_token' => csrf_token()
