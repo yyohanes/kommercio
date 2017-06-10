@@ -187,7 +187,7 @@ class ProductCategory extends Model implements UrlAliasInterface, SeoModelInterf
             $visibility = [ProductDetail::VISIBILITY_EVERYWHERE, ProductDetail::VISIBILITY_CATALOG, ProductDetail::VISIBILITY_SEARCH];
 
             if($options['visibility'] != ProductDetail::VISIBILITY_EVERYWHERE){
-                $visibility = [$options['visibility']];
+                $visibility = is_array($options['visibility'])?$options['visibility']:[$options['visibility']];
             }
 
             if(!in_array($value->productDetail->visibility, $visibility)){
