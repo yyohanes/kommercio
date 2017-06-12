@@ -765,6 +765,12 @@ class Order extends Model implements AuthorSignatureInterface
         return abs($this->total - $paidAmount);
     }
 
+    /**
+     * Get Product Line Items only
+     *
+     * @param bool $include_children Whether to include Line item children
+     * @return array
+     */
     public function getProductLineItems($include_children = false)
     {
         $lineItems = [];

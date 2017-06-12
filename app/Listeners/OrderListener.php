@@ -65,7 +65,8 @@ class OrderListener
 
             $subject = 'There is new order #'.$order->reference;
 
-            $orderEmail = $order->store->getData('contacts.order.email', ProjectHelper::getConfig('contacts.order.email'));
+            $orderEmail = $order->store->getData('contacts.order.email');
+            $orderEmail = empty($orderEmail)?ProjectHelper::getConfig('contacts.order.email'):$orderEmail;
 
             EmailHelper::sendMail($orderEmail, $subject, 'order.admin_new_order', ['order' => $order, 'store' => $order->store], 'general');
         }

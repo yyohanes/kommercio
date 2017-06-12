@@ -42,10 +42,12 @@
     };
 
     plugin.submitCheckoutForm = function($form, $process){
+      let previousStep = checkoutData.step;
+
       $.ajax($form.attr('action'), {
         method: 'POST',
         data: $form.serialize() + '&process=' + $process,
-        success: function(data){
+        success: (data) => {
           var $html = null;
 
           for(var i in data.data){
@@ -59,10 +61,11 @@
             }
 
             initComponent($('#'+ i +'-wrapper', element));
-            checkoutData.step = data.step;
 
-            $newForm.trigger('after_step_change', [data.step, checkoutData.step, data]);
+            checkoutData.step = data.step;
           }
+
+          $newForm.trigger('after_step_change', [checkoutData.step, previousStep, data]);
         },
         complete: function(){
           KommercioFrontend.toggleOverlay($element, false);
