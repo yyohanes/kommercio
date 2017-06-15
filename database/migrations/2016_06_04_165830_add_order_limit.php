@@ -41,7 +41,7 @@ class AddOrderLimit extends Migration
      */
     public function down()
     {
-        Schema::drop('order_limitables');
-        Schema::drop('order_limits');
+        Schema::dropIfExists('order_limitables');
+        Schema::dropIfExists('order_limits');
     }
 }

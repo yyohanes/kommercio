@@ -29,6 +29,6 @@ class CreateCompositeDefaultProducts extends Migration
      */
     public function down()
     {
-        Schema::drop('product_composite_default_product');
+        Schema::dropIfExists('product_composite_default_product');
     }
 }

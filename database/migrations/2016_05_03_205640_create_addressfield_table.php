@@ -75,10 +75,10 @@ class CreateAddressfieldTable extends Migration
      */
     public function down()
     {
-        Schema::drop('address_areas');
-        Schema::drop('address_districts');
-        Schema::drop('address_cities');
-        Schema::drop('address_states');
-        Schema::drop('address_countries');
+        Schema::dropIfExists('address_areas');
+        Schema::dropIfExists('address_districts');
+        Schema::dropIfExists('address_cities');
+        Schema::dropIfExists('address_states');
+        Schema::dropIfExists('address_countries');
     }
 }

@@ -34,6 +34,6 @@ class CreateEveryDayColumns extends Migration
      */
     public function down()
     {
-        Schema::drop('order_limit_day_rules');
+        Schema::dropIfExists('order_limit_day_rules');
     }
 }

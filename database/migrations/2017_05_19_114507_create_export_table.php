@@ -39,7 +39,7 @@ class CreateExportTable extends Migration
      */
     public function down()
     {
-        Schema::drop('export_items');
-        Schema::drop('export_batches');
+        Schema::dropIfExists('export_items');
+        Schema::dropIfExists('export_batches');
     }
 }

@@ -29,7 +29,7 @@ class ConfigVariables extends Migration
      */
     public function down()
     {
-        Schema::drop('config_variables');
+        Schema::dropIfExists('config_variables');
 
         if(Schema::hasColumn('orders', 'data')){
             Schema::table('orders', function(Blueprint $table){

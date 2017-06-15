@@ -6,6 +6,7 @@
     <link href="{{ asset('backend/assets/template/global/plugins/bootstrap-datepicker/css/bootstrap-datepicker3.min.css') }}" rel="stylesheet" type="text/css" />
     <link href="{{ asset('backend/assets/template/global/plugins/jquery-multi-select/css/multi-select.css') }}" rel="stylesheet" type="text/css" />
     <link href="{{ asset('backend/assets/template/global/plugins/typeahead/typeahead.css') }}" rel="stylesheet" type="text/css" />
+    <link href="{{ asset('backend/assets/template/global/plugins/bootstrap-timepicker/css/bootstrap-timepicker.min.css') }}" rel="stylesheet" type="text/css" />
     <link href="{{ asset('backend/assets/scripts/plugins/bootstrap-datetimepicker/css/bootstrap-datetimepicker.min.css') }}" rel="stylesheet" type="text/css" />
 @stop
 
@@ -23,6 +24,7 @@
     <script src="{{ asset('backend/assets/template/global/plugins/typeahead/typeahead.bundle.min.js') }}" type="text/javascript"></script>
     <script src="{{ asset('backend/assets/scripts/plugins/tinymce/tinymce.min.js') }}" type="text/javascript"></script>
     <script src="{{ asset('backend/assets/scripts/plugins/tinymce/jquery.tinymce.min.js') }}" type="text/javascript"></script>
+    <script src="{{ asset('backend/assets/template/global/plugins/bootstrap-timepicker/js/bootstrap-timepicker.min.js') }}" type="text/javascript"></script>
     <script src="{{ asset('backend/assets/scripts/plugins/bootstrap-datetimepicker/js/bootstrap-datetimepicker.min.js') }}" type="text/javascript"></script>
 
     <script src="{{ asset('backend/assets/scripts/pages/form_template.js') }}" type="text/javascript"></script>

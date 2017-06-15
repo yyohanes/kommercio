@@ -202,16 +202,22 @@ var formBehaviors = function(){
 
     var handleEnabledDependent = function(context){
         $('[data-enabled-dependent]', context).each(function(idx, obj){
-            if($('#' + $(obj).data('enabled-dependent')).hasClass('make-switch')){
-                $('#' + $(obj).data('enabled-dependent')).on('switchChange.bootstrapSwitch', function(event, state){
+            var valid;
+            var negate = $(obj).data('enabled-dependent-negate') == '1';
+            var $dependedCheckbox = $('#' + $(obj).data('enabled-dependent'), context);
+
+            if($dependedCheckbox.hasClass('make-switch')){
+                $dependedCheckbox.on('switchChange.bootstrapSwitch', function(event, state){
+                    valid = negate?!event.target.checked:event.target.checked;
+
                     if($(obj).data('enabled-dependent-effect') == 'disabled'){
-                        if(event.target.checked) {
+                        if(valid) {
                             $(obj).removeAttr('disabled');
                         }else{
                             $(obj).prop('disabled', true);
                         }
                     }else{
-                        if(event.target.checked) {
+                        if(valid) {
                             $(obj).show();
                         }else{
                             $(obj).hide();
@@ -219,17 +225,19 @@ var formBehaviors = function(){
                     }
                 });
 
-                $('#' + $(obj).data('enabled-dependent')).trigger('switchChange.bootstrapSwitch');
+                $dependedCheckbox.trigger('switchChange.bootstrapSwitch');
             }else{
-                $('#' + $(obj).data('enabled-dependent')).on('change', function(event){
+                $dependedCheckbox.on('change', function(event){
+                    valid = negate?!event.target.checked:event.target.checked;
+
                     if($(obj).data('enabled-dependent-effect') == 'disabled'){
-                        if(this.checked) {
+                        if(valid) {
                             $(obj).removeAttr('disabled');
                         }else{
                             $(obj).prop('disabled', true);
                         }
                     }else{
-                        if(event.target.checked) {
+                        if(valid) {
                             $(obj).show();
                         }else{
                             $(obj).hide();
@@ -237,7 +245,7 @@ var formBehaviors = function(){
                     }
                 });
 
-                $('#' + $(obj).data('enabled-dependent')).trigger('change');
+                $dependedCheckbox.trigger('change');
             }
         })
     }
@@ -275,16 +283,30 @@ var formBehaviors = function(){
             }
         });
 
-        $(".form_datetime", context).each(function(idx, obj){
+        $('.form_datetime', context).each(function(idx, obj){
             $(obj).datetimepicker({
               isRTL: App.isRTL(),
               autoclose: true,
               todayBtn: true,
-              pickerPosition: (App.isRTL() ? "bottom-right" : "bottom-left"),
+              pickerPosition: (App.isRTL() ? 'bottom-right' : 'bottom-left'),
               minuteStep: 15,
               format: 'yyyy-mm-dd hh:ii',
               fontAwesome: true
             });
+        });
+
+        $('.time-picker', context).each(function(idx, obj){
+          $(obj).timepicker({
+            autoclose: true,
+            minuteStep: 1,
+            showMeridian: false,
+            defaultTime: false
+          });
+
+          $(obj).parent('.input-group').on('click', '.input-group-btn', function(e){
+            e.preventDefault();
+            $(obj).timepicker('showWidget');
+          });
         });
     }
 

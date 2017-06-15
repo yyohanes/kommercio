@@ -46,7 +46,7 @@ class CreateRewardTables extends Migration
      */
     public function down()
     {
-        Schema::drop('reward_translations');
-        Schema::drop('rewards');
+        Schema::dropIfExists('reward_translations');
+        Schema::dropIfExists('rewards');
     }
 }

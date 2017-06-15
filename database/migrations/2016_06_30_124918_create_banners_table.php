@@ -52,8 +52,8 @@ class CreateBannersTable extends Migration
      */
     public function down()
     {
-        Schema::drop('banner_translations');
-        Schema::drop('banners');
-        Schema::drop('banner_groups');
+        Schema::dropIfExists('banner_translations');
+        Schema::dropIfExists('banners');
+        Schema::dropIfExists('banner_groups');
     }
 }

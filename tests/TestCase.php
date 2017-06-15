@@ -1,5 +1,8 @@
 <?php
 
+use Illuminate\Support\Facades\DB;
+use Illuminate\Database\SQLiteConnection;
+
 class TestCase extends Illuminate\Foundation\Testing\TestCase
 {
     /**

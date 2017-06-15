@@ -59,9 +59,9 @@ class CreateStockTables extends Migration
      */
     public function down()
     {
-        Schema::drop('product_warehouse');
-        Schema::drop('store_warehouse');
-        Schema::drop('warehouses');
+        Schema::dropIfExists('product_warehouse');
+        Schema::dropIfExists('store_warehouse');
+        Schema::dropIfExists('warehouses');
 
         Schema::table('product_details', function(Blueprint $table){
             $table->dropColumn('manage_stock');

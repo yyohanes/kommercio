@@ -28,6 +28,6 @@ class CreateFlatRateTable extends Migration
      */
     public function down()
     {
-        Schema::drop('shipping_flat_rates');
+        Schema::dropIfExists('shipping_flat_rates');
     }
 }

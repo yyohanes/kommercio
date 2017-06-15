@@ -13,7 +13,7 @@ class CreateConfigurationStorage extends Migration
     public function up()
     {
         Schema::table('product_configuration_product_configuration_group', function(Blueprint $table){
-            $table->string('label');
+            $table->string('label')->nullable();
         });
 
         $productConfigurationGroups = \Kommercio\Models\Product\Configuration\ProductConfigurationGroup::all();
@@ -48,6 +48,6 @@ class CreateConfigurationStorage extends Migration
             $table->dropColumn('label');
         });
 
-        Schema::drop('line_item_product_configuration');
+        Schema::dropIfExists('line_item_product_configuration');
     }
 }

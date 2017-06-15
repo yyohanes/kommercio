@@ -31,6 +31,6 @@ class CreateCustomerProfileTable extends Migration
      */
     public function down()
     {
-        Schema::drop('customer_profile');
+        Schema::dropIfExists('customer_profile');
     }
 }

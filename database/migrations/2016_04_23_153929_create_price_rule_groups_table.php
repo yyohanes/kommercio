@@ -35,7 +35,7 @@ class CreatePriceRuleGroupsTable extends Migration
      */
     public function down()
     {
-        Schema::drop('price_rule_optionables');
-        Schema::drop('price_rule_option_groups');
+        Schema::dropIfExists('price_rule_optionables');
+        Schema::dropIfExists('price_rule_option_groups');
     }
 }

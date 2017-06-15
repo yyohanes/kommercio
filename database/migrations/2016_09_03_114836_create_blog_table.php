@@ -69,10 +69,10 @@ class CreateBlogTable extends Migration
      */
     public function down()
     {
-        Schema::drop('post_post_category');
-        Schema::drop('post_category_translations');
-        Schema::drop('post_categories');
-        Schema::drop('post_translations');
-        Schema::drop('posts');
+        Schema::dropIfExists('post_post_category');
+        Schema::dropIfExists('post_category_translations');
+        Schema::dropIfExists('post_categories');
+        Schema::dropIfExists('post_translations');
+        Schema::dropIfExists('posts');
     }
 }

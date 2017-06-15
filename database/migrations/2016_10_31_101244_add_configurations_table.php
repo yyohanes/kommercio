@@ -60,9 +60,15 @@ class AddConfigurationsTable extends Migration
      */
     public function down()
     {
-        Schema::drop('product_product_composite_configuration');
-        Schema::drop('product_composite_configurations');
-        Schema::drop('product_composite_translations');
-        Schema::drop('product_composites');
+        if(Schema::hasTable('product_product_composite_configuration')){
+            Schema::dropIfExists('product_product_composite_configuration');
+        }
+
+        if(Schema::hasTable('product_composite_configurations')){
+            Schema::dropIfExists('product_composite_configurations');
+        }
+
+        Schema::dropIfExists('product_composite_translations');
+        Schema::dropIfExists('product_composites');
     }
 }

@@ -57,16 +57,35 @@
     'required' => TRUE,
 ])
 
-<div class="portlet margin-top-30">
-    <div class="portlet-title">
-        <div class="caption">
-            <span class="caption-subject sbold uppercase"> Contacts </span>
+<hr/>
+
+<div class="row">
+    <label class="control-label col-md-3">
+        Operational Hours <span class="required">*</span>
+        <div class="margin-top-10">
+            <a class="btn btn-info btn-xs" id="add-schedule-btn"><i class="fa fa-plus"></i> Add Schedule</a>
+        </div>
+    </label>
+    <div class="col-md-9">
+        <div class="panel-group accordion" id="openingTimes_accordion">
+            @foreach(old('openingTimes', $openingTimes) as $idx => $openingTime)
+                @php
+                $openingTime = is_object($openingTime)?$openingTime->toArray():$openingTime;
+                @endphp
+                @include('backend.store.operating_hour_row', ['idx' => $idx, 'openingTime' => $openingTime])
+            @endforeach
+            <div class="portlet portlet-sortable-empty"></div>
         </div>
     </div>
+</div>
 
-    <div class="portlet-body">
+<hr/>
+
+<div class="row">
+    <label class="control-label col-md-3">Contacts</label>
+    <div class="col-md-9">
         <div class="row">
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <p>General</p>
                 @include('backend.master.form.fields.text', [
                     'name' => 'contacts[general][name]',
@@ -92,7 +111,7 @@
                 ])
             </div>
 
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <p>Order</p>
                 @include('backend.master.form.fields.text', [
                     'name' => 'contacts[order][name]',
@@ -120,3 +139,12 @@
         </div>
     </div>
 </div>
+
+@section('bottom_page_scripts')
+    @parent
+    <script id="operating-hour-template" type="text/x-handlebars-template">
+        @include('backend.store.operating_hour_row', ['idx' => '@{{idx}}', 'openingTime' => ['open' => TRUE, 'isEveryday' => TRUE]])
+    </script>
+
+    <script src="{{ asset('backend/assets/scripts/pages/store_form.js') }}"></script>
+@endsection

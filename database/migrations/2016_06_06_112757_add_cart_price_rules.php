@@ -54,8 +54,8 @@ class AddCartPriceRules extends Migration
      */
     public function down()
     {
-        Schema::drop('cart_price_rule_optionables');
-        Schema::drop('cart_price_rule_option_groups');
-        Schema::drop('cart_price_rules');
+        Schema::dropIfExists('cart_price_rule_optionables');
+        Schema::dropIfExists('cart_price_rule_option_groups');
+        Schema::dropIfExists('cart_price_rules');
     }
 }

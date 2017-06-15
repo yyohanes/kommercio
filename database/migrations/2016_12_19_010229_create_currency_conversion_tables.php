@@ -28,6 +28,6 @@ class CreateCurrencyConversionTables extends Migration
      */
     public function down()
     {
-        Schema::drop('currency_rates');
+        Schema::dropIfExists('currency_rates');
     }
 }

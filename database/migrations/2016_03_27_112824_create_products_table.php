@@ -96,9 +96,12 @@ class CreateProductsTable extends Migration
             $table->string('name');
             $table->decimal('rate', 5,2);
             $table->integer('sort_order')->default(0);
-            $table->string('type', 100)->default(0);
-            $table->boolean('shipping')->default(FALSE);
+            $table->boolean('active')->default(true);
+            $table->string('currency')->nullable();
+            $table->integer('store_id')->unsigned()->nullable();
             $table->timestamps();
+
+            $table->foreign('store_id')->references('id')->on('stores')->onDelete('CASCADE');
         });
 
         Schema::create('product_detail_tax', function(Blueprint $table){
@@ -117,12 +120,12 @@ class CreateProductsTable extends Migration
      */
     public function down()
     {
-        Schema::drop('product_translations');
-        Schema::drop('product_detail_tax');
-        Schema::drop('product_details');
-        Schema::drop('product_children');
-        Schema::drop('category_product');
-        Schema::drop('taxes');
-        Schema::drop('products');
+        Schema::dropIfExists('product_translations');
+        Schema::dropIfExists('product_detail_tax');
+        Schema::dropIfExists('product_details');
+        Schema::dropIfExists('product_children');
+        Schema::dropIfExists('category_product');
+        Schema::dropIfExists('taxes');
+        Schema::dropIfExists('products');
     }
 }

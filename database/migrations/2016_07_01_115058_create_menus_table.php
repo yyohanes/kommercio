@@ -15,6 +15,7 @@ class CreateMenusTable extends Migration
         Schema::create('menus', function(Blueprint $table){
             $table->increments('id');
             $table->string('name');
+            $table->string('slug');
             $table->text('description')->nullable();
             $table->timestamps();
         });
@@ -44,6 +45,12 @@ class CreateMenusTable extends Migration
             $table->unique(['menu_item_id', 'locale']);
             $table->foreign('menu_item_id')->references('id')->on('menu_items')->onDelete('CASCADE');
         });
+
+        //Create first menu
+        $menu = \Kommercio\Models\CMS\Menu::create([
+            'name' => 'Main Menu',
+            'description' => 'Menu responsible for Main navigation.'
+        ]);
     }
 
     /**
@@ -53,8 +60,8 @@ class CreateMenusTable extends Migration
      */
     public function down()
     {
-        Schema::drop('menu_item_translations');
-        Schema::drop('menu_items');
-        Schema::drop('menus');
+        Schema::dropIfExists('menu_item_translations');
+        Schema::dropIfExists('menu_items');
+        Schema::dropIfExists('menus');
     }
 }

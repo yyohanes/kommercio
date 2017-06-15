@@ -36,6 +36,6 @@ class CreateOrderCommentsTable extends Migration
      */
     public function down()
     {
-        Schema::drop('order_comments');
+        Schema::dropIfExists('order_comments');
     }
 }

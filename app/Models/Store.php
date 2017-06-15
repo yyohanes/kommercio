@@ -2,10 +2,13 @@
 
 namespace Kommercio\Models;
 
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Kommercio\Models\Interfaces\CacheableInterface;
+use Kommercio\Models\Store\OpeningTime;
 use Kommercio\Traits\Model\HasDataColumn;
 
 class Store extends Model implements CacheableInterface
@@ -15,12 +18,17 @@ class Store extends Model implements CacheableInterface
     const TYPE_ONLINE = 'online';
     const TYPE_OFFLINE = 'offline';
 
-    protected $guarded = ['warehouses', 'contacts', 'location'];
+    protected $guarded = ['warehouses', 'contacts', 'location', 'openingTimes'];
 
     //Relations
     public function orders()
     {
         return $this->hasMany('Kommercio\Models\Order\Order');
+    }
+
+    public function openingTimes()
+    {
+        return $this->hasMany(OpeningTime::class)->orderBy('sort_order');
     }
 
     //Accessors
@@ -36,7 +44,7 @@ class Store extends Model implements CacheableInterface
         return $this->productDetails->count();
     }
 
-    //Methods
+    // Methods
     public function getLocationAttribute()
     {
         return [
@@ -74,6 +82,42 @@ class Store extends Model implements CacheableInterface
         });
 
         return $taxes;
+    }
+
+    /**
+     * Check if store is open at given time
+     *
+     * @param Carbon $time
+     * @return boolean
+     */
+    public function isOpen(Carbon $time = null)
+    {
+        if(!$time){
+            $time = Carbon::now();
+        }
+
+        // Find opening times based on time
+        $openingTimes = $this->getOpeningTimes($time);
+
+        if($openingTimes->count() < 1){
+            return FALSE;
+        }
+
+        return $openingTimes->first()->isOpen($time);
+    }
+
+    /**
+     * Get OpeningTime based on given time
+     *
+     * @param Carbon|null $time
+     * @return Collection
+     */
+    public function getOpeningTimes(Carbon $time = null)
+    {
+        return $this->openingTimes()
+            ->withinDate($time->format('Y-m-d'))
+            ->withinTime($time->format('H:i:s'))
+            ->get();
     }
 
     /**

@@ -42,6 +42,6 @@ class CreateRewardRulesTable extends Migration
      */
     public function down()
     {
-        Schema::drop('reward_rules');
+        Schema::dropIfExists('reward_rules');
     }
 }

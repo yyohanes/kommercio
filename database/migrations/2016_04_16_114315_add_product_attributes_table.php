@@ -73,11 +73,11 @@ class AddProductAttributesTable extends Migration
      */
     public function down()
     {
-        Schema::drop('product_product_attribute');
-        Schema::drop('product_attribute_value_translations');
-        Schema::drop('product_attribute_values');
-        Schema::drop('product_attribute_translations');
-        Schema::drop('product_attributes');
+        Schema::dropIfExists('product_product_attribute');
+        Schema::dropIfExists('product_attribute_value_translations');
+        Schema::dropIfExists('product_attribute_values');
+        Schema::dropIfExists('product_attribute_translations');
+        Schema::dropIfExists('product_attributes');
 
         Schema::table('products', function(Blueprint $table){
             $table->dropForeign('products_parent_id_foreign');

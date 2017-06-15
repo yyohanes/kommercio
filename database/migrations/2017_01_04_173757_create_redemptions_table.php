@@ -44,6 +44,6 @@ class CreateRedemptionsTable extends Migration
             $table->dropColumn('type');
         });
 
-        Schema::drop('redemptions');
+        Schema::dropIfExists('redemptions');
     }
 }

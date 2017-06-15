@@ -36,6 +36,7 @@ class StoreFormRequest extends Request
             'warehouses.*' => 'nullable|in:'.implode(',', $warehouseAllowedOptions),
             'contacts.*.name' => 'required_with:contacts.*.email',
             'contacts.*.email' => 'required_with:contacts.*.name',
+            'openingTimes' => 'required'
         ];
 
         foreach($this->input('contacts') as $contactIdx => $contactField){
@@ -43,5 +44,37 @@ class StoreFormRequest extends Request
         }
 
         return $rules;
+    }
+
+    public function all()
+    {
+        $attributes = parent::all();
+        $days = Store\OpeningTime::DAYS;
+
+        $attributes['openingTimes'] = isset($attributes['openingTimes'])?$attributes['openingTimes']:[];
+
+        foreach($attributes['openingTimes'] as $idx => &$openingTime){
+            if(empty($openingTime['open'])){
+                $openingTime['open'] = FALSE;
+            }
+
+            if(!empty($openingTime['everyday'])){
+                foreach($days as $day){
+                    $openingTime[$day] = NULL;
+                }
+            }else{
+                foreach($days as $day){
+                    if(!empty($openingTime[$day])){
+                        $openingTime[$day] = TRUE;
+                    }else{
+                        $openingTime[$day] = FALSE;
+                    }
+                }
+            }
+        }
+
+        $this->replace($attributes);
+
+        return parent::all();
     }
 }

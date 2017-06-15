@@ -46,7 +46,7 @@ class CreatePointsTable extends Migration
      */
     public function down()
     {
-        Schema::drop('reward_point_transactions');
+        Schema::dropIfExists('reward_point_transactions');
 
         Schema::table('customers', function(Blueprint $table){
             $table->dropColumn('reward_points');

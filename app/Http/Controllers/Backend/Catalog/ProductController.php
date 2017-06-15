@@ -1124,7 +1124,7 @@ class ProductController extends Controller{
 
             $options = [
                 'order' => $order,
-                'store' => $store_id,
+                'store_id' => $store_id,
                 'quantity' => $orderedQuantity,
                 'months' => $months,
                 'format' => 'Y-n-j',

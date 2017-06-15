@@ -37,7 +37,7 @@ class CreateImportTable extends Migration
      */
     public function down()
     {
-        Schema::drop('import_items');
-        Schema::drop('import_batches');
+        Schema::dropIfExists('import_items');
+        Schema::dropIfExists('import_batches');
     }
 }
