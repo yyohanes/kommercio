@@ -73,10 +73,10 @@ class CreateGalleryTable extends Migration
      */
     public function down()
     {
-        Schema::drop('gallery_gallery_category');
-        Schema::drop('gallery_category_translations');
-        Schema::drop('gallery_categories');
-        Schema::drop('gallery_translations');
-        Schema::drop('galleries');
+        Schema::dropIfExists('gallery_gallery_category');
+        Schema::dropIfExists('gallery_category_translations');
+        Schema::dropIfExists('gallery_categories');
+        Schema::dropIfExists('gallery_translations');
+        Schema::dropIfExists('galleries');
     }
 }

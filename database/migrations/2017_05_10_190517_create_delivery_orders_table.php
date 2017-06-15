@@ -64,7 +64,7 @@ class CreateDeliveryOrdersTable extends Migration
      */
     public function down()
     {
-        Schema::drop('delivery_order_items');
-        Schema::drop('delivery_orders');
+        Schema::dropIfExists('delivery_order_items');
+        Schema::dropIfExists('delivery_orders');
     }
 }

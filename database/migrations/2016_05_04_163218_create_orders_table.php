@@ -15,6 +15,7 @@ class CreateOrdersTable extends Migration
         Schema::create('payment_methods', function(Blueprint $table){
             $table->increments('id');
             $table->string('class');
+            $table->json('data');
             $table->integer('sort_order')->default(0);
         });
 
@@ -85,7 +86,7 @@ class CreateOrdersTable extends Migration
         });
 
         Schema::create('line_items', function(Blueprint $table){
-            $table->integer('id');
+            $table->increments('id');
             $table->integer('order_id')->unsigned();
             $table->integer('line_item_id')->unsigned()->nullable();
             $table->string('line_item_type', 100);
@@ -107,11 +108,11 @@ class CreateOrdersTable extends Migration
      */
     public function down()
     {
-        Schema::drop('line_items');
-        Schema::drop('orders');
-        Schema::drop('shipping_method_translations');
-        Schema::drop('shipping_methods');
-        Schema::drop('payment_method_translations');
-        Schema::drop('payment_methods');
+        Schema::dropIfExists('line_items');
+        Schema::dropIfExists('orders');
+        Schema::dropIfExists('shipping_method_translations');
+        Schema::dropIfExists('shipping_methods');
+        Schema::dropIfExists('payment_method_translations');
+        Schema::dropIfExists('payment_methods');
     }
 }

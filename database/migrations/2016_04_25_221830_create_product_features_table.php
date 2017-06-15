@@ -68,10 +68,10 @@ class CreateProductFeaturesTable extends Migration
      */
     public function down()
     {
-        Schema::drop('product_product_feature');
-        Schema::drop('product_feature_value_translations');
-        Schema::drop('product_feature_values');
-        Schema::drop('product_feature_translations');
-        Schema::drop('product_features');
+        Schema::dropIfExists('product_product_feature');
+        Schema::dropIfExists('product_feature_value_translations');
+        Schema::dropIfExists('product_feature_values');
+        Schema::dropIfExists('product_feature_translations');
+        Schema::dropIfExists('product_features');
     }
 }

@@ -41,6 +41,6 @@ class CreateProductPriceRulesTable extends Migration
      */
     public function down()
     {
-        Schema::drop('price_rules');
+        Schema::dropIfExists('price_rules');
     }
 }

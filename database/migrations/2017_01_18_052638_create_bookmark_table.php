@@ -56,8 +56,8 @@ class CreateBookmarkTable extends Migration
      */
     public function down()
     {
-        Schema::drop('bookmark_product');
-        Schema::drop('bookmarks');
-        Schema::drop('bookmark_types');
+        Schema::dropIfExists('bookmark_product');
+        Schema::dropIfExists('bookmarks');
+        Schema::dropIfExists('bookmark_types');
     }
 }

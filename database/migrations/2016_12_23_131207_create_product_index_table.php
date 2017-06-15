@@ -49,7 +49,7 @@ class CreateProductIndexTable extends Migration
      */
     public function down()
     {
-        Schema::drop('product_index');
-        Schema::drop('product_index_price');
+        Schema::dropIfExists('product_index');
+        Schema::dropIfExists('product_index_price');
     }
 }

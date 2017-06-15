@@ -73,11 +73,11 @@ class CreateConfigurationsTable extends Migration
      */
     public function down()
     {
-        Schema::drop('product_configuration_group_product');
-        Schema::drop('product_configuration_product_configuration_group');
-        Schema::drop('product_configuration_translations');
-        Schema::drop('product_configurations');
-        Schema::drop('product_configuration_group_translations');
-        Schema::drop('product_configuration_groups');
+        Schema::dropIfExists('product_configuration_group_product');
+        Schema::dropIfExists('product_configuration_product_configuration_group');
+        Schema::dropIfExists('product_configuration_translations');
+        Schema::dropIfExists('product_configurations');
+        Schema::dropIfExists('product_configuration_group_translations');
+        Schema::dropIfExists('product_configuration_groups');
     }
 }

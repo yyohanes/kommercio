@@ -81,6 +81,6 @@ class AddCouponTables extends Migration
             }
         }
 
-        Schema::drop('coupons');
+        Schema::dropIfExists('coupons');
     }
 }

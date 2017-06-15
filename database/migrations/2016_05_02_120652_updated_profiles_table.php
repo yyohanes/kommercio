@@ -72,8 +72,8 @@ class UpdatedProfilesTable extends Migration
             $table->dropColumn('status');
         });
 
-        Schema::drop('customers');
-        Schema::drop('profile_details');
-        Schema::drop('profiles');
+        Schema::dropIfExists('customers');
+        Schema::dropIfExists('profile_details');
+        Schema::dropIfExists('profiles');
     }
 }

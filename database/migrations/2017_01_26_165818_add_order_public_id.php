@@ -13,7 +13,7 @@ class AddOrderPublicId extends Migration
     public function up()
     {
         Schema::table('orders', function(Blueprint $table){
-            $table->string('public_id')->after('id');
+            $table->string('public_id')->nullable()->after('id');
         });
 
         $orders = \Kommercio\Models\Order\Order::all();

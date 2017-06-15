@@ -70,7 +70,7 @@ class CreateCompositeGroupTable extends Migration
                 ]);
             }
 
-            Schema::drop('product_product_composite_configuration');
+            Schema::dropIfExists('product_product_composite_configuration');
         }
 
         if(Schema::hasTable('product_composite_configurations')){
@@ -101,7 +101,7 @@ class CreateCompositeGroupTable extends Migration
                 }
             }
 
-            Schema::drop('product_composite_configurations');
+            Schema::dropIfExists('product_composite_configurations');
         }
     }
 
@@ -117,10 +117,10 @@ class CreateCompositeGroupTable extends Migration
             $table->dropColumn('maximum');
         });
 
-        Schema::drop('product_category_product_composite');
-        Schema::drop('product_product_composite');
-        Schema::drop('product_composite_group_product');
-        Schema::drop('product_composite_product_composite_group');
-        Schema::drop('product_composite_groups');
+        Schema::dropIfExists('product_category_product_composite');
+        Schema::dropIfExists('product_product_composite');
+        Schema::dropIfExists('product_composite_group_product');
+        Schema::dropIfExists('product_composite_product_composite_group');
+        Schema::dropIfExists('product_composite_groups');
     }
 }

@@ -49,7 +49,7 @@ class CreateProductCategoriesTable extends Migration
      */
     public function down()
     {
-        Schema::drop('product_category_translations');
-        Schema::drop('product_categories');
+        Schema::dropIfExists('product_category_translations');
+        Schema::dropIfExists('product_categories');
     }
 }

@@ -45,8 +45,8 @@ class CreateCustomerGroupTable extends Migration
      */
     public function down()
     {
-        Schema::drop('customer_customer_group');
-        Schema::drop('customer_group_translations');
-        Schema::drop('customer_groups');
+        Schema::dropIfExists('customer_customer_group');
+        Schema::dropIfExists('customer_group_translations');
+        Schema::dropIfExists('customer_groups');
     }
 }

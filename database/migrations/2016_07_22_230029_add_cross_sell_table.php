@@ -30,6 +30,6 @@ class AddCrossSellTable extends Migration
      */
     public function down()
     {
-        Schema::drop('related_products');
+        Schema::dropIfExists('related_products');
     }
 }

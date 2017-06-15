@@ -28,6 +28,6 @@ class CreateCartPriceRuleProductTable extends Migration
      */
     public function down()
     {
-        Schema::drop('cart_price_rule_product');
+        Schema::dropIfExists('cart_price_rule_product');
     }
 }

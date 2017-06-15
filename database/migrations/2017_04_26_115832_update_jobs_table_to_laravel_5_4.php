@@ -18,7 +18,7 @@ class UpdateJobsTableToLaravel54 extends Migration
     public function down()
     {
         Schema::table('jobs', function (Blueprint $table) {
-            $table->tinyInteger('reserved')->unsigned();
+            $table->tinyInteger('reserved')->unsigned()->nullable();
             $table->index(['queue', 'reserved', 'reserved_at']);
             $table->dropIndex('jobs_queue_reserved_at_index');
         });

@@ -28,6 +28,6 @@ class CreateStoresPolymorphicTable extends Migration
      */
     public function down()
     {
-        Schema::drop('store_attachables');
+        Schema::dropIfExists('store_attachables');
     }
 }

@@ -69,6 +69,6 @@ class CreateInvoiceTable extends Migration
             $table->dropColumn('invoice_id');
         });
 
-        Schema::drop('invoices');
+        Schema::dropIfExists('invoices');
     }
 }

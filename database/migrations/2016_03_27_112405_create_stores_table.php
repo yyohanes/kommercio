@@ -15,6 +15,7 @@ class CreateStoresTable extends Migration
         Schema::create('stores', function(Blueprint $table){
             $table->increments('id');
             $table->string('name');
+            $table->string('code')->unique();
             $table->string('type');
             $table->boolean('default')->default(false);
             $table->timestamps();
@@ -23,7 +24,8 @@ class CreateStoresTable extends Migration
         $defaultStore = \Kommercio\Models\Store::create([
             'name' => 'Online Store',
             'type' => \Kommercio\Models\Store::TYPE_ONLINE,
-            'default' => TRUE
+            'default' => TRUE,
+            'code' => 'OL'
         ]);
     }
 
@@ -34,6 +36,6 @@ class CreateStoresTable extends Migration
      */
     public function down()
     {
-        Schema::drop('stores');
+        Schema::dropIfExists('stores');
     }
 }

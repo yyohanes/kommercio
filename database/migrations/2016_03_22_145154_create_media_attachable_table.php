@@ -30,6 +30,6 @@ class CreateMediaAttachableTable extends Migration
      */
     public function down()
     {
-        Schema::drop('media_attachables');
+        Schema::dropIfExists('media_attachables');
     }
 }

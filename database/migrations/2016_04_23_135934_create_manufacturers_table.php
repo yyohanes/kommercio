@@ -39,6 +39,6 @@ class CreateManufacturersTable extends Migration
             $table->dropColumn('manufacturer_id');
         });
 
-        Schema::drop('manufacturers');
+        Schema::dropIfExists('manufacturers');
     }
 }
