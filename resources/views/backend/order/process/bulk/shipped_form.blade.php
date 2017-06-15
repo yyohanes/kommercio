@@ -52,7 +52,19 @@ $unprocessedCount = count($unprocessedOrders);
 </div>
 
 <div class="modal-footer text-center">
-    <div class="text-center">
+    <div class="pull-left">
+        <div class="checkbox-list text-left">
+            <label class="checkbox">
+                {!! Form::checkbox('mark_shipped', 1, ProjectHelper::getConfig('delivery_order_options.check_shipped_on_new_delivery_order'), ['id' => 'mark-shipped-checkbox']) !!} Mark as shipped
+            </label>
+
+            <label data-enabled-dependent="mark-shipped-checkbox" class="checkbox">
+                {!! Form::checkbox('send_notification', 1, true) !!} Send email notification to customer
+            </label>
+        </div>
+    </div>
+
+    <div class="text-right">
         <button name="confirm" value="1" class="btn btn-primary"><i class="fa fa-check"></i> Confirm </button>
         <button type="button" class="btn btn-default" data-dismiss="modal"><i class="fa fa-remove"></i> Cancel</button>
         {!! Form::hidden('backUrl', $backUrl) !!}

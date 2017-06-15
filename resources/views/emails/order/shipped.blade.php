@@ -99,9 +99,9 @@
             <tbody><tr>
                 <td>
                     <?php
-                    $viewTemplate = ProjectHelper::getViewTemplate('emails.order.order_table');
+                    $viewTemplate = ProjectHelper::getViewTemplate('emails.delivery_order.delivery_order_table');
                     ?>
-                    @include($viewTemplate, ['lineItems' => $order->lineItems])
+                    @include($viewTemplate, ['deliveryOrder' => $deliveryOrder])
                 </td>
             </tr>
             </tbody></table>

@@ -78,7 +78,8 @@ return [
     ],
     'delivery_order_options' => [
         'reference_format' => 'store_code:delivey_order_year:delivey_order_month:delivey_order_day:counter',
-        'reference_counter_length' => 4
+        'reference_counter_length' => 4,
+        'check_shipped_on_new_delivery_order' => TRUE
     ],
     'catalog_options' => [
         'shop_url' => 'shop',

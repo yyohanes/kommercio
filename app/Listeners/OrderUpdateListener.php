@@ -47,13 +47,6 @@ class OrderUpdateListener
         }
     }
 
-    public function onShippedOrder(OrderUpdate $event)
-    {
-        if($event->notify_customer){
-            OrderHelper::sendOrderEmail($event->order, 'shipped');
-        }
-    }
-
     public function onCompletedOrder(OrderUpdate $event)
     {
         OrderHelper::saveOrderComment('Order is completed.', 'completed', $event->order, $this->request->user());
@@ -95,8 +88,6 @@ class OrderUpdateListener
                 $this->onPlacedOrder($event);
             }elseif($order->status == Order::STATUS_PROCESSING){
                 $this->onProcessingOrder($event);
-            }elseif($order->status == Order::STATUS_SHIPPED){
-                $this->onShippedOrder($event);
             }elseif($order->status == Order::STATUS_COMPLETED){
                 $this->onCompletedOrder($event);
             }elseif($order->status == Order::STATUS_CANCELLED){

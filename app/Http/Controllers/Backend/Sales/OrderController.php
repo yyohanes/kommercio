@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Session;
 use Kommercio\Events\CouponEvent;
+use Kommercio\Events\DeliveryOrderEvent;
 use Kommercio\Events\OrderEvent;
 use Kommercio\Events\OrderUpdate;
 use Kommercio\Facades\AddressHelper;
@@ -843,6 +844,11 @@ class OrderController extends Controller{
                     }
 
                     $deliveryOrder = $order->createDeliveryOrder($deliveredLineItems, $deliveryOrderData);
+                    Event::fire(new DeliveryOrderEvent(DeliveryOrderEvent::ON_NEW_DELIVERY_ORDER, $deliveryOrder));
+
+                    if ($request->input('mark_shipped')) {
+                        $deliveryOrder->changeStatus(DeliveryOrder::STATUS_SHIPPED, $request->input('send_notification'));
+                    }
 
                     if($order->isFullyShipped){
                         OrderHelper::saveOrderComment('Delivery Order #'.$deliveryOrder->reference.' is created. Order is fully shipped.', 'fully_shipped', $order, $user);
@@ -1068,13 +1074,6 @@ class OrderController extends Controller{
                     }
 
                     $orderComment = 'Resend Processing email.';
-                    break;
-                case 'shipped':
-                    if(!Gate::allows('access', ['ship_order'])){
-                        abort(403);
-                    }
-
-                    $orderComment = 'Resend Shipped email.';
                     break;
                 case 'completed':
                     if(!Gate::allows('access', ['complete_order'])){

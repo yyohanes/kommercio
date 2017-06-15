@@ -69,9 +69,46 @@ class DeliveryOrderController extends Controller{
 
             $deliveryOrder->save();
 
-            $deliveryOrder->changeStatus($status, $note);
+            $deliveryOrder->changeStatus($status, $request->input('send_notification', false), $note);
 
             return redirect($request->input('backUrl', route('backend.sales.order.view', ['id' => $deliveryOrder->order->id])))->with('success', ['Delivery Order #'.$deliveryOrder->reference.' status has been set to '.DeliveryOrder::getStatusOptions($status)]);
+        }
+    }
+
+    public function resendEmail(Request $request, $id, $process)
+    {
+        $user = $request->user();
+        $deliveryOrder = DeliveryOrder::findOrFail($id);
+
+        if($request->isMethod('GET')){
+            $options = [
+                'process' => $process,
+                'deliveryOrder' => $deliveryOrder,
+                'backUrl' => $request->get('backUrl', route('backend.sales.order.view', ['id' => $deliveryOrder->order->id]))
+            ];
+
+            return view('backend.order.delivery_orders.resend_email', $options);
+        }else{
+            $rules = [
+                'email' => 'required|email'
+            ];
+            $this->validate($request, $rules);
+
+            switch($process){
+                case 'shipped':
+                    $orderComment = 'Resend Delivery Order #'.$deliveryOrder->reference.' shipped email.';
+                    break;
+                default:
+                    return response('No process is selected.');
+                    break;
+            }
+
+            OrderHelper::saveOrderComment($orderComment, 'delivery_order_'.$process, $deliveryOrder->order, $user);
+            OrderHelper::sendDeliveryOrderEmail($deliveryOrder, $process, $request->input('email'));
+
+            $message = ucfirst($process).' email is successfully queued for resend.';
+
+            return redirect($request->input('backUrl', route('backend.sales.order.view', ['id' => $deliveryOrder->order->id])))->with('success', [$message]);
         }
     }
 

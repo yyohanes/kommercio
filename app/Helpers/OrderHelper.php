@@ -442,4 +442,20 @@ class OrderHelper
                 break;
         }
     }
+
+    public function sendDeliveryOrderEmail($deliveryOrder, $type, $destination = null)
+    {
+        switch($type){
+            case 'shipped':
+                // Fill details for later use
+                $deliveryOrder->shippingProfile->fillDetails();
+                $order = $deliveryOrder->order;
+
+                $subject = trans(LanguageHelperFacade::getTranslationKey('order.email.'.($order->isFullyShipped?'fully':'partially').'_shipped.subject'), ['reference' => $order->reference]);
+                EmailHelperFacade::sendMail($destination?:$order->billingInformation->email, $subject, 'order.shipped', ['order' => $order, 'deliveryOrder' => $deliveryOrder, 'store' => $order->store]);
+                break;
+            default:
+                break;
+        }
+    }
 }

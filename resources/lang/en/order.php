@@ -8,8 +8,11 @@ return [
         'processing' => [
             'subject' => 'We are processing your order #:reference'
         ],
-        'shipped' => [
-            'subject' => 'Your order #:reference is shipped'
+        'partially_shipped' => [
+            'subject' => 'Your order #:reference is partially shipped'
+        ],
+        'fully_shipped' => [
+            'subject' => 'Your order #:reference is fully shipped'
         ],
         'completed' => [
             'subject' => 'Your order #:reference is completed'

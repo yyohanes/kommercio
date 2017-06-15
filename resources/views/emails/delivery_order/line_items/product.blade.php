@@ -32,6 +32,11 @@
             @endif
         @endif
     </td>
+    @if(isset($showPrice) && $showPrice)
+        <td>
+            {{ PriceFormatter::formatNumber($lineItem->net_price, $lineItem->order->currency) }}
+        </td>
+        @endif
     <td>
         {{ $doItem->quantity+0 }}
     </td>

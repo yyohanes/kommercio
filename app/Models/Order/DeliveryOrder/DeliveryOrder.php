@@ -4,8 +4,11 @@ namespace Kommercio\Models\Order\DeliveryOrder;
 
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
+use Kommercio\Events\DeliveryOrderEvent;
 use Kommercio\Facades\ProjectHelper;
 use Kommercio\Models\Customer;
 use Kommercio\Models\Interfaces\AuthorSignatureInterface;
@@ -67,6 +70,22 @@ class DeliveryOrder extends Model implements AuthorSignatureInterface
     public function getIsShippableAttribute()
     {
         return !in_array($this->status, [self::STATUS_CANCELLED, self::STATUS_SHIPPED]) && Gate::allows('access', ['complete_delivery_order']);
+    }
+
+    /**
+     * Get lineItems related to Delivery Order items
+     *
+     * @return Collection
+     */
+    public function getLineItemsAttribute()
+    {
+        $return = collect([]);
+
+        foreach ($this->items as $item) {
+            $return->push($item->lineItem);
+        }
+
+        return $return;
     }
 
     // Methods
@@ -179,11 +198,23 @@ class DeliveryOrder extends Model implements AuthorSignatureInterface
         return $this->total_weight;
     }
 
-    public function changeStatus($status, $note=null, $by = null, $data = null)
+    public function changeStatus($status, $notify = false, $note=null, $by = null, $data = null)
     {
         $oldStatus = $this->status;
         $this->status = $status;
         $this->save();
+
+        if($oldStatus != $status){
+            if($status == static::STATUS_SHIPPED){
+                Event::fire(new DeliveryOrderEvent(DeliveryOrderEvent::ON_SHIPPED_DELIVERY_ORDER, $this, [
+                    'send_notification' => $notify,
+                ]));
+            }elseif($status == static::STATUS_CANCELLED){
+                Event::fire(new DeliveryOrderEvent(DeliveryOrderEvent::ON_CANCELLED_DELIVERY_ORDER, $this, [
+                    'send_notification' => $notify,
+                ]));
+            }
+        }
 
         if(!$by){
             $by = Auth::user()->email;

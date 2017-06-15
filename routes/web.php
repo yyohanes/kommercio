@@ -1171,6 +1171,12 @@ Route::group(['middleware' => ['web']], function () {
                             'uses' => 'DeliveryOrderController@quickStatusUpdate',
                             'permissions' => ['cancel_delivery_order', 'complete_delivery_order']
                         ]);
+
+                        Route::any('{id}/resend-email/{process}', [
+                            'as' => 'backend.sales.order.delivery_order.resend_email',
+                            'uses' => 'DeliveryOrderController@resendEmail',
+                            'permissions' => ['resend_order_email', 'view_delivery_order']
+                        ]);
                     });
 
                     Route::group(['prefix' => 'payment'], function(){

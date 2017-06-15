@@ -80,10 +80,6 @@
                             $resendActions .= '<li><a class="modal-ajax" href="'.route('backend.sales.order.resend_email', ['process' => 'processing', 'backUrl' => Request::fullUrl(), 'id' => $order->id]).'" target="_blank">Processing</a></li>';
                         }
 
-                        if(in_array($order->status, [\Kommercio\Models\Order\Order::STATUS_SHIPPED])){
-                            $resendActions .= '<li><a class="modal-ajax" href="'.route('backend.sales.order.resend_email', ['process' => 'shipped', 'backUrl' => Request::fullUrl(), 'id' => $order->id]).'" target="_blank">Shipped</a></li>';
-                        }
-
                         if(in_array($order->status, [\Kommercio\Models\Order\Order::STATUS_COMPLETED])){
                             $resendActions .= '<li><a class="modal-ajax" href="'.route('backend.sales.order.resend_email', ['process' => 'completed', 'backUrl' => Request::fullUrl(), 'id' => $order->id]).'" target="_blank">Completed</a></li>';
                         }
@@ -455,6 +451,9 @@
                                                                             <a href="#" class="btn btn-default delivery-order-view-btn" data-delivery_order_id="{{ $deliveryOrder->id }}"><i class="fa fa-search"></i> View</a>
                                                                             @if(!in_array($deliveryOrder->status, [\Kommercio\Models\Order\DeliveryOrder\DeliveryOrder::STATUS_CANCELLED]))
                                                                                 <a href="{{ route('backend.sales.order.delivery_order.print', ['id' => $deliveryOrder->id]) }}" class="btn btn-default" target="_blank"><i class="fa fa-print"></i> Print</a>
+                                                                            @endif
+                                                                            @if(Gate::allows('access', ['resend_order_email']) && in_array($deliveryOrder->status, [\Kommercio\Models\Order\DeliveryOrder\DeliveryOrder::STATUS_SHIPPED]))
+                                                                                <a class="btn btn-default modal-ajax" href="{{  route('backend.sales.order.delivery_order.resend_email', ['id' => $deliveryOrder->id, 'process' => \Kommercio\Models\Order\DeliveryOrder\DeliveryOrder::STATUS_SHIPPED, 'backUrl' => Request::fullUrl()])}}" target="_blank"><i class="fa fa-envelope-o"></i> Resend Email</a>
                                                                             @endif
                                                                         </div>
                                                                     </td>
