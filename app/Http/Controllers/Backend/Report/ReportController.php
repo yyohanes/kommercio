@@ -211,6 +211,13 @@ class ReportController extends Controller
             ]);
         }
 
+        if($request->input('print_dos', false) && Gate::allows('access', ['print_delivery_note'])){
+            return view('backend.report.delivery_print_dos', [
+                'orders' => $orders,
+                'print_template' => ProjectHelper::getViewTemplate('print.order.delivery_order_content')
+            ]);
+        }
+
         //Get Ordered Products. Use custom query because we want to sort by Sort Order
         $orderedProductsQb = LineItem::lineItemType('product')
             ->whereIn('order_id', $orders->pluck('id')->all())
@@ -246,6 +253,7 @@ class ReportController extends Controller
         }
 
         $printAllInvoicesUrl = $request->url().'?'.http_build_query(array_merge($request->query(), ['print_invoices' => TRUE]));
+        $printAllDosUrl = $request->url().'?'.http_build_query(array_merge($request->query(), ['print_dos' => TRUE]));
         $exportUrl = $request->url().'?'.http_build_query(array_merge($request->query(), ['export_to_xls' => TRUE]));
 
         return view('backend.report.delivery', [
@@ -258,6 +266,7 @@ class ReportController extends Controller
             'shippingMethodOptions' => $shippingMethodOptions,
             'shippingMethod' => $shippingMethod,
             'printAllInvoicesUrl' => $printAllInvoicesUrl,
+            'printAllDosUrl' => $printAllDosUrl,
             'exportUrl' => $exportUrl
         ]);
     }

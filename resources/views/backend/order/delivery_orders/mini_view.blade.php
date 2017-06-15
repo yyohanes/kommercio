@@ -9,19 +9,16 @@
         <table class="table table-bordered">
             <thead>
             <tr>
-                <th>Product</th>
+                <th colspan="2">Product</th>
                 <th>Quantity</th>
-                <th>Ordered</th>
             </tr>
             </thead>
             <tbody>
-            @foreach($deliveryOrder->items as $item)
-                <tr>
-                    <td>{{ $item->name }}</td>
-                    <td>{{ ProjectHelper::formatNumber($item->quantity) }}</td>
-                    <td>{{ ProjectHelper::formatNumber($item->lineItem->quantity) }}</td>
-                </tr>
-            @endforeach
+            @if($deliveryOrder->items->count() > 0)
+                @foreach($deliveryOrder->items as $idx=>$doItem)
+                    @include('emails.delivery_order.line_items.product', ['key' => $idx, 'doItem' => $doItem, 'lineItem' => $doItem->lineItem, 'showPrice' => FALSE])
+                @endforeach
+            @endif
             </tbody>
         </table>
 

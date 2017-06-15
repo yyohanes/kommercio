@@ -66,6 +66,10 @@
                     <a target="_blank" href="{{ $printAllInvoicesUrl }}" class="btn btn-sm btn-info">
                         <i class="fa fa-print"></i> All Invoices</a>
                     @endcan
+                    @can('access', ['print_delivery_note'])
+                    <a target="_blank" href="{{ $printAllDosUrl }}" class="btn btn-sm btn-info">
+                        <i class="fa fa-print"></i> All Delivery Orders</a>
+                    @endcan
                 </div>
             </div>
 
