@@ -5,6 +5,7 @@ namespace Kommercio\Http\Controllers\Backend\Sales;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
@@ -332,7 +333,7 @@ class OrderController extends Controller{
             $rowMeat = array_merge($rowMeat, [$orderTotal]);
 
             if(Gate::allows('access', ['view_payment'])):
-                $rowMeat[] = $order->paymentMethod->name;
+                $rowMeat[] = '<span id="order-'.$order->id.'-payment-method">'.$order->paymentMethod->name.'</span>'.(!$order->isFinal?'<a class="btn btn-default btn-xs" data-inline_update_target="order-'.$order->id.'-payment-method" data-inline_update="'.route('backend.sales.order.quick_update', ['id' => $order->id, 'type' => 'payment_method']).'"><i class="fa fa-pencil"></i></a>':'');
                 $outstanding = '<label class="label label-sm label-'.($order->outstanding > 0?'warning':'success').'">'.PriceFormatter::formatNumber($order->outstanding).'</label>';
                 if($order->payments->count() > 0){
                     $outstanding .= '<div class="expanded-detail" data-ajax_load="'.route('backend.sales.order.quick_payment_view', ['id' => $order->id]).'"></div>';
@@ -512,6 +513,59 @@ class OrderController extends Controller{
             'order' => $order,
             'payments' => $payments,
         ]);
+    }
+
+    /**
+     * Show form and process quick order update
+     *
+     * @param Request $request
+     * @param $id id of order
+     * @param $type type of quick update to perform
+     * @return Response
+     */
+    public function quickUpdate(Request $request, $id, $type)
+    {
+        $order = Order::findOrFail($id);
+
+        if ($request->isMethod('GET')) {
+            $options = [];
+
+            switch($type) {
+                case 'payment_method':
+                    $paymentMethods = PaymentMethod::getPaymentMethods([
+                        'order' => $order
+                    ], PaymentMethod::LOCATION_BACKOFFICE);
+
+                    $paymentMethodOptions = [];
+                    foreach($paymentMethods as $paymentMethod){
+                        $paymentMethodOptions[$paymentMethod->id] = $paymentMethod->name;
+                    }
+
+                    $options['paymentMethodOptions'] = $paymentMethodOptions;
+                    break;
+            }
+
+            return view('backend.order.quick_update.form.default', array_merge([
+                'order' => $order,
+                'type' => $type,
+                'backUrl' => $request->input('backUrl', route('backend.sales.order.view', ['id' => $id]))
+            ], $options));
+        } else {
+            switch($type) {
+                case 'payment_method':
+                    $paymentMethod = PaymentMethod::findOrFail($request->input('payment_method'));
+                    $order->paymentMethod()->associate($paymentMethod);
+                    $order->save();
+
+                    return view('backend.order.quick_update.render.'.$type, [
+                        'order' => $order,
+                        'type' => $type
+                    ]);
+                    break;
+            }
+        }
+
+        abort(400, 'Unspecified type');
     }
 
     public function printOrder(Request $request, $id, $type='invoice')

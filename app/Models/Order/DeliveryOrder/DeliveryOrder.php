@@ -253,6 +253,20 @@ class DeliveryOrder extends Model implements AuthorSignatureInterface
         return (isset($array[$option]))?$array[$option]:$array;
     }
 
+    /**
+     * Get Delivery Order status that should be counted
+     *
+     * @return array
+     */
+    public static function getCountedStatus()
+    {
+        return [
+            self::STATUS_SHIPPED,
+            self::STATUS_PROGRESS,
+            self::STATUS_PENDING,
+        ];
+    }
+
     protected static function boot()
     {
         parent::boot();

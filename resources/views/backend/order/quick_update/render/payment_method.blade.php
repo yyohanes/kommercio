@@ -1,0 +1,1 @@
+{{ $order->paymentMethod->name }}

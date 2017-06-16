@@ -402,6 +402,21 @@ class Order extends Model implements AuthorSignatureInterface
         return $this;
     }
 
+    /**
+     * Get Delivery Orders with Shipped status
+     *
+     * @param string $status Delivery order status
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function getDeliveryOrdersByStatus($status)
+    {
+        $status = is_array($status)?$status:[$status];
+
+        return $this->deliveryOrders->filter(function($value, $key) use ($status) {
+            return in_array($value->status, $status);
+        });
+    }
+
     public function generateReference($last_number = null)
     {
         $format = ProjectHelper::getConfig('order_options.reference_format');
@@ -1098,7 +1113,10 @@ class Order extends Model implements AuthorSignatureInterface
 
     public function getIsEditableAttribute()
     {
-        return in_array($this->status, [self::STATUS_ADMIN_CART, self::STATUS_CART]) || (Gate::allows('access', ['edit_settled_order']) && !in_array($this->status, [self::STATUS_CANCELLED, Order::STATUS_COMPLETED]));
+        return in_array($this->status, [self::STATUS_ADMIN_CART, self::STATUS_CART])
+            || (Gate::allows('access', ['edit_settled_order'])
+                && !in_array($this->status, [self::STATUS_CANCELLED, Order::STATUS_COMPLETED])
+                && $this->getDeliveryOrdersByStatus([DeliveryOrder::getCountedStatus()])->count() == 0);
     }
 
     public function getIsDeleteableAttribute()
@@ -1109,6 +1127,16 @@ class Order extends Model implements AuthorSignatureInterface
     public function getIsCheckoutAttribute()
     {
         return !in_array($this->status, [self::STATUS_ADMIN_CART, self::STATUS_CART]);
+    }
+
+    /**
+     * If order is finally completed or cancelled
+     *
+     * @return bool
+     */
+    public function getIsFinalAttribute()
+    {
+        return in_array($this->status, [self::STATUS_COMPLETED, self::STATUS_CANCELLED]);
     }
 
     public function getIsFullyShippedAttribute()

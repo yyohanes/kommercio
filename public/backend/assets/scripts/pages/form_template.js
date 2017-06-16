@@ -521,6 +521,73 @@ var formBehaviors = function(){
         });
     }
 
+    var handleInlineUpdate = function(context)
+    {
+      $('[data-inline_update]', context).each(function(idx, obj) {
+        var $path = $(obj).data('inline_update');
+        var $target = $(obj).data('inline_update_target');
+
+        if (typeof $target == 'undefined') {
+          $target = $(obj).parent();
+        } else {
+          $target = $('#' + $target);
+        }
+
+        var $savedContent = $target.html();
+
+        $(obj).on('click', function(e) {
+          e.preventDefault();
+
+          $.ajax($path, {
+            success: function(data) {
+              var $cancelBtn = $('<a class="btn btn-default btn-xs">Cancel</a>');
+              var $updateForm = $(data);
+              $updateForm.find('.form-actions').append($cancelBtn);
+              $target.html($updateForm);
+
+              $cancelBtn.on('click', function(e){
+                e.preventDefault();
+                $target.html($savedContent);
+                $(obj).show();
+              });
+
+              $updateForm.on('submit', function(e){
+                e.preventDefault();
+
+                App.blockUI({
+                  target: $target
+                });
+
+                $.ajax($updateForm.attr('action'), {
+                  method: 'POST',
+                  data: $updateForm.serialize(),
+                  success: function(data) {
+                    $target.html(data);
+                    $(obj).show();
+                    formBehaviors.init($(data));
+                  },
+                  error: function(xhr) {
+                    console.log(xhr);
+                    alert('Error occured. Please try again.');
+                  },
+                  complete: function() {
+                    App.unblockUI($target);
+                  }
+                });
+              });
+
+              $(obj).hide();
+              formBehaviors.init($updateForm);
+            },
+            error: function(xhr) {
+              console.log(xhr);
+              alert('Error occured. Please try again.');
+            }
+          });
+        });
+      });
+    }
+
     var handleTabChange = function(context)
     {
         var savedId;
@@ -763,41 +830,42 @@ var formBehaviors = function(){
     }
 
     return {
-        init: function(context){
-            if(typeof context === 'undefined'){
-                context = document;
-            }
-
-            handleTinyMCE(context);
-            handleBtnLinks(context);
-            handleSelects(context);
-            handleSlugs(context);
-            handleFormValidation(context);
-            handleFormSubmit(context);
-            handleFilesUpload(context);
-            handleDateAndTime(context);
-            handleMaxLength(context);
-            handleInputMask(context);
-            handleCurrencyDependent(context);
-            handleSelectDependent(context);
-            handleMultiselect(context);
-            handleEnabledDependent(context);
-            handleTabChange(context);
-            handleAddressOptions(context);
-            handleTypeahead(context);
-            handleAjaxModal(context);
-            handleExpandedDetail(context);
-        },
-        initComponents: function(context){
-            handleInputMask(context);
-        },
-        reInitInputMask: function(context){
-            //Re-init inputmask on #line-items-table level so auto remove mask will work
-            $('input[data-inputmask]', context).inputmask('remove');
-        },
-        handleModalAjaxBtn: function(context){
-            handleAjaxModal(context);
+      init: function(context){
+        if(typeof context === 'undefined'){
+            context = document;
         }
+
+        handleTinyMCE(context);
+        handleBtnLinks(context);
+        handleSelects(context);
+        handleSlugs(context);
+        handleFormValidation(context);
+        handleFormSubmit(context);
+        handleFilesUpload(context);
+        handleDateAndTime(context);
+        handleMaxLength(context);
+        handleInputMask(context);
+        handleCurrencyDependent(context);
+        handleSelectDependent(context);
+        handleMultiselect(context);
+        handleEnabledDependent(context);
+        handleTabChange(context);
+        handleAddressOptions(context);
+        handleTypeahead(context);
+        handleAjaxModal(context);
+        handleExpandedDetail(context);
+        handleInlineUpdate(context);
+      },
+      initComponents: function(context){
+          handleInputMask(context);
+      },
+      reInitInputMask: function(context){
+          //Re-init inputmask on #line-items-table level so auto remove mask will work
+          $('input[data-inputmask]', context).inputmask('remove');
+      },
+      handleModalAjaxBtn: function(context){
+          handleAjaxModal(context);
+      }
     }
 }();
 

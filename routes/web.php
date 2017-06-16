@@ -1067,6 +1067,12 @@ Route::group(['middleware' => ['web']], function () {
                         'permissions' => ['view_payment']
                     ]);
 
+                    Route::any('quick-update/{id}/{type}', [
+                        'as' => 'backend.sales.order.quick_update',
+                        'uses' => 'OrderController@quickUpdate',
+                        'permissions' => ['edit_order']
+                    ]);
+
                     Route::get('print/{id}/{type?}', [
                         'as' => 'backend.sales.order.print',
                         'uses' => 'OrderController@printOrder',
