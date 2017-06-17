@@ -1,32 +1,12 @@
 <?php
+$cssFiles = [];
+
+// Find project email.css
+$publicEmailCss = public_path('project/assets/css/email.css');
+if (file_exists($publicEmailCss)) {
+    $cssFiles[] = $publicEmailCss;
+}
 
 return [
-
-	/*
-	|--------------------------------------------------------------------------
-	| Strip styles
-	|--------------------------------------------------------------------------
-	|
-	| Settings this to false prevents the inliner from removing the style
-	| definitions that have been inlined.
-	|
-	| Notice that media query styles are not inlined, and hence never
-	| stripped.
-	|
-	*/
-
-	'strip-styles' => true,
-
-	/*
-	|--------------------------------------------------------------------------
-	| Remove classes
-	|--------------------------------------------------------------------------
-	|
-	| Settings this to false disables the removal of class attributes from
-	| your html elements (do not enable this if you use media queries)
-	|
-	*/
-
-	'strip-classes' => true,
-
+    'css-files' => $cssFiles,
 ];
