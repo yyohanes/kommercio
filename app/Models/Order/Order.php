@@ -583,6 +583,29 @@ class Order extends Model implements AuthorSignatureInterface
 
         $profileRelation = $type.'Profile';
 
+        // Standardized saved profile
+        $fields = [
+            'email',
+            'first_name',
+            'last_name',
+            'full_name',
+            'phone_number',
+            'country_id',
+            'state_id',
+            'city_id',
+            'district_id',
+            'area_id',
+            'postal_code',
+            'address_1',
+            'address_2'
+        ];
+
+        foreach ($fields as $field) {
+            if (!isset($data[$field])) {
+                $data[$field] = '';
+            }
+        }
+
         $profile->saveDetails($data);
 
         $this->load($profileRelation);

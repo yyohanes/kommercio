@@ -672,17 +672,24 @@ class OrderController extends Controller
                 break;
             case 'customer_information':
                 if($process == 'change'){
-                    $savedShippingProfile = Profile::find($request->get('saved_shipping_profile', $order->getData('saved_shipping_profile', null)));
+                    // If logged in, use saved profile
+                    if ($user) {
+                        $savedShippingProfile = Profile::find($request->get('saved_shipping_profile', $order->getData('saved_shipping_profile', null)));
 
-                    if(!$savedShippingProfile){
-                        $savedShippingProfile = new Profile();
+                        if(!$savedShippingProfile){
+                            $savedShippingProfile = new Profile();
+                        }
+
+                        $order->saveData([
+                            'saved_shipping_profile' => $savedShippingProfile->id
+                        ]);
+
+                        $order->setRelation('shippingProfile', $savedShippingProfile);
+
+                        if ($savedShippingProfile->exists) {
+                            Session::flashInput(['shippingProfile' => $savedShippingProfile->getDetails()]);
+                        }
                     }
-
-                    $order->saveData([
-                        'saved_shipping_profile' => $savedShippingProfile->id
-                    ]);
-
-                    $order->setRelation('shippingProfile', $savedShippingProfile);
 
                     $nextStep = 'customer_information';
                 }elseif($process == 'select_shipping_method'){
@@ -732,6 +739,7 @@ class OrderController extends Controller
                     $order->delivery_date = $request->input('delivery_date', null);
 
                     $shippingProfile = $request->input('shippingProfile');
+
                     //If no shipping email, use billing email
                     if(!isset($shippingProfile['email'])){
                         $shippingProfile['email'] = $order->billingInformation->email;

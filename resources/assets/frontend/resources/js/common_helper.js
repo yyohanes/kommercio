@@ -11,39 +11,43 @@ window.handleAddressSelector = (context) => {
                 'data' : 'parent=' + $(e.target).val(),
                 'dataType' : 'json',
                 'success' : function(data){
-                    var $options = KommercioFrontend.selectHelper.convertToOptions(data);
+                  var $options = KommercioFrontend.selectHelper.convertToOptions(data);
 
-                    $stateSelect.html($options);
+                  $stateSelect.html($options);
 
-                    $stateSelect.trigger('change');
+                  $stateSelect.trigger('change');
 
-                    if(data.length < 2){
-                        $(obj).find('.state-select-wrapper').hide();
-                    }else{
-                        $(obj).find('.state-select-wrapper').show();
-                    }
+                  if(data.length < 2){
+                      $(obj).find('.state-select-wrapper').hide();
+                  }else{
+                      $(obj).find('.state-select-wrapper').show();
+                  }
+
+                  $stateSelect.trigger('address_options_changed', ['state', data]);
                 }
             });
         });
 
         $stateSelect.on('change', function(e){
-            $.ajax(global_vars.base_path + '/address/city/options?first_option=1', {
-                'data' : 'parent=' + $(e.target).val(),
-                'dataType' : 'json',
-                'success' : function(data){
-                    var $options = KommercioFrontend.selectHelper.convertToOptions(data);
+          $.ajax(global_vars.base_path + '/address/city/options?first_option=1', {
+            'data' : 'parent=' + $(e.target).val(),
+            'dataType' : 'json',
+            'success' : function(data){
+              var $options = KommercioFrontend.selectHelper.convertToOptions(data);
 
-                    $citySelect.html($options);
+              $citySelect.html($options);
 
-                    $citySelect.trigger('change');
+              $citySelect.trigger('change');
 
-                    if(data.length < 2){
-                        $(obj).find('.city-select-wrapper').hide();
-                    }else{
-                        $(obj).find('.city-select-wrapper').show();
-                    }
-                }
-            });
+              if(data.length < 2){
+                  $(obj).find('.city-select-wrapper').hide();
+              }else{
+                  $(obj).find('.city-select-wrapper').show();
+              }
+
+              $citySelect.trigger('address_options_changed', ['city', data]);
+            }
+          });
         });
 
         $citySelect.on('change', function(e){
@@ -62,6 +66,8 @@ window.handleAddressSelector = (context) => {
                     }else{
                         $(obj).find('.district-select-wrapper').show();
                     }
+
+                  $districtSelect.trigger('address_options_changed', ['district', data]);
                 }
             });
         });
@@ -82,6 +88,8 @@ window.handleAddressSelector = (context) => {
                     }else{
                         $(obj).find('.area-select-wrapper').show();
                     }
+
+                  $areaSelect.trigger('address_options_changed', ['area', data]);
                 }
             });
         });
