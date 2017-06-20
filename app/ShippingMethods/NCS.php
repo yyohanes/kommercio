@@ -15,8 +15,8 @@ class NCS extends ShippingMethodAbstract
         $methods = [
             'ONS' => [
                 'shipping_method_id' => $this->shippingMethod->id,
-                'name' => 'NCS Kirimian 1 Hari',
-                'description' => 'Layanan Kirimian 1 Hari',
+                'name' => 'NCS ONS (One Night Service)',
+                'description' => 'Layanan Kiriman 1 Hari',
                 'taxable' => $this->shippingMethod->taxable
             ],
             'REG' => [
