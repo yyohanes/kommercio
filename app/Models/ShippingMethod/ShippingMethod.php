@@ -8,6 +8,9 @@ use Kommercio\Facades\CurrencyHelper;
 use Kommercio\Facades\PriceFormatter;
 use Kommercio\Facades\ProjectHelper;
 use Kommercio\Models\Order\Order;
+use Kommercio\Models\Store;
+use Kommercio\Models\PaymentMethod\PaymentMethod;
+use Kommercio\ShippingMethods\ShippingMethodInterface;
 
 class ShippingMethod extends Model
 {
@@ -25,12 +28,28 @@ class ShippingMethod extends Model
     private $_processor;
 
     // Relations
+    /**
+     * Get stores that can use this shipping method
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
     public function stores()
     {
         return $this->morphToMany('Kommercio\Models\Store', 'store_attachable');
     }
 
+    /**
+     * Get payment methods that are allowed to use this shipping method
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
+    public function paymentMethods() {
+        return $this->belongsToMany(PaymentMethod::class);
+    }
+
     // Methods
+    /**
+     * Get shipping method processor / handler
+     * @return ShippingMethodInterface
+     */
     public function getProcessor()
     {
         if(!isset($this->_processor)){
@@ -84,6 +103,28 @@ class ShippingMethod extends Model
         return $prices;
     }
 
+    /**
+     * Check if shipping method is available at given store
+     * @param  Store   $store
+     * @return bool
+     */
+    public function isAvailableAtStore(Store $store)
+    {
+        return $this->stores->count() < 1 || $this->stores->pluck('id')->contains($store->id);
+    }
+
+    /**
+     * Check if shipping method is available with given payment method
+     * @param  Store   $store
+     * @return bool
+     */
+    public function isAvailableWithPaymentMethod(PaymentMethod $paymentMethod)
+    {
+        return is_null($paymentMethod)
+            || $this->paymentMethods->count() < 1
+            || ($paymentMethod && $this->paymentMethods->pluck('id')->contains($paymentMethod->id));
+    }
+
     //Accessors
     public function getRequireAddressAttribute()
     {
@@ -114,10 +155,14 @@ class ShippingMethod extends Model
         return $qb->get();
     }
 
+    /**
+     * Get shipping method options
+     * @param  array $options Available option key: ['order']: Order object, ['request']: Request object, ['frontend']: is requested from frontend, ['show_all_active']: show all active methods
+     * @return array
+     */
     public static function getShippingMethods($options = null)
     {
         $order = isset($options['order'])?$options['order']:new Order();
-        $shippingMethods = self::orderBy('sort_order', 'ASC')->get();
 
         $request = isset($options['request'])?$options['request']:null;
 
@@ -130,10 +175,32 @@ class ShippingMethod extends Model
         }
 
         $options['frontend'] = !isset($options['frontend'])?TRUE:$options['frontend'];
+        $options['show_all_active'] = isset($options['show_all_active'])?$options['show_all_active']:false;
+
+        // Get payment method from Request or Order respectively
+
+        $options['payment_method'] = null;
+
+        if ($request && $request->has('payment_method')) {
+            $options['payment_method'] = PaymentMethod::find($request->input('payment_method'));
+        }
+
+        if (!$options['payment_method'] && $order->paymentMethod) {
+            $options['payment_method'] = $order->paymentMethod;
+        }
+
+        if (!$options['show_all_active'] && $options['payment_method'] instanceof PaymentMethod && $options['payment_method']->shippingMethods->count() > 0) {
+            $shippingMethods = $options['payment_method']->shippingMethods;
+        } else {
+            $shippingMethods = self::orderBy('sort_order', 'ASC')->get();
+        }
 
         $return = [];
         foreach($shippingMethods as $shippingMethod){
-            if(($shippingMethod->stores->count() < 1 || $shippingMethod->stores->pluck('id')->contains($store->id)) && $shippingMethod->active && $shippingMethod->validate($options)){
+            if($shippingMethod->isAvailableAtStore($store)
+                && $shippingMethod->active
+                && $shippingMethod->validate($options)
+                ){
                 $shippingReturnedMethods = $shippingMethod->getPrices($options);
 
                 if($shippingReturnedMethods){

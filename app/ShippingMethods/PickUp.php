@@ -2,20 +2,22 @@
 
 namespace Kommercio\ShippingMethods;
 
-use Illuminate\Support\Facades\Auth;
 use Kommercio\Facades\CurrencyHelper;
-use Kommercio\Models\Order\Order;
-use Kommercio\Models\ShippingMethod\ShippingMethod;
-use Kommercio\ShippingMethods\ShippingMethodInterface;
 
-class FreeShipping extends ShippingMethodAbstract
+/**
+ * Shipping Method processor for handling Pick-Up method
+ */
+class PickUp extends ShippingMethodAbstract
 {
+    /**
+     * @inheritDoc
+     */
     public function getAvailableMethods()
     {
         $methods = [
-            'free_shipping' => [
+            'pick_up' => [
                 'shipping_method_id' => $this->shippingMethod->id,
-                'name' => 'Free Shipping',
+                'name' => 'Pick-Up',
                 'description' => '',
                 'taxable' => $this->shippingMethod->taxable
             ]
@@ -24,24 +26,9 @@ class FreeShipping extends ShippingMethodAbstract
         return $methods;
     }
 
-    public function validate($options = null)
-    {
-        $user = Auth::user();
-
-        $valid = FALSE;
-
-        $order = $options['order']?:null;
-        if($order){
-            $valid = $order->eligibleForFreeShipping();
-        }
-
-        if($user && !$user->isCustomer){
-            $valid = TRUE;
-        }
-
-        return $valid;
-    }
-
+    /**
+     * @inheritDoc
+     */
     public function getPrices($options = null)
     {
         $methods = $this->getAvailableMethods();

@@ -5,6 +5,7 @@ namespace Kommercio\Http\Controllers\Backend\ShippingMethod;
 use Illuminate\Http\Request;
 use Kommercio\Http\Controllers\Controller;
 use Kommercio\Http\Requests\Backend\ShippingMethod\ShippingMethodFormRequest;
+use Kommercio\Models\PaymentMethod\PaymentMethod;
 use Kommercio\Models\ShippingMethod\ShippingMethod;
 use Kommercio\Models\Store;
 
@@ -24,6 +25,7 @@ class ShippingMethodController extends Controller{
     {
         $shippingMethod = new ShippingMethod();
         $stores = Store::all();
+        $paymentMethods = PaymentMethod::all();
 
         $storeOptions = [];
         foreach($stores as $store){
@@ -38,6 +40,7 @@ class ShippingMethodController extends Controller{
         return view('backend.shipping_method.create', [
             'shippingMethod' => $shippingMethod,
             'storeOptions' => $storeOptions,
+            'paymentMethodOptions' => $paymentMethods->pluck('name', 'id')->all()
         ]);
     }
 
@@ -46,6 +49,8 @@ class ShippingMethodController extends Controller{
         $shippingMethod = new ShippingMethod();
         $shippingMethod->fill($request->all());
         $shippingMethod->save();
+
+        $shippingMethod->paymentMethods()->sync($request->input('payment_methods', []));
 
         if($request->input('store_scope') == 'selected'){
             $shippingMethod->stores()->sync($request->input('stores', []));
@@ -60,6 +65,7 @@ class ShippingMethodController extends Controller{
     {
         $shippingMethod = ShippingMethod::findOrFail($id);
         $stores = Store::all();
+        $paymentMethods = PaymentMethod::all();
 
         $storeOptions = [];
         foreach($stores as $store){
@@ -74,6 +80,7 @@ class ShippingMethodController extends Controller{
         return view('backend.shipping_method.edit', [
             'shippingMethod' => $shippingMethod,
             'storeOptions' => $storeOptions,
+            'paymentMethodOptions' => $paymentMethods->pluck('name', 'id')->all()
         ]);
     }
 
@@ -83,6 +90,8 @@ class ShippingMethodController extends Controller{
 
         $shippingMethod->fill($request->all());
         $shippingMethod->save();
+
+        $shippingMethod->paymentMethods()->sync($request->input('payment_methods', []));
 
         if($request->input('store_scope') == 'selected'){
             $shippingMethod->stores()->sync($request->input('stores', []));

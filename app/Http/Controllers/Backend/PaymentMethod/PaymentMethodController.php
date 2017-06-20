@@ -8,6 +8,7 @@ use Kommercio\Http\Controllers\Controller;
 use Kommercio\Http\Requests\Backend\PaymentMethod\PaymentMethodFormRequest;
 use Kommercio\Models\PaymentMethod\PaymentMethod;
 use Kommercio\Models\Store;
+use Kommercio\Models\ShippingMethod\ShippingMethod;
 use Kommercio\PaymentMethods\PaymentMethodSettingFormInterface;
 
 class PaymentMethodController extends Controller{
@@ -25,6 +26,9 @@ class PaymentMethodController extends Controller{
     public function create()
     {
         $paymentMethod = new PaymentMethod();
+
+        $shippingMethods = ShippingMethod::all();
+
         $stores = Store::all();
 
         $storeOptions = [];
@@ -40,6 +44,7 @@ class PaymentMethodController extends Controller{
         return view('backend.payment_method.create', [
             'paymentMethod' => $paymentMethod,
             'storeOptions' => $storeOptions,
+            'shippingMethodOptions' => $shippingMethods->pluck('name', 'id')->all(),
             'additionalFieldsForm' => false
         ]);
     }
@@ -49,6 +54,8 @@ class PaymentMethodController extends Controller{
         $paymentMethod = new PaymentMethod();
         $paymentMethod->fill($request->all());
         $paymentMethod->save();
+
+        $paymentMethod->shippingMethods()->sync($request->input('shipping_methods', []));
 
         if($request->input('store_scope') == 'selected'){
             $paymentMethod->stores()->sync($request->input('stores', []));
@@ -69,6 +76,8 @@ class PaymentMethodController extends Controller{
            $additionalFieldsForm = ProjectHelper::getViewTemplate($paymentMethod->getProcessor()->settingForm());
         }
 
+        $shippingMethods = ShippingMethod::all();
+
         $stores = Store::all();
 
         $storeOptions = [];
@@ -84,7 +93,8 @@ class PaymentMethodController extends Controller{
         return view('backend.payment_method.edit', [
             'paymentMethod' => $paymentMethod,
             'additionalFieldsForm' => $additionalFieldsForm,
-            'storeOptions' => $storeOptions
+            'storeOptions' => $storeOptions,
+            'shippingMethodOptions' => $shippingMethods->pluck('name', 'id')->all(),
         ]);
     }
 
@@ -99,6 +109,8 @@ class PaymentMethodController extends Controller{
         }
 
         $paymentMethod->save();
+
+        $paymentMethod->shippingMethods()->sync($request->input('shipping_methods', []));
 
         if($request->input('store_scope') == 'selected'){
             $paymentMethod->stores()->sync($request->input('stores', []));

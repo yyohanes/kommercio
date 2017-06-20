@@ -79,6 +79,27 @@
     </div>
 </div>
 
+<div class="row form-group">
+    <label class="control-label col-md-3">
+        Shipping Methods
+    </label>
+    <div class="col-md-5">
+        @include('backend.master.form.fields.select', [
+            'name' => 'shipping_methods[]',
+            'label' => null,
+            'key' => 'shipping_methods',
+            'attr' => [
+                'class' => 'form-control select2',
+                'id' => 'shipping_methods',
+                'multiple' => true,
+            ],
+            'options' => $shippingMethodOptions,
+            'defaultOptions' => old('shipping_methods', $paymentMethod->shippingMethods->pluck('id')->all()),
+            'help_text' => 'If none is selected, it applies to all shipping methods.',
+        ])
+    </div>
+</div>
+
 @if($additionalFieldsForm)
     @include($additionalFieldsForm)
 @endif

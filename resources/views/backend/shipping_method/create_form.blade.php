@@ -81,6 +81,27 @@
     </div>
 </div>
 
+<div class="row form-group">
+    <label class="control-label col-md-3">
+        Payment Methods
+    </label>
+    <div class="col-md-5">
+        @include('backend.master.form.fields.select', [
+            'name' => 'payment_methods[]',
+            'label' => null,
+            'key' => 'payment_methods',
+            'attr' => [
+                'class' => 'form-control select2',
+                'id' => 'payment_methods',
+                'multiple' => true,
+            ],
+            'options' => $paymentMethodOptions,
+            'defaultOptions' => old('payment_methods', $shippingMethod->paymentMethods->pluck('id')->all()),
+            'help_text' => 'If none is selected, it applies to all payment methods.',
+        ])
+    </div>
+</div>
+
 @include('backend.master.form.fields.textarea', [
     'name' => 'message',
     'label' => 'Display Message',

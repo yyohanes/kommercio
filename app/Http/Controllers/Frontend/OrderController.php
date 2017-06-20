@@ -1282,7 +1282,8 @@ class OrderController extends Controller
         $shippingMethodOptions = ShippingMethod::getShippingMethods([
             'order' => $order,
             'frontend' => true,
-            'request' => $request
+            'request' => $request,
+            'show_all_active' => ProjectHelper::getConfig('checkout_options.shipping_method_position') != 'review'
         ]);
 
         return [
@@ -1295,7 +1296,8 @@ class OrderController extends Controller
         $paymentMethods = PaymentMethod::getPaymentMethods([
             'frontend' => true,
             'order' => $order,
-            'request' => $request
+            'request' => $request,
+            'show_all_active' => ProjectHelper::getConfig('checkout_options.shipping_method_position') == 'review'
         ]);
 
         $paymentMethodOptions = [];

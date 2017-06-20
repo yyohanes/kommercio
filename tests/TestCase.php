@@ -12,6 +12,15 @@ class TestCase extends Illuminate\Foundation\Testing\TestCase
      */
     protected $baseUrl = 'http://localhost';
 
+    protected function setUp() {
+        parent::setUp();
+
+        // Because we rely on testing database, we try to migrate if there is migrations.
+        $this->artisan('migrate');
+
+        $this->app[Illuminate\Contracts\Console\Kernel::class]->setArtisan(null);
+    }
+
     /**
      * Creates the application.
      *

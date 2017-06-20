@@ -63,7 +63,7 @@ class StoreOpeningTest extends TestCase
     protected function tearDown()
     {
         $this->store->delete();
-        $this->product->delete();
+        $this->product->forceDelete();
 
         parent::tearDown();
     }
