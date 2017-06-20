@@ -156,7 +156,10 @@ class LineItem extends Model
             $this->total = $data['lineitem_total_amount'];
             $this->taxable = $data['taxable'];
             $this->quantity = 1;
-            $this->saveData(['shipping_method' => $data['shipping_method']]);
+            $this->saveData([
+                'shipping_method' => $data['shipping_method'],
+                'shipping_description' => isset($data['shipping_description'])?$data['shipping_description']:null
+            ]);
         }elseif($data['line_item_type'] == 'tax'){
             $this->linkTax($data['tax_id']);
             $this->base_price = $data['base_price'];

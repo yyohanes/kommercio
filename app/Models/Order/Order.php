@@ -387,6 +387,7 @@ class Order extends Model implements AuthorSignatureInterface
                 'line_item_id' => $shipping_method->id,
                 'taxable' => $shipping_method->taxable,
                 'shipping_method' => $selected_method,
+                'shipping_description' => isset($shippingOption['description'])?$shippingOption['description']:null,
                 'base_price' => $price,
                 'net_price' => $price,
                 'lineitem_total_amount' => $price, //This is purposely set to default because it's not possible to calculate now. Calculation will be done later at Controller level

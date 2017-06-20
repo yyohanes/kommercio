@@ -3,6 +3,7 @@
 namespace Kommercio\ShippingMethods;
 
 use GuzzleHttp\Client;
+use Kommercio\Facades\LanguageHelper;
 use Kommercio\Facades\KommercioAPIHelper;
 use Kommercio\Facades\ProjectHelper;
 use Kommercio\Models\Address\City;
@@ -72,13 +73,19 @@ class NCS extends ShippingMethodAbstract
                 $results = json_decode($body);
 
                 if($results){
-                    foreach($results as $serviceType => $rate){
+                    foreach($results as $serviceType => $service){
                         if(isset($methods[$serviceType])){
                             $return[$serviceType] = $methods[$serviceType];
                             $return[$serviceType]['price'] = [
                                 'currency' => 'idr',
-                                'amount' => $rate * ceil($orderWeight / 1000)
+                                'amount' => $service->rate * ceil($orderWeight / 1000)
                             ];
+
+                            if (!empty($service->edd)) {
+                                $return[$serviceType]['description'] = trans_choice(LanguageHelper::getTranslationKey('order.shipping.estimated_working_day'), intval($service->edd), ['estimated' => intval($service->edd)]);
+                            } else {
+                                $return[$serviceType]['description'] = '';
+                            }
                         }
                     }
                 }
