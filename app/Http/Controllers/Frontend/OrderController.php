@@ -107,7 +107,7 @@ class OrderController extends Controller
                 ];
 
                 $rules['products.'.$idx.'.quantity'] = [
-                    'required',
+                    'nullable',
                     'integer',
                     'min:0'
                 ];
@@ -117,7 +117,7 @@ class OrderController extends Controller
 
             foreach($request->input('products', []) as $idx => $productLineItem){
                 $product = Product::findOrFail($productLineItem['id']);
-                $order->updateQuantity($product, $productLineItem['quantity']);
+                $order->updateQuantity($product, empty($productLineItem['quantity'])?0:$productLineItem['quantity']);
             }
 
             $message = trans(LanguageHelper::getTranslationKey('frontend.order.updated_cart'));

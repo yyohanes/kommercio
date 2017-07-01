@@ -230,14 +230,14 @@ class CustomValidator extends Validator
                 $productPassed = $orderLimit['limit'] >= $quantity;
             }
 
-            if($productPassed){
-                foreach($product->categories as $category){
+            if ($productPassed) {
+                foreach ($product->categories as $category) {
                     $orderLimit = $category->getPerOrderLimit([
                         'store' => !empty($order->store)?$order->store->id:null,
                         'date' => Carbon::now()->format('Y-m-d')
                     ]);
 
-                    if($orderLimit){
+                    if ($orderLimit) {
                         $currentOrderedTotal = RuntimeCache::getOrSet('per_order_category_total_'.$category->id, function() use ($quantity){
                             return 0;
                         });

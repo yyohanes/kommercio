@@ -867,7 +867,7 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface, Cac
         $store = isset($options['store'])?$options['store']:null;
         $date = isset($options['date'])?Carbon::createFromFormat('Y-m-d', $options['date']):null;
 
-        //Per Order Limit
+        // Per Order Limit
         $orderLimits = OrderLimit::getOrderLimits([
             'limit_type' => OrderLimit::LIMIT_PER_ORDER,
             'date' => $date,
@@ -1203,7 +1203,7 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface, Cac
             foreach($this->productCompositeGroups as $productCompositeGroup){
                 $composites = $composites->merge($productCompositeGroup->composites);
             }
-            
+
             return $composites;
         });
 
