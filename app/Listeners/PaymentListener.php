@@ -16,7 +16,6 @@ use Kommercio\Models\RewardPoint\RewardPointTransaction;
 
 class PaymentListener
 {
-    protected $payment;
     protected $request;
 
     /**
@@ -24,16 +23,15 @@ class PaymentListener
      *
      * @return void
      */
-    public function __construct(Request $request, Payment $payment)
+    public function __construct(Request $request)
     {
-        $this->order = $payment;
         $this->request = $request;
     }
 
     /**
      * Handle the event.
      *
-     * @param  OrderUpdate  $event
+     * @param  PaymentEvent  $event
      * @return void
      */
     public function handle(PaymentEvent $event)
@@ -53,14 +51,14 @@ class PaymentListener
             'payment_id' => $payment->id
         ]);
 
-        if($payment->order->getOutstandingAmount() <= 0){
-            if(ProjectHelper::isFeatureEnabled('customer.reward_points')){
+        if ($payment->order->getOutstandingAmount() <= 0) {
+            if (ProjectHelper::isFeatureEnabled('customer.reward_points')) {
                 $payment->order->addRewardPoint([
                     'status' => RewardPointTransaction::STATUS_APPROVED
                 ]);
             }
 
-            if($payment->invoice->status == Invoice::STATUS_UNPAID && $payment->amount >= $payment->invoice->total){
+            if ($payment->invoice->status == Invoice::STATUS_UNPAID && $payment->amount >= $payment->invoice->total) {
                 $payment->invoice->markAsPaid();
             }
         }

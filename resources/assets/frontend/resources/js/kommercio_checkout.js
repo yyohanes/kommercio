@@ -55,7 +55,7 @@
             var $newForm = $html.filter('form');
 
             if(data.step == 'complete'){
-              $('#ajax-meat').replaceWith($html);
+              $newForm = $element;
             }else{
               $('#'+ i +'-wrapper', element).html($html);
             }
@@ -82,7 +82,7 @@
             $('#checkout_summary-wrapper .update-cart', element).prepend('<div class="' + plugin.settings.errorMessageClass + '"></div>');
 
             for(var i in data.responseJSON){
-              $('#checkout_summary-information .messages', element).append('<div>' + data.responseJSON[i][0] + '</div>');
+              $('#checkout_summary-wrapper .messages', element).append('<div>' + data.responseJSON[i][0] + '</div>');
             }
           }
         }
@@ -165,7 +165,7 @@
       $checkoutForm = $('#customer_information-wrapper form', context);
 
       //Availability from Calendar
-      $datePicker = $('#delivery-datepicker', context);
+      const $datePicker = $('#delivery-datepicker', context);
       $datePicker.datepicker({
         startDate: global_vars.soonest_delivery_day,
         format: 'yyyy-mm-dd',

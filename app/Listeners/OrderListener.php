@@ -19,7 +19,7 @@ class OrderListener
     /**
      * Handle the event.
      *
-     * @param  OrderUpdate  $event
+     * @param  OrderEvent  $event
      * @return void
      */
     public function handle(OrderEvent $event)

@@ -960,7 +960,7 @@ class OrderController extends Controller
                 if($viewData['step'] == 'complete'){
                     $response = new JsonResponse([
                         'data' => [
-                            'checkout' => $this->checkoutComplete($request, $order)->render(),
+                            'complete' => $this->checkoutComplete($request, $order)->render(),
                         ],
                         'order' => [
                             'public_id' => $order->public_id

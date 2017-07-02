@@ -144,6 +144,12 @@ class ProjectHelper
 
     public function isTestEnvironment()
     {
+        if (isset($_SERVER['HTTP_CF_CONNECTING_IP'])) {
+            $requestIp = $_SERVER['HTTP_CF_CONNECTING_IP'];
+        } else {
+            $requestIp = RequestFacade::ip();
+        }
+
         return (env('APP_ENV') != 'production') || in_array(RequestFacade::ip(), $this->getConfig('test_ips'));
     }
 
