@@ -852,8 +852,6 @@ class OrderController extends Controller
                         'step' => $order->getData('checkout_step')
                     ], $placeOrderRules);
 
-                    Event::fire(new OrderEvent('frontend_rules_built', $order, ['rules' => &$rules]));
-
                     if ($validator->fails()) {
                         $errors = $validator->errors()->getMessages();
                         break;
@@ -1425,6 +1423,8 @@ class OrderController extends Controller
                 $ruleBook['place_order']['coupon.'.$idx] = 'valid_coupon:'.$order->id;
             }
         }
+
+        Event::fire(new OrderEvent('frontend_rules_built', $order, ['type' => $type, 'rules' => &$ruleBook, 'request' => $request]));
 
         return $ruleBook[$type];
     }
