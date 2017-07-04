@@ -28,7 +28,7 @@ class CustomerController extends Controller{
             ->joinFullName()
             ->joinFields(['email', 'salute']);
 
-        if($request->ajax() || $request->wantsJson()){
+        if($request->ajax() || $request->wantsJson() || $request->input('internal_export')){
             $totalRecords = $qb->count();
 
             foreach($request->input('filter', []) as $searchKey=>$search){
@@ -77,6 +77,10 @@ class CustomerController extends Controller{
             }
 
             $customers = $qb->get();
+
+            if ($request->input('internal_export')) {
+                return $customers;
+            }
 
             $meat = $this->prepareDatatables($customers, $request->input('start'));
 

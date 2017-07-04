@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Validator;
 use Kommercio\Facades\AddressHelper;
 use Kommercio\Http\Requests;
 use Kommercio\Http\Controllers\Controller;
+use Kommercio\Http\Controllers\Backend\Customer\CustomerController;
 use Kommercio\Models\Customer;
 use Kommercio\Utility\Export\Batch;
 use Kommercio\Utility\Export\Item;
@@ -20,7 +21,11 @@ class ExportController extends Controller
 {
     public function customer(Request $request)
     {
-        $customers = Customer::all();
+        // Inject internal_export to $request
+        $request->replace($request->all() + ['internal_export' => TRUE]);
+
+        $customerController = new CustomerController();
+        $customers = $customerController->index($request);
 
         $return = $this->processBatch($customers, $request, 'customer', [], function($ids, $rowNumber){
             $data = [];
@@ -61,8 +66,8 @@ class ExportController extends Controller
             ];
         });
 
-        return $this->processResponse('backend.utility.export.form.customer', $return, $request, function(){
-            $totalCustomers = Customer::count();
+        return $this->processResponse('backend.utility.export.form.customer', $return, $request, function() use ($customers){
+            $totalCustomers = $customers->count();
 
             return [
                 'totalCustomers' => $totalCustomers
@@ -84,7 +89,7 @@ class ExportController extends Controller
             $batch = Batch::init($rows, $name);
 
             return [
-                'url' => route($routeName, ['run' => 1, 'batch_id' => $batch->id, 'row' => 0]),
+                'url' => route($routeName, array_merge(['filter' => $request->input('filter')], ['run' => 1, 'batch_id' => $batch->id, 'row' => 0])),
                 'row' => null
             ];
         }else{
@@ -108,14 +113,14 @@ class ExportController extends Controller
                     $item = $batch->process($request->input('row'), $closure);
 
                     return [
-                        'url' => route($routeName, ['run' => 1, 'batch_id' => $batch->id, 'row' => $request->input('row') + 1]),
+                        'url' => route($routeName, array_merge(['filter' => $request->input('filter')], ['run' => 1, 'batch_id' => $batch->id, 'row' => $request->input('row') + 1])),
                         'row' => $item
                     ];
                 }else{
                     $batch->combineFiles();
                     $batch->clean();
 
-                    return redirect()->route($routeName, ['success' => 1, 'batch_id' => $batch->id])->with('success', [$batch->name.' is successfully export']);
+                    return redirect()->route($routeName, array_merge(['filter' => $request->input('filter')], ['success' => 1, 'batch_id' => $batch->id]))->with('success', [$batch->name.' is successfully export']);
                 }
             }
         }
@@ -165,7 +170,8 @@ class ExportController extends Controller
 
         return view($view_name, array_merge([
             'runUrl' => $runUrl,
-            'rows' => $rows
+            'rows' => $rows,
+            'filter' => $request->input('filter', [])
         ], $viewOptions));
     }
 }

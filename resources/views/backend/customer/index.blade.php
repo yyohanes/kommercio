@@ -35,7 +35,7 @@
                         <i class="fa fa-plus"></i> Add </a>
 
                     @if(ProjectHelper::isFeatureEnabled('customer.export'))
-                    <a href="{{ route('backend.utility.export.customer', ['backUrl' => Request::fullUrl()]) }}" class="btn btn-sm btn-default">
+                    <a href="{{ route('backend.utility.export.customer', Request::except('external_filter') + ['backUrl' => Request::fullUrl()]) }}" class="btn btn-sm btn-default">
                         <i class="fa fa-file-o"></i> Export </a>
                     @endif
                     @endcan
@@ -43,7 +43,7 @@
             </div>
 
             <div class="portlet-body">
-                <table class="table table-striped table-bordered table-advance" id="customers-dataset" data-src="{{ route('backend.customer.index') }}" data-form_token="{{ csrf_token() }}">
+                <table class="table table-striped table-bordered table-advance" id="customers-dataset" data-src="{{ Request::fullUrl() }}" data-form_token="{{ csrf_token() }}">
                     <thead>
                     <tr role="row" class="heading">
                         <th style="width: 10px;"></th>
@@ -60,7 +60,7 @@
                         <th>Order Total</th>
                         <th></th>
                     </tr>
-                    <tr role="row" class="filter">
+                    <tr role="row" class="filter" id="customer-filter-form" data-customer_index="{{ route('backend.customer.index') }}">
                         <td></td>
                         <td>{!! Form::select('filter[salute]', ['' => 'All'] + \Kommercio\Models\Customer::getSaluteOptions(), null, ['class' => 'form-control form-filter input-sm']) !!}</td>
                         <td>{!! Form::text('filter[full_name]', null, ['class' => 'form-control form-filter input-sm']) !!}</td>
@@ -75,10 +75,10 @@
                         <td></td>
                         <td>
                             <div class="margin-bottom-5 btn-group btn-group-xs">
-                                <button class="btn btn-default filter-submit margin-bottom">
+                                <button id="customer-filter-btn" class="btn btn-default margin-bottom">
                                     <i class="fa fa-search"></i> Search</button>
-                                <button class="btn btn-default filter-cancel">
-                                    <i class="fa fa-times"></i> Reset</button>
+                                <a href="{{ route('backend.customer.index') }}" class="btn btn-default">
+                                    <i class="fa fa-times"></i> Reset</a>
                             </div>
                         </td>
                     </tr>

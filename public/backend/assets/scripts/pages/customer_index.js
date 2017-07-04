@@ -1,4 +1,12 @@
 var CustomerIndex = function () {
+  $('#customer-filter-btn').on('click', function(e){
+      e.preventDefault();
+
+      var queryString = $(':input', '#customer-filter-form').map(function () {
+          return $(this).val().trim() == "" ? null : this;
+      }).serialize();
+      window.location.href = $('#customer-filter-form').data('customer_index') + '?external_filter=1&' + queryString;
+  });
 
     var initTable = function () {
       var $dataTable = new Datatable();
