@@ -746,7 +746,7 @@ class OrderController extends Controller
                     }
 
                     $order->saveProfile('shipping', $shippingProfile);
-                    $order->store()->associate(ProjectHelper::getStoreByRequest($request));
+                    $order->store()->associate(ProjectHelper::getStoreByRequest($request, $order->store));
 
                     if(ProjectHelper::getConfig('checkout_options.shipping_method_position', 'review') == 'before_review'){
                         $nextStep = 'shipping_method';
