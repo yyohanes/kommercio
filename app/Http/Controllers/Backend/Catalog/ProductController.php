@@ -1136,13 +1136,13 @@ class ProductController extends Controller{
         }
 
         return response()
-            ->withHeaders([
-                'Cache-Control' => 'max-age=0, no-cache, must-revalidate, proxy-revalidate'
-            ])
             ->json([
             'disabled_dates' => array_unique($disabledDates),
             '_token' => csrf_token()
-        ]);
+            ])
+            ->withHeaders([
+                'Cache-Control' => 'max-age=0, no-cache, must-revalidate, proxy-revalidate'
+            ]);
     }
 
     public function getViewSuggestions()
