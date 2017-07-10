@@ -150,7 +150,7 @@ class ProjectHelper
             $requestIp = RequestFacade::ip();
         }
 
-        return (env('APP_ENV') != 'production') || in_array(RequestFacade::ip(), $this->getConfig('test_ips'));
+        return (env('APP_ENV') != 'production') || in_array($requestIp, $this->getConfig('test_ips'));
     }
 
     public function flattenArrayToKey($array)
