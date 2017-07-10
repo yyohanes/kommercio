@@ -1138,7 +1138,7 @@ class ProductController extends Controller{
         return new JsonResponse([
             'disabled_dates' => array_unique($disabledDates),
             '_token' => csrf_token()
-        ]);
+        ])->header('Cache-Control', 'max-age=0, no-cache, must-revalidate, proxy-revalidate');
     }
 
     public function getViewSuggestions()
