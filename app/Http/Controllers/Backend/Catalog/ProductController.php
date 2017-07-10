@@ -1135,10 +1135,14 @@ class ProductController extends Controller{
             $disabledDates += $product->getUnavailableDeliveryDates($options);
         }
 
-        return new JsonResponse([
+        return response()
+            ->withHeaders([
+                'Cache-Control' => 'max-age=0, no-cache, must-revalidate, proxy-revalidate'
+            ])
+            ->json([
             'disabled_dates' => array_unique($disabledDates),
             '_token' => csrf_token()
-        ])->header('Cache-Control', 'max-age=0, no-cache, must-revalidate, proxy-revalidate');
+        ]);
     }
 
     public function getViewSuggestions()
