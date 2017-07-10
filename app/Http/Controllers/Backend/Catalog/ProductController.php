@@ -1115,6 +1115,7 @@ class ProductController extends Controller{
             }
 
             $store = ProjectHelper::getStoreByRequest($request, $order->store);
+            \Log::info($store);
         }
 
         $store_id = $store->id;
