@@ -94,7 +94,7 @@ class ProductFormRequest extends Request
         if(!$this->has('productDetail.manage_stock')){
             $attributes['productDetail']['manage_stock'] = 0;
         }
-        if(empty($attributes['productDetail.sort_order'])){
+        if(!$this->input('productDetail.sort_order', null)){
             $attributes['productDetail']['sort_order'] = 0;
         }
 
