@@ -224,7 +224,7 @@ class OrderController extends Controller{
 
             return response()->json($data);
         }
-        
+
         if(config('project.enable_store_selector', false)){
             $store_id = ProjectHelper::getActiveStore()->id;
         }else{
@@ -233,7 +233,7 @@ class OrderController extends Controller{
         $stickyProducts = Product::joinDetail($store_id)->selectSelf()->active()->where('sticky_line_item', 1)->orderBy('sort_order', 'ASC')->get();
 
         $paymentMethodOptions = [];
-        foreach(PaymentMethod::getPaymentMethods(null, PaymentMethod::LOCATION_BACKOFFICE) as $paymentMethod){
+        foreach(PaymentMethod::getPaymentMethods(['show_all_active' => TRUE], PaymentMethod::LOCATION_BACKOFFICE) as $paymentMethod){
             $paymentMethodOptions[$paymentMethod->id] = $paymentMethod->name;
         }
 
@@ -358,7 +358,8 @@ class OrderController extends Controller{
         $order = new Order();
 
         $paymentMethods = PaymentMethod::getPaymentMethods([
-            'order' => $order
+            'order' => $order,
+            'show_all_active' => TRUE
         ], PaymentMethod::LOCATION_BACKOFFICE);
 
         $paymentMethodOptions = [];
@@ -533,7 +534,8 @@ class OrderController extends Controller{
             switch($type) {
                 case 'payment_method':
                     $paymentMethods = PaymentMethod::getPaymentMethods([
-                        'order' => $order
+                        'order' => $order,
+                        'show_all_active' => TRUE
                     ], PaymentMethod::LOCATION_BACKOFFICE);
 
                     $paymentMethodOptions = [];
@@ -619,7 +621,8 @@ class OrderController extends Controller{
         $lineItems = old('line_items', $order->lineItems);
 
         $paymentMethods = PaymentMethod::getPaymentMethods([
-            'order' => $order
+            'order' => $order,
+            'show_all_active' => TRUE
         ], PaymentMethod::LOCATION_BACKOFFICE);
 
         $paymentMethodOptions = [];
@@ -1216,7 +1219,8 @@ class OrderController extends Controller{
         $shippingOptions = ShippingMethod::getShippingMethods([
             'order' => $order,
             'request' => $request,
-            'frontend' => FALSE
+            'frontend' => FALSE,
+            'show_all_active' => TRUE
         ]);
 
         foreach($shippingOptions as $idx=>$shippingOption){
