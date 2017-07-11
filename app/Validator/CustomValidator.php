@@ -207,6 +207,8 @@ class CustomValidator extends Validator
         $quantity = $parameters[0];
         $order_id = $parameters[1];
 
+        $productPassed = true;
+
         if($quantity > 0){
             $product = RuntimeCache::getOrSet('product_'.$product_id, function() use ($product_id){
                 return Product::findOrFail($product_id);
@@ -219,8 +221,6 @@ class CustomValidator extends Validator
                 'store' => !empty($order->store)?$order->store->id:null,
                 'date' => Carbon::now()->format('Y-m-d')
             ]);
-
-            $productPassed = true;
 
             if($orderLimit){
                 static::$_storage['per_order_'.$product->id.'_available_quantity'] = $orderLimit['limit'] + 0;
@@ -258,7 +258,7 @@ class CustomValidator extends Validator
             }
         }
 
-        return true;
+        return $productPassed;
     }
 
     public function replacePerOrderLimit($message, $attribute, $rule, $parameters)
