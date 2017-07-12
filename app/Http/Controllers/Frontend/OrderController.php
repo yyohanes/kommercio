@@ -1363,6 +1363,10 @@ class OrderController extends Controller
             $ruleBook['customer_information'] += [
                 'delivery_date' => 'required|date_format:Y-m-d'
             ];
+
+            if ($order->store) {
+                $ruleBook['customer_information']['delivery_date'] .= '|store_is_open:'.$order->store->id;
+            }
         }
 
         if(ProjectHelper::getConfig('checkout_options.shipping_method_position', 'review') == 'review'){
@@ -1403,6 +1407,10 @@ class OrderController extends Controller
 
             if(config('project.enable_delivery_date', FALSE)){
                 $ruleBook['place_order']['delivery_date'] = 'required|date_format:Y-m-d';
+
+                if ($order->store) {
+                    $ruleBook['place_order']['delivery_date'] .= '|store_is_open:'.$order->store->id;
+                }
             }
 
             foreach($order->getProductLineItems() as $idx=>$productLineItem){
@@ -1415,7 +1423,7 @@ class OrderController extends Controller
                     'is_purchaseable',
                     'per_order_limit:'.$productLineItem->quantity.','.$order->id,
                     'delivery_order_limit:'.$productLineItem->quantity.','.$order->id.($order->delivery_date?','.$order->delivery_date->format('Y-m-d'):null),
-                    'today_order_limit:'.$productLineItem->quantity.','.$order->id,
+                    'today_order_limit:'.$productLineItem->quantity.','.$order->id
                 ];
             }
 

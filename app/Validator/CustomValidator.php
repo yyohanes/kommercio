@@ -16,6 +16,7 @@ use Kommercio\Models\PriceRule\CartPriceRule;
 use Kommercio\Models\Product;
 use Kommercio\Models\ProductCategory;
 use Kommercio\Models\RewardPoint\Reward;
+use Kommercio\Models\Store;
 
 class CustomValidator extends Validator
 {
@@ -432,5 +433,23 @@ class CustomValidator extends Validator
         }
 
         return true;
+    }
+
+    public function validateStoreIsOpen($attribute, $value, $parameters)
+    {
+        $store_id = $parameters[0];
+
+        $store = Store::findOrFail($store_id);
+
+        $date = Carbon::createFromFormat('Y-m-d', $value);
+
+        return $store->isOpen($date);
+    }
+
+    public function replaceStoreIsOpen($message, $attribute, $rule, $parameters)
+    {
+        $date = Carbon::createFromFormat('Y-m-d', $this->getValue($attribute));
+
+        return str_replace(':date', $date->format('d F Y'), $message);
     }
 }
