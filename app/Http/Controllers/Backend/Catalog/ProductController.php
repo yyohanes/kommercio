@@ -1132,12 +1132,14 @@ class ProductController extends Controller{
                 'saved_delivery_date' => ($order && $order->delivery_date)?$order->delivery_date->format('j-n-Y'):null
             ];
 
-            $disabledDates += $product->getUnavailableDeliveryDates($options);
+            $productDisabledDates = $product->getUnavailableDeliveryDates($options);
+
+            $disabledDates = array_merge($disabledDates, $productDisabledDates);
         }
 
         return response()
             ->json([
-            'disabled_dates' => array_unique($disabledDates),
+            'disabled_dates' => array_values(array_unique($disabledDates)),
             '_token' => csrf_token()
             ])
             ->withHeaders([
