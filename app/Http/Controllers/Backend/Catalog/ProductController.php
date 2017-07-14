@@ -609,6 +609,7 @@ class ProductController extends Controller{
             $product->combination_type = Product::COMBINATION_TYPE_VARIATION;
 
             $new = TRUE;
+            $product->save();
         }
 
         $product->fill($request->input('variation'));
