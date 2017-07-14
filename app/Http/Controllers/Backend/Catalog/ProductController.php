@@ -609,7 +609,6 @@ class ProductController extends Controller{
             $product->combination_type = Product::COMBINATION_TYPE_VARIATION;
 
             $new = TRUE;
-            $product->save();
         }
 
         $product->fill($request->input('variation'));
@@ -627,14 +626,15 @@ class ProductController extends Controller{
             ];
         }
 
-        $product->productAttributeValues()->sync($toSyncAttributeValues);
-
         $product->parent()->associate($parentProduct);
 
         // Update manufacturer
         $product->manufacturer_id = $parentProduct->manufacturer_id;
 
         $product->save();
+
+        // Save attributes
+        $product->productAttributeValues()->sync($toSyncAttributeValues);
 
         // Update children product categories
         $product->categories()->sync($parentProduct->categories->pluck('id')->all());
