@@ -703,6 +703,8 @@ class OrderController extends Controller
                 }else{
                     $this->validate($request, $this->getCheckoutRuleBook('customer_information', $request, $order));
 
+                    Event::fire(new OrderEvent('before_customer_information_save', $order, ['request' => $request]));
+
                     //Save address
                     if($viewData['customerLoggedIn']){
                         $savedShippingProfile = null;
@@ -797,7 +799,7 @@ class OrderController extends Controller
                 }
                 break;
             case 'checkout_summary':
-                if($process == 'add_coupon'){
+                if ($process == 'add_coupon') {
                     $rules = [
                         'coupon_code' => 'required|valid_coupon:'.$order->id
                     ];
@@ -808,13 +810,13 @@ class OrderController extends Controller
 
                     $order->addCoupon($coupon);
                     $viewData['success'][] = trans(LanguageHelper::getTranslationKey('frontend.order.coupon_added'), ['coupon_code' => $coupon->coupon_code]);
-                }elseif(strpos($process, 'remove_coupon_') !== false){
+                } elseif (strpos($process, 'remove_coupon_') !== false){
                     $couponId = str_replace('remove_coupon_', '', $process);
                     $coupon = Coupon::findOrFail($couponId);
                     $order->removeCoupon($coupon);
 
                     $viewData['success'][] = trans(LanguageHelper::getTranslationKey('frontend.order.coupon_removed'), ['coupon_code' => $coupon->coupon_code]);
-                }elseif($process == 'select_shipping_method'){
+                } elseif ($process == 'select_shipping_method'){
 
                 }
 
@@ -828,7 +830,7 @@ class OrderController extends Controller
 
                 $nextStep = 'checkout_summary';
 
-                if($process == 'place_order'){
+                if ($process == 'place_order') {
                     $placeOrderRules = $this->getCheckoutRuleBook('place_order', $request, $order);
 
                     $products = [];
@@ -858,7 +860,7 @@ class OrderController extends Controller
                     }
 
                     $paymentResponse = $this->processFinalPayment($order, $order->paymentMethod, $request);
-                    if(is_array($paymentResponse)){
+                    if (is_array($paymentResponse)) {
                         $errors += [$paymentResponse];
                     }
 
@@ -892,12 +894,12 @@ class OrderController extends Controller
 
         if(!$errors){
             //Save customer to order
-            if($viewData['customer']){
+            if ($viewData['customer']) {
                 $order->customer()->associate($viewData['customer']);
             }
 
             //Process shipping
-            if($request->has('shipping_method')){
+            if ($request->has('shipping_method')) {
                 $rules = [
                     'shipping_method' => 'required|in:'.implode(',', array_keys($shippingMethodOptions))
                 ];
@@ -918,7 +920,7 @@ class OrderController extends Controller
                 }
             }
 
-            if($request->has('additional_fields')){
+            if ($request->has('additional_fields')) {
                 $order->additional_fields = $request->input('additional_fields');
             }
 

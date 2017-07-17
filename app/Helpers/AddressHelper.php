@@ -167,26 +167,37 @@ class AddressHelper
         return $options->pluck('name', 'id')->all();
     }
 
+    public function getAddressFormat()
+    {
+        return [
+            'address_1',
+            'address_2',
+            'area',
+            'district',
+            'city',
+            'state',
+            'country',
+            'postal_code',
+        ];
+    }
+
     public function extractAddressFields($data)
     {
-        $addressElements = [
-            'address_1' => null,
-            'address_2' => null,
-            'area' => null,
-            'district' => null,
-            'city' => null,
-            'state' => null,
-            'country' => null,
-            'postal_code' => null,
-        ];
-
-        if(!empty($data['address_1'])){
-            $addressElements['address_1'] = $data['address_1'];
+        $country = null;
+        if(!empty($data['country_id'])){
+            $country = Country::find($data['country_id']);
         }
 
-        if(!empty($data['address_2'])){
-            $addressElements['address_2'] = $data['address_2'];
-        }
+        $addressFormat = $this->getAddressFormat();
+
+        $addressElements = [];
+        array_walk($addressFormat, function($value) use ($data, &$addressElements){
+            if (!empty($data[$value])) {
+                $addressElements[$value] = $data[$value];
+            } else {
+                $addressElements[$value] = null;
+            }
+        });
 
         if(!empty($data['area_id'])){
             $area = Area::find($data['area_id']);
@@ -220,16 +231,8 @@ class AddressHelper
             }
         }
 
-        if(!empty($data['country_id'])){
-            $country = Country::find($data['country_id']);
-
-            if($country){
-                $addressElements['country'] = $country->name;
-            }
-        }
-
-        if(!empty($data['postal_code'])){
-            $addressElements['postal_code'] = $data['postal_code'];
+        if($country){
+            $addressElements['country'] = $country?$country->name:'';
         }
 
         return $addressElements;
@@ -243,9 +246,32 @@ class AddressHelper
             if(empty($addressElement)){
                 unset($addressElements[$idx]);
             }
+
+            if (in_array($idx, ['address_1', 'address_2']) && isset($addressElements[$idx])) {
+                $addressElements[$idx] = nl2br($addressElements[$idx]);
+            }
         }
 
         $addressLineElements = [];
+
+        // Print State, City, District and Area in one lineItems
+        $locations = [];
+        $oneLiners = ['state', 'city', 'district', 'area'];
+        foreach ($oneLiners as $oneLiner) {
+            if(isset($addressElements[$oneLiner])){
+                $locations[] = $addressElements[$oneLiner];
+                unset($addressElements[$oneLiner]);
+            }
+        }
+
+        if (!empty($locations)) {
+            $addressLineElements['location'] = implode(', ', $locations);
+        }
+
+        if(isset($addressElements['country'])){
+            $addressLineElements['country'] = $addressElements['country'];
+            unset($addressElements['country']);
+        }
 
         if(isset($addressElements['postal_code'])){
             $addressLineElements['postal_code'] = $addressElements['postal_code'];
@@ -253,7 +279,7 @@ class AddressHelper
         }
 
         if($addressElements){
-            array_unshift($addressLineElements, implode(', ', $addressElements));
+            array_unshift($addressLineElements, implode(' ', $addressElements));
         }
 
         return implode('<br/>', $addressLineElements);

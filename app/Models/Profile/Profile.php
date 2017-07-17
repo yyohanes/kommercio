@@ -284,19 +284,16 @@ class Profile extends Model
 
     public function scopeWhereFields($query, $filters, $or=FALSE)
     {
-        $qb = ProfileDetail::query();
+        $masterQb = ProfileDetail::query();
 
-        $method = 'where';
-
-        if($or){
-            $method = 'orWhere';
-        }
+        $profileIds = [];
 
         foreach($filters as $idx=>$filter) {
+            $qb = clone $masterQb;
             $filter['operator'] = isset($filter['operator']) ? $filter['operator'] : '=';
 
             if(in_array($filter['key'], ['state', 'country', 'city', 'district', 'area'])){
-                $qb->$method(function($innerQb) use ($filter){
+                $qb->where(function($innerQb) use ($filter){
                     $addressClass = '\Kommercio\Models\Address\\'.studly_case($filter['key']);
                     $addressModel = call_user_func($addressClass.'::find', $filter['value']);
 
@@ -310,16 +307,32 @@ class Profile extends Model
                         ->where('value', $filter['operator'], $addressId);
                 });
             }else{
-                $qb->$method(function($innerQb) use ($filter){
+                $qb->where(function($innerQb) use ($filter){
                     $innerQb->where('identifier', $filter['key'])
                         ->where('value', $filter['operator'], $filter['value']);
                 });
             }
+
+            $ids = $qb->pluck('profile_id')->all();
+
+            foreach ($ids as $id) {
+                if (!isset($profileIds[$id])) {
+                    $profileIds[$id] = 1;
+                } else {
+                    $profileIds[$id] += 1;
+                }
+            }
         };
 
-        $ids = $qb->pluck('profile_id')->all();
+        if (!$or) {
+            $filteredIds = array_keys(array_filter($profileIds, function($count) use ($filters) {
+                return $count >= count($filters);
+            }));
 
-        $query->whereIn('id', $ids);
+            $query->whereIn('id', $filteredIds);
+        } else {
+            $query->whereIn('id', array_keys($profileIds));
+        }
 
         /*$method = 'whereHas';
 
