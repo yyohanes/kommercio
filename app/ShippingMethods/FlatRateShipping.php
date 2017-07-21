@@ -18,7 +18,7 @@ class FlatRateShipping extends ShippingMethodAbstract implements ShippingMethodS
         $methods = [
             'flat_rate' => [
                 'shipping_method_id' => $this->shippingMethod->id,
-                'name' => 'Flat Rate',
+                'name' => $this->shippingMethod->name,
                 'description' => null,
                 'taxable' => $this->shippingMethod->taxable
             ],
