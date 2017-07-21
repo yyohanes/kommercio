@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use Illuminate\Contracts\Translation\Translator;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Validator;
+use Kommercio\Facades\LanguageHelper;
 use Kommercio\Facades\RuntimeCache;
 use Kommercio\Models\Address\Address;
 use Kommercio\Models\Customer;
@@ -170,17 +171,17 @@ class CustomValidator extends Validator
         $delivery_date = $parameters[2];
         $delivery_date = Carbon::createFromFormat('Y-m-d', $delivery_date)->format('d F Y');
 
-        $message = $this->replaceProductAttribute($message, $attribute, $rule, $parameters);
-        $message = str_replace(':date', $delivery_date, $message);
-
         if(static::$_storage['order_limit']->type == OrderLimit::TYPE_PRODUCT_CATEGORY){
-            $message = str_replace(':quantity', static::$_storage['order_limit']->limit + 0, $message);
+            $left = static::$_storage['order_limit']->limit + 0;
         }else{
             $left = static::$_storage['delivery_date_'.$this->getValue($attribute).'_available_quantity']?:0;
             $left = $left < 1?0:$left;
-
-            $message = str_replace(':quantity', $left, $message);
         }
+
+        $message = trans_choice(LanguageHelper::getTranslationKey('validation.delivery_order_limit'), $left);
+        $message = $this->replaceProductAttribute($message, $attribute, $rule, $parameters);
+        $message = str_replace(':date', $delivery_date, $message);
+        $message = str_replace(':quantity', $left, $message);
 
         return $message;
     }
@@ -192,10 +193,11 @@ class CustomValidator extends Validator
 
     public function replaceTodayOrderLimit($message, $attribute, $rule, $parameters)
     {
-        $message = $this->replaceProductAttribute($message, $attribute, $rule, $parameters);
-
         $left = static::$_storage['checkout_at_'.$this->getValue($attribute).'_available_quantity']?:0;
         $left = $left < 1?0:$left;
+
+        $message = trans_choice(LanguageHelper::getTranslationKey('validation.today_order_limit'), $left);
+        $message = $this->replaceProductAttribute($message, $attribute, $rule, $parameters);
 
         $message = str_replace(':quantity', $left, $message);
 
