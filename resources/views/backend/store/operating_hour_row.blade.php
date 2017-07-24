@@ -81,7 +81,7 @@ $days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'su
                         'data-on-text' => 'Everyday',
                         'data-off-text' => 'Not Everyday',
                     ],
-                    'checked' => old('openingTimes.'.$idx.'.everyday', $openingTime['isEveryday']),
+                    'checked' => old('openingTimes.'.$idx.'.everyday', isset($openingTime['isEveryday'])?$openingTime['isEveryday']:TRUE),
                 ])
             </div>
             <div class="col-xs-9">
