@@ -6,8 +6,9 @@ use Dimsav\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Model;
 use Kommercio\Facades\FrontendHelper;
 use Kommercio\Traits\Model\ToggleDate;
+use Kommercio\Models\Interfaces\CacheableInterface;
 
-class MenuItem extends Model
+class MenuItem extends Model implements CacheableInterface
 {
     use Translatable, ToggleDate {
         Translatable::setAttribute as translateableSetAttribute;
@@ -113,6 +114,13 @@ class MenuItem extends Model
         $trails = $this->menu->getTrails($path)->pluck('id');
 
         return $trails->contains($this->id);
+    }
+
+    public function getCacheKeys()
+    {
+        $keys = $this->menu->getCacheKeys();
+
+        return $keys;
     }
 
     //Statics

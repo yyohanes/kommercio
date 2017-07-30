@@ -38,6 +38,33 @@
                     ])
                 </div>
 
+                <div class="form-body">
+                    <div class="row">
+                        <div class="col-md-3"> </div>
+                        <div class="col-md-9">
+                            <label>
+                                {!! Form::checkbox('state', 1, true) !!}
+                                Include State
+                            </label>
+
+                            <label>
+                                {!! Form::checkbox('city', 1, true) !!}
+                                Include City
+                            </label>
+
+                            <label>
+                                {!! Form::checkbox('district', 1, true) !!}
+                                Include District
+                            </label>
+
+                            <label>
+                                {!! Form::checkbox('area', 1, true) !!}
+                                Include Area
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="form-actions text-center">
                     <button class="btn btn-primary"><i class="fa fa-save"></i> Import </button>
                 </div>
