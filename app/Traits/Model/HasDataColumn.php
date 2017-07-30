@@ -2,12 +2,13 @@
 
 namespace Kommercio\Traits\Model;
 
+use Illuminate\Support\Facades\Log;
+
 trait HasDataColumn
 {
     public function saveData($data, $immediateSave = false)
     {
-        $oldData = unserialize($this->data);
-        $oldData = $oldData?$oldData:[];
+        $oldData = $this->unserializeData();
 
         $data = array_merge($oldData, $data);
 
@@ -20,14 +21,14 @@ trait HasDataColumn
 
     public function hasData($key)
     {
-        $data = unserialize($this->data);
+        $data = $this->unserializeData();
 
         return !empty(array_get($data, $key));
     }
 
     public function setData($key, $value)
     {
-        $data = unserialize($this->data);
+        $data = $this->unserializeData();
 
         array_set($data, $key, $value);
 
@@ -38,7 +39,7 @@ trait HasDataColumn
 
     public function getData($attribute=null, $default=null)
     {
-        $data = unserialize($this->data);
+        $data = $this->unserializeData();
         if(is_bool($data)){
             $data = [];
         }
@@ -52,7 +53,7 @@ trait HasDataColumn
 
     public function unsetData($attribute=null, $immediateSave = false)
     {
-        $data = unserialize($this->data);
+        $data = $this->unserializeData();
         if(is_bool($data)){
             $data = [];
         }
@@ -68,6 +69,19 @@ trait HasDataColumn
         if($immediateSave){
             $this->save();
         }
+    }
+
+    protected function unserializeData()
+    {
+        $data = [];
+
+        try {
+            $data = unserialize($this->data);
+        } catch (\Exception $e) {
+            Log::error($e->getMessage());
+        }
+
+        return $data?$data:[];
     }
 
     //Scopes

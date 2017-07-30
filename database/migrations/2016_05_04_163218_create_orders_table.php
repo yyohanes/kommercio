@@ -15,7 +15,7 @@ class CreateOrdersTable extends Migration
         Schema::create('payment_methods', function(Blueprint $table){
             $table->increments('id');
             $table->string('class');
-            $table->json('data');
+            $table->text('data');
             $table->integer('sort_order')->default(0);
         });
 
