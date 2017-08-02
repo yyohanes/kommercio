@@ -36,7 +36,7 @@ class UserFormRequest extends Request
             'email' => 'email|unique:users,email'.($user_id?','.$user_id:null),
             'profile.full_name' => 'required',
             'profile.phone_number' => '',
-            'password' => ($user_id?'':'required|').'confirmed|min:6',
+            'password' => ($user_id?'nullable|':'required|').'confirmed|min:6',
             'status' => 'required|in:'.implode(',', $statusAllowedOptions),
             'role' => 'required|in:'.implode(',', $roleAllowedOptions),
             'stores.*' => 'nullable|in:'.implode(',', $storeAllowedOptions),
