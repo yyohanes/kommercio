@@ -123,13 +123,19 @@ class ImportController extends Controller
             if(!empty($result->product_category)){
                 $categories = explode(';', $result->product_category);
                 foreach($categories as $category){
-                    $productCategory = ProductCategory::whereTranslation('name', $category)->first();
+                    if (!empty(trim($category))) {
+                        $productCategory = ProductCategory::whereTranslation('name', $category)->first();
 
-                    if(!$productCategory){
-                        return 'Product Category "'.$category.'" not found';
+                        if ($productCategory) {
+                            if ($productCategory->parent && !in_array($productCategory->parent->id, [6, 7])) {
+                                $productCategories[] = $productCategory->parent;
+                            }
+
+                            $productCategories[] = $productCategory;
+                        } else {
+                            return 'Product Category "'.$category.'" not found';
+                        }
                     }
-
-                    $productCategories[] = $productCategory;
                 }
             }
 
@@ -245,13 +251,15 @@ class ImportController extends Controller
                     $images = explode(';', $result->images);
 
                     foreach ($images as $image) {
-                        $downloadedImage = \Kommercio\Models\File::downloadFromUrl($image);
+                        if (!empty(trim($image))) {
+                            $downloadedImage = \Kommercio\Models\File::downloadFromUrl($image);
 
-                        if ($downloadedImage) {
-                            $newMedia[$downloadedImage->id] = [
-                                'type' => 'image',
-                                'locale' => $product->getTranslation()->locale
-                            ];
+                            if ($downloadedImage) {
+                                $newMedia[$downloadedImage->id] = [
+                                    'type' => 'image',
+                                    'locale' => $product->getTranslation()->locale
+                                ];
+                            }
                         }
                     }
                 }
