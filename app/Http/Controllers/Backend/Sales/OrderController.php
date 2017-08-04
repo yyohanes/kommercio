@@ -308,6 +308,30 @@ class OrderController extends Controller{
                 $orderAction .= '<div class="btn-group btn-group-xs"><button type="button" class="btn btn-default hold-on-click dropdown-toggle" data-toggle="dropdown" data-hover="dropdown" data-close-others="true" aria-expanded="true"><i class="fa fa-print"></i></button><ul class="dropdown-menu" role="menu">'.$printActions.'</ul></div>';
             }
 
+            $resendActions = '';
+
+            if(Gate::allows('access', ['resend_order_email'])){
+                if(in_array($order->status, [Order::STATUS_PENDING])){
+                    $resendActions .= '<li><a class="modal-ajax" href="'.route('backend.sales.order.resend_email', ['process' => 'confirmation', 'backUrl' => RequestFacade::fullUrl(), 'id' => $order->id]).'" target="_blank">Confirmation</a></li>';
+                }
+
+                if(in_array($order->status, [Order::STATUS_PROCESSING])){
+                    $resendActions .= '<li><a class="modal-ajax" href="'.route('backend.sales.order.resend_email', ['process' => 'processing', 'backUrl' => RequestFacade::fullUrl(), 'id' => $order->id]).'" target="_blank">Processing</a></li>';
+                }
+
+                if(in_array($order->status, [Order::STATUS_COMPLETED])){
+                    $resendActions .= '<li><a class="modal-ajax" href="'.route('backend.sales.order.resend_email', ['process' => 'completed', 'backUrl' => RequestFacade::fullUrl(), 'id' => $order->id]).'" target="_blank">Completed</a></li>';
+                }
+
+                if(in_array($order->status, [Order::STATUS_CANCELLED])){
+                    $resendActions .= '<li><a class="modal-ajax" href="'.route('backend.sales.order.resend_email', ['process' => 'cancelled', 'backUrl' => RequestFacade::fullUrl(), 'id' => $order->id]).'" target="_blank">Cancelled</a></li>';
+                }
+            }
+
+            if(!empty($resendActions)){
+                $orderAction .= '<div class="btn-group btn-group-xs"><button type="button" class="btn btn-default hold-on-click dropdown-toggle" data-toggle="dropdown" data-hover="dropdown" data-close-others="true" aria-expanded="true"><i class="fa fa-envelope-o"></i></button><ul class="dropdown-menu" role="menu">'.$resendActions.'</ul></div>';
+            }
+
             $rowMeat = [
                 '<input type="checkbox" name="id[]" value="'.$order->id.'" />',
                 $orderAction,
