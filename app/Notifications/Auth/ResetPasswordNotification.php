@@ -6,6 +6,8 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
+use Kommercio\Facades\LanguageHelper;
+use Kommercio\Mail\DefaultMail;
 use Kommercio\Models\User;
 
 class ResetPasswordNotification extends Notification
@@ -55,11 +57,20 @@ class ResetPasswordNotification extends Notification
      */
     public function toMail($notifiable)
     {
-        return (new MailMessage)
-                    ->view('auth.emails.password', [
-                        'user' => $this->user,
-                        'token' => $this->token
-                    ]);
+//        return (new MailMessage)
+//                    ->view('auth.emails.password', [
+//                        'user' => $this->user,
+//                        'token' => $this->token
+//                    ]);
+
+        $subjectKey = LanguageHelper::getTranslationKey('passwords.password_reset_subject');
+        $mailable = new DefaultMail(
+                    $notifiable->email,
+                    trans($subjectKey),
+                    'auth.password',
+                    ['user' => $this->user, 'token' => $this->token]);
+
+        return $mailable;
     }
 
     /**

@@ -18,7 +18,7 @@ class DefaultMail extends Mailable
      *
      * @return void
      */
-    public function __construct($to, $subject, $view, $viewData = [], $contact = null)
+    public function __construct($to, $subject, $view, $viewData = [], $contact = 'general')
     {
         $this->to = [];
         if(!is_array($to)){
