@@ -12,7 +12,7 @@
 */
 
 Route::group(['middleware' => ['web']], function () {
-    Route::group(['namespace' => 'Frontend', 'middleware' => ['frontend.customer_activity', 'discern_admin_customer']], function(){
+    Route::group(['namespace' => 'Frontend', 'middleware' => ['frontend.customer_activity', 'discern_admin_customer', 'cache_control']], function(){
         // Authentication Routes...
         Route::get('login', [
             'as' => 'frontend.login_form',

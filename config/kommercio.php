@@ -117,5 +117,11 @@ return [
     'test_ips' => [
         '127.0.0.1',
         '::1'
-    ]
+    ],
+    'cache_control' => [
+        'default' => [
+            'public' => true,
+            'max-age' => 30,
+        ],
+    ],
 ];
