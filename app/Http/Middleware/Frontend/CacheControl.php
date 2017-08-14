@@ -26,7 +26,7 @@ class CacheControl
 
         if ($cacheable) {
             // TODO: Cache config should be categorizeable
-            $response->header('Cache-Control', $this->buildCacheControl('default'));
+            $response->headers->set('Cache-Control', $this->buildCacheControl('default'));
         }
 
         return $response;

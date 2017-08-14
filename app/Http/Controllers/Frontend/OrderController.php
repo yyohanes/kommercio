@@ -6,6 +6,8 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Request as RequestFacade;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Session;
@@ -931,14 +933,28 @@ class OrderController extends Controller
             $order->load('lineItems');
             $order->calculateTotal();
 
-            $order->saveData(['checkout_step' => $viewData['step']]);
+            // Use transaction to save to avoid reference duplicates
+            DB::beginTransaction();
 
-            Event::fire(new OrderEvent('before_update_order', $order));
+            try {
+                $order->saveData(['checkout_step' => $viewData['step']]);
 
-            $order->save();
+                Event::fire(new OrderEvent('before_update_order', $order));
+
+                $order->save();
+
+                DB::commit();
+            } catch(\Exception $e) {
+                $errorMessage = $e->getMessage();
+
+                Log::error($errorMessage);
+                $errors += [$errorMessage];
+
+                DB::rollback();
+            }
         }
 
-        if($viewData['step'] == 'complete'){
+        if($viewData['step'] == 'complete' && empty($errors)){
             Event::fire(new OrderEvent('customer_place_order', $order));
             Event::fire(new OrderUpdate($order, Order::STATUS_CART, true));
         }
@@ -982,7 +998,7 @@ class OrderController extends Controller
             }
         }else{
             //If complete
-            if($viewData['step'] == 'complete'){
+            if($viewData['step'] == 'complete' && empty($errors)){
                 $response = redirect()
                     ->route('frontend.order.checkout.complete')
                     ->with('order_id', $order->id)
@@ -1211,11 +1227,20 @@ class OrderController extends Controller
 
     protected function placeOrder(Order $order)
     {
+        // Queue order placement
+        // TODO: Move queue to proper place
+        OrderHelper::queueOrderPlacement($order);
+
+        // Get queue number to delay execution. This is done to prevent duplicated reference
+        usleep(OrderHelper::getOrderPlacementQueue($order) * 1000);
+
         $order->status = Order::STATUS_PENDING;
         $order->checkout_at = Carbon::now();
         $order->ip_address = RequestFacade::ip();
         $order->user_agent = RequestFacade::header('User-Agent');
         $order->generateReference();
+
+        OrderHelper::orderPlacementDone($order);
 
         Event::fire(new OrderEvent('before_order_placed', $order));
 

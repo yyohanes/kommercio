@@ -3,6 +3,7 @@
 namespace Kommercio\Helpers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Event;
 use Kommercio\Events\CartPriceRuleEvent;
 use Kommercio\Facades\PriceFormatter as PriceFormatterFacade;
@@ -457,5 +458,40 @@ class OrderHelper
             default:
                 break;
         }
+    }
+
+    /**
+     * To prevent duplicate, put order in queue before actually save it.
+     * @param Order $order
+     */
+    public function queueOrderPlacement(Order $order)
+    {
+        if (!Cache::has('order_queue_number')) {
+            Cache::forever('order_queue_number', 0);
+        } else {
+            Cache::increment('order_queue_number');
+        }
+    }
+
+    /**
+     * Decrease order queue because order is done
+     * @param Order $order
+     */
+    public function orderPlacementDone(Order $order)
+    {
+        Cache::decrement('order_queue_number');
+
+        if ($this->getOrderPlacementQueue($order) < 0) {
+            Cache::forever('order_queue_number', 0);
+        }
+    }
+
+    /**
+     * Get order placement queue for waiting purpose
+     * @param Order $order
+     */
+    public function getOrderPlacementQueue(Order $order)
+    {
+        return Cache::get('order_queue_number', 0);
     }
 }

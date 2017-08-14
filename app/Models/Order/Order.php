@@ -468,11 +468,16 @@ class Order extends Model implements AuthorSignatureInterface
         $this->reference = $orderReference;
 
         //Final duplicate order reference check
-        while(self::checkout()->where('reference', $orderReference)->count() > 0){
-            $orderReference = $this->generateReference($this->order_number);
+        while(self::where('reference', $this->reference)->count() > 0){
+            $this->reference = $this->generateReference($this->order_number);
         }
 
-        return $orderReference;
+        $this->update([
+            'reference' => $this->reference,
+            'order_number' => $this->order_number
+        ]);
+
+        return $this->reference;
     }
 
     public function generatePublicId()
