@@ -933,25 +933,11 @@ class OrderController extends Controller
             $order->load('lineItems');
             $order->calculateTotal();
 
-            // Use transaction to save to avoid reference duplicates
-            DB::beginTransaction();
+            $order->saveData(['checkout_step' => $viewData['step']]);
 
-            try {
-                $order->saveData(['checkout_step' => $viewData['step']]);
+            Event::fire(new OrderEvent('before_update_order', $order));
 
-                Event::fire(new OrderEvent('before_update_order', $order));
-
-                $order->save();
-
-                DB::commit();
-            } catch(\Exception $e) {
-                $errorMessage = $e->getMessage();
-
-                Log::error($errorMessage);
-                $errors += [$errorMessage];
-
-                DB::rollback();
-            }
+            $order->save();
         }
 
         if($viewData['step'] == 'complete' && empty($errors)){
