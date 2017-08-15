@@ -425,8 +425,7 @@ class Order extends Model implements AuthorSignatureInterface
 
         $counterLength = ProjectHelper::getConfig('order_options.reference_counter_length');
 
-        $lastOrder = self::checkout()
-            ->whereRaw("DATE_FORMAT(checkout_at, '%d-%m-%Y') = ?", [$this->checkout_at->format('d-m-Y')])
+        $lastOrder = self::whereRaw("DATE_FORMAT(checkout_at, '%d-%m-%Y') = ?", [$this->checkout_at->format('d-m-Y')])
             ->where('store_id', $this->store_id)
             ->orderBy(DB::raw('CAST(order_number as UNSIGNED)'), 'DESC')
             ->first();
