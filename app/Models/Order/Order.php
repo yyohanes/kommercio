@@ -466,15 +466,31 @@ class Order extends Model implements AuthorSignatureInterface
 
         $this->reference = $orderReference;
 
-        //Final duplicate order reference check
-        while(self::where('reference', $this->reference)->count() > 0){
-            $this->reference = $this->generateReference($this->order_number);
+        // Wrap in transaction so we can catch conflict Reference and re-generate
+        DB::beginTransaction();
+
+        $shouldCommit = true;
+
+        try {
+            $this->update([
+                'reference' => $this->reference,
+                'order_number' => $this->order_number
+            ]);
+        } catch(\Exception $e) {
+            DB::rollback();
+
+            $errorCode = $e->errorInfo[1];
+
+            $shouldCommit = false;
+
+            if ($errorCode == 1062) {
+                $this->reference = $this->generateReference($this->order_number);
+            }
         }
 
-        $this->update([
-            'reference' => $this->reference,
-            'order_number' => $this->order_number
-        ]);
+        if ($shouldCommit) {
+            DB::commit();
+        }
 
         return $this->reference;
     }

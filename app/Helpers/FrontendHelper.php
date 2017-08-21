@@ -291,6 +291,11 @@ class FrontendHelper
         if($context == 'save'){
             $this->_currentOrder->save();
 
+            // Assign ID to reference as surrogate
+            if (!$this->_currentOrder->reference || !$this->_currentOrder->order_number) {
+                $this->_currentOrder->reference = $this->_currentOrder->id;
+            }
+
             $cookie = Cookie::make($cookieKey, $this->_currentOrder->id, 25200);
             Cookie::queue($cookie);
         }
