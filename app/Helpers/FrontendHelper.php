@@ -290,7 +290,7 @@ class FrontendHelper
 
         if($context == 'save'){
             if (empty($this->_currentOrder->reference)) {
-                $this->_currentOrder->reference = microtime();
+                $this->_currentOrder->reference = microtime(true);
             }
 
             $this->_currentOrder->save();

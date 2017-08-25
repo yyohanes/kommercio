@@ -448,13 +448,13 @@ class OrderController extends Controller{
         $order->payment_method_id = $request->input('payment_method', null);
         $order->currency = $request->input('currency');
         $order->conversion_rate = 1;
+        $order->reference = microtime(true);
         if($request->has('additional_fields')){
             $order->additional_fields = $request->input('additional_fields');
         }
 
         $store = ProjectHelper::getStoreByRequest($request);
         $order->store()->associate($store);
-        $store->reference = microtime();
 
         $order->save();
         $order->update([
