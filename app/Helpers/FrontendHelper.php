@@ -289,6 +289,10 @@ class FrontendHelper
         }
 
         if($context == 'save'){
+            if (empty($this->_currentOrder->reference)) {
+                $this->_currentOrder->reference = microtime();
+            }
+
             $this->_currentOrder->save();
 
             // Assign ID to reference as surrogate

@@ -454,8 +454,12 @@ class OrderController extends Controller{
 
         $store = ProjectHelper::getStoreByRequest($request);
         $order->store()->associate($store);
+        $store->reference = microtime();
 
         $order->save();
+        $order->update([
+            'reference' => $order->id
+        ]);
 
         $order->saveProfile('billing', $request->input('profile'));
         $order->saveProfile('shipping', $request->input('shipping_profile'));
