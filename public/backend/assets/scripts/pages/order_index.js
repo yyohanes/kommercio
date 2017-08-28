@@ -83,8 +83,8 @@ var OrderIndex = function () {
                 "bStateSave": true,
 
                 "lengthMenu": [
-                    [50, 100, 150, 200, -1],
-                    [50, 100, 150, 200, "All"] // change per page values here
+                    [20, 50, 100, 150, 200, -1],
+                    [20, 50, 100, 150, 200, "All"] // change per page values here
                 ],
                 "pageLength": 50, // default record count per page
                 "ajax": {
