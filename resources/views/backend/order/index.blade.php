@@ -21,7 +21,7 @@
         var enable_delivery_date = {{ config('project.enable_delivery_date', false)?1:0 }};
     </script>
 
-    <script src="{{ asset('backend/assets/scripts/pages/order_index.js') }}" type="text/javascript"></script>
+    <script src="{{ asset('backend/assets/scripts/pages/order_index.js?cb=1') }}" type="text/javascript"></script>
 @stop
 
 @section('breadcrumb')

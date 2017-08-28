@@ -83,12 +83,13 @@ var OrderIndex = function () {
                 "bStateSave": true,
 
                 "lengthMenu": [
-                    [20, 50, 100, 150, 200, -1],
-                    [20, 50, 100, 150, 200, "All"] // change per page values here
+                    [10, 20, 50, 100, 150, 200, -1],
+                    [10, 20, 50, 100, 150, 200, "All"] // change per page values here
                 ],
                 "pageLength": 50, // default record count per page
                 "ajax": {
-                    "url": $('#orders-dataset').data('src')
+                    "url": $('#orders-dataset').data('src'),
+                    "timeout": 0
                 },
                 "searching": false,
                 "processing": true,
