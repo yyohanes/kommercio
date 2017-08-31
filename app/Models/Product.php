@@ -966,7 +966,15 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface, Cac
             $dayToRun->setTime(12, 0, 0);
 
             $lastDayOfMonth = clone $dayToRun;
-            $lastDayOfMonth->modify('last day of this month')->modify('+10 days');
+            $lastDayOfMonth->modify('last day of this month');
+
+            // If last day of month, start searching next month
+            if ($lastDayOfMonth->isToday()) {
+                $dayToRun->modify('+1 month');
+                $lastDayOfMonth->modify('+1 month');
+            }
+
+            $lastDayOfMonth->modify('+10 days');
 
             $dayToRun->modify('-10 days');
 
