@@ -1082,7 +1082,7 @@ class ProductController extends Controller{
         $year = $request->input('year');
         $internal = $request->input('internal', 0);
 
-        $focusedDate = Carbon::createFromFormat('Y-n', $year.'-'.$month);
+        $focusedDate = Carbon::createFromFormat('Y-n-j', $year.'-'.$month.'-1');
 
         $months[] = $focusedDate->format('n-Y');
 
