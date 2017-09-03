@@ -1,6 +1,6 @@
 <?php
 
-return [
+$databaseConfig = [
 
     /*
     |--------------------------------------------------------------------------
@@ -125,3 +125,46 @@ return [
     ],
 
 ];
+
+// Separate MySQL Write & Read DB
+if (!empty(env('WRITE_DB_HOST', null))) {
+    $writeDbConfig = [
+        'host' => env('WRITE_DB_HOST'),
+    ];
+
+    if (!empty(env('WRITE_DB_DATABASE', null))) {
+        $writeDbConfig['database'] = env('WRITE_DB_DATABASE');
+    }
+
+    if (!empty(env('WRITE_DB_USERNAME', null))) {
+        $writeDbConfig['username'] = env('WRITE_DB_USERNAME');
+    }
+
+    if (!empty(env('WRITE_DB_PASSWORD', null))) {
+        $writeDbConfig['password'] = env('WRITE_DB_PASSWORD');
+    }
+
+    $databaseConfig['connections']['mysql']['write'] = $writeDbConfig;
+}
+
+if (!empty(env('READ_DB_HOST', null))) {
+    $readDbConfig = [
+        'host' => env('READ_DB_HOST'),
+    ];
+
+    if (!empty(env('READ_DB_DATABASE', null))) {
+        $readDbConfig['database'] = env('READ_DB_DATABASE');
+    }
+
+    if (!empty(env('READ_DB_USERNAME', null))) {
+        $readDbConfig['username'] = env('READ_DB_USERNAME');
+    }
+
+    if (!empty(env('READ_DB_PASSWORD', null))) {
+        $readDbConfig['password'] = env('READ_DB_PASSWORD');
+    }
+
+    $databaseConfig['connections']['mysql']['read'] = $readDbConfig;
+}
+
+return $databaseConfig;
