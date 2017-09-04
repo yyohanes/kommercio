@@ -53,6 +53,6 @@ class Kernel extends ConsoleKernel
         })->name('start-of-day-task')->dailyAt('08:00')->withoutOverlapping();
 
         //Run queue every minute
-        $schedule->command('queue:work')->everyMinute()->withoutOverlapping();
+        $schedule->command('queue:work --tries=10')->everyMinute()->withoutOverlapping();
     }
 }
