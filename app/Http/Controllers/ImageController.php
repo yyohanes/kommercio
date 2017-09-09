@@ -2,6 +2,7 @@
 
 namespace Kommercio\Http\Controllers;
 
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Kommercio\Models\Media;
 use League\Glide\ServerFactory;
@@ -21,7 +22,9 @@ class ImageController extends GlideImageController
         //$server = $this->setGlideServer($this->setImageSource(), $this->setImageCache(), $api);
 
         //Update to storage based on image
-        $file = Media::whereRaw('CONCAT(folder, filename) LIKE ?', [$image])->firstOrFail();
+        $file = Cache::remember(md5($image), 1440, function() use ($image) {
+            return Media::whereRaw('CONCAT(folder, filename) LIKE ?', [$image])->firstOrFail();
+        });
 
         $server = $this->setGlideServer($this->setImageSource($file->storage), $this->setImageCache($style), $style);
 

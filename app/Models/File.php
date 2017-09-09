@@ -6,11 +6,12 @@ use GuzzleHttp\Client;
 use Illuminate\Database\Eloquent\Model;
 use Intervention\Image\ImageManagerStatic;
 use Kommercio\Models\Interfaces\AuthorSignatureInterface;
+use Kommercio\Models\Interfaces\CacheableInterface;
 use Kommercio\Traits\Model\AuthorSignature;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 
-class File extends Model implements AuthorSignatureInterface
+class File extends Model implements AuthorSignatureInterface, CacheableInterface
 {
     const MAXIMUM_SIZE = 8000;
     use AuthorSignature;
@@ -83,6 +84,13 @@ class File extends Model implements AuthorSignatureInterface
     {
         //temporarily only check if temp
         return !$this->temp;
+    }
+
+    public function getCacheKeys()
+    {
+        return [
+            md5($this->path)
+        ];
     }
 
     //Accessors
