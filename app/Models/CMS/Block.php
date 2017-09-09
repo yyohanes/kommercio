@@ -4,14 +4,18 @@ namespace Kommercio\Models\CMS;
 
 use Dimsav\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Cache;
 use Kommercio\Facades\ProjectHelper;
+use Kommercio\Models\Interfaces\CacheableInterface;
 use Kommercio\Traits\Model\ToggleDate;
 
-class Block extends Model
+class Block extends Model implements CacheableInterface
 {
-    use Translatable, ToggleDate{
+    use Translatable, ToggleDate {
         Translatable::setAttribute as translateableSetAttribute;
         ToggleDate::setAttribute insteadof Translatable;
+
+        Translatable::translations as translatableTranslations;
     }
 
     const TYPE_STATIC = 'static';
@@ -20,7 +24,21 @@ class Block extends Model
     public $translatedAttributes = ['name', 'body'];
     protected $toggleFields = ['active'];
 
-    //Scope
+    private $_cachedRelationResults;
+
+    public function getCacheKeys()
+    {
+        $tableName = $this->getTable();
+        $keys = [
+            $tableName.'_'.$this->id,
+            $tableName.'_'.$this->machine_name,
+            $tableName.'_'.$this->id.'_translations',
+        ];
+
+        return $keys;
+    }
+
+    // Scope
     public function scopeActive($query)
     {
         $query->where('active', true);
@@ -33,5 +51,29 @@ class Block extends Model
         return view($view_name, [
             'block' => $this,
         ]);
+    }
+
+    // Accessors
+    public function getTranslationsAttribute()
+    {
+        if (!isset($this->_cachedRelationResults['_translations'])) {
+            $this->_cachedRelationResults['_translations'] = Cache::rememberForever($this->getTable().'_'.$this->id.'_translations', function () {
+                return $this->translatableTranslations;
+            });
+        }
+
+        return $this->_cachedRelationResults['_translations'];
+    }
+
+    // Statics
+    public static function getBySlug($machine_name)
+    {
+        $block = Cache::rememberForever(with(new self())->getTable().'_'.$machine_name, function () use ($machine_name) {
+            $block = self::where('machine_name', $machine_name)->first();
+
+            return $block;
+        });
+
+        return $block;
     }
 }

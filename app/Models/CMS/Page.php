@@ -4,17 +4,21 @@ namespace Kommercio\Models\CMS;
 
 use Dimsav\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Cache;
 use Kommercio\Facades\FrontendHelper;
+use Kommercio\Models\Interfaces\CacheableInterface;
 use Kommercio\Models\Interfaces\SeoModelInterface;
 use Kommercio\Models\Interfaces\UrlAliasInterface;
 use Kommercio\Traits\Model\SeoTrait;
 use Kommercio\Traits\Model\ToggleDate;
 
-class Page extends Model implements UrlAliasInterface, SeoModelInterface
+class Page extends Model implements UrlAliasInterface, SeoModelInterface, CacheableInterface
 {
     use SeoTrait, Translatable, ToggleDate {
         Translatable::setAttribute as translateableSetAttribute;
         ToggleDate::setAttribute insteadof Translatable;
+
+        Translatable::translations as translatableTranslations;
     }
 
     protected $casts = [
@@ -27,6 +31,8 @@ class Page extends Model implements UrlAliasInterface, SeoModelInterface
     protected $seoDefaultFields = [
         'meta_description' => 'body'
     ];
+
+    private $_cachedRelationResults;
 
     //Relations
     public function parent()
@@ -87,6 +93,28 @@ class Page extends Model implements UrlAliasInterface, SeoModelInterface
     public function getMetaImage()
     {
         return $this->images->count() > 0?$this->images->get(0)->getImagePath('original'):null;
+    }
+
+    public function getCacheKeys()
+    {
+        $tableName = $this->getTable();
+        $keys = [
+            $tableName.'_'.$this->id,
+            $tableName.'_'.$this->id.'_translations',
+        ];
+
+        return $keys;
+    }
+
+    public function getTranslationsAttribute()
+    {
+        if (!isset($this->_cachedRelationResults['_translations'])) {
+            $this->_cachedRelationResults['_translations'] = Cache::rememberForever($this->getTable().'_'.$this->id.'_translations', function () {
+                return $this->translatableTranslations;
+            });
+        }
+
+        return $this->_cachedRelationResults['_translations'];
     }
 
     //Accessors

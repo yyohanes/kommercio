@@ -4,15 +4,19 @@ namespace Kommercio\Models\CMS;
 
 use Dimsav\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Cache;
 use Kommercio\Facades\ProjectHelper;
+use Kommercio\Models\Interfaces\CacheableInterface;
 use Kommercio\Traits\Model\HasDataColumn;
 use Kommercio\Traits\Model\ToggleDate;
 
-class Banner extends Model
+class Banner extends Model implements CacheableInterface
 {
     use Translatable, ToggleDate, HasDataColumn{
         Translatable::setAttribute as translateableSetAttribute;
         ToggleDate::setAttribute insteadof Translatable;
+
+        Translatable::translations as translatableTranslations;
     }
 
     protected $casts = [
@@ -22,6 +26,8 @@ class Banner extends Model
     public $fillable = ['name', 'body', 'banner_group_id', 'menu_class', 'active', 'sort_order'];
     public $translatedAttributes = ['name', 'body', 'image', 'images', 'videos'];
     protected $toggleFields = ['active'];
+
+    private $_cachedRelationResults;
 
     public function render($imageStyle = 'original')
     {
@@ -37,6 +43,17 @@ class Banner extends Model
         ]);
     }
 
+    public function getCacheKeys()
+    {
+        $tableName = $this->getTable();
+        $keys = [
+            $tableName.'_'.$this->id,
+            $tableName.'_'.$this->id.'_translations',
+        ];
+
+        return $keys;
+    }
+
     //Relations
     public function bannerGroup()
     {
@@ -47,5 +64,17 @@ class Banner extends Model
     public function scopeActive($query)
     {
         $query->where('active', true);
+    }
+
+    // Accessors
+    public function getTranslationsAttribute()
+    {
+        if (!isset($this->_cachedRelationResults['_translations'])) {
+            $this->_cachedRelationResults['_translations'] = Cache::rememberForever($this->getTable().'_'.$this->id.'_translations', function () {
+                return $this->translatableTranslations;
+            });
+        }
+
+        return $this->_cachedRelationResults['_translations'];
     }
 }

@@ -217,9 +217,9 @@ class FrontendHelper
     //Block
     public function getBlock($machine_name)
     {
-        $block = Block::where('machine_name', $machine_name)->active()->first();
+        $block = Block::getBySlug($machine_name);
 
-        return $block;
+        return $block->active ? $block : null;
     }
 
     //Products

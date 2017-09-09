@@ -2,9 +2,11 @@
 
 namespace Kommercio\Models\CMS;
 
+use Illuminate\Support\Facades\Cache;
 use Kommercio\Models\Abstracts\SluggableModel;
+use Kommercio\Models\Interfaces\CacheableInterface;
 
-class BannerGroup extends SluggableModel
+class BannerGroup extends SluggableModel implements CacheableInterface
 {
     protected $fillable = ['name', 'slug', 'description'];
 
@@ -17,6 +19,18 @@ class BannerGroup extends SluggableModel
     //Methods
     public function getBanners()
     {
-        return $this->banners()->active()->get();
+        $activeBanners = Cache::rememberForever($this->getTable().'_'.$this->id.'_active_banners', function() {
+            return $this->banners()->active()->get();
+        });
+        return $activeBanners;
+    }
+
+    public function getCacheKeys()
+    {
+        $table = $this->getTable();
+
+        return [
+            $table.'_'.$this->id.'_active_banners'
+        ];
     }
 }
