@@ -2470,6 +2470,11 @@ Route::get('address/{type}/options/{parent?}', 'AddressController@options');
 
 Route::get('images/{style}/{image}', 'ImageController@style')->where('image', '.*');
 
+Route::get('get-token', [
+    'as' => 'frontend.auth.get_token',
+    'uses' => 'Frontend\Auth\AuthController@getToken'
+]);
+
 Route::group(['prefix' => 'file'], function(){
     Route::get('get/{name}/{id}', [
         'as' => 'file.get',
