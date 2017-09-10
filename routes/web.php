@@ -12,7 +12,7 @@
 */
 
 Route::group(['middleware' => ['web']], function () {
-    Route::group(['namespace' => 'Frontend', 'middleware' => ['frontend.customer_activity', 'discern_admin_customer', 'cache_control']], function(){
+    Route::group(['namespace' => 'Frontend', 'middleware' => ['frontend.customer_activity', 'discern_admin_customer', 'cache_requests', 'parse_esi']], function(){
         // Authentication Routes...
         Route::get('login', [
             'as' => 'frontend.login_form',
@@ -158,7 +158,8 @@ Route::group(['middleware' => ['web']], function () {
         //Pages
         Route::get('page/{id}', [
             'as' => 'frontend.page.view',
-            'uses' => 'PageController@view'
+            'uses' => 'PageController@view',
+            'middleware' => ['ttl:60']
         ]);
 
         //Gallery

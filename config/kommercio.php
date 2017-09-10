@@ -123,5 +123,8 @@ return [
             'public' => true,
             'max-age' => 30,
         ],
+        'private' => [
+            'private' => true
+        ]
     ],
 ];

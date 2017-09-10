@@ -65,6 +65,9 @@ class Kernel extends HttpKernel
         'frontend.customer_can_edit' => \Kommercio\Http\Middleware\Frontend\CustomerCanEdit::class,
         'frontend.customer_activity' => \Kommercio\Http\Middleware\Frontend\CustomerActivity::class,
         'discern_admin_customer' => \Kommercio\Http\Middleware\DiscernAdminCustomer::class,
+        'cache_requests' => \Barryvdh\HttpCache\Middleware\CacheRequests::class,
+        'parse_esi' => \Barryvdh\HttpCache\Middleware\ParseEsi::class,
+        'ttl' => \Barryvdh\HttpCache\Middleware\SetTtl::class,
         'cache_control' => \Kommercio\Http\Middleware\Frontend\CacheControl::class,
     ];
 }
