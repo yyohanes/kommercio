@@ -32,14 +32,6 @@ class ReportController extends Controller
         $yearOptions = $ordersByYear ?: [Carbon::now()->format('Y')];
 
         $filter = [
-            'order_date' => [
-                'from' => $request->input('search.order_date.from'),
-                'to' => $request->input('search.order_date.to')
-            ],
-            'delivery_date' => [
-                'from' => $request->input('search.delivery_date.from'),
-                'to' => $request->input('search.delivery_date.to')
-            ],
             'status' => $request->input('search.status', [Order::STATUS_PENDING, Order::STATUS_PROCESSING, Order::STATUS_SHIPPED, Order::STATUS_COMPLETED]),
             'store' => $request->input('search.store', key($storeOptions)),
             'year' => $request->input('search.year', key($yearOptions))
@@ -75,6 +67,10 @@ class ReportController extends Controller
         for ($i = 1; $i <= 12; $i++) {
             $timestamp = mktime(0, 0, 0, $i, 1);
             $months[date('n', $timestamp)] = date('F', $timestamp);
+        }
+
+        if ($request->input('internal_export')) {
+            return ['filter' => $filter, 'results' => $results];
         }
 
         return view('backend.report.sales_year', [
@@ -138,6 +134,10 @@ class ReportController extends Controller
         $results = [];
         foreach ($orders as $order) {
             $results[$order->date] = $order;
+        }
+
+        if ($request->input('internal_export')) {
+            return ['filter' => $filter, 'results' => $results];
         }
 
         return view('backend.report.sales', [

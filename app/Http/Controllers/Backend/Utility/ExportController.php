@@ -2,13 +2,14 @@
 
 namespace Kommercio\Http\Controllers\Backend\Utility;
 
-use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Collection;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 use Kommercio\Facades\AddressHelper;
+use Kommercio\Http\Controllers\Backend\Report\ReportController;
 use Kommercio\Http\Requests;
 use Kommercio\Http\Controllers\Controller;
 use Kommercio\Http\Controllers\Backend\Customer\CustomerController;
@@ -19,6 +20,101 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class ExportController extends Controller
 {
+    public function salesReport(Request $request)
+    {
+        // Inject internal_export to $request
+        $request->replace($request->all() + ['internal_export' => TRUE]);
+
+        $reportController = new ReportController();
+
+        if ($request->has('search.year')) {
+            $resultsFromController = $reportController->salesYear($request);
+            $filter = $resultsFromController['filter'];
+            $results = collect($resultsFromController['results']);
+
+            $year = $filter['year'];
+
+            $months = array();
+            for ($i = 1; $i <= 12; $i++) {
+                $timestamp = mktime(0, 0, 0, $i, 1);
+                $months[date('n', $timestamp)] = date('F', $timestamp);
+            }
+
+            $resultsMonths = collect([]);
+
+            foreach ($months as $idx => $month) {
+                $resultsMonths[] = [
+                    $month.' '.$year,
+                    isset($results[$idx])?$results[$idx]->total:0,
+                    isset($results[$idx])?abs($results[$idx]->discount_total):0,
+                    isset($results[$idx])?$results[$idx]->shipping_total:0,
+                    isset($results[$idx])?$results[$idx]->tax_total:0,
+                ];
+            }
+
+            $return = $this->processBatch($resultsMonths, $request, 'sales_report', [], function($resultsMonths, $rowNumber){
+                $data = [];
+
+                if($rowNumber == 0){
+                    $data[] = ['month', 'sales', 'discount', 'shipping', 'tax'];
+                }
+
+                foreach ($resultsMonths as $resultsMonth) {
+                    $data[] = $resultsMonth;
+                }
+
+                return [
+                    'rows' => $data
+                ];
+            });
+        } else {
+            $resultsFromController = $reportController->sales($request);
+            $filter = $resultsFromController['filter'];
+            $results = collect($resultsFromController['results']);
+
+            $dateFrom = \Carbon\Carbon::createFromFormat('Y-m-d', $filter['date']['from']);
+            $dateTo = \Carbon\Carbon::createFromFormat('Y-m-d', $filter['date']['to']);
+
+            $resultsDates = collect([]);
+
+            while ($dateFrom->lte($dateTo)) {
+                $idx = $dateFrom->format('Y-m-d');
+
+                $resultsDates[] = [
+                    $dateFrom->format('d F y'),
+                    isset($results[$idx])?$results[$idx]->total:0,
+                    isset($results[$idx])?abs($results[$idx]->discount_total):0,
+                    isset($results[$idx])?$results[$idx]->shipping_total:0,
+                    isset($results[$idx])?$results[$idx]->tax_total:0,
+                ];
+
+                $dateFrom->modify('+1 day');
+            }
+
+            $return = $this->processBatch($resultsDates, $request, 'sales_report', [], function($resultsDates, $rowNumber){
+                $data = [];
+
+                if($rowNumber == 0){
+                    $data[] = ['date', 'sales', 'discount', 'shipping', 'tax'];
+                }
+
+                foreach ($resultsDates as $resultsDate) {
+                    $data[] = $resultsDate;
+                }
+
+                return [
+                    'rows' => $data
+                ];
+            });
+        }
+
+        return $this->processResponse('backend.utility.export.form.sales_report', $return, $request, function() use ($filter) {
+            return [
+                'filter' => $filter
+            ];
+        });
+    }
+
     public function customer(Request $request)
     {
         // Inject internal_export to $request
@@ -89,7 +185,7 @@ class ExportController extends Controller
             $batch = Batch::init($rows, $name);
 
             return [
-                'url' => route($routeName, array_merge(['filter' => $request->input('filter')], ['run' => 1, 'batch_id' => $batch->id, 'row' => 0])),
+                'url' => route($routeName, array_merge($request->except('backUrl'), ['run' => 1, 'batch_id' => $batch->id, 'row' => 0])),
                 'row' => null
             ];
         }else{
@@ -113,14 +209,14 @@ class ExportController extends Controller
                     $item = $batch->process($request->input('row'), $closure);
 
                     return [
-                        'url' => route($routeName, array_merge(['filter' => $request->input('filter')], ['run' => 1, 'batch_id' => $batch->id, 'row' => $request->input('row') + 1])),
+                        'url' => route($routeName, array_merge($request->except('backUrl'), ['run' => 1, 'batch_id' => $batch->id, 'row' => $request->input('row') + 1])),
                         'row' => $item
                     ];
                 }else{
                     $batch->combineFiles();
                     $batch->clean();
 
-                    return redirect()->route($routeName, array_merge(['filter' => $request->input('filter')], ['success' => 1, 'batch_id' => $batch->id]))->with('success', [$batch->name.' is successfully export']);
+                    return redirect()->route($routeName, array_merge($request->except(['backUrl', 'row', 'run']), ['success' => 1, 'batch_id' => $batch->id]))->with('success', [$batch->name.' is successfully export']);
                 }
             }
         }
@@ -171,7 +267,6 @@ class ExportController extends Controller
         return view($view_name, array_merge([
             'runUrl' => $runUrl,
             'rows' => $rows,
-            'filter' => $request->input('filter', [])
-        ], $viewOptions));
+        ], $request->except('backUrl'), $viewOptions));
     }
 }

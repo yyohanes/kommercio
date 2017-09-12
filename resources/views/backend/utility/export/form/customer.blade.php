@@ -19,7 +19,7 @@
 @stop
 
 @section('form')
-    {!! Form::open(['route' => ['backend.utility.export.customer', 'filter' => $filter], 'class' => 'form-horizontal']) !!}
+    {!! Form::open(['route' => ['backend.utility.export.customer', 'filter' => isset($filter)?$filter:[]], 'class' => 'form-horizontal']) !!}
     <div class="portlet light portlet-fit portlet-form bordered">
         <div class="portlet-title">
             <div class="caption">

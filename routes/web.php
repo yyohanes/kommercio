@@ -1618,6 +1618,11 @@ Route::group(['middleware' => ['web']], function () {
                 });
 
                 Route::group(['prefix' => 'export'], function(){
+                    Route::any('sales-report', [
+                        'as' => 'backend.utility.export.sales_report',
+                        'uses' => 'ExportController@salesReport',
+                    ]);
+
                     Route::any('customer', [
                         'as' => 'backend.utility.export.customer',
                         'uses' => 'ExportController@customer',

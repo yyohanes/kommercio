@@ -4,6 +4,7 @@ namespace Kommercio\Utility\Export;
 
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\File;
 
 class Batch extends Model
@@ -79,7 +80,7 @@ class Batch extends Model
     }
 
     //Statics
-    public static function init(\Illuminate\Database\Eloquent\Collection $rows, $name = null, $numberPerBatch = 500)
+    public static function init(Collection $rows, $name = null, $numberPerBatch = 500)
     {
         $results = $rows->chunk($numberPerBatch);
 
@@ -95,7 +96,13 @@ class Batch extends Model
                 'name' => $name.'-'.($idx+1),
                 'status' => Item::STATUS_PENDING,
             ]);
-            $batchItem->saveData(['rows' => $result->pluck('id')->all()]);
+
+            // If $rows is collection of model, we only save the IDs for later loading
+            if ($rows instanceof \Illuminate\Database\Eloquent\Collection) {
+                $batchItem->saveData(['rows' => $result->pluck('id')->all()]);
+            } else {
+                $batchItem->saveData(['rows' => $result->all()]);
+            }
 
             $batchItem->batch()->associate($exportBatch);
             $batchItem->save();

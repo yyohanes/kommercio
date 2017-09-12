@@ -50,6 +50,11 @@
                 <div class="caption">
                     <span class="caption-subject sbold uppercase">Sales - {{ $filter['year'] }}</span>
                 </div>
+
+                <div class="actions">
+                    <a href="{{ route('backend.utility.export.sales_report', ['backUrl' => Request::fullUrl(), 'search' => $filter]) }}" class="btn btn-sm btn-default">
+                        <i class="fa fa-file-o"></i> Export </a>
+                </div>
             </div>
 
             <div class="portlet-body">
