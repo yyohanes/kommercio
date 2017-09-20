@@ -52,7 +52,9 @@ class Kernel extends ConsoleKernel
             Event::fire(new CronEvent('start_of_day'));
         })->name('start-of-day-task')->dailyAt('08:00')->withoutOverlapping();
 
-        //Run queue every minute
-        $schedule->command('queue:work --tries=10')->everyMinute()->withoutOverlapping();
+        //Run queue every minute if QUEUE_WORKER is scheduler
+        if (env('QUEUE_WORKER') == 'scheduler') {
+            $schedule->command('queue:work --tries=10')->everyMinute()->withoutOverlapping();
+        }
     }
 }
