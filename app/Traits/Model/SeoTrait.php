@@ -2,6 +2,8 @@
 
 namespace Kommercio\Traits\Model;
 
+use Kommercio\Facades\Shortcode;
+
 trait SeoTrait
 {
     public function getMetaTitle()
@@ -22,6 +24,9 @@ trait SeoTrait
         if(empty($meta_description)){
             $meta_description = $this->getAttribute((isset($this->seoDefaultFields['meta_description'])?$this->seoDefaultFields['meta_description']:'description'));
         }
+
+        // Run shortcode
+        $meta_description = Shortcode::doShortcode($meta_description);
 
         $meta_description = str_limit(strip_tags($meta_description), 157, '...');
 
