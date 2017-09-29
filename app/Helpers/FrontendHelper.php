@@ -219,7 +219,11 @@ class FrontendHelper
     {
         $block = Block::getBySlug($machine_name);
 
-        return $block->active ? $block : null;
+        if ($block && $block->active) {
+            return $block;
+        }
+
+        return null;
     }
 
     //Products
