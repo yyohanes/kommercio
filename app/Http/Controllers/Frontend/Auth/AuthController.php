@@ -209,4 +209,14 @@ class AuthController extends Controller
 
         return redirect($this->redirectAfterLogout);
     }
+
+    public function getToken(Request $request)
+    {
+        return response(csrf_token());
+        if ($request->ajax()) {
+            return response(csrf_token());
+        }
+
+        abort(500);
+    }
 }

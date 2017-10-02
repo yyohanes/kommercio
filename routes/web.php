@@ -12,7 +12,7 @@
 */
 
 Route::group(['middleware' => ['web']], function () {
-    Route::group(['namespace' => 'Frontend', 'middleware' => ['frontend.customer_activity', 'discern_admin_customer', 'cache_control']], function(){
+    Route::group(['namespace' => 'Frontend', 'middleware' => ['frontend.customer_activity', 'discern_admin_customer', 'cache_requests', 'parse_esi']], function(){
         // Authentication Routes...
         Route::get('login', [
             'as' => 'frontend.login_form',
@@ -158,7 +158,8 @@ Route::group(['middleware' => ['web']], function () {
         //Pages
         Route::get('page/{id}', [
             'as' => 'frontend.page.view',
-            'uses' => 'PageController@view'
+            'uses' => 'PageController@view',
+            'middleware' => ['ttl:60']
         ]);
 
         //Gallery
@@ -2473,6 +2474,11 @@ Route::group(['middleware' => ['web']], function () {
 Route::get('address/{type}/options/{parent?}', 'AddressController@options');
 
 Route::get('images/{style}/{image}', 'ImageController@style')->where('image', '.*');
+
+Route::get('get-token', [
+    'as' => 'frontend.auth.get_token',
+    'uses' => 'Frontend\Auth\AuthController@getToken'
+]);
 
 Route::group(['prefix' => 'file'], function(){
     Route::get('get/{name}/{id}', [

@@ -179,6 +179,7 @@ return [
         \Mews\Captcha\CaptchaServiceProvider::class,
         \Unisharp\Laravelfilemanager\LaravelFilemanagerServiceProvider::class,
         \Laravel\Socialite\SocialiteServiceProvider::class,
+        \Barryvdh\HttpCache\ServiceProvider::class,
 
         /*
          * Application Service Providers...

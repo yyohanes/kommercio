@@ -4,6 +4,7 @@ namespace Kommercio\Http\Middleware\Frontend;
 
 use Carbon\Carbon;
 use Closure;
+use Illuminate\Http\Response;
 use Kommercio\Facades\ProjectHelper;
 
 class CacheControl
@@ -13,44 +14,23 @@ class CacheControl
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  \Closure  $next
-     * @param  string|null  $guard
+     * @param  string $config
      * @return mixed
      */
-    public function handle($request, Closure $next, $guard = null)
+    public function handle($request, Closure $next, $config = 'default')
     {
         $response = $next($request);
-
-        $route = $request->route();
-        $routeAction = $route->getAction();
-        $cacheable = isset($routeAction['cache_control_exclude'])?$routeAction['cache_control_exclude']:true;
-
-        if ($cacheable) {
-            // TODO: Cache config should be categorizeable
-            $response->headers->set('Cache-Control', $this->buildCacheControl('default'));
-        }
+        $this->buildCacheControl($response, $config);
 
         return $response;
     }
 
-    private function buildCacheControl($config)
+    private function buildCacheControl(Response $response, $config)
     {
         $cacheConfig = ProjectHelper::getConfig('cache_control.'.$config);
 
-        $cacheParts = [];
-
         foreach ($cacheConfig as $key => $cacheConfigItem) {
-            switch ($key) {
-                case 'public':
-                    if ($cacheConfigItem) {
-                        $cacheParts[] = $key;
-                    }
-                    break;
-                default:
-                    $cacheParts[] = $key.'='.$cacheConfigItem;
-                    break;
-            }
+            $response->headers->addCacheControlDirective($key, $cacheConfigItem);
         }
-
-        return implode(', ', $cacheParts);
     }
 }

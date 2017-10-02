@@ -18,6 +18,7 @@ class Access
     public function handle($request, Closure $next, $guard = null)
     {
         $route = $request->route();
+        //dd($route);
         $routeAction = $route->getAction();
         $permissions = !empty($routeAction['permissions'])?$routeAction['permissions']:null;
 
