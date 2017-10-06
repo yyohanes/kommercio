@@ -156,8 +156,9 @@ class Invoice extends Model
      * @param $query
      * @param int $days number of days to overdue
      * @param Carbon|null $compareTime date to compare against due date
+     * @param string $operator
      */
-    public function scopeWhereDaysToOverdue($query, int $days, Carbon $compareTime = null)
+    public function scopeWhereDaysToOverdue($query, int $days, Carbon $compareTime = null, string $operator = '=')
     {
         if (!$compareTime) {
             $compareTime = Carbon::today();
@@ -165,7 +166,7 @@ class Invoice extends Model
 
         $compareTime->setTime(0, 0, 0);
 
-        $query->whereRaw('TIMESTAMPDIFF(DAY, ?, CONCAT(DATE_FORMAT(due_date, "%Y-%m-%d"), " 00:00:00")) = ?', [$compareTime, $days]);
+        $query->whereRaw('TIMESTAMPDIFF(DAY, ?, CONCAT(DATE_FORMAT(due_date, "%Y-%m-%d"), " 00:00:00")) ' . $operator . ' ?', [$compareTime, $days]);
     }
 
     //Statics
