@@ -22,6 +22,7 @@ use Kommercio\Facades\RuntimeCache;
 use Kommercio\Http\Controllers\Controller;
 use Kommercio\Models\Customer;
 use Kommercio\Models\Order\DeliveryOrder\DeliveryOrder;
+use Kommercio\Models\Order\Invoice;
 use Kommercio\Models\Order\Order;
 use Kommercio\Models\Order\LineItem;
 use Kommercio\Http\Requests\Backend\Order\OrderFormRequest;
@@ -380,6 +381,7 @@ class OrderController extends Controller{
     public function create()
     {
         $order = new Order();
+        $invoice = new Invoice();
 
         $paymentMethods = PaymentMethod::getPaymentMethods([
             'order' => $order,
@@ -429,10 +431,12 @@ class OrderController extends Controller{
 
         return view('backend.order.create', [
             'order' => $order,
+            'invoice' => $invoice,
             'lineItems' => $lineItems,
             'taxes' => isset($taxes)?$taxes:[],
             'cartPriceRules' => isset($cartPriceRules)?$cartPriceRules:[],
             'paymentMethodOptions' => $paymentMethodOptions,
+            'invoiceDefaultDueDate' => Carbon::now()->modify(ProjectHelper::getConfig('invoice_options.default_due_days') . ' days')
         ]);
     }
 
@@ -498,6 +502,19 @@ class OrderController extends Controller{
 
         if($request->input('action') == 'place_order'){
             Event::fire(new OrderEvent('internal_place_order', $order));
+        }
+
+        // Save order due date after internal_place_order because Invoice is created after this event
+        $invoice = $order->invoices->first();
+
+        if ($invoice) {
+            foreach ($request->input('invoices', []) as $invoiceId => $invoiceData) {
+                if ($invoiceId == 0 && $invoiceData['due_date']) {
+                    $invoice->update([
+                        'due_date' => $invoiceData['due_date'] . ' 00:00:00'
+                    ]);
+                }
+            }
         }
 
         Event::fire(new OrderUpdate($order, $originalStatus, $request->input('send_notification')));
@@ -645,6 +662,7 @@ class OrderController extends Controller{
     public function edit($id)
     {
         $order = Order::findOrFail($id);
+        $invoice = $order->invoices->first();
 
         $lineItems = old('line_items', $order->lineItems);
 
@@ -730,11 +748,13 @@ class OrderController extends Controller{
 
         return view('backend.order.edit', [
             'order' => $order,
+            'invoice' => $invoice,
             'lineItems' => $lineItems,
             'taxes' => isset($taxes)?$taxes:[],
             'cartPriceRules' => isset($cartPriceRules)?$cartPriceRules:[],
             'paymentMethodOptions' => $paymentMethodOptions,
-            'editOrder' => $order->isCheckout?true:false
+            'editOrder' => $order->isCheckout?true:false,
+            'invoiceDefaultDueDate' => $invoice->due_date,
         ]);
     }
 
@@ -766,6 +786,18 @@ class OrderController extends Controller{
 
         // Use free form line items
         $order->setRelation('lineItems', OrderHelper::processLineItems($request, $order, true, true));
+
+        foreach ($request->input('invoices', []) as $invoiceId => $invoiceData) {
+            $invoice = $order->invoices->filter(function($invoice) use ($invoiceId) {
+                return $invoice->id == $invoiceId;
+            })->first();
+
+            if ($invoice && $invoiceData['due_date']) {
+                $invoice->update([
+                    'due_date' => $invoiceData['due_date'] . ' 00:00:00'
+                ]);
+            }
+        }
 
         // Process configurations HAS TO BE here because above OrderHelper::processLineItems is dummy
         $this->processConfigurations($request);

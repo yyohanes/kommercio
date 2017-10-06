@@ -13,8 +13,8 @@ class Invoice extends Model
     const STATUS_PAID = 'paid';
     const STATUS_VOID = 'void';
 
-    protected $fillable = ['reference', 'total', 'status', 'payment_date', 'public_id'];
-    protected $dates = ['payment_date'];
+    protected $fillable = ['reference', 'total', 'status', 'payment_date', 'due_date', 'public_id'];
+    protected $dates = ['payment_date', 'due_date'];
 
     //Methods
     public function generateReference()
@@ -105,8 +105,71 @@ class Invoice extends Model
         $this->save();
     }
 
+    /**
+     * Invoice is considered overdue after due_date at 23:59:59
+     *
+     * @param Carbon|null $compareTime Date to check against
+     * @return bool
+     */
+    public function isOverdue(Carbon $compareTime = null)
+    {
+        if ($this->due_date) {
+            if (!$compareTime) {
+                $compareTime = Carbon::today();
+            }
+
+            $compareTime->setTime(0, 0, 0);
+            $this->due_date->setTime(23, 59, 59);
+
+            return $compareTime->gt($this->due_date);
+        }
+
+        return FALSE;
+    }
+
+    /**
+     * How many days until overdue
+     *
+     * @param Carbon|null $compareTime Date to check against
+     * @return int
+     */
+    public function daysToOverdue(Carbon $compareTime = null)
+    {
+        if ($this->due_date) {
+            if (!$compareTime) {
+                $compareTime = Carbon::today();
+            }
+
+            $compareTime->setTime(0, 0, 0);
+            $this->due_date->setTime(0, 0, 0);
+
+            return $compareTime->diffInDays($this->due_date, false);
+        }
+
+        return 0;
+    }
+
+    // Scopes
+    /**
+     * Scope to select invoices by number of days to overdue
+     *
+     * @param $query
+     * @param int $days number of days to overdue
+     * @param Carbon|null $compareTime date to compare against due date
+     */
+    public function scopeWhereDaysToOverdue($query, int $days, Carbon $compareTime = null)
+    {
+        if (!$compareTime) {
+            $compareTime = Carbon::today();
+        }
+
+        $compareTime->setTime(0, 0, 0);
+
+        $query->whereRaw('TIMESTAMPDIFF(DAY, ?, CONCAT(DATE_FORMAT(due_date, "%Y-%m-%d"), " 00:00:00")) = ?', [$compareTime, $days]);
+    }
+
     //Statics
-    public static function createInvoice(Order $order, $date = null, $amount = null)
+    public static function createInvoice(Order $order, $date = null, $amount = null, $dueDate = null)
     {
         if(!$amount){
             $amount = $order->total;
@@ -119,6 +182,11 @@ class Invoice extends Model
         if($date){
             $invoice->setCreatedAt($date);
         }
+
+        if ($dueDate && $dueDate instanceof Carbon) {
+            $invoice->due_date = $dueDate;
+        }
+
         $invoice->order()->associate($order);
         $invoice->store()->associate($order->store);
         $invoice->generateReference();

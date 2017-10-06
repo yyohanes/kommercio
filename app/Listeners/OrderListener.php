@@ -50,7 +50,8 @@ class OrderListener
     {
         //Generate invoice if not yet created. Possible by payment
         if($order->invoices->count() < 1){
-            $invoice = Invoice::createInvoice($order);
+            Invoice::createInvoice($order);
+            $order->load('invoices');
         }
 
         if(!$internal){

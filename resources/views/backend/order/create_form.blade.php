@@ -88,16 +88,34 @@
         </div>
     </div>
 
-    @if(config('project.enable_delivery_date', FALSE))
-        <div class="col-md-6">
-            <div class="portlet light bordered" id="delivery-date-panel">
-                <div class="portlet-title">
-                    <div class="caption">
-                        <i class="fa fa-clock-o"></i>
-                        <span class="caption-subject">Delivery Date</span>
-                    </div>
+    <div class="col-md-6">
+        <div class="portlet light bordered">
+            <div class="portlet-title">
+                <div class="caption">
+                    <i class="fa fa-clock-o"></i>
+                    <span class="caption-subject">Date Information</span>
                 </div>
-                <div class="portlet-body">
+            </div>
+            <div class="portlet-body">
+                @php
+                $invoiceDueDateName = 'invoices[' . ($invoice ? $invoice->id: 0) . '][due_date]';
+                $invoiceDueDateKey = 'invoices.' . ($invoice ? $invoice->id: 0) . '.due_date';
+                @endphp
+                @include('backend.master.form.fields.text', [
+                    'name' => $invoiceDueDateName,
+                    'label' => 'Invoice Due Date',
+                    'key' => $invoiceDueDateKey,
+                    'attr' => [
+                        'class' => 'form-control date-picker',
+                        'data-date-format' => 'yyyy-mm-dd',
+                        'id' => $invoiceDueDateName,
+                        'placeholder' => 'YYYY-MM-DD',
+                    ],
+                    'defaultValue' => old('invoice_due_data', $invoiceDefaultDueDate ? $invoiceDefaultDueDate->format('Y-m-d') : null)
+                ])
+
+                @if(config('project.enable_delivery_date', FALSE))
+                <div id="delivery-date-panel">
                     @include('backend.master.form.fields.text', [
                         'name' => 'delivery_date',
                         'label' => 'Delivery Date',
@@ -111,9 +129,10 @@
                         'defaultValue' => old('delivery_date', $order->delivery_date?$order->delivery_date->format('Y-m-d'):null)
                     ])
                 </div>
+                @endif
             </div>
         </div>
-    @endif
+    </div>
 </div>
 
 <div class="row">

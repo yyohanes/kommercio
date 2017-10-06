@@ -40,7 +40,7 @@ class Order extends Model implements AuthorSignatureInterface
     public static $processedStatus = [self::STATUS_PENDING, self::STATUS_PROCESSING];
 
     protected $originalLineItems;
-    protected $guarded = ['shippingProfile', 'billingProfile'];
+    protected $guarded = ['shippingProfile', 'billingProfile', 'invoices'];
     protected $dates = ['deleted_at', 'delivery_date', 'checkout_at'];
 
     //Relations
