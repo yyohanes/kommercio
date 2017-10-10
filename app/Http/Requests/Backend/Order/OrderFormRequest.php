@@ -39,7 +39,7 @@ class OrderFormRequest extends Request
             'line_items' => 'required',
             'shipping' => 'required',
             'payment_method' => 'required',
-            'invoices.*.due_date' => 'date_format:Y-m-d'
+            'invoices.*.due_date' => 'nullable|date_format:Y-m-d'
         ];
 
         if(config('project.enable_delivery_date', FALSE)){
