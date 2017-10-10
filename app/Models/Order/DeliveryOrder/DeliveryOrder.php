@@ -141,13 +141,13 @@ class DeliveryOrder extends Model implements AuthorSignatureInterface
                         $reference .= $store->code;
                     }
                     break;
-                case 'delivey_order_year':
+                case 'delivery_order_year':
                     $reference .= $now->format('y');
                     break;
-                case 'delivey_order_month':
+                case 'delivery_order_month':
                     $reference .= $now->format('m');
                     break;
-                case 'delivey_order_day':
+                case 'delivery_order_day':
                     $reference .= $now->format('d');
                     break;
                 case 'counter':

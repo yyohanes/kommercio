@@ -75,10 +75,13 @@ return [
     'invoice_options' => [
         'reference_format' => 'store_code:invoice_year:invoice_month:invoice_day:counter',
         'reference_counter_length' => 4,
-        'default_due_days' => '+30'
+
+        // Possible value: (+/-)30(d/wd)|(current_date/delivery_date)
+        'additional_due_date_presets' => [],
+        'default_due_date_preset' => 'custom'
     ],
     'delivery_order_options' => [
-        'reference_format' => 'store_code:delivey_order_year:delivey_order_month:delivey_order_day:counter',
+        'reference_format' => 'store_code:delivery_order_year:delivery_order_month:delivery_order_day:counter',
         'reference_counter_length' => 4,
         'check_shipped_on_new_delivery_order' => TRUE
     ],

@@ -429,6 +429,10 @@ class OrderController extends Controller{
             $taxes[] = Tax::findOrFail($oldTax);
         }
 
+        $dueDatePresetOptions = $this->getDueDatePresetOptions();
+
+        $invoiceDefaultPreset = ProjectHelper::getConfig('invoice_options.default_due_date_preset', null);
+
         return view('backend.order.create', [
             'order' => $order,
             'invoice' => $invoice,
@@ -436,7 +440,9 @@ class OrderController extends Controller{
             'taxes' => isset($taxes)?$taxes:[],
             'cartPriceRules' => isset($cartPriceRules)?$cartPriceRules:[],
             'paymentMethodOptions' => $paymentMethodOptions,
-            'invoiceDefaultDueDate' => Carbon::now()->modify(ProjectHelper::getConfig('invoice_options.default_due_days') . ' days')
+            'invoiceDefaultDueDate' => null,
+            'dueDatePresetOptions' => $dueDatePresetOptions,
+            'invoiceDefaultPreset' => $invoiceDefaultPreset
         ]);
     }
 
@@ -509,9 +515,15 @@ class OrderController extends Controller{
 
         if ($invoice) {
             foreach ($request->input('invoices', []) as $invoiceId => $invoiceData) {
-                if ($invoiceId == 0 && $invoiceData['due_date']) {
+                if ($invoiceId == 0) {
+                    if ($invoiceData['preset'] == 'custom' && trim($invoiceData['due_date'])) {
+                        $dueDate = $invoiceData['due_date'] . ' 00:00:00';
+                    } else {
+                        $dueDate = $this->getDueDateByPreset($invoiceData['preset'], $request->input('delivery_date', null));
+                    }
+
                     $invoice->update([
-                        'due_date' => $invoiceData['due_date'] . ' 00:00:00'
+                        'due_date' => $dueDate
                     ]);
                 }
             }
@@ -746,6 +758,14 @@ class OrderController extends Controller{
             $taxes[] = Tax::findOrFail($oldTax);
         }
 
+        $dueDatePresetOptions = $this->getDueDatePresetOptions();
+
+        if (!empty($invoice->due_date)) {
+            $invoiceDefaultPreset = $this->getDueDatePresetByDate($invoice->due_date, ProjectHelper::getConfig('enable_delivery_date', false) ? $order->delivery_date : null);
+        } else {
+            $invoiceDefaultPreset = null;
+        }
+
         return view('backend.order.edit', [
             'order' => $order,
             'invoice' => $invoice,
@@ -754,7 +774,9 @@ class OrderController extends Controller{
             'cartPriceRules' => isset($cartPriceRules)?$cartPriceRules:[],
             'paymentMethodOptions' => $paymentMethodOptions,
             'editOrder' => $order->isCheckout?true:false,
-            'invoiceDefaultDueDate' => $invoice->due_date,
+            'invoiceDefaultDueDate' => $invoice ? $invoice->due_date : null,
+            'dueDatePresetOptions' => $dueDatePresetOptions,
+            'invoiceDefaultPreset' => $invoiceDefaultPreset
         ]);
     }
 
@@ -792,9 +814,15 @@ class OrderController extends Controller{
                 return $invoice->id == $invoiceId;
             })->first();
 
-            if ($invoice && $invoiceData['due_date']) {
+            if ($invoice) {
+                if ($invoiceData['preset'] == 'custom' && trim($invoiceData['due_date'])) {
+                    $dueDate = $invoiceData['due_date'] . ' 00:00:00';
+                } else {
+                    $dueDate = $this->getDueDateByPreset($invoiceData['preset'], $request->input('delivery_date', null));
+                }
+
                 $invoice->update([
-                    'due_date' => $invoiceData['due_date'] . ' 00:00:00'
+                    'due_date' => $dueDate
                 ]);
             }
         }
@@ -1463,5 +1491,114 @@ class OrderController extends Controller{
         }
 
         $request->replace($attributes);
+    }
+
+    protected function getDueDatePresetOptions()
+    {
+        $options = array_merge(['0' => 'Not set'], ProjectHelper::getConfig('invoice_options.additional_due_date_presets', []), [
+            'custom' => 'Custom'
+        ]);
+
+        return $options;
+    }
+
+    /**
+     * Get due date preset value
+     *
+     * @param Carbon $dueDate
+     * @param Carbon|null $deliveryDate If null, it will be ignored
+     * @return string
+     */
+    protected function getDueDatePresetByDate(Carbon $dueDate, Carbon $deliveryDate = null)
+    {
+        if (empty($dueDate)) {
+            return '0';
+        }
+
+        $dueDate->setTime(0, 0, 0);
+
+        $comparisonDate = empty($comparisonDate) ? Carbon::now() : $comparisonDate;
+        $comparisonDate->setTime(0, 0, 0);
+
+        // Based on current date
+        $dayDiff = $comparisonDate->diffInDays($dueDate, false);
+        $dayDiff = $dayDiff >= 0 ? '+' . $dayDiff : $dayDiff;
+
+        $weekDayDiff = $comparisonDate->diffInWeekdays($dueDate, false);
+        $weekDayDiff = $weekDayDiff >= 0 ? '+' . $weekDayDiff : $weekDayDiff;
+
+        $presetsByCurrentDate = [
+            $dayDiff . 'd|current_date',
+            $weekDayDiff . 'wd|current_date',
+        ];
+
+        // Based on delivery date
+        if (!empty($deliveryDate)) {
+            $deliveryDate->setTime(0, 0, 0);
+
+            $dayDiff = $deliveryDate->diffInDays($dueDate, false);
+            $dayDiff = $dayDiff >= 0 ? '+' . $dayDiff : $dayDiff;
+
+            $weekDayDiff = $deliveryDate->diffInWeekdays($dueDate, false);
+            $weekDayDiff = $weekDayDiff >= 0 ? '+' . $weekDayDiff : $weekDayDiff;
+
+            $presetsByDeliveryDate = [
+                $dayDiff . 'd|delivery_date',
+                $weekDayDiff . 'wd|delivery_date',
+            ];
+        } else {
+            $presetsByDeliveryDate = [];
+        }
+
+        $dueDatePresets = array_keys($this->getDueDatePresetOptions());
+
+        foreach ($dueDatePresets as $dueDatePreset) {
+            if (in_array($dueDatePreset, $presetsByCurrentDate, true) || in_array($dueDatePreset, $presetsByDeliveryDate, true)) {
+                return $dueDatePreset;
+                break;
+            }
+        }
+
+        return 'custom';
+    }
+
+    /**
+     * Parse preset and return due date
+     * @param string $preset
+     * @param Carbon|string|null $deliveryDate
+     * @return Carbon|null
+     */
+    protected function getDueDateByPreset($preset, $deliveryDate = null)
+    {
+        if (in_array($preset, ['0', 0])) {
+            return null;
+        }
+
+        $explodedParts = explode('|', $preset);
+        $basedOn = $explodedParts[1];
+
+        preg_match('/([+-])([0-9]+)([wd]{1,2})/', $explodedParts[0], $matches);
+        $dayModifier = isset($matches[1]) ? $matches[1] : '+';
+        $dayCount = isset($matches[2]) ? $matches[2] : 0;
+        $dayType = isset($matches[3]) ? $matches[3] : 'd';
+        $dayType = $dayType == 'wd' ? 'weekdays' : 'days';
+
+        if ($basedOn == 'delivery_date' && !empty($deliveryDate)) {
+            if (is_string($deliveryDate)) {
+                $deliveryDate = new Carbon($deliveryDate);
+                $deliveryDate->setTime(0, 0, 0);
+            }
+
+            $basedOnDate = $deliveryDate;
+        } else if ($basedOn == 'current_date') {
+            $basedOnDate = Carbon::now();
+        } else {
+            return null;
+        }
+
+        $modifier = $dayModifier . $dayCount . ' ' . $dayType;
+        $basedOnDate->setTime(0, 0, 0)->modify($modifier);
+
+        return $basedOnDate;
     }
 }
