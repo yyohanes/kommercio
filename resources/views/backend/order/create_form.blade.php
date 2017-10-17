@@ -104,7 +104,7 @@
                             'label' => 'Delivery Date',
                             'key' => 'delivery_date',
                             'attr' => [
-                                'class' => 'form-control' . (ProjectHelper::getConfig('delivery_date_options.backoffice.select_past_months', true) ? '' : ' disable-past-months'),
+                                'class' => 'form-control' . (Gate::allows('access', ['past_months_delivery_date']) ? '' : ' disable-past-months'),
                                 'data-date-format' => 'yyyy-mm-dd',
                                 'id' => 'delivery_date',
                                 'placeholder' => 'YYYY-MM-DD',

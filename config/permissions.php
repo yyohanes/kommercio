@@ -115,7 +115,8 @@ $permissions = [
             'edit_order_external_memo' => 'Edit External Memo',
             'delete_order_external_memo' => 'Delete External Memo',
             'print_invoice' => 'Print Invoice',
-            'print_delivery_note' => 'Print Delivery Note'
+            'print_delivery_note' => 'Print Delivery Note',
+            'past_months_delivery_date' => 'Select Past Month Delivery Date',
         ]
     ],
     'Delivery Order' => [
