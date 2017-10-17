@@ -104,10 +104,10 @@
                             'label' => 'Delivery Date',
                             'key' => 'delivery_date',
                             'attr' => [
-                                'class' => 'form-control',
+                                'class' => 'form-control' . (ProjectHelper::getConfig('delivery_date_options.backoffice.select_past_months', true) ? '' : ' disable-past-months'),
                                 'data-date-format' => 'yyyy-mm-dd',
                                 'id' => 'delivery_date',
-                                'placeholder' => 'YYYY-MM-DD'
+                                'placeholder' => 'YYYY-MM-DD',
                             ],
                             'defaultValue' => old('delivery_date', $order->delivery_date?$order->delivery_date->format('Y-m-d'):null)
                         ])

@@ -70,7 +70,12 @@ return [
     'order_options' => [
         'processed_order_status' => ['pending', 'processing'],
         'reference_format' => 'store_code:order_year:order_month:order_day:counter',
-        'reference_counter_length' => 4
+        'reference_counter_length' => 4,
+    ],
+    'delivery_date_options' => [
+        'backoffice' => [
+            'select_past_months' => true,
+        ]
     ],
     'invoice_options' => [
         'reference_format' => 'store_code:invoice_year:invoice_month:invoice_day:counter',
