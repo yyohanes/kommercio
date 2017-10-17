@@ -844,7 +844,6 @@ var OrderForm = function () {
     $datePicker.datepicker({
       rtl: App.isRTL(),
       format: 'yyyy-mm-dd',
-      container: '#delivery-date-panel',
       beforeShowDay: function(e){
         if($disabledDates.indexOf(e.getFullYear() + '-' + (e.getMonth()+1) + '-' + e.getDate()) > -1){
           return 'disabled-date';

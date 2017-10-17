@@ -88,32 +88,69 @@
         </div>
     </div>
 
-    @if(config('project.enable_delivery_date', FALSE))
-        <div class="col-md-6">
-            <div class="portlet light bordered" id="delivery-date-panel">
-                <div class="portlet-title">
-                    <div class="caption">
-                        <i class="fa fa-clock-o"></i>
-                        <span class="caption-subject">Delivery Date</span>
-                    </div>
-                </div>
-                <div class="portlet-body">
-                    @include('backend.master.form.fields.text', [
-                        'name' => 'delivery_date',
-                        'label' => 'Delivery Date',
-                        'key' => 'delivery_date',
-                        'attr' => [
-                            'class' => 'form-control',
-                            'data-date-format' => 'yyyy-mm-dd',
-                            'id' => 'delivery_date',
-                            'placeholder' => 'YYYY-MM-DD'
-                        ],
-                        'defaultValue' => old('delivery_date', $order->delivery_date?$order->delivery_date->format('Y-m-d'):null)
-                    ])
+    <div class="col-md-6">
+        <div class="portlet light bordered">
+            <div class="portlet-title">
+                <div class="caption">
+                    <i class="fa fa-clock-o"></i>
+                    <span class="caption-subject">Date Information</span>
                 </div>
             </div>
+            <div class="portlet-body">
+                @if(config('project.enable_delivery_date', FALSE))
+                    <div id="delivery-date-panel">
+                        @include('backend.master.form.fields.text', [
+                            'name' => 'delivery_date',
+                            'label' => 'Delivery Date',
+                            'key' => 'delivery_date',
+                            'attr' => [
+                                'class' => 'form-control',
+                                'data-date-format' => 'yyyy-mm-dd',
+                                'id' => 'delivery_date',
+                                'placeholder' => 'YYYY-MM-DD'
+                            ],
+                            'defaultValue' => old('delivery_date', $order->delivery_date?$order->delivery_date->format('Y-m-d'):null)
+                        ])
+                    </div>
+                @endif
+
+                @php
+                $invoiceDueDatePresetName = 'invoices[' . ($invoice->id ? : 0) . '][preset]';
+                $invoiceDueDatePresetKey = 'invoices.' . ($invoice->id ? : 0) . '.preset';
+                $customDueDateParentSelector = '#'.str_replace(']', '\\]', str_replace('[', '\\[',$invoiceDueDatePresetName));
+
+                $invoiceDueDateName = 'invoices[' . ($invoice->id ? : 0) . '][due_date]';
+                $invoiceDueDateKey = 'invoices.' . ($invoice->id ? : 0) . '.due_date';
+                @endphp
+
+                @include('backend.master.form.fields.select', [
+                    'name' => $invoiceDueDatePresetName,
+                    'label' => 'Due Date',
+                    'key' => $invoiceDueDatePresetKey,
+                    'options' => $dueDatePresetOptions,
+                    'attr' => [
+                        'class' => 'form-control',
+                        'id' => $invoiceDueDatePresetName
+                    ],
+                    'defaultOptions' => old($invoiceDueDatePresetKey, $invoiceDefaultPreset)
+                ])
+
+                @include('backend.master.form.fields.text', [
+                    'name' => $invoiceDueDateName,
+                    'key' => $invoiceDueDateKey,
+                    'attr' => [
+                        'class' => 'form-control date-picker',
+                        'data-date-format' => 'yyyy-mm-dd',
+                        'id' => $invoiceDueDateName,
+                        'placeholder' => 'YYYY-MM-DD',
+                        'data-select_dependent' => $customDueDateParentSelector,
+                        'data-select_dependent_value' => 'custom'
+                    ],
+                    'defaultValue' => old($invoiceDueDateKey, $invoiceDefaultDueDate ? $invoiceDefaultDueDate->format('Y-m-d') : null)
+                ])
+            </div>
         </div>
-    @endif
+    </div>
 </div>
 
 <div class="row">

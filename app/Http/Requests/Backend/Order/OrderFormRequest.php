@@ -38,7 +38,8 @@ class OrderFormRequest extends Request
             //'shipping_profile.address_1' => 'required',
             'line_items' => 'required',
             'shipping' => 'required',
-            'payment_method' => 'required'
+            'payment_method' => 'required',
+            'invoices.*.due_date' => 'nullable|date_format:Y-m-d'
         ];
 
         if(config('project.enable_delivery_date', FALSE)){

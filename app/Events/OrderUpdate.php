@@ -14,17 +14,21 @@ class OrderUpdate extends Event
     public $order;
     public $originalStatus;
     public $notify_customer = true;
+    public $overrideInternalMessage = null;
+    public $overrideExternalMessage = null;
 
     /**
      * Create a new event instance.
      *
      * @return void
      */
-    public function __construct(Order $order, $originalStatus, $notify_customer = TRUE)
+    public function __construct(Order $order, $originalStatus, $notify_customer = TRUE, $overrideInternalMessage = null, $overrideExternalMessage = null)
     {
         $this->order = $order;
         $this->originalStatus = $originalStatus;
         $this->notify_customer = $notify_customer;
+        $this->overrideInternalMessage = $overrideInternalMessage;
+        $this->overrideExternalMessage = $overrideExternalMessage;
     }
 
     /**

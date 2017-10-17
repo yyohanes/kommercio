@@ -29,8 +29,8 @@ class OrderUpdateListener
 
     public function onPlacedOrder(OrderUpdate $event)
     {
-        OrderHelper::saveOrderComment('Order is placed.', 'confirmation', $event->order, $this->request->user());
-        OrderHelper::saveOrderComment('Order is placed.', 'confirmation', $event->order, $this->request->user(), OrderComment::TYPE_EXTERNAL_MEMO);
+        OrderHelper::saveOrderComment($event->overrideInternalMessage ? : 'Order is placed.', 'confirmation', $event->order, $this->request->user());
+        OrderHelper::saveOrderComment($event->overrideExternalMessage ? : 'Order is placed.', 'confirmation', $event->order, $this->request->user(), OrderComment::TYPE_EXTERNAL_MEMO);
 
         if($event->notify_customer){
             OrderHelper::sendOrderEmail($event->order, 'confirmation');
@@ -39,8 +39,8 @@ class OrderUpdateListener
 
     public function onProcessingOrder(OrderUpdate $event)
     {
-        OrderHelper::saveOrderComment('Order is processed.', 'processing', $event->order, $this->request->user());
-        OrderHelper::saveOrderComment('Order is processed.', 'processing', $event->order, $this->request->user(), OrderComment::TYPE_EXTERNAL_MEMO);
+        OrderHelper::saveOrderComment($event->overrideInternalMessage ? : 'Order is processed.', 'processing', $event->order, $this->request->user());
+        OrderHelper::saveOrderComment($event->overrideExternalMessage ? : 'Order is processed.', 'processing', $event->order, $this->request->user(), OrderComment::TYPE_EXTERNAL_MEMO);
 
         if($event->notify_customer){
             OrderHelper::sendOrderEmail($event->order, 'processing');
@@ -49,8 +49,8 @@ class OrderUpdateListener
 
     public function onCompletedOrder(OrderUpdate $event)
     {
-        OrderHelper::saveOrderComment('Order is completed.', 'completed', $event->order, $this->request->user());
-        OrderHelper::saveOrderComment('Order is completed.', 'completed', $event->order, $this->request->user(), OrderComment::TYPE_EXTERNAL_MEMO);
+        OrderHelper::saveOrderComment($event->overrideInternalMessage ? : 'Order is completed.', 'completed', $event->order, $this->request->user());
+        OrderHelper::saveOrderComment($event->overrideExternalMessage ? : 'Order is completed.', 'completed', $event->order, $this->request->user(), OrderComment::TYPE_EXTERNAL_MEMO);
 
         if($event->notify_customer){
             OrderHelper::sendOrderEmail($event->order, 'completed');
@@ -59,8 +59,8 @@ class OrderUpdateListener
 
     public function onCancelledOrder(OrderUpdate $event)
     {
-        OrderHelper::saveOrderComment('Order is cancelled. Reason: '.$this->request->input('notes'), 'cancelled', $event->order, $this->request->user());
-        OrderHelper::saveOrderComment('Order is cancelled.', 'cancelled', $event->order, $this->request->user(), OrderComment::TYPE_EXTERNAL_MEMO, [
+        OrderHelper::saveOrderComment($event->overrideInternalMessage ? : 'Order is cancelled. Reason: '.$this->request->input('notes'), 'cancelled', $event->order, $this->request->user());
+        OrderHelper::saveOrderComment($event->overrideExternalMessage ? : 'Order is cancelled.', 'cancelled', $event->order, $this->request->user(), OrderComment::TYPE_EXTERNAL_MEMO, [
             'reason' => $this->request->input('notes')
         ]);
 
