@@ -367,7 +367,9 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface, Cac
         $specificDiscountPriceRules = $this->getSpecificPriceRules(TRUE);
 
         foreach($catalogPriceRules as $catalogPriceRule){
-            $price = $catalogPriceRule->getValue($price);
+            if ($catalogPriceRule->validateProduct($this)) {
+                $price = $catalogPriceRule->getValue($price);
+            }
         }
 
         foreach($specificDiscountPriceRules as $specificDiscountPriceRule){

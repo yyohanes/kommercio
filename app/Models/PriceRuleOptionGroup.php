@@ -3,6 +3,7 @@
 namespace Kommercio\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Kommercio\Models\Product;
 
 class PriceRuleOptionGroup extends Model
 {
@@ -41,6 +42,60 @@ class PriceRuleOptionGroup extends Model
         }
 
         return $qb->get();
+    }
+
+    //Methods
+    public function validateProduct(Product $product)
+    {
+        //Validate one because it's an OR validation
+        foreach($this->optionFields as $optionField){
+            switch($optionField){
+                case 'categories':
+                    $productValues = $product->categories->pluck('id')->all();
+                    break;
+                case 'manufacturers':
+                    $productValues = $product->manufacturer_id?[$product->manufacturer_id]:null;
+                    break;
+                case 'attributeValues':
+                    if ($product->isVariation) {
+                        $productValues = $product->productAttributeValues->pluck('id')->all();
+                    } else {
+                        $productValues = collect([]);
+
+                        foreach ($product->variations as $variation) {
+                            $productValues = $productValues->merge($variation->productAttributeValues->pluck('id'));
+                        }
+
+                        $productValues = $productValues->unique()->all();
+                    }
+                    break;
+                case 'featureValues':
+                    if ($product->isVariation) {
+                        $productValues = $product->productFeatureValues->pluck('id')->all();
+                    } else {
+                        $productValues = collect([]);
+                        
+                        foreach ($product->variations as $variation) {
+                            $productValues = $productValues->merge($variation->productFeatureValues->pluck('id'));
+                        }
+
+                        $productValues = $productValues->unique()->all();
+                    }
+                    break;
+                default:
+                    break;
+            }
+
+            if($productValues){
+                $intersected = array_intersect($this->$optionField->pluck('id')->all(), $productValues);
+
+                if(!empty($intersected)){
+                    return TRUE;
+                }
+            }
+        }
+
+        return FALSE;
     }
 
     //Relations

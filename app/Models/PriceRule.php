@@ -8,6 +8,7 @@ use Kommercio\Events\ProductPriceRuleEvent;
 use Kommercio\Facades\PriceFormatter;
 use Kommercio\Models\Interfaces\StoreManagedInterface;
 use Kommercio\Traits\Model\ToggleDate;
+use Kommercio\Models\Product;
 
 class PriceRule extends Model implements StoreManagedInterface
 {
@@ -142,6 +143,29 @@ class PriceRule extends Model implements StoreManagedInterface
         }
 
         return $this->store_id && in_array($this->store_id, $user->getManagedStores()->pluck('id')->all());
+    }
+
+    public function validateProduct(Product $product, $options = [])
+    {
+        $validateResults = [];
+
+        if ($product->isVariation) {
+            $products = collect([$product]);
+        } else {
+            $products = $product->variations;
+        }
+
+        foreach ($products as $_product) {
+            foreach($this->priceRuleOptionGroups as $priceRuleOptionGroup){
+                $validateResults[] = $priceRuleOptionGroup->validateProduct($_product);
+            }
+        }
+
+        if(count(array_unique($validateResults)) === 1){
+            return current($validateResults);
+        }
+
+        return FALSE;
     }
 
     // Statics

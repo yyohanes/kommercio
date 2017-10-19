@@ -209,7 +209,7 @@ class CartPriceRule extends Model implements StoreManagedInterface
             return current($validateResults);
         }
 
-        return TRUE;
+        return FALSE;
     }
 
     public function getProducts()
