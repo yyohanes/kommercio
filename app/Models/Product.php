@@ -973,8 +973,10 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface, Cac
             $lastThreeDays = clone $lastDayOfMonth;
             $lastThreeDays->modify('-3 days');
 
+            $now = Carbon::now()->setTime(0, 0, 0);
+
             // If last 3 days of month, start searching next month
-            if ($lastThreeDays->lte(Carbon::now()) && $lastDayOfMonth->gte(Carbon::now())) {
+            if ($lastThreeDays->lte($now) && $lastDayOfMonth->gte($now)) {
                 $dayToRun->modify('+1 month');
                 $lastDayOfMonth->modify('last day of next month');
             }
