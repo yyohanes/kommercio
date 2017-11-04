@@ -169,6 +169,8 @@ class OrderController extends Controller
 
     public function addToCart(Request $request)
     {
+        $order = FrontendHelper::getCurrentOrder('save');
+
         if($request->has('products')){
             $rules = [
                 'products.*.product_id' => 'required|exists:products,id,deleted_at,NULL|is_available|is_active|is_in_stock:'.$request->input('quantity').'|is_purchaseable',
@@ -180,7 +182,10 @@ class OrderController extends Controller
         }else{
             $rules = [
                 'product_id' => 'required|exists:products,id,deleted_at,NULL|is_available|is_active|is_in_stock:'.$request->input('quantity').'|is_purchaseable',
-                'quantity' => 'required|integer|min:0'
+                'quantity' => 'required|integer|min:0',
+                'per_order_limit:'.$request->input('quantity').','.$order->id,
+                'delivery_order_limit:'.$request->input('quantity').','.$order->id.($order->delivery_date?','.$order->delivery_date->format('Y-m-d'):null),
+                'today_order_limit:'.$request->input('quantity').','.$order->id,
             ];
 
             $product = RuntimeCache::getOrSet('product.'.$request->input('product_id'), function() use ($request){
@@ -192,8 +197,7 @@ class OrderController extends Controller
             if($product->composites->count() > 0){
                 foreach($product->composites as $composite){
                     $rules['product_composite.'.$composite->id] = $composite->minimum>0?'required|':'';
-                    $rules['product_composite.'.$composite->id] .= 'array|min:'.($composite->minimum+0);
-                    $rules['product_composite.'.$composite->id] .= $composite->maximum > 0?'|max:'.($composite->maximum+0):'';
+                    $rules['product_composite.'.$composite->id] .= 'array';
                 }
             }
 
@@ -250,8 +254,6 @@ class OrderController extends Controller
         $this->validate($request, $rules);
 
         $messages = [];
-
-        $order = FrontendHelper::getCurrentOrder('save');
 
         $added_products = [];
 
