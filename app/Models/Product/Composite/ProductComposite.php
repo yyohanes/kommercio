@@ -92,7 +92,7 @@ class ProductComposite extends SluggableModel
 
     public function defaultProducts()
     {
-        return $this->belongsToMany('Kommercio\Models\Product', 'product_composite_default_product')->withPivot('sort_order')->orderBy('sort_order', 'ASC');
+        return $this->belongsToMany('Kommercio\Models\Product', 'product_composite_default_product')->withPivot('sort_order', 'quantity')->orderBy('sort_order', 'ASC');
     }
 
     public function products()

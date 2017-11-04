@@ -106,23 +106,34 @@
 
 <hr/>
 
-@include('backend.master.form.fields.select', [
-    'name' => 'default_product[]',
-    'label' => 'Default Product',
-    'key' => 'default_product',
-    'attr' => [
-        'class' => 'form-control default-products-select',
-        'id' => 'products',
-        'multiple' => TRUE,
-        'data-remote_source' => $productSourceUrl,
-        'data-remote_value_property' => 'sku',
-        'data-remote_label_property' => 'name',
-    ],
-    'valueColumnClass' => 'col-md-6',
-    'options' => $defaultProducts,
-    'defaultOptions' => array_keys($defaultProducts),
-    'help_text' => 'You can select more than one Product'
-])
+<div class="form-group composite-default-products">
+    <label class="control-label col-md-3">
+        Default Products
+    </label>
+
+    <div class="col-md-9">
+        @include('backend.master.form.fields.text', [
+            'name' => '_default_products',
+            'label' => false,
+            'key' => '_default_products',
+            'attr' => [
+                'data-product_relation_type' => 'default_product',
+                'class' => 'form-control product-default-finder',
+                'placeholder' => 'Find product name...',
+                'data-typeahead_remote' => $productSourceUrl,
+                'data-typeahead_display' => 'sku',
+                'data-typeahead_label' => 'name',
+            ],
+        ])
+
+        <div class="default-products">
+            @foreach(old('default_product_product', $composite->exists ? $defaultProducts->pluck('id')->all() : []) as $idx => $defaultProductId)
+                <?php $defaultProduct = $composite->defaultProducts()->findOrFail($defaultProductId); ?>
+                @include('backend.catalog.product_composite.default_product_result', ['product' => $defaultProduct, 'quantity' => old('default_product_quantity.' . $idx, $defaultProduct->pivot->quantity), 'relation' => 'default_product'])
+            @endforeach
+        </div>
+    </div>
+</div>
 
 @section('bottom_page_scripts')
     @parent

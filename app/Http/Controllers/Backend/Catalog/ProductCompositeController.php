@@ -27,7 +27,7 @@ class ProductCompositeController extends Controller
     {
         $productCompositeGroup = ProductCompositeGroup::findOrFail($group_id);
         $composite = new ProductComposite();
-        $defaultProducts = [];
+        $defaultProducts = collect([]);
         $productCategoryOptions = ProductCategory::getPossibleParentOptions();
 
         $productSourceUrl = route('backend.catalog.product.autocomplete');
@@ -66,7 +66,7 @@ class ProductCompositeController extends Controller
             return $composite->id == $id;
         })->first();
 
-        $defaultProducts = $composite->defaultProducts->pluck('sku', 'id')->all();
+        $defaultProducts = $composite->defaultProducts;
 
         $productCategoryOptions = ProductCategory::getPossibleParentOptions();
 
@@ -155,9 +155,10 @@ class ProductCompositeController extends Controller
             ];
         }
 
-        foreach($request->input('default_product', []) as $idx => $defaultProduct){
+        foreach($request->input('default_product_product', []) as $idx => $defaultProduct){
             $defaultProductsData[$defaultProduct] = [
-                'sort_order' => $idx
+                'sort_order' => $idx,
+                'quantity' => $request->input('default_product_quantity.' . $idx, null),
             ];
         }
 

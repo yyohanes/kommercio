@@ -1010,11 +1010,12 @@ class ProductController extends Controller{
         return response()->json(['data' => $return, '_token' => csrf_token()]);
     }
 
-    public function getRelatedProduct($id, $type)
+    public function getRelatedProduct(Request $request, $id, $type)
     {
         $product = Product::findOrFail($id);
+        $template = $request->get('template', 'catalog.product.product_relation_result');
 
-        $return = view('backend.catalog.product.product_relation_result', [
+        $return = view('backend.' . $template, [
             'product' => $product,
             'relation' => $type
         ])->render();

@@ -31,7 +31,9 @@ class ProductCompositeFormRequest extends Request
             'composite_product.*' => 'nullable|numeric|exists:products,id',
             'product_category' => 'required_without:composite_product|array',
             'product_category.*' => 'nullable|numeric|exists:product_categories,id',
-            'default_product.*' => 'nullable|numeric|exists:products,id',
+            'default_product_product.*' => 'nullable|numeric|exists:products,id',
+            'default_product_quantity.*' => 'nullable|numeric|min:0',
+            'total_default_product_quantity' => 'nullable|numeric|max:' . $this->input('maximum')
         ];
 
         return $rules;
@@ -43,6 +45,12 @@ class ProductCompositeFormRequest extends Request
 
         if(!isset($attributes['free'])){
             $attributes['free'] = 0;
+        }
+
+        // Calculate for validation
+        $attributes['total_default_product_quantity'] = 0;
+        foreach ($this->input('default_product_quantity', []) as $defaultQty) {
+            $attributes['total_default_product_quantity'] += $defaultQty;
         }
 
         $this->replace($attributes);
