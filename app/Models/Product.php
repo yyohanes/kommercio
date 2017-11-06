@@ -1310,12 +1310,13 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface, Cac
         ProductIndexHelper::getProductIndexPriceQuery(false)->where('product_id', $this->id)->where('store_id', $this->store->id)->delete();
 
         $netPrice = $this->_calculateNetPrice();
+        $currency = $this->parent?$this->parent->productDetail->currency:$this->productDetail->currency;
         $priceIndex = [
             [
                 'root_product_id' => $this->parent?$this->parent->id:$this->id,
                 'product_id' => $this->id,
                 'value' => is_null($netPrice)?0:$netPrice,
-                'currency' => $this->parent?$this->parent->productDetail->currency:$this->productDetail->currency,
+                'currency' => $currency ? : $this->currency,
                 'store_id' => $this->store->id
             ]
         ];
