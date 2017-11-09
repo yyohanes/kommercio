@@ -18,8 +18,8 @@ var formBehaviors = function(){
                 'insertdatetime media table contextmenu paste code'
             ],
             toolbar: 'insertfile undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | hr link image media',
-            relative_urls : false,
-            document_base_url : global_vars.base_path,
+            relative_urls : true,
+            document_base_url : global_vars.base_path + '/',
             remove_trailing_brs: false,
             paste_as_text: true,
             file_browser_callback_types: 'file image media',
