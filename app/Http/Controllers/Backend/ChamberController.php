@@ -51,4 +51,9 @@ class ChamberController extends Controller{
             return redirect()->route('backend.login_form');
         }
     }
+
+    public function healthCheck()
+    {
+        return response('Healthy');
+    }
 }

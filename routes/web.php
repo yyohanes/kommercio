@@ -2486,3 +2486,8 @@ Route::group(['prefix' => 'file'], function(){
         'uses' => 'Backend\FileController@getFileByName'
     ]);
 });
+
+Route::get('health-check', [
+    'as' => 'health_check',
+    'uses' => 'Backend\ChamberController@healthCheck'
+]);
