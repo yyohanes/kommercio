@@ -36,6 +36,10 @@ class UrlAlias
      */
     public function handle($request, Closure $next, $guard = null)
     {
+        if (in_array($request->path(), ProjectHelper::getConfig('skip_url_alias'))) {
+            return $next($request);
+        }
+        
         $dupRequest = $request->duplicate();
 
         $request_uri = $dupRequest->server->get('REQUEST_URI');

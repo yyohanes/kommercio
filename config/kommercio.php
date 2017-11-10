@@ -131,4 +131,7 @@ return [
             'private' => true
         ]
     ],
+    'skip_url_alias' => [
+        'health-check'
+    ],
 ];
