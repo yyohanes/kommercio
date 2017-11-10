@@ -2477,7 +2477,8 @@ Route::get('images/{style}/{image}', 'ImageController@style')->where('image', '.
 
 Route::get('get-token', [
     'as' => 'frontend.auth.get_token',
-    'uses' => 'Frontend\Auth\AuthController@getToken'
+    'uses' => 'Frontend\Auth\AuthController@getToken',
+    'skip_url_alias' => true,
 ]);
 
 Route::group(['prefix' => 'file'], function(){

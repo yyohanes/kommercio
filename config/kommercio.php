@@ -132,6 +132,10 @@ return [
         ]
     ],
     'skip_url_alias' => [
-        'health-check'
+        '/health-check/',
+        '/get-token/',
+        '/address\/.+\/options\/?.*/',
+        '/file\/get\/.+\/[0-9]+/',
+        '/images\/.+\/.+/',
     ],
 ];
