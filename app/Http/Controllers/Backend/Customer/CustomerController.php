@@ -76,10 +76,11 @@ class CustomerController extends Controller{
                 $qb->skip($request->input('start'));
             }
 
-            $customers = $qb->get();
-
             if ($request->input('internal_export')) {
+                $customers = $qb->select('id')->get();
                 return $customers;
+            } else {
+                $customers = $qb->get();
             }
 
             $meat = $this->prepareDatatables($customers, $request->input('start'));
