@@ -77,7 +77,7 @@ class CustomerController extends Controller{
             }
 
             if ($request->input('internal_export')) {
-                $customers = $qb->select('id')->get();
+                $customers = $qb->select('customers.id')->get();
                 return $customers;
             } else {
                 $customers = $qb->get();
