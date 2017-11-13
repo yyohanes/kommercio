@@ -37,6 +37,7 @@ use Kommercio\Models\Profile\Profile;
 use Kommercio\Facades\PriceFormatter;
 use Kommercio\Models\ShippingMethod\ShippingMethod;
 use Kommercio\Models\Tax;
+use Kommercio\Models\Store;
 use Maatwebsite\Excel\Facades\Excel;
 
 class OrderController extends Controller{
@@ -1272,6 +1273,14 @@ class OrderController extends Controller{
         switch($type){
             case 'product':
                 $model = Product::findOrFail($id);
+                
+                if ($request->has('store_id')) {
+                    $store = Store::find($request->input('store_id'));
+
+                    if ($store) {
+                        $model->store = $store;
+                    }
+                }
                 break;
             default:
                 break;
