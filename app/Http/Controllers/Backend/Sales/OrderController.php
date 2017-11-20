@@ -51,7 +51,7 @@ class OrderController extends Controller{
             ->belongsToStore($userManagedStores->pluck('id')->all())
             ->where('status', '<>', Order::STATUS_CART);
 
-        if($request->ajax() || $request->wantsJson()){
+        if($request->ajax() || $request->wantsJson() || $request->input('internal_export')){
             $totalRecords = $qb->count();
 
             foreach($request->input('filter', []) as $searchKey=>$search){
@@ -213,7 +213,13 @@ class OrderController extends Controller{
                 $qb->skip($request->input('start'));
             }
 
-            $orders = $qb->get();
+            if ($request->input('internal_export')) {
+                $orders = $qb->select('orders.id')->get();
+
+                return $orders;
+            } else {
+                $orders = $qb->get();
+            }
 
             $meat = $this->prepareDatatables($orders, $request->input('start'));
 

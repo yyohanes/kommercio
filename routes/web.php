@@ -1628,6 +1628,12 @@ Route::group(['middleware' => ['web']], function () {
                         'as' => 'backend.utility.export.customer',
                         'uses' => 'ExportController@customer',
                     ]);
+                    
+                    Route::any('order', [
+                        'as' => 'backend.utility.export.order',
+                        'uses' => 'ExportController@order',
+                        'permissions' => ['export_product']
+                    ]);
 
                     Route::get('download/{batch_id}', [
                         'as' => 'backend.utility.export.download',

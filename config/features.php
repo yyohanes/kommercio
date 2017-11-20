@@ -6,7 +6,8 @@ return [
         'delivery_order' => false,
         'print' => [
             'packaging_slip' => false
-        ]
+        ],
+        'export' => true
     ],
     'catalog' => [
         'product_attributes' => true,

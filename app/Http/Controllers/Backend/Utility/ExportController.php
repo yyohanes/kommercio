@@ -13,7 +13,9 @@ use Kommercio\Http\Controllers\Backend\Report\ReportController;
 use Kommercio\Http\Requests;
 use Kommercio\Http\Controllers\Controller;
 use Kommercio\Http\Controllers\Backend\Customer\CustomerController;
+use Kommercio\Http\Controllers\Backend\Sales\OrderController;
 use Kommercio\Models\Customer;
+use Kommercio\Models\Order\Order;
 use Kommercio\Utility\Export\Batch;
 use Kommercio\Utility\Export\Item;
 use Maatwebsite\Excel\Facades\Excel;
@@ -167,6 +169,58 @@ class ExportController extends Controller
 
             return [
                 'totalCustomers' => $totalCustomers
+            ];
+        });
+    }
+
+    public function order(Request $request)
+    {
+        // Inject internal_export to $request
+        $request->replace($request->all() + ['internal_export' => TRUE]);
+
+        $orderController = new OrderController();
+        $orders = $orderController->index($request);
+
+        $return = $this->processBatch($orders, $request, 'order', [], function($ids, $rowNumber){
+            $data = [];
+
+            if($rowNumber == 0){
+                $data[] = ['reference', 'checkout_at', 'delivery_date', 'customer', 'customer_name', 'customer_phone', 'recipient', 'recipient_name', 'recipient_phone', 'total', 'payment_method', 'outstanding', 'status', 'store'];
+            }
+
+            foreach($ids as $orderId){
+                $order = Order::find($orderId);
+
+                if($order){
+                    $data[] = [
+                        $order->reference,
+                        $order->checkout_at ? $order->checkout_at->format('Y-m-d H:i:s') : null,
+                        $order->delivery_date ? $order->delivery_date->format('Y-m-d H:i:s') : null,
+                        $order->billingInformation->email,
+                        $order->billingInformation->full_name,
+                        $order->billingInformation->phone_number,
+                        $order->shippingInformation->email,
+                        $order->shippingInformation->full_name,
+                        $order->shippingInformation->phone_number,
+                        $order->total,
+                        $order->paymentMethod->name,
+                        $order->getOutstandingAmount(),
+                        Order::getStatusOptions($order->status, TRUE),
+                        $order->store->name,
+                    ];
+                }
+            }
+
+            return [
+                'rows' => $data
+            ];
+        });
+
+        return $this->processResponse('backend.utility.export.form.order', $return, $request, function() use ($orders){
+            $totalOrders = $orders->count();
+
+            return [
+                'totalOrders' => $totalOrders
             ];
         });
     }

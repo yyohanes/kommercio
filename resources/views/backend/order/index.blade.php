@@ -44,8 +44,15 @@
                 </div>
                 <div class="actions">
                     @can('access', ['create_order'])
-                    <a href="{{ route('backend.sales.order.create', ['backUrl' => Request::fullUrl()]) }}" class="btn btn-sm btn-info">
-                        <i class="fa fa-plus"></i> Add </a>
+                        <a href="{{ route('backend.sales.order.create', ['backUrl' => Request::fullUrl()]) }}" class="btn btn-sm btn-info">
+                            <i class="fa fa-plus"></i> Add </a>
+                    @endcan
+
+                    @can('access', ['export_order'])
+                        @if(ProjectHelper::isFeatureEnabled('order.export'))
+                        <a href="{{ route('backend.utility.export.order', Request::except('external_filter') + ['backUrl' => Request::fullUrl()]) }}" class="btn btn-sm btn-default">
+                            <i class="fa fa-file-o"></i> Export </a>
+                        @endif
                     @endcan
                 </div>
             </div>
