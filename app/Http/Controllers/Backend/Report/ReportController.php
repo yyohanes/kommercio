@@ -241,7 +241,8 @@ class ReportController extends Controller
             Excel::create('Delivery Report '.$filter['date'], function($excel) use ($filter, $orders, $orderedProducts, $shippingMethod, $deliveryDate) {
                 $excel->setDescription('Delivery Report '.$filter['date']);
                 $excel->sheet('Sheet 1', function($sheet) use ($filter, $orders, $orderedProducts, $shippingMethod, $deliveryDate){
-                    $sheet->loadView('backend.report.export.xls.delivery', [
+                    $exportTemplate = ProjectHelper::getViewTemplate('backend.report.export.xls.delivery');
+                    $sheet->loadView($exportTemplate, [
                         'filter' => $filter,
                         'orders' => $orders,
                         'shippingMethod' => $shippingMethod,
