@@ -12,6 +12,7 @@ class VerifyCsrfToken extends BaseVerifier
      * @var array
      */
     protected $except = [
-        'payment-method/midtrans/snap/notify'
+        'payment-method/midtrans/snap/notify',
+        'payment-method/stripe/notify',
     ];
 }

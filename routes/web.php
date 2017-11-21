@@ -2460,6 +2460,14 @@ Route::group(['middleware' => ['web']], function () {
                 ]);
             });
         });
+
+        //Stripe
+        Route::group(['namespace' => 'Stripe', 'prefix' => 'stripe'], function(){
+            Route::post('notify', [
+                'as' => 'frontend.payment_method.stripe.notify',
+                'uses' => 'StripeController@notify'
+            ]);
+        });
     });
 
     Route::post('availability/calendar', [
