@@ -682,6 +682,7 @@ class OrderController extends Controller{
     {
         $order = Order::findOrFail($id);
         $invoice = $order->invoices->first();
+        $invoice = $invoice ? : new Invoice();
 
         $lineItems = old('line_items', $order->lineItems);
 
