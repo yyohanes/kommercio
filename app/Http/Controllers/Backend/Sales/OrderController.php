@@ -364,7 +364,7 @@ class OrderController extends Controller{
             $orderTotal = PriceFormatter::formatNumber($order->total, $order->currency).'<div class="expanded-detail" data-ajax_load="'.route('backend.sales.order.quick_content_view', ['id' => $order->id]).'"></div>';
             $rowMeat = array_merge($rowMeat, [$orderTotal]);
 
-            if(Gate::allows('access', ['view_payment'])):
+            if(Gate::allows('access', ['view_payment']) && $order->paymentMethod):
                 $rowMeat[] = '<span id="order-'.$order->id.'-payment-method">'.$order->paymentMethod->name.'</span>'.(!$order->isFinal?'<a class="btn btn-default btn-xs" data-inline_update_target="order-'.$order->id.'-payment-method" data-inline_update="'.route('backend.sales.order.quick_update', ['id' => $order->id, 'type' => 'payment_method']).'"><i class="fa fa-pencil"></i></a>':'');
                 $outstanding = '<label class="label label-sm label-'.($order->outstanding > 0?'warning':'success').'">'.PriceFormatter::formatNumber($order->outstanding).'</label>';
                 if($order->payments->count() > 0){
