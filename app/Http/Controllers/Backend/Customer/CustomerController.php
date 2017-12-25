@@ -174,7 +174,7 @@ class CustomerController extends Controller{
             }
         }
 
-        $customer = Customer::saveCustomer($request->input('profile'), $accountData);
+        $customer = Customer::saveCustomer(null, $request->input('profile'), $accountData);
 
         $customer->customerGroups()->sync($request->input('customer_groups', []));
 
@@ -210,7 +210,10 @@ class CustomerController extends Controller{
                 $accountData['password'] = $request->input('user.password');
             }
         }
-        $customer = Customer::saveCustomer($request->input('profile'), $accountData);
+
+        $profileData = $request->input('profile');
+        $customer = Customer::find($id);
+        $customer = Customer::saveCustomer($customer, $profileData, $accountData);
 
         $customer->customerGroups()->sync($request->input('customer_groups', []));
 

@@ -41,7 +41,12 @@ class UrlAlias
         $request_uri = $dupRequest->server->get('REQUEST_URI');
         $request_uri_string = substr($request_uri,1);
 
-        foreach (ProjectHelper::getConfig('skip_url_alias', []) as $skipRule) {
+        $skipUrlAliases = array_merge(
+            config('project.skip_url_alias', []),
+            config('kommercio.skip_url_alias', [])
+        );
+
+        foreach ($skipUrlAliases as $skipRule) {
             if (preg_match($skipRule, $request_uri_string)) {
                 return $next($request);
             }

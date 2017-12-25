@@ -59,6 +59,8 @@ class BackendServiceProvider extends ServiceProvider
         $this->app['events']->listen('eloquent.saved*', function ($eventName, $models) {
             $model = $models[0];
 
+            $traits = class_uses($model);
+
             // Because translations are not saved if model is not dirty, force save it for cache busting
             if (count($model->getDirty()) < 1) {
                 if(method_exists($model, 'translations')){
@@ -76,6 +78,10 @@ class BackendServiceProvider extends ServiceProvider
                 foreach($model->getCacheKeys() as $cacheKey){
                     Cache::forget($cacheKey);
                 }
+            }
+
+            if(in_array('Kommercio\Traits\Model\FlatIndexable', $traits)){
+                $model->saveFlatIndex();
             }
         });
 
@@ -118,6 +124,10 @@ class BackendServiceProvider extends ServiceProvider
                 foreach($model->getCacheKeys() as $cacheKey){
                     Cache::forget($cacheKey);
                 }
+            }
+
+            if(in_array('Kommercio\Traits\Model\FlatIndexable', $traits)){
+                $model->deleteFlatIndex();
             }
         });
 

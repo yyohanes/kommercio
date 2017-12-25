@@ -422,7 +422,7 @@ class OrderController extends Controller
 
             $profileData = $request->input('billingProfile');
 
-            $customer = Customer::saveCustomer($profileData, null, false);
+            $customer = Customer::saveCustomer(null, $profileData, null, false);
 
             if($customer){
                 $order->customer()->associate($customer);
@@ -643,7 +643,7 @@ class OrderController extends Controller
                 }elseif($process == 'register'){
                     $this->validate($request, $this->getCheckoutRuleBook('register', $request, $order));
 
-                    $newCustomer = Customer::saveCustomer(['email' => $request->input('billingProfile.email'), 'full_name' => $request->input('name')], ['email' => $request->input('billingProfile.email'), 'password' => $request->input('password')]);
+                    $newCustomer = Customer::saveCustomer(null, ['email' => $request->input('billingProfile.email'), 'full_name' => $request->input('name')], ['email' => $request->input('billingProfile.email'), 'password' => $request->input('password')]);
                     if($request->input('signup_newsletter', null) == 1){
                         NewsletterSubscriptionHelper::subscribe('default', $request->input('billingProfile.email'), $request->input('name'));
                     }
@@ -879,7 +879,7 @@ class OrderController extends Controller
                         }
 
                         $profileData = $order->billingInformation->getDetails();
-                        $viewData['customer'] = Customer::saveCustomer($profileData, null, FALSE);
+                        $viewData['customer'] = Customer::saveCustomer(null, $profileData, null, FALSE);
 
                         $nextStep = 'complete';
                     }

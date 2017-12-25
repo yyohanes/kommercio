@@ -36,7 +36,7 @@ class CustomerFormRequest extends Request
             'profile.salute' => 'nullable|in:'.implode(',', $saluteAllowedOptions),
             'profile.full_name' => 'required',
             'profile.birthday' => 'nullable|date_format:Y-m-d',
-            'user.password' => 'confirmed|min:6',
+            'user.password' => ($user ? '' : 'nullable|') . 'confirmed|min:6',
             'user.status' => 'required_with:user.create_account|in:'.implode(',', $statusAllowedOptions),
             'store_id' => 'required|integer',
         ];

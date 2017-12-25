@@ -137,5 +137,7 @@ return [
         '/address\/.+\/options\/?.*/',
         '/file\/get\/.+\/[0-9]+/',
         '/images\/.+\/.+/',
+        '/one-page-checkout/',
+        '/availability\/calendar/'
     ],
 ];

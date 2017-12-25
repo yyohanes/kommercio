@@ -502,7 +502,7 @@ class OrderController extends Controller{
 
             $profileData = $request->input('profile');
 
-            $customer = Customer::saveCustomer($profileData, null, false);
+            $customer = Customer::saveCustomer(null, $profileData, null, false);
         }else{
             $order->status = Order::STATUS_ADMIN_CART;
         }
@@ -856,7 +856,7 @@ class OrderController extends Controller{
 
             $profileData = $request->input('profile');
 
-            $customer = Customer::saveCustomer($profileData, null, false);
+            $customer = Customer::saveCustomer(null, $profileData, null, false);
         }else{
 
         }

@@ -143,12 +143,16 @@ class Profile extends Model
 
         foreach($this->details as $profile){
             if(isset($details[$profile->identifier])){
-                if(trim($details[$profile->identifier]) == ''){
+                $detailValue = trim($details[$profile->identifier]);
+
+                if($detailValue == ''){
                     $profile->delete();
                 }else{
                     $profile->update([
-                        'value' => $details[$profile->identifier]
+                        'value' => $detailValue
                     ]);
+
+                    $this->profileDetails[$profile->identifier] = $detailValue;
                 }
             }
 

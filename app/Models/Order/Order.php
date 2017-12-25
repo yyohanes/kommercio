@@ -22,12 +22,13 @@ use Kommercio\Models\RewardPoint\RewardRule;
 use Kommercio\Models\ShippingMethod\ShippingMethod;
 use Kommercio\Models\Tax;
 use Kommercio\Traits\Model\AuthorSignature;
+use Kommercio\Traits\Model\FlatIndexable;
 use Kommercio\Traits\Model\HasDataColumn;
 use Kommercio\Models\Order\Payment;
 
 class Order extends Model implements AuthorSignatureInterface
 {
-    use SoftDeletes, AuthorSignature, HasDataColumn;
+    use SoftDeletes, AuthorSignature, HasDataColumn, FlatIndexable;
 
     const STATUS_CANCELLED = 'cancelled';
     const STATUS_ADMIN_CART = 'admin_cart';
@@ -42,6 +43,28 @@ class Order extends Model implements AuthorSignatureInterface
     protected $originalLineItems;
     protected $guarded = ['shippingProfile', 'billingProfile', 'invoices'];
     protected $dates = ['deleted_at', 'delivery_date', 'checkout_at'];
+
+    protected $flatTable = 'orders_index';
+    // TODO: Add more keys to flat index
+    protected $flatIndexables = [
+        'billingProfile.email',
+        'billingProfile.phone_number',
+        'billingProfile.address_1',
+        'billingProfile.address_2',
+        'billingProfile.postal_code',
+        'shippingProfile.email',
+        'shippingProfile.phone_number',
+        'shippingProfile.address_1',
+        'shippingProfile.address_2',
+        'shippingProfile.postal_code',
+        'getShippingLineItem().line_item_id',
+        'getSelectedShippingMethod()',
+        'ip_address',
+        'status',
+        'checkout_at',
+        'delivery_date',
+        'store_id',
+    ];
 
     //Relations
     public function lineItems()

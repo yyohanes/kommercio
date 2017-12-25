@@ -5,13 +5,15 @@ namespace Kommercio\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Kommercio\Facades\LanguageHelper;
+use Kommercio\Facades\RuntimeCache;
 use Kommercio\Models\Order\Order;
 use Kommercio\Models\RewardPoint\RewardPointTransaction;
 use Kommercio\Traits\Model\Profileable;
+use Kommercio\Traits\Model\FlatIndexable;
 
 class Customer extends Model
 {
-    use Profileable;
+    use Profileable, FlatIndexable;
 
     const SALUTE_MR = 'mr';
     const SALUTE_MRS = 'mrs';
@@ -27,6 +29,10 @@ class Customer extends Model
     ];
     protected $dates = ['last_active'];
     protected $profileKeys = ['profile'];
+    
+    protected $flatTable = 'customers_index';
+    // TODO: Add more keys to flat index
+    protected $flatIndexables = ['profile.email'];
 
     //Relations
     public function user()
@@ -190,13 +196,13 @@ class Customer extends Model
     }
 
     //Statics
-    public static function saveCustomer($profileData=null, $accountData=null, $touchAccount = TRUE, $newRegistration = FALSE)
+    public static function saveCustomer($customer = null, $profileData=null, $accountData=null, $touchAccount = TRUE, $newRegistration = FALSE)
     {
         if(!isset($profileData['email']) || !filter_var($profileData['email'], FILTER_VALIDATE_EMAIL)){
             throw new \Exception('Email is required when saving customer.');
         }
 
-        $customer = self::whereField('email', $profileData['email'])->first();
+        $customer = $customer ? : self::whereField('email', $profileData['email'])->first();
 
         if($newRegistration && $customer){
             $customer->is_virgin = TRUE;
@@ -238,11 +244,14 @@ class Customer extends Model
             }
         }
 
-        $customer->save();
-
         if($customer->is_virgin){
+            // Customer needs to be saved before so profile knows it's owner
+            $customer->save();
             $customer->saveProfile($profileData);
         }
+
+        // Customer re-save to dispatch model `saved` event with updated profiles
+        $customer->save();
 
         return $customer;
     }
@@ -278,9 +287,21 @@ class Customer extends Model
 
     public static function getByEmail($email)
     {
-        $qb = self::whereField('email', $email);
+        if (empty($email)) {
+            return null;
+        }
 
-        return $qb->first();
+        return RuntimeCache::getOrSet('customer_email_' . $email, function() use ($email) {
+            // Find from flat index only
+            $customer = Customer::flatFindBy('profile_email', $email);
+
+            // if (empty($customer)) {
+            //     $qb = self::whereField('email', $email);
+            //     $customer = $qb->first();
+            // }
+
+            return $customer;
+        });
     }
 
     public static function searchCustomers($keyword)

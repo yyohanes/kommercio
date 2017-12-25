@@ -194,7 +194,7 @@ class AuthController extends Controller
             'email' => $data['email']
         ];
 
-        $customer = Customer::saveCustomer($profileData, $accountData, true, true);
+        $customer = Customer::saveCustomer(null, $profileData, $accountData, true, true);
 
         if(isset($data['signup_newsletter']) && $data['signup_newsletter'] == 1){
             NewsletterSubscriptionHelper::subscribe('default', $accountData['email'], $profileData['full_name']);

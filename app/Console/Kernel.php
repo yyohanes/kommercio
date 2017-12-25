@@ -7,6 +7,7 @@ use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 use Illuminate\Support\Facades\Event;
 use Kommercio\Console\Commands\ReindexProduct;
 use Kommercio\Console\Commands\WipeData;
+use Kommercio\Console\Commands\ReFlatIndex;
 use Kommercio\Events\Cron as CronEvent;
 
 class Kernel extends ConsoleKernel
@@ -18,7 +19,8 @@ class Kernel extends ConsoleKernel
      */
     protected $commands = [
         WipeData::class,
-        ReindexProduct::class
+        ReindexProduct::class,
+        ReFlatIndex::class,
     ];
 
     /**

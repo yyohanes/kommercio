@@ -44,7 +44,7 @@ class SocialAccount extends Model
                     'email' => $socialiteUser->getEmail()
                 ];
 
-                $customer = Customer::saveCustomer($profileData, $accountData, true, true);
+                $customer = Customer::saveCustomer(null, $profileData, $accountData, true, true);
                 $user = $customer->user;
             }
 
