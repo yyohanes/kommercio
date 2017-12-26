@@ -2,7 +2,9 @@
 
 namespace Kommercio\Models\Address;
 
-class Country extends Address
+use Kommercio\Models\Interfaces\CacheableInterface;
+
+class Country extends Address implements CacheableInterface
 {
     protected $table = 'address_countries';
 
@@ -10,5 +12,18 @@ class Country extends Address
     public function states()
     {
         return $this->hasMany('Kommercio\Models\Address\State')->orderBy('sort_order', 'ASC');
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getCacheKeys()
+    {
+        $tableName = $this->getTable();
+        $keys = [
+            $tableName . '_all',
+        ];
+
+        return $keys;
     }
 }

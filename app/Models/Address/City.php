@@ -2,7 +2,9 @@
 
 namespace Kommercio\Models\Address;
 
-class City extends Address
+use Kommercio\Models\Interfaces\CacheableInterface;
+
+class City extends Address implements CacheableInterface
 {
     protected $table = 'address_cities';
 
@@ -15,5 +17,19 @@ class City extends Address
     public function districts()
     {
         return $this->hasMany('Kommercio\Models\Address\District')->orderBy('sort_order', 'ASC');
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getCacheKeys()
+    {
+        $tableName = $this->getTable();
+        $keys = [
+            $tableName . '_all',
+            $tableName . '_state_' . $this->state->id . '_cities',
+        ];
+
+        return $keys;
     }
 }

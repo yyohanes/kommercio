@@ -2,6 +2,7 @@
 
 namespace Kommercio\Helpers;
 
+use Illuminate\Support\Facades\Cache;
 use Kommercio\Models\Address\Area;
 use Kommercio\Models\Address\City;
 use Kommercio\Models\Address\Country;
@@ -19,14 +20,28 @@ class AddressHelper
 
     public function getCountries($active_only=TRUE)
     {
-        if(!isset($this->_countries) || $this->_alwaysRefresh){
-            $qb = Country::orderBy('sort_order', 'ASC')->orderBy('name', 'ASC');
+        $cacheKey = 'address_countries_all';
 
-            if($active_only){
-                $qb->active();
-            }
+        if ($this->_alwaysRefresh) {
+            Cache::forget($cacheKey);
+            unset($this->_countries);
+        }
 
-            $this->_countries = $qb->get();
+        if(!isset($this->_countries)){
+            $this->_countries = Cache::rememberForever(
+                $cacheKey,
+                function() {
+                    $qb = Country::orderBy('sort_order', 'ASC')->orderBy('name', 'ASC');
+
+                    return $qb->get();
+                }
+            );
+        }
+
+        if($active_only){
+            $this->_countries = $this->_countries->filter(function($country) {
+                return $country->active;
+            });
         }
 
         return $this->_countries;
@@ -41,18 +56,37 @@ class AddressHelper
 
     public function getStates($country_id=null, $active_only=TRUE)
     {
-        if(!isset($this->_states) || $this->_alwaysRefresh){
-            $qb = State::orderBy('name', 'ASC')->orderBy('name', 'ASC');
+        $country_id = intval($country_id);
+        $cacheKey = 'address_states_all';
 
-            if($country_id){
-                $qb->where('country_id', $country_id);
-            }
+        if ($country_id) {
+            $cacheKey = 'address_states_country_' . $country_id . '_states';
+        }
+        
+        if ($this->_alwaysRefresh) {
+            Cache::forget($cacheKey);
+            unset($this->_states);
+        }
 
-            if($active_only){
-                $qb->active();
-            }
+        if(!isset($this->_states)){
+            $this->_states = Cache::rememberForever(
+                $cacheKey,
+                function() use ($country_id) {
+                    $qb = State::orderBy('name', 'ASC')->orderBy('name', 'ASC');
 
-            $this->_states = $qb->get();
+                    if($country_id){
+                        $qb->where('country_id', $country_id);
+                    }
+
+                    return $qb->get();
+                }
+            );
+        }
+
+        if($active_only){
+            $this->_states = $this->_states->filter(function($state) {
+                return $state->active;
+            });
         }
 
         return $this->_states;
@@ -60,7 +94,7 @@ class AddressHelper
 
     public function getStateOptions($country_id=null, $active_only=TRUE)
     {
-        $country = Country::find($country_id);
+        $country = intval($country_id) ? Country::find($country_id) : null;
 
         if(!$country || !$country->has_descendant){
             return [];
@@ -73,18 +107,37 @@ class AddressHelper
 
     public function getCities($state_id=null, $active_only=TRUE)
     {
-        if(!isset($this->_cities) || $this->_alwaysRefresh){
-            $qb = City::orderBy('name', 'ASC')->orderBy('name', 'ASC');
+        $state_id = intval($state_id);
+        $cacheKey = 'address_cities_all';
+        
+        if ($state_id) {
+            $cacheKey = 'address_cities_state_' . $state_id . '_cities';
+        }
+        
+        if ($this->_alwaysRefresh) {
+            Cache::forget($cacheKey);
+            unset($this->_cities);
+        }
 
-            if($state_id){
-                $qb->where('state_id', $state_id);
-            }
+        if(!isset($this->_cities)){
+            $this->_cities = Cache::rememberForever(
+                $cacheKey,
+                function() use ($state_id) {
+                    $qb = City::orderBy('name', 'ASC')->orderBy('name', 'ASC');
 
-            if($active_only){
-                $qb->active();
-            }
+                    if($state_id){
+                        $qb->where('state_id', $state_id);
+                    }
 
-            $this->_cities = $qb->get();
+                    return $qb->get();
+                }
+            );
+        }
+
+        if($active_only){
+            $this->_cities = $this->_cities->filter(function($city) {
+                return $city->active;
+            });
         }
 
         return $this->_cities;
@@ -92,7 +145,7 @@ class AddressHelper
 
     public function getCityOptions($state_id=null, $active_only=TRUE)
     {
-        $state = State::find($state_id);
+        $state = intval($state_id) ? State::find($state_id) : null;
 
         if(!$state || !$state->has_descendant){
             return [];
@@ -105,18 +158,37 @@ class AddressHelper
 
     public function getDistricts($city_id=null, $active_only=TRUE)
     {
-        if(!isset($this->_districts) || $this->_alwaysRefresh){
-            $qb = District::orderBy('name', 'ASC')->orderBy('name', 'ASC');
+        $city_id = intval($city_id);
+        $cacheKey = 'address_districts_all';
+        
+        if ($city_id) {
+            $cacheKey = 'address_districts_city_' . $city_id . '_districts';
+        }
+        
+        if ($this->_alwaysRefresh) {
+            Cache::forget($cacheKey);
+            unset($this->_districts);
+        }
 
-            if($city_id){
-                $qb->where('city_id', $city_id);
-            }
+        if(!isset($this->_districts)){
+            $this->_districts = Cache::rememberForever(
+                $cacheKey,
+                function() use ($city_id) {
+                    $qb = District::orderBy('name', 'ASC')->orderBy('name', 'ASC');
 
-            if($active_only){
-                $qb->active();
-            }
+                    if($city_id){
+                        $qb->where('city_id', $city_id);
+                    }
 
-            $this->_districts = $qb->get();
+                    return $qb->get();
+                }
+            );
+        }
+
+        if($active_only){
+            $this->_districts = $this->_districts->filter(function($district) {
+                return $district->active;
+            });
         }
 
         return $this->_districts;
@@ -124,7 +196,7 @@ class AddressHelper
 
     public function getDistrictOptions($city_id=null, $active_only=TRUE)
     {
-        $city = City::find($city_id);
+        $city = intval($city_id) ? City::find($city_id) : null;
 
         if(!$city || !$city->has_descendant){
             return [];
@@ -137,18 +209,37 @@ class AddressHelper
 
     public function getAreas($district_id=null, $active_only=TRUE)
     {
-        if(!isset($this->_areas) || $this->_alwaysRefresh){
-            $qb = Area::orderBy('name', 'ASC')->orderBy('name', 'ASC');
+        $district_id = intval($district_id);
+        $cacheKey = 'address_areas_all';
+        
+        if (!empty($district_id)) {
+            $cacheKey = 'address_areas_district_' . $district_id . '_areas';
+        }
+        
+        if ($this->_alwaysRefresh) {
+            Cache::forget($cacheKey);
+            unset($this->_areas);
+        }
 
-            if($district_id){
-                $qb->where('district_id', $district_id);
-            }
+        if(!isset($this->_areas)){
+            $this->_areas = Cache::rememberForever(
+                $cacheKey,
+                function() use ($district_id) {
+                    $qb = Area::orderBy('name', 'ASC')->orderBy('name', 'ASC');
 
-            if($active_only){
-                $qb->active();
-            }
+                    if($district_id){
+                        $qb->where('district_id', $district_id);
+                    }
 
-            $this->_areas = $qb->get();
+                    return $qb->get();
+                }
+            );
+        }
+
+        if($active_only){
+            $this->_areas = $this->_areas->filter(function($area) {
+                return $area->active;
+            });
         }
 
         return $this->_areas;
@@ -156,7 +247,7 @@ class AddressHelper
 
     public function getAreaOptions($district_id=null, $active_only=TRUE)
     {
-        $district = District::find($district_id);
+        $district = intval($district_id) ? District::find($district_id) : null;
 
         if(!$district || !$district->has_descendant){
             return [];
