@@ -25,6 +25,8 @@ trait MediaAttachable{
                 'temp' => false
             ]);
         }
+
+        $this->save();
     }
 
     public function detachMedia($media, $type=null)
@@ -32,6 +34,8 @@ trait MediaAttachable{
         foreach($media as $medium){
             $this->media($type)->detach($medium);
         }
+
+        $this->save();
     }
 
     public function syncMedia($media, $type=null, $markPermanent=true)
@@ -51,6 +55,8 @@ trait MediaAttachable{
                 $file->delete();
             }
         }
+
+        $this->save();
     }
 
     public function clearMedia($type, $delete=FALSE)
@@ -66,10 +72,13 @@ trait MediaAttachable{
                 }
             }
         }
+
+        $this->save();
     }
 
     public function deleteMedia($type)
     {
         $this->clearMedia($type, TRUE);
+        $this->save();
     }
 }
