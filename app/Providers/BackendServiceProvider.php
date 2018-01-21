@@ -76,7 +76,14 @@ class BackendServiceProvider extends ServiceProvider
 
             if ($model instanceof CacheableInterface) {
                 foreach($model->getCacheKeys() as $cacheKey){
-                    Cache::forget($cacheKey);
+                    // array is for tags
+                    if (is_array($cacheKey)) {
+                        if(Cache::getStore() instanceof \Illuminate\Cache\TaggableStore) {
+                            Cache::tags($cacheKey)->flush();
+                        }
+                    } else {
+                        Cache::forget($cacheKey);
+                    }
                 }
             }
 
@@ -122,7 +129,14 @@ class BackendServiceProvider extends ServiceProvider
 
             if ($model instanceof CacheableInterface) {
                 foreach($model->getCacheKeys() as $cacheKey){
-                    Cache::forget($cacheKey);
+                    // array is for tags
+                    if (is_array($cacheKey)) {
+                        if(Cache::getStore() instanceof \Illuminate\Cache\TaggableStore) {
+                            Cache::tags($cacheKey)->flush();
+                        }
+                    } else {
+                        Cache::forget($cacheKey);
+                    }
                 }
             }
 

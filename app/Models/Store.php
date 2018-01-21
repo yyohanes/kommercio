@@ -114,10 +114,21 @@ class Store extends Model implements CacheableInterface
      */
     public function getOpeningTimes(Carbon $time = null)
     {
-        return $this->openingTimes()
-            ->withinDate($time->format('Y-m-d'))
-            ->withinTime($time->format('H:i:s'))
-            ->get();
+        if(Cache::getStore() instanceof \Illuminate\Cache\TaggableStore) {
+            $openingTimes = Cache::tags([$this->getTable() . '_' . $this->id . '_opening_times'])->rememberForever($this->getTable() . '_' . $this->id . '_opening_times_' . $time->format('U'), function() use ($time) {
+                return $this->openingTimes()
+                    ->withinDate($time->format('Y-m-d'))
+                    ->withinTime($time->format('H:i:s'))
+                    ->get();
+            });
+        } else {
+            $openingTimes = $this->openingTimes()
+                ->withinDate($time->format('Y-m-d'))
+                ->withinTime($time->format('H:i:s'))
+                ->get();
+        }
+
+        return $openingTimes;
     }
 
     /**
@@ -127,7 +138,10 @@ class Store extends Model implements CacheableInterface
     {
         $tableName = $this->getTable();
         $keys = [
-            $tableName.'_'.$this->id.'.taxes'
+            $tableName.'_'.$this->id.'.taxes',
+            [
+                $this->getTable() . '_' . $this->id . '_opening_times',
+            ],
         ];
 
         return $keys;
