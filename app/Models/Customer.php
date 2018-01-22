@@ -202,7 +202,7 @@ class Customer extends Model
             throw new \Exception('Email is required when saving customer.');
         }
 
-        $customer = $customer ? : self::whereField('email', $profileData['email'])->first();
+        $customer = $customer ? : self::getByEmail($profileData['email']);
 
         if($newRegistration && $customer){
             $customer->is_virgin = TRUE;
