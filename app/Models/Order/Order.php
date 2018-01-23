@@ -844,7 +844,7 @@ class Order extends Model implements AuthorSignatureInterface
     {
         $paidAmount = $this->getPaidAmount();
 
-        return abs($this->total - $paidAmount);
+        return $this->total - $paidAmount;
     }
 
     /**
