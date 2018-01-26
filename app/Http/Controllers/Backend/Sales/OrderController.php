@@ -17,6 +17,7 @@ use Kommercio\Events\OrderUpdate;
 use Kommercio\Facades\AddressHelper;
 use Kommercio\Facades\LanguageHelper;
 use Kommercio\Facades\OrderHelper;
+use Barryvdh\DomPDF\Facade as PDF;
 use Kommercio\Facades\ProjectHelper;
 use Kommercio\Facades\RuntimeCache;
 use Kommercio\Http\Controllers\Controller;
@@ -305,7 +306,8 @@ class OrderController extends Controller{
 
             $printActions = '';
             if(Gate::allows('access', ['print_invoice']) && $order->isPrintable):
-                $printActions .= '<li><a href="' . route('backend.sales.order.print', ['id' => $order->id]) . '" target="_blank">Invoice</a></li>';
+                $printActions .= '<li><a href="' . route('backend.sales.order.print', ['id' => $order->id, 'type' => 'invoice']) . '" target="_blank">Invoice</a></li>';
+                $printActions .= '<li><a href="' . route('backend.sales.order.print', ['id' => $order->id, 'type' => 'invoice', 'pdf' => true]) . '" target="_blank">Invoice (PDF)</a></li>';
             endif;
 
             if(Gate::allows('access', ['view_delivery_order']) && $order->isPrintable && ProjectHelper::isFeatureEnabled('order.print.packaging_slip', false)){
@@ -671,6 +673,14 @@ class OrderController extends Controller{
                     ]);
                 });
             })->download('xls');
+        }
+
+        if($request->input('pdf', false)){
+            $pdf = PDF::loadView(ProjectHelper::getViewTemplate('print.pdf.order.invoice'), [
+                'order' => $order,
+            ]);
+
+            return $pdf->download('Invoice #'.$order->reference . '.pdf');
         }
 
         return view(ProjectHelper::getViewTemplate('print.order.invoice'), [

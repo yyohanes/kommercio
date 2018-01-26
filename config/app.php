@@ -180,6 +180,7 @@ return [
         \Unisharp\Laravelfilemanager\LaravelFilemanagerServiceProvider::class,
         \Laravel\Socialite\SocialiteServiceProvider::class,
         \Barryvdh\HttpCache\ServiceProvider::class,
+        \Barryvdh\DomPDF\ServiceProvider::class,
 
         /*
          * Application Service Providers...
@@ -259,6 +260,7 @@ return [
         'KommercioAPIHelper' => \Kommercio\Facades\KommercioAPIHelper::class,
         'RuntimeCache' => \Kommercio\Facades\RuntimeCache::class,
         'ProductIndexHelper' => \Kommercio\Facades\ProductIndexHelper::class,
+        'PDF' => Barryvdh\DomPDF\Facade::class,
     ],
 
 ];
