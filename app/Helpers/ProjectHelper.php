@@ -2,6 +2,7 @@
 
 namespace Kommercio\Helpers;
 
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Request as RequestFacade;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -161,11 +162,11 @@ class ProjectHelper
 
         foreach($array as $idx => $arrayValue){
             if($arrayValue !== null){
-                $keys[] = $idx.':'.$arrayValue;
+                $keys[] = $idx.'_'.$arrayValue;
             }
         }
 
-        return implode(';', $keys);
+        return implode('_', $keys);
     }
 
     //Configs
@@ -209,6 +210,10 @@ class ProjectHelper
     public function isFeatureEnabled($key, $default = false)
     {
         return config('project.features.'.$key, config('features.'.$key, $default));
+    }
+
+    public function cacheIsTaggable() {
+        return Cache::getStore() instanceof \Illuminate\Cache\TaggableStore;
     }
 
     public function getClientName()

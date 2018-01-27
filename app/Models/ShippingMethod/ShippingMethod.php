@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Kommercio\Facades\CurrencyHelper;
 use Kommercio\Facades\PriceFormatter;
 use Kommercio\Facades\ProjectHelper;
+use Kommercio\Models\Interfaces\CacheableInterface;
 use Kommercio\Models\Order\Order;
 use Kommercio\Models\Store;
 use Kommercio\Models\PaymentMethod\PaymentMethod;

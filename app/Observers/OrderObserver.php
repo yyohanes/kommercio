@@ -67,8 +67,7 @@ class OrderObserver
                 foreach($toUpdate as $toUpdateKey => $toUpdateList){
                     foreach($toUpdateList as $updatedDate){
                         $options = $countOptions + [$toUpdateKey => $updatedDate];
-                        Cache::forget(ProjectHelper::flattenArrayToKey($options));
-                        $toUpdateProduct->getOrderCount($options);
+                        Cache::forget('product_order_count_' . ProjectHelper::flattenArrayToKey($options));
                     }
                 }
             }

@@ -832,8 +832,9 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface, Cac
         if(isset($countOptions['exclude_order_id'])){
             unset($countOptions['exclude_order_id']);
         }
+        \Log::info(ProjectHelper::flattenArrayToKey($countOptions));
 
-        $total = Cache::rememberForever(ProjectHelper::flattenArrayToKey($countOptions), function() use ($countOptions){
+        $total = Cache::rememberForever('product_order_count_' . ProjectHelper::flattenArrayToKey($countOptions), function() use ($countOptions){
             $lineItemQb = LineItem::isProduct($this->id)
                 ->isRoot()
                 ->join('orders as O', 'O.id', '=', 'line_items.order_id')
@@ -884,6 +885,21 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface, Cac
     }
 
     public function getOrderLimit($options = [])
+    {
+        if (ProjectHelper::cacheIsTaggable()) {
+            $hash = ProjectHelper::flattenArrayToKey($options);
+
+            $orderLimit = Cache::tags(['order_limits'])->rememberForever($hash, function() use ($options) {
+                return $this->_getOrderLimit($options);
+            });
+
+            return $orderLimit;
+        }
+
+        return $this->_getOrderLimit($options);
+    }
+
+    protected function _getOrderLimit($options = [])
     {
         $store = !empty($options['store'])?$options['store']:null;
         $date = !empty($options['date'])?Carbon::createFromFormat('Y-m-d', $options['date']):null;

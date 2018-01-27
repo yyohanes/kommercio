@@ -4,11 +4,14 @@ namespace Kommercio\Models\Order;
 
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Cache;
+use Kommercio\Facades\ProjectHelper;
+use Kommercio\Models\Interfaces\CacheableInterface;
 use Kommercio\Models\Interfaces\StoreManagedInterface;
 use Kommercio\Models\Product;
 use Kommercio\Models\User;
 
-class OrderLimit extends Model implements StoreManagedInterface
+class OrderLimit extends Model implements StoreManagedInterface, CacheableInterface
 {
     const TYPE_PRODUCT = 'product';
     const TYPE_PRODUCT_CATEGORY = 'product_category';
@@ -84,6 +87,13 @@ class OrderLimit extends Model implements StoreManagedInterface
         }
 
         return $this->store_id && in_array($this->store_id, $user->getManagedStores()->pluck('id')->all());
+    }
+
+    public function getCacheKeys()
+    {
+        return [
+            ['order_limits'],
+        ];
     }
 
     //Scopes
@@ -246,6 +256,32 @@ class OrderLimit extends Model implements StoreManagedInterface
     }
 
     public static function getOrderLimits($options)
+    {
+        if (ProjectHelper::cacheIsTaggable()) {
+            $hashOptions = $options;
+
+            // Date constantly changing, force it for consistency
+            if (!empty($hashOptions['date'])) {
+                $hashOptions['date'] = $hashOptions['date']->setTime(0, 0, 0);
+            }
+
+            if (!empty($hashOptions['product'])) {
+                $hashOptions['product'] = $hashOptions['product']->id;
+            }
+
+            $hash = ProjectHelper::flattenArrayToKey($hashOptions);
+
+            $orderLimits = Cache::tags(['order_limits'])->rememberForever($hash, function() use ($options) {
+                return static::_getOrderLimits($options);
+            });
+
+            return $orderLimits;
+        }
+
+        return static::_getOrderLimits($options);
+    }
+
+    protected static function _getOrderLimits($options)
     {
         $qb = OrderLimit::active()
             ->orderBy('sort_order', 'ASC');

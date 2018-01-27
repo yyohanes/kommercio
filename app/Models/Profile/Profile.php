@@ -3,6 +3,7 @@
 namespace Kommercio\Models\Profile;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Cache;
 use Kommercio\Facades\RuntimeCache;
 use Kommercio\Models\Address\Area;
 use Kommercio\Models\Address\City;
@@ -10,8 +11,7 @@ use Kommercio\Models\Address\Country;
 use Kommercio\Models\Address\District;
 use Kommercio\Models\Address\State;
 
-class Profile extends Model
-{
+class Profile extends Model {
     protected $with = ['details'];
     protected $guarded = [];
     protected $profileDetails = [];
@@ -50,7 +50,15 @@ class Profile extends Model
 
     public function getDetails()
     {
-        $this->fillDetails();
+        if (!$this->exists) {
+            $profileDetails = Cache::rememberForever('profile_details_' . $this->id, function() {
+                $this->fillDetails();
+
+                return $this->profileDetails;
+            });
+
+            $this->profileDetails = $profileDetails;
+        }
 
         return $this->profileDetails;
     }
@@ -171,6 +179,8 @@ class Profile extends Model
                 ]);
             }
         }
+
+        Cache::forget('profile_details_' . $this->id);
     }
 
     //Accessors

@@ -3,8 +3,11 @@
 namespace Kommercio\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Cache;
+use Kommercio\Facades\ProjectHelper;
+use Kommercio\Models\Interfaces\CacheableInterface;
 
-class Tax extends Model
+class Tax extends Model implements CacheableInterface
 {
     protected $guarded = ['country', 'states', 'cities', 'districts', 'areas'];
     protected $casts = [
@@ -24,6 +27,15 @@ class Tax extends Model
     public function calculateTax($amount)
     {
         return $this->rate/100 * $amount;
+    }
+
+    public function getCacheKeys()
+    {
+        return [
+            [
+                'taxes',
+            ],
+        ];
     }
 
     //Scopes
@@ -66,8 +78,21 @@ class Tax extends Model
     //Statics
     public static function getTaxes($options)
     {
-        $qb = self::orderBy('sort_order', 'ASC')->active();
+        if(ProjectHelper::cacheIsTaggable()) {
+            $hash = ProjectHelper::flattenArrayToKey($options);
 
+            $taxes = Cache::tags(['taxes'])->rememberForever($hash, function() use ($options) {
+                return static::_getTaxes($options);
+            });
+
+            return $taxes;
+        }
+
+        return static::_getTaxes($options);
+    }
+
+    private static function _getTaxes($options)
+    {
         $country = !empty($options['country_id'])?$options['country_id']:null;
         $state = !empty($options['state_id'])?$options['state_id']:null;
         $city = !empty($options['city_id'])?$options['city_id']:null;
@@ -75,6 +100,8 @@ class Tax extends Model
         $area = !empty($options['area_id'])?$options['area_id']:null;
         $currency = !empty($options['currency'])?$options['currency']:null;
         $store = !empty($options['store_id'])?$options['store_id']:null;
+
+        $qb = self::orderBy('sort_order', 'ASC')->active();
 
         $qb->where(function($qb) use ($currency){
             $qb->whereNull('currency');

@@ -1215,20 +1215,11 @@ class OrderController extends Controller
 
     protected function placeOrder(Order $order)
     {
-        // Queue order placement
-        // TODO: Move queue to proper place
-        OrderHelper::queueOrderPlacement($order);
-
-        // Get queue number to delay execution. This is done to prevent duplicated reference
-        usleep(OrderHelper::getOrderPlacementQueue($order) * 1000);
-
         $order->status = Order::STATUS_PENDING;
         $order->checkout_at = Carbon::now();
         $order->ip_address = RequestFacade::ip();
         $order->user_agent = RequestFacade::header('User-Agent');
         $order->generateReference();
-
-        OrderHelper::orderPlacementDone($order);
 
         Event::fire(new OrderEvent('before_order_placed', $order));
 
@@ -1292,12 +1283,14 @@ class OrderController extends Controller
 
     protected function getShippingMethodOptions(Request $request, $order)
     {
-        $shippingMethodOptions = ShippingMethod::getShippingMethods([
-            'order' => $order,
-            'frontend' => true,
-            'request' => $request,
-            'show_all_active' => ProjectHelper::getConfig('checkout_options.shipping_method_position') != 'review'
-        ]);
+        $shippingMethodOptions = RuntimeCache::getOrSet('shipping_method_options_' . $order->id, function() use ($request, $order) {
+            return ShippingMethod::getShippingMethods([
+                'order' => $order,
+                'frontend' => true,
+                'request' => $request,
+                'show_all_active' => ProjectHelper::getConfig('checkout_options.shipping_method_position') != 'review'
+            ]);
+        });
 
         return [
             'shippingMethodOptions' => $shippingMethodOptions,
@@ -1326,8 +1319,6 @@ class OrderController extends Controller
 
     protected function getCheckoutRuleBook($type, $request, $order)
     {
-        $shippingMethodOptions = $this->getShippingMethodOptions($request, $order)['shippingMethodOptions'];
-
         $ruleBook = [
             'register' => [
                 'billingProfile.email' => 'required|email|unique:users,email',
@@ -1357,9 +1348,7 @@ class OrderController extends Controller
             'payment_method' => [
                 'payment_method' => 'required|exists:payment_methods,id|step_payment_method:'.$order->id
             ],
-            'shipping_method' => [
-                'shipping_method' => 'required'.(isset($shippingMethodOptions)?'|in:'.implode(',', array_keys($shippingMethodOptions)):''),
-            ],
+            'shipping_method' => [],
             'place_order' => [
                 'step' => 'in:checkout_summary',
                 'billingProfile.email' => 'required|email',
@@ -1384,13 +1373,25 @@ class OrderController extends Controller
             }
         }
 
-        if(ProjectHelper::getConfig('checkout_options.shipping_method_position', 'review') == 'review'){
+        if ($type === 'shipping_method') {
+            $shippingMethodOptions = $this->getShippingMethodOptions($request, $order)['shippingMethodOptions'];
+
+            $ruleBook['shipping_method'] = [
+                'shipping_method' => 'required'.(isset($shippingMethodOptions)?'|in:'.implode(',', array_keys($shippingMethodOptions)):''),
+            ];
+        }
+
+        if(ProjectHelper::getConfig('checkout_options.shipping_method_position', 'review') == 'review' && $type === 'place_order'){
+            $shippingMethodOptions = $this->getShippingMethodOptions($request, $order)['shippingMethodOptions'];
+
             $ruleBook['place_order'] += [
                 'shipping_method' => 'required'.(isset($shippingMethodOptions)?'|in:'.implode(',', array_keys($shippingMethodOptions)):''),
             ];
         }
 
-        if(ProjectHelper::getConfig('checkout_options.shipping_method_position', 'review') == 'before_shipping_address'){
+        if(ProjectHelper::getConfig('checkout_options.shipping_method_position', 'review') == 'before_shipping_address' && $type === 'customer_information'){
+            $shippingMethodOptions = $this->getShippingMethodOptions($request, $order)['shippingMethodOptions'];
+
             $ruleBook['customer_information'] += [
                 'shipping_method' => 'required'.(isset($shippingMethodOptions)?'|in:'.implode(',', array_keys($shippingMethodOptions)):''),
             ];

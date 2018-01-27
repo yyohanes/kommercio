@@ -579,6 +579,10 @@ class Order extends Model implements AuthorSignatureInterface
 
     public function calculateRewardRules()
     {
+        if (!ProjectHelper::isFeatureEnabled('customer.reward_points')) {
+            return 0;
+        }
+
         $data = [
             'currency' => $this->currency,
             'store_id' => $this->store?$this->store->id:null,

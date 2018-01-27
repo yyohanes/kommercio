@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Kommercio\Facades\ProjectHelper;
 use Kommercio\Models\Interfaces\CacheableInterface;
 use Kommercio\Models\Store\OpeningTime;
 use Kommercio\Traits\Model\HasDataColumn;
@@ -114,7 +115,7 @@ class Store extends Model implements CacheableInterface
      */
     public function getOpeningTimes(Carbon $time = null)
     {
-        if(Cache::getStore() instanceof \Illuminate\Cache\TaggableStore) {
+        if(ProjectHelper::cacheIsTaggable()) {
             $openingTimes = Cache::tags([$this->getTable() . '_' . $this->id . '_opening_times'])->rememberForever($this->getTable() . '_' . $this->id . '_opening_times_' . $time->format('U'), function() use ($time) {
                 return $this->openingTimes()
                     ->withinDate($time->format('Y-m-d'))

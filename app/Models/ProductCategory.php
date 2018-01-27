@@ -23,7 +23,7 @@ class ProductCategory extends Model implements UrlAliasInterface, SeoModelInterf
     protected $casts = [
         'active' => 'boolean'
     ];
-    public $translatedAttributes = ['name', 'slug', 'description', 'meta_title', 'meta_description', 'thumbnail', 'images'];
+    public $translatedAttributes = ['name', 'slug', 'description', 'meta_title', 'meta_description'];
 
     private $_rootCategory;
 
