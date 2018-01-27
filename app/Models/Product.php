@@ -827,12 +827,16 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface, Cac
      */
     public function getOrderCount($options = [])
     {
+        // If both delivery_date and checkout_at are not present, return 0
+        if (empty($countOptions['delivery_date']) && empty($countOptions['checkout_at'])) {
+            return 0;
+        }
+
         $countOptions = $options + ['product_id' => $this->id];
 
         if(isset($countOptions['exclude_order_id'])){
             unset($countOptions['exclude_order_id']);
         }
-        \Log::info(ProjectHelper::flattenArrayToKey($countOptions));
 
         $total = Cache::rememberForever('product_order_count_' . ProjectHelper::flattenArrayToKey($countOptions), function() use ($countOptions){
             $lineItemQb = LineItem::isProduct($this->id)

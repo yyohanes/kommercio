@@ -375,12 +375,6 @@ class CustomValidator extends Validator
                 return Order::find($order_id);
             });
 
-            $orderCount = $product->getOrderCount([
-                'delivery_date' => $delivery_date,
-                'checkout_at' => $today,
-                'store_id' => $store_id?:(!empty($order->store)?$order->store->id:null),
-            ]);
-
             $orderLimit = $product->getOrderLimit([
                 'store' => $store_id?:(!empty($order->store)?$order->store->id:null),
                 'date' => $today,
@@ -389,6 +383,16 @@ class CustomValidator extends Validator
             ]);
 
             $productLimitPassed = true;
+
+            if (empty($orderLimit)) {
+                return $productLimitPassed;
+            }
+
+            $orderCount = $product->getOrderCount([
+                'delivery_date' => $delivery_date,
+                'checkout_at' => $today,
+                'store_id' => $store_id?:(!empty($order->store)?$order->store->id:null),
+            ]);
 
             if(is_array($orderLimit) && $orderLimit['limit_type'] == $type){
                 static::$_storage[$type.'_'.$product->id.'_available_quantity'] = $orderLimit['limit'] - $orderCount;
