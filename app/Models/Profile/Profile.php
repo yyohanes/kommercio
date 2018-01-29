@@ -50,7 +50,7 @@ class Profile extends Model {
 
     public function getDetails()
     {
-        if (!$this->exists) {
+        if ($this->exists) {
             $profileDetails = Cache::rememberForever('profile_details_' . $this->id, function() {
                 $this->fillDetails();
 
