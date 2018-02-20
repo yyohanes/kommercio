@@ -39,5 +39,9 @@ return [
         'client_id' => env('FACEBOOK_CLIENT_ID'),
         'client_secret' => env('FACEBOOK_CLIENT_SECRET'),
         'redirect' => env('FACEBOOK_REDIRECT')
-    ]
+    ],
+
+    'sendgrid' => [
+        'api_key' => env('SENDGRID_API_KEY'),
+    ],
 ];

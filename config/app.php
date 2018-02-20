@@ -181,6 +181,7 @@ return [
         \Laravel\Socialite\SocialiteServiceProvider::class,
         \Barryvdh\HttpCache\ServiceProvider::class,
         \Barryvdh\DomPDF\ServiceProvider::class,
+        \Sichikawa\LaravelSendgridDriver\MailServiceProvider::class,
 
         /*
          * Application Service Providers...
