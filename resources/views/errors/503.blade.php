@@ -1,3 +1,6 @@
+@if(View::exists('project::errors.503'))
+    @include('project::errors.503')
+@else
 <!DOCTYPE html>
 <html>
     <head>
@@ -45,3 +48,4 @@
         </div>
     </body>
 </html>
+@endif
