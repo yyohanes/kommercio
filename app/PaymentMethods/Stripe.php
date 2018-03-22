@@ -3,6 +3,7 @@
 namespace Kommercio\PaymentMethods;
 
 use Carbon\Carbon;
+use Kommercio\Facades\CurrencyHelper;
 use Kommercio\Facades\ProjectHelper;
 use Kommercio\Models\Order\Order;
 use Kommercio\Models\Order\Payment;
@@ -40,9 +41,12 @@ class Stripe extends PaymentMethodAbstract implements PaymentMethodSettingFormIn
         if($order && $order->exists){
             \Stripe\Stripe::setApiKey($this->getSecretKey());
 
+            $currency = CurrencyHelper::getCurrency($order->currency);
+            $smallestUnit = isset($currency['smallest_unit']) ? $currency['smallest_unit'] : 1;
+
             try{
                 $charge = \Stripe\Charge::create(array(
-                    "amount" => $order->getOutstandingAmount() * 100,
+                    "amount" => $order->getOutstandingAmount() * $smallestUnit,
                     "currency" => $order->currency,
                     "source" => $order->getData('stripeToken'),
                     "description" => "Charge for ".$order->billingInformation->email,
