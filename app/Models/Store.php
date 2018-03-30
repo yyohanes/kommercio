@@ -140,6 +140,7 @@ class Store extends Model implements CacheableInterface
         $tableName = $this->getTable();
         $keys = [
             $tableName.'_'.$this->id.'.taxes',
+            $tableName.'_'.$this->code,
             [
                 $this->getTable() . '_' . $this->id . '_opening_times',
             ],
@@ -149,6 +150,14 @@ class Store extends Model implements CacheableInterface
     }
 
     //Static
+    public static function findByCode($code) {
+        $tableName = (new static)->getTable();
+
+        return Cache::remember($tableName . '_' . $code, 3600, function() use ($code) {
+            return static::where('code', $code)->first();
+        });
+    }
+
     public static function getTypeOptions($option=null)
     {
         $array = [

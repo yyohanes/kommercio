@@ -358,6 +358,11 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface, Cac
         return $netPrice;
     }
 
+    public function getTaxAmount()
+    {
+        return $this->calculateTax($this->getRetailPrice(false));
+    }
+
     private function _calculateNetPrice()
     {
         $catalogPriceRules = $this->getCatalogPriceRules();
@@ -839,9 +844,21 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface, Cac
         }
 
         $total = Cache::rememberForever('product_order_count_' . ProjectHelper::flattenArrayToKey($countOptions), function() use ($countOptions){
-            $lineItemQb = LineItem::isProduct($this->id)
+            $orderQuery = Order::query();
+
+            if(!empty($countOptions['tag_ids'])){
+                $orderQuery->whereHas('tags', function($query) use ($countOptions) {
+                    $query->whereIn('id', $countOptions['tag_ids']);
+                });
+            }
+
+            $lineItemQb = LineItem::query();
+            $lineItemQb->mergeBindings($orderQuery->getQuery());
+
+            $lineItemQb
+                ->isProduct($this->id)
                 ->isRoot()
-                ->join('orders as O', 'O.id', '=', 'line_items.order_id')
+                ->join(DB::raw('(' . $orderQuery->toSql() . ') as O'), 'O.id', '=', 'line_items.order_id')
                 ->whereIn('O.status', Order::getUsageCountedStatus());
 
             if(!empty($countOptions['store_id'])){
@@ -1133,6 +1150,7 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface, Cac
     {
         $tableName = $this->getTable();
         $keys = [
+            $tableName.'_'.$this->sku,
             $tableName.'_'.$this->productDetail->id.'_'.$this->id.'.retail_price',
             $tableName.'_'.$this->productDetail->id.'_'.$this->id.'.net_price',
         ];
@@ -1472,6 +1490,14 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface, Cac
     }
 
     //Statics
+    public static function findBySKU($sku) {
+        $tableName = (new static)->getTable();
+
+        return Cache::remember($tableName . '_' . $sku, 3600, function() use ($sku) {
+            return static::where('sku', $sku)->first();
+        });
+    }
+
     public static function getTypeOptions($option=null)
     {
         $array = [

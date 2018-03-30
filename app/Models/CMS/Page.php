@@ -100,6 +100,7 @@ class Page extends Model implements UrlAliasInterface, SeoModelInterface, Cachea
         $tableName = $this->getTable();
         $keys = [
             $tableName.'_'.$this->id,
+            $tableName.'_'.$this->slug,
             $tableName.'_'.$this->id.'_translations',
         ];
 
@@ -130,7 +131,10 @@ class Page extends Model implements UrlAliasInterface, SeoModelInterface, Cachea
     //Statics
     public static function getPageBySlug($slug)
     {
-        $page = self::whereTranslation('slug', $slug)->first();
+        $tableName = (new static)->getTable();
+        $page = Cache::remember($tableName. '_' . $slug, 3600, function() use ($slug) {
+            return self::whereTranslation('slug', $slug)->first();
+        });
 
         return $page;
     }

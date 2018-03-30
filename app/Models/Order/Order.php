@@ -20,6 +20,7 @@ use Kommercio\Models\Profile\Profile;
 use Kommercio\Models\RewardPoint\RewardPointTransaction;
 use Kommercio\Models\RewardPoint\RewardRule;
 use Kommercio\Models\ShippingMethod\ShippingMethod;
+use Kommercio\Models\Tag;
 use Kommercio\Models\Tax;
 use Kommercio\Traits\Model\AuthorSignature;
 use Kommercio\Traits\Model\FlatIndexable;
@@ -140,6 +141,10 @@ class Order extends Model implements AuthorSignatureInterface
     public function rewardPointTransactions()
     {
         return $this->hasMany('Kommercio\Models\RewardPoint\RewardPointTransaction')->orderBy('created_at', 'DESC');
+    }
+
+    public function tags() {
+        return $this->morphMany(Tag::class, 'taggable');
     }
 
     //Methods

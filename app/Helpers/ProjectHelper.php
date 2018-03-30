@@ -162,6 +162,10 @@ class ProjectHelper
 
         foreach($array as $idx => $arrayValue){
             if($arrayValue !== null){
+                if (is_array($arrayValue)) {
+                    $arrayValue = $this->flattenArrayToKey($arrayValue);
+                }
+
                 $keys[] = $idx.'_'.$arrayValue;
             }
         }
