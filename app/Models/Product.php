@@ -1150,6 +1150,7 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface, Cac
     {
         $tableName = $this->getTable();
         $keys = [
+            $tableName.'_'.$this->id,
             $tableName.'_'.$this->sku,
             $tableName.'_'.$this->productDetail->id.'_'.$this->id.'.retail_price',
             $tableName.'_'.$this->productDetail->id.'_'.$this->id.'.net_price',
@@ -1490,6 +1491,14 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface, Cac
     }
 
     //Statics
+    public static function findById($id) {
+        $tableName = (new static)->getTable();
+
+        return Cache::remember($tableName . '_' . $id, 25200, function() use ($id) {
+            return static::find($id);
+        });
+    }
+
     public static function findBySKU($sku) {
         $tableName = (new static)->getTable();
 

@@ -369,7 +369,7 @@ class CustomValidator extends Validator
             }
 
             $product = RuntimeCache::getOrSet('product_'.$product_id, function() use ($product_id){
-                return Product::findOrFail($product_id);
+                return Product::findById($product_id);
             });
             $order = RuntimeCache::getOrSet('order_'.$order_id, function() use ($order_id){
                 return Order::find($order_id);

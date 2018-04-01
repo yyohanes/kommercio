@@ -194,7 +194,7 @@ class PaymentMethod extends Model implements CacheableInterface
         return $return;
     }
 
-    public function findByClass($class) {
+    public static function findByClass($class) {
         $tableName = (new static)->getTable();
 
         return Cache::remember($tableName . '_' . $class, 25200, function() use ($class) {

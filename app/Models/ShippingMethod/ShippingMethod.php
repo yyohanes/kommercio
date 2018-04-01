@@ -4,6 +4,7 @@ namespace Kommercio\Models\ShippingMethod;
 
 use Dimsav\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Cache;
 use Kommercio\Facades\CurrencyHelper;
 use Kommercio\Facades\PriceFormatter;
 use Kommercio\Facades\ProjectHelper;
@@ -13,7 +14,7 @@ use Kommercio\Models\Store;
 use Kommercio\Models\PaymentMethod\PaymentMethod;
 use Kommercio\ShippingMethods\ShippingMethodInterface;
 
-class ShippingMethod extends Model
+class ShippingMethod extends Model implements CacheableInterface
 {
     use Translatable;
 
@@ -126,6 +127,19 @@ class ShippingMethod extends Model
             || ($paymentMethod && $this->paymentMethods->pluck('id')->contains($paymentMethod->id));
     }
 
+    /**
+     * @inheritdoc
+     */
+    public function getCacheKeys()
+    {
+        $tableName = $this->getTable();
+        $keys = [
+            $tableName . '_' . $this->class,
+        ];
+
+        return $keys;
+    }
+
     //Accessors
     public function getRequireAddressAttribute()
     {
@@ -211,5 +225,13 @@ class ShippingMethod extends Model
         }
 
         return $return;
+    }
+
+    public static function findByClass($class) {
+        $tableName = (new static)->getTable();
+
+        return Cache::remember($tableName . '_' . $class, 25200, function() use ($class) {
+            return static::where('class', $class)->first();
+        });
     }
 }
