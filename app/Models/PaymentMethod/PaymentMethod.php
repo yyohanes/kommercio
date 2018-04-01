@@ -4,14 +4,16 @@ namespace Kommercio\Models\PaymentMethod;
 
 use Dimsav\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Cache;
 use Kommercio\Facades\ProjectHelper;
+use Kommercio\Models\Interfaces\CacheableInterface;
 use Kommercio\Models\Order\Order;
 use Kommercio\Models\Order\Payment;
 use Kommercio\Models\Store;
 use Kommercio\Models\ShippingMethod\ShippingMethod;
 use Kommercio\Traits\Model\HasDataColumn;
 
-class PaymentMethod extends Model
+class PaymentMethod extends Model implements CacheableInterface
 {
     use Translatable, HasDataColumn;
 
@@ -117,6 +119,19 @@ class PaymentMethod extends Model
         return $this->getProcessor()->getSummary($order);
     }
 
+    /**
+     * @inheritdoc
+     */
+    public function getCacheKeys()
+    {
+        $tableName = $this->getTable();
+        $keys = [
+            $tableName . '_' . $this->class,
+        ];
+
+        return $keys;
+    }
+
     //Statics
 
     /**
@@ -177,5 +192,13 @@ class PaymentMethod extends Model
         }
 
         return $return;
+    }
+
+    public function findByClass($class) {
+        $tableName = (new static)->getTable();
+
+        return Cache::remember($tableName . '_' . $class, 25200, function() use ($class) {
+            return static::where('class', $class)->first();
+        });
     }
 }

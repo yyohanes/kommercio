@@ -1271,7 +1271,6 @@ class OrderController extends Controller{
         if($profile_id){
             $profile = Profile::findOrFail($profile_id);
             $profileDetails = $profile->getDetails();
-            \Log::info($profile);
         }else{
             $profileDetails = $request->input($request->input('source'));
         }
@@ -1291,7 +1290,7 @@ class OrderController extends Controller{
         switch($type){
             case 'product':
                 $model = Product::findOrFail($id);
-                
+
                 if ($request->has('store_id')) {
                     $store = Store::find($request->input('store_id'));
 

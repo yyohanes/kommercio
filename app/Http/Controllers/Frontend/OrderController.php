@@ -1213,7 +1213,7 @@ class OrderController extends Controller
         return $renderData;
     }
 
-    protected function placeOrder(Order $order)
+    public function placeOrder(Order $order)
     {
         $order->status = Order::STATUS_PENDING;
         $order->checkout_at = Carbon::now();

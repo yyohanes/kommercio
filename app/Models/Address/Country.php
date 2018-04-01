@@ -2,6 +2,7 @@
 
 namespace Kommercio\Models\Address;
 
+use Illuminate\Support\Facades\Cache;
 use Kommercio\Models\Interfaces\CacheableInterface;
 
 class Country extends Address implements CacheableInterface
@@ -21,9 +22,19 @@ class Country extends Address implements CacheableInterface
     {
         $tableName = $this->getTable();
         $keys = [
+            $tableName . '_iso_code_' . $this->iso_code,
             $tableName . '_all',
         ];
 
         return $keys;
+    }
+
+    // Statics
+    public static function findByIsoCode($code) {
+        $tableName = (new static)->getTable();
+
+        return Cache::rememberForever($tableName . '_iso_code_' . $code, function() use ($code) {
+            return static::where('iso_code', $code)->first();
+        });
     }
 }
