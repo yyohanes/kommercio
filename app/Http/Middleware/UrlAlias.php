@@ -60,7 +60,7 @@ class UrlAlias
             $request_uri_string = config('project.home_uri', config('kommercio.home_uri'));
         }
 
-        if(strlen($dupRequest->getQueryString()) > 0){
+        if(strlen($dupRequest->getQueryString()) > 0 && strlen($uriWithoutQuery) > 0){
             $path = substr($dupRequest->getPathInfo(), 1);
         }else{
             $path = $request_uri_string;

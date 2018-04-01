@@ -41,11 +41,12 @@ class PasswordController extends Controller
      *
      * @return void
      */
-    public function __construct()
+    public function __construct(Request $request)
     {
         $this->middleware('guest');
 
         $this->redirectPath = route('frontend.login_form');
+        $this->redirectTo = $request->get('redirectTo', null) ? : route('frontend.member.account');
         $this->linkRequestView = ProjectHelper::getViewTemplate('frontend.auth.password.email');
         $this->resetView = ProjectHelper::getViewTemplate('frontend.auth.password.reset');
     }
