@@ -846,10 +846,14 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface, Cac
         $total = Cache::remember('product_order_count_' . ProjectHelper::flattenArrayToKey($countOptions), 60, function() use ($countOptions){
             $orderQuery = Order::query();
 
+            // QUICK HACK
+            // TODO: Remove this when Irvins SED event is over
             if(!empty($countOptions['tag_ids'])){
                 $orderQuery->whereHas('tags', function($query) use ($countOptions) {
                     $query->whereIn('id', $countOptions['tag_ids']);
                 });
+            } else {
+                $orderQuery->whereDoesntHave('tags');
             }
 
             $lineItemQb = LineItem::query();
