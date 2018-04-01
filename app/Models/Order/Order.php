@@ -144,7 +144,7 @@ class Order extends Model implements AuthorSignatureInterface
     }
 
     public function tags() {
-        return $this->morphMany(Tag::class, 'taggable');
+        return $this->morphToMany(Tag::class, 'taggable');
     }
 
     //Methods

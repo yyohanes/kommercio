@@ -843,7 +843,7 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface, Cac
             unset($countOptions['exclude_order_id']);
         }
 
-        $total = Cache::rememberForever('product_order_count_' . ProjectHelper::flattenArrayToKey($countOptions), function() use ($countOptions){
+        $total = Cache::remember('product_order_count_' . ProjectHelper::flattenArrayToKey($countOptions), 60, function() use ($countOptions){
             $orderQuery = Order::query();
 
             if(!empty($countOptions['tag_ids'])){

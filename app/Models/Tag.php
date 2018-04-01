@@ -14,12 +14,6 @@ class Tag extends SluggableModel implements AuthorSignatureInterface, CacheableI
 
     protected $fillable = ['name', 'slug', 'notes'];
 
-    //Relations
-    public function taggable()
-    {
-        return $this->morphTo();
-    }
-
     // Static
     public static function findBySlug($slug) {
         $tableName = (new static)->getTable();

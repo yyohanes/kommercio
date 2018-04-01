@@ -14,7 +14,6 @@ class CreateTagsTable extends Migration
     {
         Schema::create('tags', function(Blueprint $table){
             $table->bigIncrements('id');
-            $table->morphs('taggable');
             $table->string('name');
             $table->string('slug')->unique();
             $table->text('notes')->nullable();
@@ -25,6 +24,13 @@ class CreateTagsTable extends Migration
             $table->foreign('created_by')->references('id')->on('users')->onDelete('SET NULL');
             $table->foreign('updated_by')->references('id')->on('users')->onDelete('SET NULL');
         });
+
+        Schema::create('taggables', function(Blueprint $table) {
+            $table->bigInteger('tag_id')->unsigned();
+            $table->morphs('taggable');
+
+            $table->foreign('tag_id')->references('id')->on('tags')->onDelete('CASCADE');
+        });
     }
 
     /**
@@ -34,6 +40,7 @@ class CreateTagsTable extends Migration
      */
     public function down()
     {
+        Schema::dropIfExists('taggables');
         Schema::dropIfExists('tags');
     }
 }
