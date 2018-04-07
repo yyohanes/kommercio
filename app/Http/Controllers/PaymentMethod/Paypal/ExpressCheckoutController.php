@@ -55,16 +55,16 @@ class ExpressCheckoutController extends Controller
                     ->setCurrency($currencyIso)
                     ->setQuantity($lineitem->quantity)
                     ->setSku($lineitem->product->sku)
-                    ->setPrice($lineitem->calculateNet());
+                    ->setPrice($lineitem->calculateNet(false));
 
                 $itemList->addItem($item);
-            }else if(!$lineitem->isShipping){
+            }else if(!$lineitem->isShipping && !$lineitem->isTax){
                 $item = new Item();
                 $item->setName($lineitem->name)
                     ->setCurrency($currencyIso)
                     ->setQuantity($lineitem->quantity)
                     //->setSku($productLineitem->product->sku)
-                    ->setPrice($lineitem->calculateNet());
+                    ->setPrice($lineitem->calculateNet(false));
 
                 $itemList->addItem($item);
             }
