@@ -160,6 +160,12 @@ class ReportController extends Controller
         $storeOptions = Auth::user()->manageAllStores?['all' => 'All Stores']:[];
         $storeOptions += Store::getStoreOptions();
 
+        $dateTypeOptions = [];
+        if (ProjectHelper::getConfig('enable_delivery_date', false)) {
+            $dateTypeOptions['delivery_date'] = 'Delivery Date';
+        }
+        $dateTypeOptions['checkout_at'] = 'Order Date';
+
         $shippingMethods = ShippingMethod::getAvailableMethods();
         foreach($shippingMethods as $shippingMethodIdx=>$shippingMethod)
         {
@@ -168,7 +174,7 @@ class ReportController extends Controller
 
         $filter = [
             'shipping_method' => $request->input('search.shipping_method', array_keys($shippingMethodOptions)),
-            'date_type' => 'delivery_date',
+            'date_type' => $request->input('search.date_type', 'delivery_date'),
             'date' => $request->input('search.date', $date->format('Y-m-d')),
             'status' => $request->input('search.status', ProjectHelper::getConfig('order_options.processed_order_status')),
             'store' => $request->input('search.store', key($storeOptions)),
@@ -200,7 +206,8 @@ class ReportController extends Controller
 
         $qb->whereRaw("DATE_FORMAT(" . $filter['date_type'] . ", '%Y-%m-%d') = ?", [$filter['date']]);
 
-        $deliveryDate = Carbon::createFromFormat('Y-m-d', $filter['date']);
+        $date = Carbon::createFromFormat('Y-m-d', $filter['date']);
+        $dateType = $filter['date_type'];
 
         $orders = $qb->get();
 
@@ -238,15 +245,16 @@ class ReportController extends Controller
         }
 
         if($request->input('export_to_xls', false)){
-            Excel::create('Delivery Report '.$filter['date'], function($excel) use ($filter, $orders, $orderedProducts, $shippingMethod, $deliveryDate) {
+            Excel::create('Delivery Report '.$filter['date'], function($excel) use ($filter, $orders, $orderedProducts, $shippingMethod, $date, $dateType) {
                 $excel->setDescription('Delivery Report '.$filter['date']);
-                $excel->sheet('Sheet 1', function($sheet) use ($filter, $orders, $orderedProducts, $shippingMethod, $deliveryDate){
+                $excel->sheet('Sheet 1', function($sheet) use ($filter, $orders, $orderedProducts, $shippingMethod, $date, $dateType){
                     $exportTemplate = ProjectHelper::getViewTemplate('backend.report.export.xls.delivery');
                     $sheet->loadView($exportTemplate, [
                         'filter' => $filter,
                         'orders' => $orders,
                         'shippingMethod' => $shippingMethod,
-                        'deliveryDate' => $deliveryDate,
+                        'date' => $date,
+                        'dateType' => $dateType,
                         'orderedProducts' => $orderedProducts
                     ]);
                 });
@@ -261,7 +269,9 @@ class ReportController extends Controller
             'filter' => $filter,
             'orderStatusOptions' => $orderStatusOptions,
             'storeOptions' => $storeOptions,
-            'deliveryDate' => $deliveryDate,
+            'dateTypeOptions' => $dateTypeOptions,
+            'date' => $date,
+            'dateType' => $dateType,
             'orders' => $orders,
             'orderedProducts' => $orderedProducts,
             'shippingMethodOptions' => $shippingMethodOptions,

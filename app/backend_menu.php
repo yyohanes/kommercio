@@ -177,14 +177,14 @@ $menus['report'] = [
     ]
 ];
 
-if(config('project.enable_delivery_date', false)){
-    $menus['report']['children']['delivery'] = [
-        'name' => 'Delivery',
-        'route' => 'backend.report.delivery',
-        'permissions' => 'view_delivery_report',
-        'active_path' => 'report/delivery',
-    ];
+$menus['report']['children']['delivery'] = [
+    'name' => 'Delivery',
+    'route' => 'backend.report.delivery',
+    'permissions' => 'view_delivery_report',
+    'active_path' => 'report/delivery',
+];
 
+if(config('project.enable_delivery_date', false)){
     $menus['report']['children']['production_schedule'] = [
         'name' => 'Production Schedule',
         'route' => 'backend.report.production_schedule',

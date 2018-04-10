@@ -1,4 +1,4 @@
-<h3>{{ $shippingMethod }} on {{ $deliveryDate->format('l, j M Y') }}</h3>
+<h3>{{ $shippingMethod }} on {{ $date->format('l, j M Y') }} ({{ $dateType }})</h3>
 <h4>Status: {{ implode(', ', $filter['status']) }}</h4>
 <?php
 $store = $filter['store'];

@@ -6,7 +6,7 @@
         <i class="fa fa-circle"></i>
     </li>
     <li>
-        <span>{{ $shippingMethod }} on {{ $deliveryDate->format('l, j M Y') }}</span>
+        <span>{{ $shippingMethod }} on {{ $date->format('l, j M Y') }}</span>
     </li>
 @stop
 
@@ -18,7 +18,11 @@
                 <div class="row">
                     <div class="col-md-2">
                         <div class="form-group">
-                            <label class="control-label">Delivery Date</label>
+                            <label class="control-label">Date</label>
+
+                            {!! Form::select('search[date_type]',
+                                $dateTypeOptions, old('search.date_type', $filter['date_type']), [
+                                'class' => 'form-control select2']) !!}
 
                             {!! Form::text('search[date]', old('search.date', $filter['date']), [
                                 'class' => 'form-control date-picker',
@@ -56,7 +60,7 @@
         <div class="portlet light portlet-fit bordered">
             <div class="portlet-title">
                 <div class="caption">
-                    <span class="caption-subject sbold uppercase">{{ $shippingMethod }} on {{ $deliveryDate->format('l, j M Y') }}</span>
+                    <span class="caption-subject sbold uppercase">{{ $shippingMethod }} on {{ $date->format('l, j M Y') }} ({{ $dateType }})</span>
                 </div>
                 <div class="actions">
                     {!! Form::close() !!}
