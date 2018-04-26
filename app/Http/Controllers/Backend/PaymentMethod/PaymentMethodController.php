@@ -73,7 +73,7 @@ class PaymentMethodController extends Controller{
         $additionalFieldsForm = null;
 
         if($paymentMethod->getProcessor() instanceof PaymentMethodSettingFormInterface){
-           $additionalFieldsForm = ProjectHelper::getViewTemplate($paymentMethod->getProcessor()->settingForm());
+           $additionalFieldsForm = $paymentMethod->getProcessor()->settingForm();
         }
 
         $shippingMethods = ShippingMethod::all();

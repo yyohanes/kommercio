@@ -132,6 +132,10 @@ class PaymentMethod extends Model implements CacheableInterface
         return $keys;
     }
 
+    public function isExternal() {
+        return $this->getProcessor()->isExternal();
+    }
+
     //Statics
 
     /**
