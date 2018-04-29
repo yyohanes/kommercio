@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class CurrencyRate extends Model
 {
-    protected $fillable = ['from_currency', 'to_currency', 'rate'];
+    public $fillable = ['from_currency', 'to_currency', 'rate'];
 
     //Statics
     public static function getRate($from, $to)

@@ -39,9 +39,9 @@ class ProductCompositeFormRequest extends Request
         return $rules;
     }
 
-    public function all()
+    public function all($keys = null)
     {
-        $attributes = parent::all();
+        $attributes = parent::all($keys);
 
         if(!isset($attributes['free'])){
             $attributes['free'] = 0;
@@ -55,6 +55,6 @@ class ProductCompositeFormRequest extends Request
 
         $this->replace($attributes);
 
-        return parent::all();
+        return parent::all($keys);
     }
 }

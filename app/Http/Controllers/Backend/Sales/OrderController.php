@@ -206,11 +206,11 @@ class OrderController extends Controller{
                 $qb->orderBy($orderColumn['name'], $order['dir']);
             }
 
-            if($request->has('length')){
+            if($request->filled('length')){
                 $qb->take($request->input('length'));
             }
 
-            if($request->has('start') && $request->input('start') > 0){
+            if($request->filled('start') && $request->input('start') > 0){
                 $qb->skip($request->input('start'));
             }
 
@@ -468,7 +468,7 @@ class OrderController extends Controller{
         $order->currency = $request->input('currency');
         $order->conversion_rate = 1;
         $order->reference = microtime(true);
-        if($request->has('additional_fields')){
+        if($request->filled('additional_fields')){
             $order->additional_fields = $request->input('additional_fields');
         }
 
@@ -813,7 +813,7 @@ class OrderController extends Controller{
         $store = ProjectHelper::getStoreByRequest($request);
         $order->store()->associate($store);
 
-        if($request->has('additional_fields')){
+        if($request->filled('additional_fields')){
             $order->additional_fields = $request->input('additional_fields');
         }
         $order->conversion_rate = 1;
@@ -964,7 +964,7 @@ class OrderController extends Controller{
                     // Delivery order validation if from single form
                     $totalDelivered = 0;
 
-                    if($request->has('line_items')){
+                    if($request->filled('line_items')){
                         $rules = [];
                         foreach($order->getProductLineItems() as $productLineItem){
                             $maxAllowed = $productLineItem->quantity - $productLineItem->deliveredQuantity;
@@ -1291,7 +1291,7 @@ class OrderController extends Controller{
             case 'product':
                 $model = Product::findOrFail($id);
 
-                if ($request->has('store_id')) {
+                if ($request->filled('store_id')) {
                     $store = Store::find($request->input('store_id'));
 
                     if ($store) {
@@ -1382,7 +1382,7 @@ class OrderController extends Controller{
             'backoffice' => TRUE
         ]);
 
-        if($request->has('delivery_date')){
+        if($request->filled('delivery_date')){
             $deliveryOrderLimits = OrderLimit::getOrderLimits([
                 'limit_type' => OrderLimit::LIMIT_DELIVERY_DATE,
                 'date' => Carbon::createFromFormat('Y-m-d', $request->input('delivery_date')),

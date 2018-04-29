@@ -13,6 +13,16 @@ class ProductTranslation extends SluggableModel implements AuthorSignatureInterf
 {
     use AuthorSignature, MediaAttachable;
 
+    public $fillable = [
+        'name',
+        'description_short',
+        'description',
+        'slug',
+        'meta_title',
+        'meta_description',
+        'locale',
+    ];
+
     public $timestamps = FALSE;
 
     // Methods

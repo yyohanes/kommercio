@@ -51,31 +51,31 @@ class ProductVariationFormRequest extends Request
             $rules['variation.attributes.'.$attributeId] = 'required|in:'.$allowedAttributeOptions;
         }
 
-        if($this->has('variation.attributes')){
+        if($this->filled('variation.attributes')){
             $rules['variation.attributes'] = 'product_attributes:'.$productId.(!empty($productVariationId)?','.$productVariationId:'');
         }
 
         return $rules;
     }
 
-    public function all()
+    public function all($keys = null)
     {
-        $attributes = parent::all();
+        $attributes = parent::all($keys);
 
-        if(!$this->has('variation.productDetail.active')){
+        if(!$this->filled('variation.productDetail.active')){
             $attributes['variation']['productDetail']['active'] = 0;
         }
-        if(!$this->has('variation.productDetail.available')){
+        if(!$this->filled('variation.productDetail.available')){
             $attributes['variation']['productDetail']['available'] = 0;
         }
 
-        if(!$this->has('variation.productDetail.retail_price')){
+        if(!$this->filled('variation.productDetail.retail_price')){
             $attributes['variation']['productDetail']['retail_price'] = null;
         }
 
 
         $this->replace($attributes);
 
-        return parent::all();
+        return parent::all($keys);
     }
 }

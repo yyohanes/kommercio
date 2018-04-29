@@ -46,9 +46,9 @@ class StoreFormRequest extends Request
         return $rules;
     }
 
-    public function all()
+    public function all($keys = null)
     {
-        $attributes = parent::all();
+        $attributes = parent::all($keys);
         $days = Store\OpeningTime::DAYS;
 
         $attributes['openingTimes'] = isset($attributes['openingTimes'])?$attributes['openingTimes']:[];
@@ -75,6 +75,6 @@ class StoreFormRequest extends Request
 
         $this->replace($attributes);
 
-        return parent::all();
+        return parent::all($keys);
     }
 }

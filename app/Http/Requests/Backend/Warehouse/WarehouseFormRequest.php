@@ -30,9 +30,9 @@ class WarehouseFormRequest extends Request
         return $rules;
     }
 
-    public function all()
+    public function all($keys = null)
     {
-        $attributes = parent::all();
+        $attributes = parent::all($keys);
 
         foreach($attributes['location'] as $idx => $location){
             if(!$location){
@@ -42,6 +42,6 @@ class WarehouseFormRequest extends Request
 
         $this->replace($attributes);
 
-        return parent::all();
+        return parent::all($keys);
     }
 }

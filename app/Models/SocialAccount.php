@@ -8,7 +8,7 @@ use Laravel\Socialite\Contracts\User as SocialiteUser;
 
 class SocialAccount extends Model
 {
-    protected $fillable = ['provider', 'provider_user_id'];
+    public $fillable = ['provider', 'provider_user_id'];
 
     //Relations
     public function user()

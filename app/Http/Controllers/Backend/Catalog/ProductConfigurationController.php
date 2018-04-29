@@ -142,7 +142,7 @@ class ProductConfigurationController extends Controller
 
     protected function processByType(ProductConfigurationFormRequest $request, $configuration)
     {
-        if($request->has($request->input('type').'.rules')){
+        if($request->filled($request->input('type').'.rules')){
             $configuration->saveData([
                 'rules' => $request->input($request->input('type').'.rules')
             ]);

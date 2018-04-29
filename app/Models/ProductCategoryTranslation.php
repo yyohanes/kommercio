@@ -12,6 +12,15 @@ class ProductCategoryTranslation extends SluggableModel implements AuthorSignatu
 {
     use AuthorSignature, MediaAttachable;
 
+    public $fillable = [
+        'name',
+        'description',
+        'slug',
+        'meta_title',
+        'meta_description',
+        'locale',
+    ];
+
     public $timestamps = FALSE;
 
     //Accessors

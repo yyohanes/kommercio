@@ -51,35 +51,35 @@ class RewardRuleFormRequest extends Request
         return $rules;
     }
 
-    public function all()
+    public function all($keys = null)
     {
-        $attributes = parent::all();
+        $attributes = parent::all($keys);
 
-        if(!$this->has('store_id')){
+        if(!$this->filled('store_id')){
             $attributes['store_id'] = null;
         }
-        if(!$this->has('currency')){
+        if(!$this->filled('currency')){
             $attributes['currency'] = null;
         }
-        if(!$this->has('active')){
+        if(!$this->filled('active')){
             $attributes['active'] = false;
         }
-        if(!$this->has('member')){
+        if(!$this->filled('member')){
             $attributes['member'] = false;
         }
 
         if($this->input('type') == RewardRule::TYPE_PER_ORDER){
-            if(!$this->has('rule.include_shipping')){
+            if(!$this->filled('rule.include_shipping')){
                 $attributes['rule']['include_shipping'] = false;
             }
 
-            if(!$this->has('rule.include_tax')){
+            if(!$this->filled('rule.include_tax')){
                 $attributes['rule']['include_tax'] = false;
             }
         }
 
         $this->replace($attributes);
 
-        return parent::all();
+        return parent::all($keys);
     }
 }

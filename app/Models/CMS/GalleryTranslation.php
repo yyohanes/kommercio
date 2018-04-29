@@ -9,6 +9,16 @@ class GalleryTranslation extends SluggableModel
 {
     use MediaAttachable;
 
+    public $fillable = [
+        'name',
+        'body',
+        'slug',
+        'teaser',
+        'meta_title',
+        'meta_description',
+        'locale',
+    ];
+
     public $timestamps = FALSE;
 
     //Methods

@@ -8,7 +8,7 @@ use Kommercio\Models\Product;
 
 class Bookmark extends Model
 {
-    protected $fillable = ['name'];
+    public $fillable = ['name'];
 
     //Methods
     public function add($productId)

@@ -11,7 +11,7 @@ use Maatwebsite\Excel\Facades\Excel;
 class Batch extends Model
 {
     protected $table = 'import_batches';
-    protected $fillable = ['name'];
+    public $fillable = ['name'];
 
     //Methods
     public function clean()

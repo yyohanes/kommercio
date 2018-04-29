@@ -9,5 +9,12 @@ class MenuItemTranslation extends Model
 {
     use HasDataColumn;
 
+    public $fillable = [
+        'name',
+        'url',
+        'data',
+        'locale',
+    ];
+
     public $timestamps = FALSE;
 }

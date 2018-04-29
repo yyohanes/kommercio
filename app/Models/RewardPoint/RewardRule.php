@@ -18,7 +18,7 @@ class RewardRule extends Model implements AuthorSignatureInterface, StoreManaged
 
     const TYPE_PER_ORDER = 'per_order';
 
-    protected $fillable = ['name', 'type', 'reward', 'currency', 'sort_order', 'data', 'active', 'member'];
+    public $fillable = ['name', 'type', 'reward', 'currency', 'sort_order', 'data', 'active', 'member'];
     protected $toggleFields = ['active'];
     protected $casts = [
         'member' => 'boolean'

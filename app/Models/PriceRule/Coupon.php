@@ -17,7 +17,7 @@ class Coupon extends Model implements AuthorSignatureInterface, RewardObjectInte
     const TYPE_ONLINE = 'online';
     const TYPE_OFFLINE = 'offline';
 
-    protected $fillable = ['coupon_code', 'type', 'max_usage'];
+    public $fillable = ['coupon_code', 'type', 'max_usage'];
 
     //Methods
     public function getUsage()

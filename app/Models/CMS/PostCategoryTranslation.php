@@ -9,6 +9,15 @@ class PostCategoryTranslation extends SluggableModel
 {
     use MediaAttachable;
 
+    public $fillable = [
+        'name',
+        'body',
+        'slug',
+        'meta_title',
+        'meta_description',
+        'locale',
+    ];
+
     public $timestamps = FALSE;
 
     //Relations

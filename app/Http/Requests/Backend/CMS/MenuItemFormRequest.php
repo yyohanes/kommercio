@@ -37,9 +37,9 @@ class MenuItemFormRequest extends Request
         return $rules;
     }
 
-    public function all()
+    public function all($keys = null)
     {
-        $attributes = parent::all();
+        $attributes = parent::all($keys);
 
         if(empty($attributes['parent_id'])){
             $attributes['parent_id'] = null;
@@ -51,6 +51,6 @@ class MenuItemFormRequest extends Request
 
         $this->replace($attributes);
 
-        return parent::all();
+        return parent::all($keys);
     }
 }

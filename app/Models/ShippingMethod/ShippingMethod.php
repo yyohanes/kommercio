@@ -22,7 +22,7 @@ class ShippingMethod extends Model implements CacheableInterface
 
     public $translatedAttributes = ['name','message'];
 
-    protected $fillable = ['name', 'class', 'taxable', 'message', 'sort_order', 'active'];
+    public $fillable = ['name', 'class', 'taxable', 'message', 'sort_order', 'active'];
     protected $casts = [
         'active' => 'boolean'
     ];

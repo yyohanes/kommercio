@@ -32,9 +32,9 @@ class ProductFeatureFormRequest extends Request
         return $rules;
     }
 
-    public function all()
+    public function all($keys = null)
     {
-        $attributes = parent::all();
+        $attributes = parent::all($keys);
 
         if(empty($attributes['sort_order'])){
             $attributes['sort_order'] = 0;
@@ -42,6 +42,6 @@ class ProductFeatureFormRequest extends Request
 
         $this->replace($attributes);
 
-        return parent::all();
+        return parent::all($keys);
     }
 }

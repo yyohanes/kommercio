@@ -16,7 +16,7 @@ class ProductAttributeValue extends Model
 
     public $translatedAttributes = ['name', 'slug'];
 
-    protected $fillable = ['name', 'slug', 'sort_order'];
+    public $fillable = ['name', 'slug', 'sort_order'];
 
     //Methods
     public function newPivot(Model $parent, array $attributes, $table, $exists, $using = null)

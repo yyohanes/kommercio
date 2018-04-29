@@ -68,11 +68,11 @@ class ProductController extends Controller{
 
             $qb->orderBy('products.created_at', 'DESC');
 
-            if($request->has('length')){
+            if($request->filled('length')){
                 $qb->take($request->input('length'));
             }
 
-            if($request->has('start') && $request->input('start') > 0){
+            if($request->filled('start') && $request->input('start') > 0){
                 $qb->skip($request->input('start'));
             }
 
@@ -135,7 +135,7 @@ class ProductController extends Controller{
 
     public function create(Request $request)
     {
-        if($request->has('clone') && !$request->old()){
+        if($request->filled('clone') && !$request->old()){
             $referencedProduct = Product::findOrFail($request->get('clone'));
             $product = $referencedProduct->replicate();
 
@@ -176,7 +176,7 @@ class ProductController extends Controller{
     {
         $product = new Product($request->all());
         $product->combination_type = $request->input('combination_type');
-        if($request->has('default_category')){
+        if($request->filled('default_category')){
             $category = ProductCategory::findOrFail($request->input('default_category'));
             $product->defaultCategory()->associate($category);
         }
@@ -302,7 +302,7 @@ class ProductController extends Controller{
         $product = Product::findOrFail($id);
         $product->fill($request->all());
 
-        if($request->has('default_category')){
+        if($request->filled('default_category')){
             $category = ProductCategory::findOrFail($request->input('default_category'));
             $product->defaultCategory()->associate($category);
         }
@@ -366,7 +366,7 @@ class ProductController extends Controller{
         //Update Product Features and save custom feature value
         $syncFeatures = [];
         foreach($request->input('features', []) as $featureId=>$featureValue){
-            if($request->has('features_custom.'.$featureId)){
+            if($request->filled('features_custom.'.$featureId)){
                 $newFeatureValue = ProductFeatureValue::whereTranslation('name', $request->input('features_custom.'.$featureId))->first();
 
                 if(!$newFeatureValue){
@@ -524,13 +524,13 @@ class ProductController extends Controller{
 
         $notIns = $request->input('variation.attributes', isset($variationAttributes)?$variationAttributes:[]);
 
-        if($request->has('variation.remove_attribute') && isset($notIns[$request->input('variation.remove_attribute')])){
+        if($request->filled('variation.remove_attribute') && isset($notIns[$request->input('variation.remove_attribute')])){
             unset($notIns[$request->input('variation.remove_attribute')]);
         }
 
         $notIns = array_keys($notIns);
 
-        if($request->has('variation.new_attribute') && !$request->has('variation.remove_attribute')){
+        if($request->filled('variation.new_attribute') && !$request->filled('variation.remove_attribute')){
             $notIns += $request->input('variation.new_attribute', []);
         }
 
@@ -559,7 +559,7 @@ class ProductController extends Controller{
             }
         }
 
-        if($request->has('variation')){
+        if($request->filled('variation')){
             $oldValues = $request->all();
         }else{
             if($variation){
@@ -642,7 +642,7 @@ class ProductController extends Controller{
         // Update children features
         $syncFeatures = [];
         foreach($request->input('variation.features', []) as $featureId=>$featureValue){
-            if($request->has('variation.features_custom.'.$featureId)){
+            if($request->filled('variation.features_custom.'.$featureId)){
                 $newFeatureValue = ProductFeatureValue::whereTranslation('name', $request->input('variation.features_custom.'.$featureId))->first();
 
                 if(!$newFeatureValue){
@@ -675,7 +675,7 @@ class ProductController extends Controller{
 
         $images = [];
 
-        if($request->has('variation.images')){
+        if($request->filled('variation.images')){
             foreach($request->input('variation.images', []) as $idx=>$image){
                 $images[$image] = [
                     'type' => 'image',
@@ -688,7 +688,7 @@ class ProductController extends Controller{
 
         $thumbnails = [];
 
-        if($request->has('variation.thumbnails')){
+        if($request->filled('variation.thumbnails')){
             foreach($request->input('variation.thumbnails', []) as $idx=>$image){
                 $thumbnails[$image] = [
                     'type' => 'thumbnail',
@@ -750,7 +750,7 @@ class ProductController extends Controller{
         ]);
 
         $requestAttributes = $request->all();
-        if(!$request->has('variation.productDetail.retail_price')){
+        if(!$request->filled('variation.productDetail.retail_price')){
             $requestAttributes['variation']['productDetail']['retail_price'] = null;
         }
 
@@ -822,7 +822,7 @@ class ProductController extends Controller{
 
                     $images = [];
 
-                    if($request->has('variation.images')){
+                    if($request->filled('variation.images')){
                         foreach($request->input('variation.images', []) as $idx=>$image){
                             $images[$image] = [
                                 'type' => 'image',
@@ -835,7 +835,7 @@ class ProductController extends Controller{
 
                     $thumbnails = [];
 
-                    if($request->has('variation.thumbnails')){
+                    if($request->filled('variation.thumbnails')){
                         foreach($request->input('variation.thumbnails', []) as $idx=>$image){
                             $thumbnails[$image] = [
                                 'type' => 'thumbnail',
@@ -878,7 +878,7 @@ class ProductController extends Controller{
 
         $selectedFeatures = $request->input('features', []);
 
-        if($request->has('remove_feature') && isset($selectedFeatures[$request->input('remove_feature')])){
+        if($request->filled('remove_feature') && isset($selectedFeatures[$request->input('remove_feature')])){
             unset($selectedFeatures[$request->input('remove_feature')]);
         }else{
             $selectedFeatures += array_flip($newFeatures);
@@ -1035,7 +1035,7 @@ class ProductController extends Controller{
 
         $options = [
             'store' => $store_id,
-            'date' => $request->has('checkout_at')?Carbon::parse($request->input('checkout_at'))->format('Y-m-d'):Carbon::now()->format('Y-m-d'),
+            'date' => $request->filled('checkout_at')?Carbon::parse($request->input('checkout_at'))->format('Y-m-d'):Carbon::now()->format('Y-m-d'),
             'delivery_date' => $request->input('delivery_date', null)
         ];
         $orderLimit = $product->getOrderLimit($options);

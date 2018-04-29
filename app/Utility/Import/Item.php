@@ -13,7 +13,7 @@ class Item extends Model
     const STATUS_SKIPPED = 'skipped';
 
     protected $table = 'import_items';
-    protected $fillable = ['name', 'status', 'notes'];
+    public $fillable = ['name', 'status', 'notes'];
 
     //Methods
     public function process($row, \Closure $closure)

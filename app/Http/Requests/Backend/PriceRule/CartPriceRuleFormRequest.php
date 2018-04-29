@@ -53,37 +53,37 @@ class CartPriceRuleFormRequest extends Request
         return $rules;
     }
 
-    public function all()
+    public function all($keys = null)
     {
-        $attributes = parent::all();
+        $attributes = parent::all($keys);
 
-        if(!$this->has('price')){
+        if(!$this->filled('price')){
             $attributes['price'] = null;
         }
-        if(!$this->has('coupon_code')){
+        if(!$this->filled('coupon_code')){
             $attributes['coupon_code'] = null;
         }
-        if(!$this->has('max_usage')){
+        if(!$this->filled('max_usage')){
             $attributes['max_usage'] = null;
         }
-        if(!$this->has('max_usage_per_customer')){
+        if(!$this->filled('max_usage_per_customer')){
             $attributes['max_usage_per_customer'] = null;
         }
-        if(!$this->has('modification')){
+        if(!$this->filled('modification')){
             $attributes['modification'] = null;
         }
-        if(!$this->has('store_id')){
+        if(!$this->filled('store_id')){
             $attributes['store_id'] = null;
         }
-        if(!$this->has('currency')){
+        if(!$this->filled('currency')){
             $attributes['currency'] = null;
         }
-        if(!$this->has('active')){
+        if(!$this->filled('active')){
             $attributes['active'] = false;
         }
 
         $this->replace($attributes);
 
-        return parent::all();
+        return parent::all($keys);
     }
 }

@@ -34,7 +34,7 @@ class ManufacturerController extends Controller{
         $manufacturer->fill($request->all());
         $manufacturer->save();
 
-        if($request->has('logo')){
+        if($request->filled('logo')){
             foreach($request->input('logo', []) as $idx=>$image){
                 $images[$image] = [
                     'type' => 'logo',

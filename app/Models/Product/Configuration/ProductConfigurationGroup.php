@@ -9,7 +9,7 @@ class ProductConfigurationGroup extends SluggableModel
 {
     use Translatable;
 
-    protected $fillable = ['name', 'slug'];
+    public $fillable = ['name', 'slug'];
 
     public $translatedAttributes = ['name'];
 

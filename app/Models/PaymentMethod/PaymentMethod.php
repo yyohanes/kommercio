@@ -25,7 +25,7 @@ class PaymentMethod extends Model implements CacheableInterface
     public $translatedAttributes = ['name', 'message'];
     public $location;
 
-    protected $fillable = ['name', 'class', 'message', 'sort_order', 'active'];
+    public $fillable = ['name', 'class', 'message', 'sort_order', 'active'];
     protected $casts = [
         'active' => 'boolean'
     ];

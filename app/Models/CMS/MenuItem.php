@@ -19,7 +19,7 @@ class MenuItem extends Model implements CacheableInterface
         'active' => 'boolean',
     ];
 
-    protected $fillable = ['name', 'menu_id', 'parent_id', 'active', 'menu_class', 'sort_order', 'url'];
+    public $fillable = ['name', 'menu_id', 'parent_id', 'active', 'menu_class', 'sort_order', 'url'];
     protected $toggleFields = ['active'];
     protected $types = [
         'product' => '\Kommercio\Models\Product',

@@ -13,7 +13,7 @@ class ProductComposite extends SluggableModel
 
     public $translatedAttributes = ['label'];
 
-    protected $fillable = ['name', 'slug', 'label'];
+    public $fillable = ['name', 'slug', 'label'];
     protected $sluggable = [
         'build_from' => 'name',
         'save_to'    => 'slug',

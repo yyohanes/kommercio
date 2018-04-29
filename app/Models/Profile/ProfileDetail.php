@@ -9,7 +9,7 @@ class ProfileDetail extends Model
     public $timestamps = FALSE;
 
     //Dummy primary key just so this model can be deleted
-    protected $fillable = ['profile_id', 'identifier', 'value'];
+    public $fillable = ['profile_id', 'identifier', 'value'];
 
     //Relations
     public function profile()

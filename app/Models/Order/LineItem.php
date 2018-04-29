@@ -21,7 +21,7 @@ class LineItem extends Model
 {
     use HasDataColumn, MediaAttachable;
 
-    protected $fillable = ['line_item_id', 'line_item_type', 'name', 'base_price', 'quantity', 'taxable', 'notes', 'net_price', 'discount_total', 'tax_total', 'total', 'sort_order', 'data', 'temporary', 'product_composite_id', 'parent_id'];
+    public $fillable = ['line_item_id', 'line_item_type', 'name', 'base_price', 'quantity', 'taxable', 'notes', 'net_price', 'discount_total', 'tax_total', 'total', 'sort_order', 'data', 'temporary', 'product_composite_id', 'parent_id'];
     protected $casts = [
         'taxable' => 'boolean',
         'temporary' => 'boolean'

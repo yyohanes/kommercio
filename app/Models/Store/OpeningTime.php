@@ -14,7 +14,7 @@ class OpeningTime extends Model
     const DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 
     protected $table = 'store_opening_times';
-    protected $fillable = ['name', 'date_from', 'date_to', 'time_from', 'time_to', 'open', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday', 'store_id', 'sort_order'];
+    public $fillable = ['name', 'date_from', 'date_to', 'time_from', 'time_to', 'open', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday', 'store_id', 'sort_order'];
     protected $casts = [
         'open' => 'boolean',
         'monday' => 'boolean',

@@ -5,23 +5,14 @@ namespace Kommercio\Console;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 use Illuminate\Support\Facades\Event;
-use Kommercio\Console\Commands\ReindexProduct;
-use Kommercio\Console\Commands\WipeData;
-use Kommercio\Console\Commands\ReFlatIndex;
 use Kommercio\Events\Cron as CronEvent;
 
 class Kernel extends ConsoleKernel
 {
-    /**
-     * The Artisan commands provided by your application.
-     *
-     * @var array
-     */
-    protected $commands = [
-        WipeData::class,
-        ReindexProduct::class,
-        ReFlatIndex::class,
-    ];
+    protected function commands()
+    {
+        $this->load(__DIR__ . '/Commands');
+    }
 
     /**
      * Define the application's command schedule.

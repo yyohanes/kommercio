@@ -50,7 +50,7 @@ class TaxController extends Controller
         $tax->fill($request->all());
         $tax->save();
 
-        if($request->has('country')){
+        if($request->filled('country')){
             $tax->countries()->sync([$request->input('country', [])]);
             $tax->states()->sync($request->input('states', []));
             $tax->cities()->sync($request->input('cities', []));
@@ -92,7 +92,7 @@ class TaxController extends Controller
         $tax->fill($request->all());
         $tax->save();
 
-        if($request->has('country')){
+        if($request->filled('country')){
             $tax->countries()->sync([$request->input('country', [])]);
             $tax->states()->sync($request->input('states', []));
             $tax->cities()->sync($request->input('cities', []));

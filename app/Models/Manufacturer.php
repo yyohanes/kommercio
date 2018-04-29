@@ -12,7 +12,7 @@ class Manufacturer extends SluggableModel implements ProductIndexInterface, Cach
 {
     use MediaAttachable;
 
-    protected $fillable = ['name'];
+    public $fillable = ['name'];
 
     //Accessors
     public function getProductCountAttribute()

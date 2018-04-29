@@ -17,7 +17,7 @@ class PriceRule extends Model implements StoreManagedInterface
     const MODIFICATION_TYPE_PERCENT = 'percent';
     const MODIFICATION_TYPE_AMOUNT = 'amount';
 
-    protected $fillable = ['name', 'product_id', 'variation_id', 'price', 'modification', 'modification_type',
+    public $fillable = ['name', 'product_id', 'variation_id', 'price', 'modification', 'modification_type',
         'currency', 'store_id', 'active', 'active_date_from', 'active_date_to', 'is_discount', 'sort_order'];
     protected $toggleFields = ['active'];
     protected $casts = [

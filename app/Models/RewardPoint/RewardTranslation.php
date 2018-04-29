@@ -9,6 +9,12 @@ class RewardTranslation extends Model
 {
     use MediaAttachable;
 
+    public $fillable = [
+        'name',
+        'description',
+        'locale',
+    ];
+
     public $timestamps = FALSE;
 
     //Relations

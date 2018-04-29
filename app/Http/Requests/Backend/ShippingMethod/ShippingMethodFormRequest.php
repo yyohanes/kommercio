@@ -35,11 +35,11 @@ class ShippingMethodFormRequest extends Request
         return $rules;
     }
 
-    public function all()
+    public function all($keys = null)
     {
-        $attributes = parent::all();
+        $attributes = parent::all($keys);
 
-        if(!$this->has('taxable')){
+        if(!$this->filled('taxable')){
             $attributes['taxable'] = 0;
         }
 
@@ -49,6 +49,6 @@ class ShippingMethodFormRequest extends Request
 
         $this->replace($attributes);
 
-        return parent::all();
+        return parent::all($keys);
     }
 }

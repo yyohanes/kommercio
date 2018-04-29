@@ -35,7 +35,7 @@ class GalleryController extends Controller{
 
         $gallery->galleryCategories()->sync($request->input('categories', []));
 
-        if($request->has('images')){
+        if($request->filled('images')){
             foreach($request->input('images', []) as $idx=>$image){
                 $images[$image] = [
                     'type' => 'image',
@@ -46,7 +46,7 @@ class GalleryController extends Controller{
             $gallery->getTranslation()->attachMedia($images, 'image');
         }
 
-        if($request->has('thumbnail')){
+        if($request->filled('thumbnail')){
             foreach($request->input('thumbnail', []) as $idx=>$image){
                 $thumbnail[$image] = [
                     'type' => 'thumbnail',

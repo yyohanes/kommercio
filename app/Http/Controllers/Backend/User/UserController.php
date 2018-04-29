@@ -42,7 +42,7 @@ class UserController extends Controller{
             'status' => $request->input('status'),
         ];
 
-        if($request->has('password')){
+        if($request->filled('password')){
             $accountData['password'] = bcrypt($request->input('password'));
         }
 
@@ -86,7 +86,7 @@ class UserController extends Controller{
             'status' => $request->input('status'),
         ];
 
-        if($request->has('password')){
+        if($request->filled('password')){
             $accountData['password'] = bcrypt($request->input('password'));
         }
 

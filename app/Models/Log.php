@@ -11,7 +11,7 @@ class Log extends Model implements AuthorSignatureInterface
 {
     use AuthorSignature, HasDataColumn;
 
-    protected $fillable = ['tag', 'notes', 'author', 'value'];
+    public $fillable = ['tag', 'notes', 'author', 'value'];
 
     //Relations
     public function loggable()

@@ -48,7 +48,7 @@ class CategoryController extends Controller{
         $category->fill($request->all());
         $category->save();
 
-        if($request->has('image')){
+        if($request->filled('image')){
             foreach($request->input('image', []) as $idx=>$image){
                 $images[$image] = [
                     'type' => 'image',
@@ -59,7 +59,7 @@ class CategoryController extends Controller{
             $category->getTranslation()->attachMedia($images, 'image');
         }
 
-        if($request->has('thumbnail')){
+        if($request->filled('thumbnail')){
             foreach($request->input('thumbnail', []) as $idx=>$image){
                 $thumbnail[$image] = [
                     'type' => 'thumbnail',

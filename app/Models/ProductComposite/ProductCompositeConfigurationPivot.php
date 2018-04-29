@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\Pivot;
 class ProductCompositeConfigurationPivot extends Pivot
 {
     protected $table = 'product_product_composite_configuration';
-    protected $fillable = ['maximum', 'minimum', 'sort_order'];
+    public $fillable = ['maximum', 'minimum', 'sort_order'];
 
     private $_isSingle;
 

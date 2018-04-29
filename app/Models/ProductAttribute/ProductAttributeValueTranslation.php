@@ -6,6 +6,12 @@ use Kommercio\Models\Abstracts\SluggableModel;
 
 class ProductAttributeValueTranslation extends SluggableModel
 {
+    public $fillable = [
+        'name',
+        'slug',
+        'locale',
+    ];
+
     public $timestamps = FALSE;
 
     //Relations

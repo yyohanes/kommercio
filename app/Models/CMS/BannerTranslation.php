@@ -11,6 +11,12 @@ class BannerTranslation extends Model implements CacheableInterface
 {
     use MediaAttachable;
 
+    public $fillable = [
+        'name',
+        'body',
+        'locale',
+    ];
+
     public $timestamps = FALSE;
 
     private $_cachedRelationResults;

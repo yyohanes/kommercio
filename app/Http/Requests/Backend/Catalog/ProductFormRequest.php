@@ -55,7 +55,7 @@ class ProductFormRequest extends Request
             'product_configuration_group.*' => 'exists:product_configuration_groups,id'
         ];
 
-        if($this->has('compositeConfigurations')){
+        if($this->filled('compositeConfigurations')){
             $rules['compositeConfigurations.*.name'] = 'required';
             $rules['compositeConfigurations.*.minimum'] = 'required|numeric|min:0';
             $rules['compositeConfigurations.*.maximum'] = 'required|numeric|min:0';
@@ -69,29 +69,29 @@ class ProductFormRequest extends Request
         return $rules;
     }
 
-    public function all()
+    public function all($keys = null)
     {
-        $attributes = parent::all();
+        $attributes = parent::all($keys);
 
-        if(!$this->has('productDetail.active')){
+        if(!$this->filled('productDetail.active')){
             $attributes['productDetail']['active'] = 0;
         }
-        if(!$this->has('productDetail.available')){
+        if(!$this->filled('productDetail.available')){
             $attributes['productDetail']['available'] = 0;
         }
-        if(!$this->has('productDetail.new')){
+        if(!$this->filled('productDetail.new')){
             $attributes['productDetail']['new'] = 0;
         }
-        if(!$this->has('manufacturer_id')){
+        if(!$this->filled('manufacturer_id')){
             $attributes['manufacturer_id'] = NULL;
         }
-        if(!$this->has('productDetail.taxable')){
+        if(!$this->filled('productDetail.taxable')){
             $attributes['productDetail']['taxable'] = 0;
         }
-        if(!$this->has('productDetail.sticky_line_item')){
+        if(!$this->filled('productDetail.sticky_line_item')){
             $attributes['productDetail']['sticky_line_item'] = 0;
         }
-        if(!$this->has('productDetail.manage_stock')){
+        if(!$this->filled('productDetail.manage_stock')){
             $attributes['productDetail']['manage_stock'] = 0;
         }
         if(!$this->input('productDetail.sort_order', null)){
@@ -101,6 +101,6 @@ class ProductFormRequest extends Request
 
         $this->replace($attributes);
 
-        return parent::all();
+        return parent::all($keys);
     }
 }

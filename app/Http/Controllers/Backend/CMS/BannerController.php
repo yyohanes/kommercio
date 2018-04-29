@@ -26,7 +26,7 @@ class BannerController extends Controller{
         $banner = new Banner();
 
         $bannerGroupOptions = BannerGroup::orderBy('created_at', 'DESC')->get();
-        $bannerGroup = $request->has('banner_group_id')?BannerGroup::findOrFail($request->input('banner_group_id')):$bannerGroupOptions->first();
+        $bannerGroup = $request->filled('banner_group_id')?BannerGroup::findOrFail($request->input('banner_group_id')):$bannerGroupOptions->first();
 
         return view('backend.cms.banner.create', [
             'banner' => $banner,
@@ -42,7 +42,7 @@ class BannerController extends Controller{
         $banner->saveData($request->input('data'));
         $banner->save();
 
-        if($request->has('images')){
+        if($request->filled('images')){
             foreach($request->input('images', []) as $idx=>$image){
                 $images[$image] = [
                     'type' => 'image',
@@ -53,7 +53,7 @@ class BannerController extends Controller{
             $banner->getTranslation()->attachMedia($images, 'image');
         }
 
-        if($request->has('videos')){
+        if($request->filled('videos')){
             foreach($request->input('videos', []) as $idx=>$video){
                 $videos[$video] = [
                     'type' => 'video',

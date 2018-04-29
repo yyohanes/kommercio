@@ -9,7 +9,7 @@ use Kommercio\Models\Interfaces\CacheableInterface;
 
 class Menu extends SluggableModel implements CacheableInterface
 {
-    protected $fillable = ['name', 'slug', 'description'];
+    public $fillable = ['name', 'slug', 'description'];
 
     //Methods
     public function getTrails($path)

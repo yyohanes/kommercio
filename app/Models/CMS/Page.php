@@ -25,8 +25,8 @@ class Page extends Model implements UrlAliasInterface, SeoModelInterface, Cachea
         'active' => 'boolean',
     ];
 
-    public $fillable = ['name', 'slug', 'body', 'parent_id', 'meta_title', 'meta_description', 'images', 'active', 'sort_order'];
     public $translatedAttributes = ['name', 'slug', 'body', 'meta_title', 'meta_description', 'images'];
+    public $fillable = ['name', 'slug', 'body', 'parent_id', 'meta_title', 'meta_description', 'images', 'active', 'sort_order'];
     protected $toggleFields = ['active'];
     protected $seoDefaultFields = [
         'meta_description' => 'body'

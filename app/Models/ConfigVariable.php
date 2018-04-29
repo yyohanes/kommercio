@@ -9,5 +9,5 @@ class ConfigVariable extends Model
     public $timestamps = false;
     public $incrementing = false;
     protected $primaryKey = 'key';
-    protected $fillable = ['key', 'value'];
+    public $fillable = ['key', 'value'];
 }

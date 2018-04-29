@@ -15,7 +15,7 @@ class ProductConfiguration extends SluggableModel
     const TYPE_TEXTFIELD = 'textfield';
     const TYPE_TEXTAREA = 'textarea';
 
-    protected $fillable = ['name', 'slug', 'type'];
+    public $fillable = ['name', 'slug', 'type'];
 
     public $translatedAttributes = ['name'];
 

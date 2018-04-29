@@ -13,7 +13,7 @@ class ProductComposite extends SluggableModel
 
     public $translatedAttributes = ['label'];
 
-    protected $fillable = ['name', 'slug', 'label', 'minimum', 'maximum', 'sort_order', 'free'];
+    public $fillable = ['name', 'slug', 'label', 'minimum', 'maximum', 'sort_order', 'free'];
     protected $casts = [
         'free' => 'boolean'
     ];

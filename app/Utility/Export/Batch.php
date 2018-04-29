@@ -11,7 +11,7 @@ class Batch extends Model
 {
     public $extension = 'csv';
     protected $table = 'export_batches';
-    protected $fillable = ['name'];
+    public $fillable = ['name'];
 
     //Methods
     public function getBatchUniqueName()

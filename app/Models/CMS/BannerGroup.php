@@ -8,7 +8,7 @@ use Kommercio\Models\Interfaces\CacheableInterface;
 
 class BannerGroup extends SluggableModel implements CacheableInterface
 {
-    protected $fillable = ['name', 'slug', 'description'];
+    public $fillable = ['name', 'slug', 'description'];
 
     //Relations
     public function banners()

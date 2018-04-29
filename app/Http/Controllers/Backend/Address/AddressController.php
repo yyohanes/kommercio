@@ -37,7 +37,7 @@ class AddressController extends Controller{
         $this->childClass = 'Kommercio\Models\Address\\'.$addressObj->childClass;
         $this->parentObj = null;
 
-        if($request->has('parent_id')){
+        if($request->filled('parent_id')){
             $this->parentObj = call_user_func(array($this->parentClass, 'findOrFail'), $request->get('parent_id'));
         }
     }
@@ -46,7 +46,7 @@ class AddressController extends Controller{
     {
         $qb = call_user_func(array($this->addressClass, 'query'))->orderBy('sort_order', 'ASC');
 
-        if($request->has('parent_id')){
+        if($request->filled('parent_id')){
             $qb->where($this->parentType.'_id', $request->get('parent_id'));
         }
 

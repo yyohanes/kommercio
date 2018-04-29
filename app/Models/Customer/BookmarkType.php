@@ -6,7 +6,7 @@ use Kommercio\Models\Abstracts\SluggableModel;
 
 class BookmarkType extends SluggableModel
 {
-    protected $fillable = ['name', 'default'];
+    public $fillable = ['name', 'default'];
     protected $casts = [
         'default' => 'boolean'
     ];

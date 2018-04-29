@@ -6,5 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class ProductCompositeTranslation extends Model
 {
-    //
+    public $fillable = [
+        'label',
+        'locale',
+    ];
 }

@@ -13,7 +13,7 @@ class GalleryCategory extends Model implements UrlAliasInterface, SeoModelInterf
 {
     use Translatable, SeoTrait;
 
-    protected $fillable = ['name', 'body', 'parent_id', 'sort_order', 'slug', 'meta_title', 'meta_description'];
+    public $fillable = ['name', 'body', 'parent_id', 'sort_order', 'slug', 'meta_title', 'meta_description'];
     public $translatedAttributes = ['name', 'slug', 'body', 'meta_title', 'meta_description'];
 
     private $_rootCategory;

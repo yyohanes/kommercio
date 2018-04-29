@@ -10,7 +10,7 @@
                 'data-typeahead_remote' => route('backend.customer.autocomplete'),
                 'data-typeahead_display' => 'email',
                 'data-typeahead_label' => 'name',
-                'placeholder' => 'Search Customer'
+                'placeholder' => 'Search Customer',
             ];
         }
     ?>

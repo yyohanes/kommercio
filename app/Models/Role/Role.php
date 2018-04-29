@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\DB;
 class Role extends Model
 {
     protected $role_permissions_table = 'role_permissions';
-    protected $fillable = ['name'];
+    public $fillable = ['name'];
 
     private $_permissions;
 

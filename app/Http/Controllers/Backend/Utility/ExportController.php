@@ -29,7 +29,7 @@ class ExportController extends Controller
 
         $reportController = new ReportController();
 
-        if ($request->has('search.year')) {
+        if ($request->filled('search.year')) {
             $resultsFromController = $reportController->salesYear($request);
             $filter = $resultsFromController['filter'];
             $results = collect($resultsFromController['results']);
@@ -243,7 +243,7 @@ class ExportController extends Controller
                 'row' => null
             ];
         }else{
-            if($request->has('run')){
+            if($request->filled('run')){
                 $rules = [
                     'batch_id' => 'required|integer|exists:export_batches,id',
                     'row' => 'required|integer'
@@ -309,7 +309,7 @@ class ExportController extends Controller
             $runUrl = $return['url'];
         }
 
-        if($request->has('success') && $request->has('batch_id')){
+        if($request->filled('success') && $request->filled('batch_id')){
             $batch = Batch::findOrFail($request->input('batch_id'));
             $rows = $batch->items;
         }else{

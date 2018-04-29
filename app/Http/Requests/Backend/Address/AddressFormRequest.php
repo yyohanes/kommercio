@@ -50,20 +50,20 @@ class AddressFormRequest extends Request
         return $rules;
     }
 
-    public function all()
+    public function all($keys = null)
     {
-        $attributes = parent::all();
+        $attributes = parent::all($keys);
 
-        if(!$this->has('active')){
+        if(!$this->filled('active')){
             $attributes['active'] = 0;
         }
 
-        if(!$this->has('has_descendant')){
+        if(!$this->filled('has_descendant')){
             $attributes['has_descendant'] = 0;
         }
 
         $this->replace($attributes);
 
-        return parent::all();
+        return parent::all($keys);
     }
 }

@@ -8,7 +8,7 @@ use Kommercio\Models\PriceRule\Coupon;
 
 class Redemption extends Model
 {
-    protected $fillable = ['points'];
+    public $fillable = ['points'];
 
     //Relations
     public function reward()

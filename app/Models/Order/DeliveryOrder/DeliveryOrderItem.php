@@ -12,7 +12,7 @@ class DeliveryOrderItem extends Model
     use HasDataColumn;
 
     public $timestamps = false;
-    protected $fillable = ['name', 'quantity', 'price', 'weight', 'data', 'sort_order'];
+    public $fillable = ['name', 'quantity', 'price', 'weight', 'data', 'sort_order'];
 
     // Relations
     public function product()

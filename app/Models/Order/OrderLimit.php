@@ -25,7 +25,7 @@ class OrderLimit extends Model implements StoreManagedInterface, CacheableInterf
      */
     public $total = 0;
 
-    protected $fillable = ['type', 'limit_type', 'limit', 'date_from', 'date_to', 'active', 'backoffice', 'store_id', 'sort_order'];
+    public $fillable = ['type', 'limit_type', 'limit', 'date_from', 'date_to', 'active', 'backoffice', 'store_id', 'sort_order'];
     protected $casts = [
         'active' => 'boolean',
         'backoffice' => 'boolean'

@@ -12,7 +12,7 @@ class Tag extends SluggableModel implements AuthorSignatureInterface, CacheableI
 {
     use AuthorSignature;
 
-    protected $fillable = ['name', 'slug', 'notes'];
+    public $fillable = ['name', 'slug', 'notes'];
 
     // Static
     public static function findBySlug($slug) {

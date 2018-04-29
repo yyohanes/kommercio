@@ -13,7 +13,7 @@ class Invoice extends Model
     const STATUS_PAID = 'paid';
     const STATUS_VOID = 'void';
 
-    protected $fillable = ['reference', 'total', 'status', 'payment_date', 'due_date', 'public_id'];
+    public $fillable = ['reference', 'total', 'status', 'payment_date', 'due_date', 'public_id'];
     protected $dates = ['payment_date', 'due_date'];
 
     //Methods

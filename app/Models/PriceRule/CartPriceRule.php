@@ -29,7 +29,7 @@ class CartPriceRule extends Model implements StoreManagedInterface
     const OFFER_TYPE_ORDER_DISCOUNT = 'order_discount';
     const OFFER_TYPE_PRODUCT_DISCOUNT = 'product_discount';
 
-    protected $fillable = ['name', 'price', 'modification', 'modification_type', 'modification_source',
+    public $fillable = ['name', 'price', 'modification', 'modification_type', 'modification_source',
         'currency', 'store_id', 'customer_id', 'minimum_subtotal', 'max_usage_per_customer', 'offer_type', 'active', 'active_date_from', 'active_date_to', 'sort_order'];
     protected $toggleFields = ['active'];
     protected $casts = [

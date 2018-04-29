@@ -88,7 +88,7 @@ class PaymentController extends Controller{
         $payment->payment_date = Carbon::now();
         $payment->save();
 
-        if($request->has('attachments')){
+        if($request->filled('attachments')){
             foreach($request->input('attachments', []) as $idx=>$image){
                 $images[$image] = [
                     'type' => 'attachment',

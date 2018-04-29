@@ -83,9 +83,9 @@ class OrderFormRequest extends Request
         return $rules;
     }
 
-    public function all()
+    public function all($keys = null)
     {
-        $attributes = parent::all();
+        $attributes = parent::all($keys);
 
         foreach($this->input('line_items', []) as $idx => $lineItem){
             if($lineItem['line_item_type'] == 'shipping'){
@@ -95,6 +95,6 @@ class OrderFormRequest extends Request
 
         $this->replace($attributes);
 
-        return parent::all();
+        return parent::all($keys);
     }
 }

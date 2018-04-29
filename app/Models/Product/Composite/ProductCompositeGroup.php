@@ -6,7 +6,7 @@ use Kommercio\Models\Abstracts\SluggableModel;
 
 class ProductCompositeGroup extends SluggableModel
 {
-    protected $fillable = ['name', 'slug'];
+    public $fillable = ['name', 'slug'];
 
     //Methods
     public function getViewSuggestions()

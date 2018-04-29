@@ -48,7 +48,7 @@ class PostCategoryController extends Controller{
         $postCategory->fill($request->except(['images', 'thumbnail']));
         $postCategory->save();
 
-        if($request->has('image')){
+        if($request->filled('image')){
             foreach($request->input('image', []) as $idx=>$image){
                 $images[$image] = [
                     'type' => 'image',
@@ -59,7 +59,7 @@ class PostCategoryController extends Controller{
             $postCategory->getTranslation()->attachMedia($images, 'image');
         }
 
-        if($request->has('thumbnail')){
+        if($request->filled('thumbnail')){
             foreach($request->input('thumbnail', []) as $idx=>$image){
                 $thumbnail[$image] = [
                     'type' => 'thumbnail',

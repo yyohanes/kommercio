@@ -41,7 +41,7 @@ class ProductAttributeValueController extends Controller{
         $productAttributeValue->fill($request->all());
         $productAttribute->values()->save($productAttributeValue);
 
-        if($request->has('thumbnail')){
+        if($request->filled('thumbnail')){
             foreach($request->input('thumbnail', []) as $idx=>$image){
                 $thumbnail[$image] = [
                     'type' => 'thumbnail',

@@ -55,12 +55,12 @@ class PriceRuleFormRequest extends Request
         return $rules;
     }
 
-    public function all()
+    public function all($keys = null)
     {
-        $attributes = parent::all();
+        $attributes = parent::all($keys);
 
         //Remove empty price rule options
-        if($this->has('options')){
+        if($this->filled('options')){
             foreach($attributes['options'] as $idx=>$optionGroup){
                 $empty = TRUE;
 
@@ -77,36 +77,36 @@ class PriceRuleFormRequest extends Request
             }
         }
 
-        if(!$this->has('price_rule')){
+        if(!$this->filled('price_rule')){
             $attributes['price_rule'] = $attributes;
         }
 
         $this->replace($attributes);
 
-        if(!$this->has('price_rule.price')){
+        if(!$this->filled('price_rule.price')){
             $attributes['price_rule']['price'] = null;
         }
-        if(!$this->has('price_rule.modification')){
+        if(!$this->filled('price_rule.modification')){
             $attributes['price_rule']['modification'] = null;
         }
-        if(!$this->has('price_rule.variation_id')){
+        if(!$this->filled('price_rule.variation_id')){
             $attributes['price_rule']['variation_id'] = null;
         }
-        if(!$this->has('price_rule.currency')){
+        if(!$this->filled('price_rule.currency')){
             $attributes['price_rule']['currency'] = null;
         }
-        if(!$this->has('price_rule.store_id')){
+        if(!$this->filled('price_rule.store_id')){
             $attributes['price_rule']['store_id'] = null;
         }
-        if(!$this->has('price_rule.active')){
+        if(!$this->filled('price_rule.active')){
             $attributes['price_rule']['active'] = false;
         }
-        if(!$this->has('price_rule.is_discount')){
+        if(!$this->filled('price_rule.is_discount')){
             $attributes['price_rule']['is_discount'] = false;
         }
 
         $this->replace($attributes);
 
-        return parent::all();
+        return parent::all($keys);
     }
 }

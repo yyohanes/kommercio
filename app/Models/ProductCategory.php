@@ -19,7 +19,7 @@ class ProductCategory extends Model implements UrlAliasInterface, SeoModelInterf
 {
     use Translatable, SeoTrait, OrderLimitTrait;
 
-    protected $fillable = ['name', 'description', 'parent_id', 'active', 'sort_order', 'slug', 'meta_title', 'meta_description'];
+    public $fillable = ['name', 'description', 'parent_id', 'active', 'sort_order', 'slug', 'meta_title', 'meta_description'];
     protected $casts = [
         'active' => 'boolean'
     ];

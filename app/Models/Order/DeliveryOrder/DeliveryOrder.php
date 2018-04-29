@@ -28,7 +28,7 @@ class DeliveryOrder extends Model implements AuthorSignatureInterface
     const STATUS_SHIPPED = 'shipped';
     const STATUS_CANCELLED = 'cancelled';
 
-    protected $fillable = ['reference', 'counter', 'total_quantity', 'total_weight', 'status', 'notes'];
+    public $fillable = ['reference', 'counter', 'total_quantity', 'total_weight', 'status', 'notes'];
 
     // Relations
     public function order()

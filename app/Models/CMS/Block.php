@@ -20,7 +20,7 @@ class Block extends Model implements CacheableInterface
 
     const TYPE_STATIC = 'static';
 
-    protected $fillable = ['name', 'body', 'machine_name', 'type', 'active'];
+    public $fillable = ['name', 'body', 'machine_name', 'type', 'active'];
     public $translatedAttributes = ['name', 'body'];
     protected $toggleFields = ['active'];
 

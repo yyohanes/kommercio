@@ -48,11 +48,11 @@ class PostController extends Controller{
 
             $qb->orderBy('posts.created_at', 'DESC');
 
-            if($request->has('length')){
+            if($request->filled('length')){
                 $qb->take($request->input('length'));
             }
 
-            if($request->has('start') && $request->input('start') > 0){
+            if($request->filled('start') && $request->input('start') > 0){
                 $qb->skip($request->input('start'));
             }
 
@@ -121,7 +121,7 @@ class PostController extends Controller{
 
         $post->postCategories()->sync($request->input('categories', []));
 
-        if($request->has('image')){
+        if($request->filled('image')){
             foreach($request->input('image', []) as $idx=>$image){
                 $images[$image] = [
                     'type' => 'image',
@@ -132,7 +132,7 @@ class PostController extends Controller{
             $post->getTranslation()->attachMedia($images, 'image');
         }
 
-        if($request->has('thumbnail')){
+        if($request->filled('thumbnail')){
             foreach($request->input('thumbnail', []) as $idx=>$image){
                 $thumbnail[$image] = [
                     'type' => 'thumbnail',

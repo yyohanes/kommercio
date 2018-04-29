@@ -18,7 +18,7 @@ class RewardPointTransaction extends Model implements AuthorSignatureInterface
     const TYPE_ADD = 'add';
     const TYPE_DEDUCT = 'deduct';
 
-    protected $fillable = ['type', 'status', 'amount', 'reason', 'notes', 'data'];
+    public $fillable = ['type', 'status', 'amount', 'reason', 'notes', 'data'];
     protected $dates = ['approved_at'];
 
     //Relations

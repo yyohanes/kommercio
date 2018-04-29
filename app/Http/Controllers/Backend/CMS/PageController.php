@@ -37,7 +37,7 @@ class PageController extends Controller{
         $page->fill($request->except('images'));
         $page->save();
 
-        if($request->has('images')){
+        if($request->filled('images')){
             foreach($request->input('images', []) as $idx=>$image){
                 $images[$image] = [
                     'type' => 'image',
