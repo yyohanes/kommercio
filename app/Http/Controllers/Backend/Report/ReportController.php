@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Kommercio\Events\ReportEvent;
+use Kommercio\Excel\Exports\DeliveryReportExport;
 use Kommercio\Facades\ProjectHelper;
 use Kommercio\Http\Requests;
 use Kommercio\Http\Controllers\Controller;
@@ -245,20 +246,16 @@ class ReportController extends Controller
         }
 
         if($request->input('export_to_xls', false)){
-            Excel::create('Delivery Report '.$filter['date'], function($excel) use ($filter, $orders, $orderedProducts, $shippingMethod, $date, $dateType) {
-                $excel->setDescription('Delivery Report '.$filter['date']);
-                $excel->sheet('Sheet 1', function($sheet) use ($filter, $orders, $orderedProducts, $shippingMethod, $date, $dateType){
-                    $exportTemplate = ProjectHelper::getViewTemplate('backend.report.export.xls.delivery');
-                    $sheet->loadView($exportTemplate, [
-                        'filter' => $filter,
-                        'orders' => $orders,
-                        'shippingMethod' => $shippingMethod,
-                        'date' => $date,
-                        'dateType' => $dateType,
-                        'orderedProducts' => $orderedProducts
-                    ]);
-                });
-            })->download('xls');
+            $excelExport = new DeliveryReportExport([
+                'filter' => $filter,
+                'orders' => $orders,
+                'shippingMethod' => $shippingMethod,
+                'date' => $date,
+                'dateType' => $dateType,
+                'orderedProducts' => $orderedProducts,
+            ]);
+
+            return $excelExport->download('Delivery Report ' . $filter['date'] . '.xls');
         }
 
         $printAllInvoicesUrl = $request->url().'?'.http_build_query(array_merge($request->query(), ['print_invoices' => TRUE]));
