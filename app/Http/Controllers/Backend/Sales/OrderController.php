@@ -15,6 +15,7 @@ use Kommercio\Events\DeliveryOrderEvent;
 use Kommercio\Events\OrderEvent;
 use Kommercio\Events\OrderUpdate;
 use Kommercio\Excel\Exports\InvoiceExport;
+use Kommercio\Excel\Exports\PackagingSlipExport;
 use Kommercio\Facades\AddressHelper;
 use Kommercio\Facades\LanguageHelper;
 use Kommercio\Facades\OrderHelper;
@@ -646,15 +647,11 @@ class OrderController extends Controller{
             OrderHelper::saveOrderComment('Print Packaging Slip.', 'print_packaging_slip', $order, $user);
 
             if(config('project.print_format', config('kommercio.print_format')) == 'xls'){
-                Excel::create('Packacing Slip #'.$order->reference, function($excel) use ($order) {
-                    $excel->setDescription('Packacing Slip #'.$order->reference);
-                    $excel->sheet('Sheet 1', function($sheet) use ($order, $excel){
-                        $sheet->loadView(ProjectHelper::getViewTemplate('print.excel.order.packaging_slip'), [
-                            'order' => $order,
-                            'excel' => $excel
-                        ]);
-                    });
-                })->download('xls');
+                $excelExport = new PackagingSlipExport([
+                    'order' => $order,
+                ]);
+
+                return $excelExport->download('Packacing Slip #'.$order->reference . '.xls');
             }
 
             return view(ProjectHelper::getViewTemplate('print.order.packaging_slip'), [
