@@ -14,6 +14,7 @@ use Kommercio\Events\CouponEvent;
 use Kommercio\Events\DeliveryOrderEvent;
 use Kommercio\Events\OrderEvent;
 use Kommercio\Events\OrderUpdate;
+use Kommercio\Excel\Exports\InvoiceExport;
 use Kommercio\Facades\AddressHelper;
 use Kommercio\Facades\LanguageHelper;
 use Kommercio\Facades\OrderHelper;
@@ -664,15 +665,11 @@ class OrderController extends Controller{
         OrderHelper::saveOrderComment('Print Invoice.', 'print_invoice', $order, $user);
 
         if(config('project.print_format', config('kommercio.print_format')) == 'xls'){
-            Excel::create('Invoice #'.$order->reference, function($excel) use ($order) {
-                $excel->setDescription('Invoice #'.$order->reference);
-                $excel->sheet('Sheet 1', function($sheet) use ($order, $excel){
-                    $sheet->loadView(ProjectHelper::getViewTemplate('print.excel.order.invoice'), [
-                        'order' => $order,
-                        'excel' => $excel
-                    ]);
-                });
-            })->download('xls');
+            $excelExport = new InvoiceExport([
+                'order' => $order,
+            ]);
+
+            return $excelExport->download('Invoice #'.$order->reference . '.xls');
         }
 
         if($request->input('pdf', false)){
