@@ -3,6 +3,7 @@
 namespace Kommercio\Http\Controllers\Backend\Sales;
 
 use Illuminate\Http\Request;
+use Kommercio\Excel\Exports\DeliveryOrderExport;
 use Kommercio\Facades\OrderHelper;
 use Kommercio\Facades\ProjectHelper;
 use Kommercio\Http\Controllers\Controller;
@@ -120,15 +121,11 @@ class DeliveryOrderController extends Controller{
         OrderHelper::saveOrderComment('Delivery Order #'.$deliveryOrder->reference.' is printed.', 'print_delivery_order', $deliveryOrder->order, $user);
 
         if(config('project.print_format', config('kommercio.print_format')) == 'xls'){
-            Excel::create('Delivery Order #'.$deliveryOrder->reference, function($excel) use ($deliveryOrder) {
-                $excel->setDescription('Delivery Order #'.$deliveryOrder->reference);
-                $excel->sheet('Sheet 1', function($sheet) use ($deliveryOrder, $excel){
-                    $sheet->loadView(ProjectHelper::getViewTemplate('print.excel.order.delivery_order'), [
-                        'deliveryOrder' => $deliveryOrder,
-                        'excel' => $excel
-                    ]);
-                });
-            })->download('xls');
+            $excelExport = new DeliveryOrderExport([
+                'deliveryOrder' => $deliveryOrder,
+            ]);
+
+            return $excelExport->download('Delivery Order #'.$deliveryOrder->reference . '.xls');
         }
 
         return view(ProjectHelper::getViewTemplate('print.order.delivery_order'), [
