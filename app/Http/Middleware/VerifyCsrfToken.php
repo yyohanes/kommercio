@@ -14,5 +14,6 @@ class VerifyCsrfToken extends BaseVerifier
     protected $except = [
         'payment-method/midtrans/snap/notify',
         'checkout/payment/*/notify',
+        'api/*',
     ];
 }

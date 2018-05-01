@@ -342,7 +342,7 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface, Cac
             $retailPrice += $this->calculateTax($retailPrice);
         }
 
-        return $retailPrice;
+        return $retailPrice + 0;
     }
 
     public function getNetPrice($tax = false)
@@ -355,7 +355,7 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface, Cac
             $netPrice += $this->calculateTax($netPrice);
         }
 
-        return $netPrice;
+        return $netPrice + 0;
     }
 
     public function getTaxAmount()

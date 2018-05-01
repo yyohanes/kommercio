@@ -182,6 +182,7 @@ return [
         \Barryvdh\HttpCache\ServiceProvider::class,
         \Barryvdh\DomPDF\ServiceProvider::class,
         \Sichikawa\LaravelSendgridDriver\MailServiceProvider::class,
+        \Barryvdh\Cors\ServiceProvider::class,
 
         /*
          * Application Service Providers...
