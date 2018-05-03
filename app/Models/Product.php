@@ -720,6 +720,10 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface, Cac
             })
             ->active();
 
+        if ($this->combination_type != self::COMBINATION_TYPE_VARIATION) {
+            $qb->whereNull('variation_id');
+        }
+
         if($is_discount === TRUE){
             $qb->isDiscount();
         }elseif($is_discount === FALSE){
