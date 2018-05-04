@@ -6,119 +6,26 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Controller;
 use Illuminate\Http\Request;
 use Kommercio\Facades\CurrencyHelper;
-use Kommercio\Facades\ProjectHelper;
 use Kommercio\Models\Order\Order;
 use Kommercio\Models\PaymentMethod\PaymentMethod;
 use Kommercio\Models\Order\Payment as KommercioPayment;
 use PayPal\Api\Amount;
 use PayPal\Api\Details;
-use PayPal\Api\Item;
-use PayPal\Api\ItemList;
-use PayPal\Api\Payer;
 use PayPal\Api\Payment;
 use PayPal\Api\PaymentExecution;
-use PayPal\Api\RedirectUrls;
 use PayPal\Api\Transaction;
-use PayPal\Auth\OAuthTokenCredential;
 use PayPal\Exception\PayPalConnectionException;
-use PayPal\Rest\ApiContext;
 
-class ExpressCheckoutController extends Controller
+class ExternalCheckoutController extends Controller
 {
     protected $paymentMethod;
     protected $apiContext;
 
     public function __construct()
     {
-        $this->paymentMethod = PaymentMethod::where('class', 'PaypalExpressCheckout')->firstOrFail();
+        $this->paymentMethod = PaymentMethod::where('class', 'PaypalExternalCheckout')->firstOrFail();
 
         $this->apiContext = $this->paymentMethod->getProcessor()->getApiContext();
-    }
-
-    public function create(Request $request)
-    {
-        $order = Order::findPublic($request->input('order_id'));
-
-        $currency = CurrencyHelper::getCurrency($order->currency);
-        $currencyIso = $currency['iso'];
-
-        $payer = new Payer();
-        $payer->setPaymentMethod('paypal');
-
-        $itemList = new ItemList();
-
-        foreach($order->lineItems as $lineitem){
-            //Product
-            if($lineitem->isProduct){
-                $item = new Item();
-                $item->setName($lineitem->name)
-                    ->setCurrency($currencyIso)
-                    ->setQuantity($lineitem->quantity)
-                    ->setSku($lineitem->product->sku)
-                    ->setPrice($lineitem->calculateNet(false));
-
-                $itemList->addItem($item);
-            }else if(!$lineitem->isShipping && !$lineitem->isTax){
-                $item = new Item();
-                $item->setName($lineitem->name)
-                    ->setCurrency($currencyIso)
-                    ->setQuantity($lineitem->quantity)
-                    ->setPrice($lineitem->calculateNet(false));
-
-                $itemList->addItem($item);
-            }
-        }
-
-        $details = new Details();
-        $details
-            ->setShipping($order->calculateShippingTotal())
-            ->setTax($order->calculateTaxTotal())
-            ->setSubtotal($order->calculateSubtotal());
-
-        $amount = new Amount();
-        $amount
-            ->setCurrency($currencyIso)
-            ->setDetails($details)
-            ->setTotal($order->calculateTotal());
-
-        $payment = KommercioPayment::createIniatePayment($order);
-
-        $transaction = new Transaction();
-        $transaction->setAmount($amount)
-            ->setItemList($itemList)
-            ->setInvoiceNumber($payment->generateExternalReference());
-
-        $redirectUrls = new RedirectUrls();
-        $redirectUrls->setReturnUrl(route('frontend.payment_method.paypal.express_checkout.execute', ['status' => 'success']))
-            ->setCancelUrl(route('frontend.payment_method.paypal.express_checkout.execute', ['status' => 'cancel']));
-
-        $payment = new Payment();
-        $payment->setIntent('sale')
-            ->setPayer($payer)
-            ->setRedirectUrls($redirectUrls)
-            ->setTransactions(array($transaction));
-
-        if($this->paymentMethod->hasData('web_experience_profile_id')){
-            $payment->setExperienceProfileId($this->paymentMethod->getData('web_experience_profile_id'));
-        }
-
-        try {
-            $payment->create($this->apiContext);
-        } catch (PayPalConnectionException $e) {
-            $return = [
-                'result' => 0,
-                'message' => $e->getMessage()
-            ];
-        }
-
-        $approvalUrl = $payment->getApprovalLink();
-
-        $return = [
-            'result' => 1,
-            'paymentID' => $payment->getId()
-        ];
-
-        return new JsonResponse($return);
     }
 
     public function execute(Request $request, $status)
@@ -172,7 +79,7 @@ class ExpressCheckoutController extends Controller
                         'payment' => $payment->toJSON()
                     ];
                 } catch (PayPalConnectionException $e) {
-                    \Log::info($e->getData());
+                    \Log::error($e->getMessage());
 
                     $return = [
                         'result' => 0,
@@ -180,7 +87,7 @@ class ExpressCheckoutController extends Controller
                     ];
                 }
             } catch (PayPalConnectionException $e) {
-                \Log::info($e->getData());
+                \Log::error($e->getMessage());
 
                 $return = [
                     'result' => 0,
@@ -188,9 +95,6 @@ class ExpressCheckoutController extends Controller
                 ];
             }
         }else{
-            \Log::info('fail');
-            \Log::info($request);
-
             $newStatus = KommercioPayment::STATUS_FAILED;
 
             $return = [

@@ -281,6 +281,16 @@ Route::group(['middleware' => ['web']], function () {
             'uses' => 'OrderController@confirmPayment'
         ]);
 
+        Route::any('checkout/payment/{payment_public_id}', [
+            'as' => 'frontend.order.checkout.payment',
+            'uses' => 'OrderController@checkoutPayment'
+        ]);
+
+        Route::any('checkout/payment/{payment_public_id}/notify', [
+            'as' => 'frontend.order.checkout.payment.notify',
+            'uses' => 'OrderController@checkoutPaymentNotify'
+        ]);
+
         Route::get('checkout/complete', [
             'as' => 'frontend.order.checkout.complete',
             'uses' => 'OrderController@checkoutComplete'
@@ -1628,7 +1638,7 @@ Route::group(['middleware' => ['web']], function () {
                         'as' => 'backend.utility.export.customer',
                         'uses' => 'ExportController@customer',
                     ]);
-                    
+
                     Route::any('order', [
                         'as' => 'backend.utility.export.order',
                         'uses' => 'ExportController@order',

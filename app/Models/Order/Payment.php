@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Event;
 use Kommercio\Events\PaymentEvent;
+use Kommercio\Facades\ProjectHelper;
 use Kommercio\Models\Interfaces\AuthorSignatureInterface;
 use Kommercio\Models\Log;
 use Kommercio\Models\PaymentMethod\PaymentMethod;
@@ -122,6 +123,16 @@ class Payment extends Model implements AuthorSignatureInterface
     }
 
     //Statics
+    public static function generatePublicId()
+    {
+        $uuid = ProjectHelper::generateUuid();
+
+        while(self::where('public_id', $uuid)->count() > 0){
+            $uuid = static::generatePublicId();
+        }
+
+        return $uuid;
+    }
 
     /**
      * Create Order Payment
@@ -135,6 +146,7 @@ class Payment extends Model implements AuthorSignatureInterface
     public static function createPayment(Order $order, Invoice $invoice = null, $status = self::STATUS_PENDING, PaymentMethod $paymentMethod = null, $notes = '', $options = [])
     {
         $paymentData = [
+            'public_id' => static::generatePublicId(),
             'amount' => $order->getOutstandingAmount(),
             'currency' => $order->currency,
             'status' => $status,
@@ -228,5 +240,14 @@ class Payment extends Model implements AuthorSignatureInterface
         $payment = self::findOrFail($paymentId);
 
         return $payment;
+    }
+
+    /**
+     * @param $public_id Public ID of the payment
+     * @return self
+     */
+    public static function findPublic($public_id)
+    {
+        return self::where('public_id', $public_id)->first();
     }
 }

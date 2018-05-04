@@ -869,6 +869,21 @@ class OrderController extends Controller
                     }
 
                     if(!$errors){
+                        if ($order->paymentMethod->isExternal()) {
+                            $externalPaymentUrl = route('frontend.order.checkout.payment', ['payment_public_id' => $paymentResponse->public_id]);
+
+                            if ($request->ajax()) {
+                                $response = new JsonResponse([
+                                    'redirect' => $externalPaymentUrl,
+                                    '_token' => csrf_token()
+                                ]);
+                            } else {
+                                $response = redirect()->to($externalPaymentUrl);
+                            }
+
+                            return $response;
+                        }
+
                         $order->processStocks();
 
                         $this->placeOrder($order);
@@ -1027,6 +1042,84 @@ class OrderController extends Controller
         ];
 
         return view($view_name, ['order' => $order, 'seoData' => $seoData]);
+    }
+
+    public function checkoutPayment(Request $request, $payment_public_id) {
+        $payment = Payment::findPublic($payment_public_id);
+
+        // If payment is not initiating, redirect to checkout
+        if ($payment->status !== Payment::STATUS_INITIATE) {
+            return redirect()->route('frontend.order.onepage_checkout');
+        }
+
+        $paymentMethod = $payment->paymentMethod;
+        $order = $payment->order;
+
+        // If order has no outstanding, redirect to complete
+        if ($order->getOutstandingAmount() <= 0) {
+            return redirect()->route('frontend.order.view', [
+                'public_id' => $order->public_id,
+            ]);
+        }
+
+        if(!$payment){
+            throw (new ModelNotFoundException)->setModel(
+                get_class($payment), $payment_public_id
+            );
+        }
+
+        $view_name = ProjectHelper::getViewTemplate('frontend.order.checkout.payment');
+
+        return view($view_name, [
+            'paymentMethod' => $paymentMethod,
+            'payment' => $payment,
+            'order' => $order,
+            'paymentForm' => $paymentMethod->getProcessor()->getPaymentForm($payment),
+        ]);
+    }
+
+    public function checkoutPaymentNotify(Request $request, $payment_public_id) {
+        $payment = Payment::findPublic($payment_public_id);
+
+        if(!$payment){
+            throw (new ModelNotFoundException)->setModel(
+                get_class($payment), $payment_public_id
+            );
+        }
+
+        // If payment is not initiating, redirect to checkout
+        if ($payment->status !== Payment::STATUS_INITIATE) {
+            return redirect()->route('frontend.order.onepage_checkout');
+        }
+
+        /** @var PaymentMethod $paymentMethod */
+        $paymentMethod = $payment->paymentMethod;
+
+        try {
+            $processedPayment = $paymentMethod->getProcessor()->handleExternalNotification($request, $payment);
+        } catch (\Throwable $e) {
+            \Log::error($e->getMessage());
+
+            return response($e->getMessage(), 400);
+        }
+
+        // If payment is failing or cancelled, redirect to checkout
+        if ($processedPayment->status === Payment::STATUS_FAILED) {
+            return redirect()->route('frontend.order.onepage_checkout');
+        }
+
+        // Only complete order if payment status changes
+        if ($payment->status !== $processedPayment->status && $processedPayment->status === Payment::STATUS_SUCCESS) {
+            $order = $processedPayment->order;
+            $completedOrder = $this->processPlaceOrder($order, new Request());
+
+            return redirect()
+                ->route('frontend.order.checkout.complete')
+                ->with('order_id', $completedOrder->id)
+                ->with('success', [trans(LanguageHelper::getTranslationKey('frontend.checkout.checkout_complete'))]);
+        }
+
+        return response('Nothing happened', 400);
     }
 
     public function view($public_id)
@@ -1228,6 +1321,50 @@ class OrderController extends Controller
                 Event::fire(new CouponEvent('used', $couponLineItem->coupon));
             }
         }
+
+        return $order;
+    }
+
+    /**
+     * @param Order $order
+     * @param Request $request
+     * @return Order
+     * @throws \Exception
+     */
+    protected function processPlaceOrder(Order $order, Request $request) {
+        if (!empty($order->status) && !in_array($order->status, [Order::STATUS_CART, Order::STATUS_ADMIN_CART])) {
+            throw new \Exception('Order status is not in cart.');
+        }
+        $order->processStocks();
+
+        $this->placeOrder($order);
+
+        if(!ProjectHelper::getConfig('require_billing_information')){
+            //Copy Shipping info to Billing
+            $order->saveProfile('billing', $order->shippingInformation->getDetails());
+        }
+
+        $profileData = $order->billingInformation->getDetails();
+        $customer = Customer::saveCustomer(null, $profileData, null, FALSE);
+
+        if ($customer) {
+            $order->customer()->associate($customer);
+        }
+
+        OrderHelper::processLineItems($request, $order, false);
+
+        Event::fire(new OrderEvent('before_checkout_calculate_total', $order));
+
+        $order->load('lineItems');
+        $order->calculateTotal();
+
+        $order->saveData(['checkout_step' => 'complete'], TRUE);
+        Event::fire(new OrderEvent('before_update_order', $order));
+
+        $order->save();
+
+        Event::fire(new OrderEvent('customer_place_order', $order));
+        Event::fire(new OrderUpdate($order, Order::STATUS_CART, true));
 
         return $order;
     }

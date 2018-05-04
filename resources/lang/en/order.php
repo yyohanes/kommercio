@@ -54,5 +54,11 @@ return [
             'payment_received' => 'Payment with amount of :amount is received.',
             'payment_voided' => 'Payment with amount of :amount is voided.',
         ]
-    ]
+    ],
+    'payment_method' => [
+        'paypal' => [
+            'redirect_to_paypal' => 'You will be directed to Paypal website to complete your payment',
+            'redirecting_to_paypal' => 'In 3 seconds, you will be directed to Paypal website to complete your payment. If you are not redirected, please click <a href=":redirect_url">here</a>...',
+        ],
+    ],
 ];
