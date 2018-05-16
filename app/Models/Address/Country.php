@@ -5,7 +5,7 @@ namespace Kommercio\Models\Address;
 use Illuminate\Support\Facades\Cache;
 use Kommercio\Models\Interfaces\CacheableInterface;
 
-class Country extends Address implements CacheableInterface
+class Country extends Address
 {
     protected $table = 'address_countries';
 
@@ -26,7 +26,10 @@ class Country extends Address implements CacheableInterface
             $tableName . '_all',
         ];
 
-        return $keys;
+        return array_merge(
+            parent::getCacheKeys(),
+            $keys
+        );
     }
 
     // Statics

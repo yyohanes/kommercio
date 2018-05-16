@@ -126,6 +126,7 @@ class PaymentMethod extends Model implements CacheableInterface
     {
         $tableName = $this->getTable();
         $keys = [
+            $tableName . '_' . $this->id,
             $tableName . '_' . $this->class,
         ];
 
@@ -134,6 +135,10 @@ class PaymentMethod extends Model implements CacheableInterface
 
     public function isExternal() {
         return $this->getProcessor()->isExternal();
+    }
+
+    public function getPublicData() {
+        return $this->getProcessor()->getPublicData();
     }
 
     //Statics
@@ -183,7 +188,7 @@ class PaymentMethod extends Model implements CacheableInterface
 
         // Loop through all active payment methods and validate by:
         // Is active, can be used at selected store, is frontend request, custom validation in the processor
-        $return = [];
+        $return = collect([]);
         foreach($paymentMethods as $paymentMethod){
             $paymentMethod->location = $location;
 
@@ -198,7 +203,15 @@ class PaymentMethod extends Model implements CacheableInterface
         return $return;
     }
 
-    public static function findByClass($class) {
+    public static function findById(int $id) {
+        $tableName = (new static)->getTable();
+
+        return Cache::remember($tableName . '_' . $id, 25200, function() use ($id) {
+            return static::find($id);
+        });
+    }
+
+    public static function findByClass(string $class) {
         $tableName = (new static)->getTable();
 
         return Cache::remember($tableName . '_' . $class, 25200, function() use ($class) {

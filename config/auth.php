@@ -42,7 +42,7 @@ return [
         ],
 
         'api' => [
-            'driver' => 'token',
+            'driver' => 'passport',
             'provider' => 'users',
         ],
     ],
@@ -104,4 +104,9 @@ return [
         ],
     ],
 
+    'auth_server' => [
+        'host' => env('AUTH_HOST', 'http://localhost'),
+        'password_client_id' => env('PASSWORD_CLIENT_ID'),
+        'password_client_secret' => env('PASSWORD_CLIENT_SECRET'),
+    ],
 ];

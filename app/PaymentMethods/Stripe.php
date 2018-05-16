@@ -113,6 +113,13 @@ class Stripe extends PaymentMethodAbstract implements PaymentMethodSettingFormIn
         return $this->paymentMethod->getData('publishable_key');
     }
 
+    public function getPublicData()
+    {
+        return [
+            'publishable_key' => $this->getPublishableKey(),
+        ];
+    }
+
     protected function getSecretKey()
     {
         return $this->paymentMethod->getData('secret_key');

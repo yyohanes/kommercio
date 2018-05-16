@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Event;
 use Kommercio\Events\CartPriceRuleEvent;
+use Kommercio\Facades\CurrencyHelper as CurrencyHelperFacade;
 use Kommercio\Facades\PriceFormatter as PriceFormatterFacade;
 use Kommercio\Facades\ProjectHelper as ProjectHelperFacade;
 use Kommercio\Facades\EmailHelper as EmailHelperFacade;
@@ -20,6 +21,7 @@ use Kommercio\Models\PriceRule\CartPriceRule;
 use Kommercio\Models\Product;
 use Kommercio\Models\Tax;
 use Kommercio\Models\User;
+use Ramsey\Uuid\Uuid;
 
 class OrderHelper
 {
@@ -62,6 +64,37 @@ class OrderHelper
         return isset($array[$status])?$array[$status]:'default';
     }
 
+    /**
+     * @param Request $request
+     * @param bool $save
+     * @return Order
+     */
+    public function createEmptyOrder(Request $request, $save = false)
+    {
+        $store = ProjectHelperFacade::getStoreByRequest($request);
+
+        $order = new Order();
+        $order->store()->associate($store);
+        $order->reference = Uuid::uuid4();
+        $order->ip_address = $request->ip();
+        $order->user_agent = $request->header('User-Agent');
+        $order->status = Order::STATUS_CART;
+        $order->currency = CurrencyHelperFacade::getCurrentCurrency()['code'];
+
+        if ($save) {
+            try {
+                $order->save();
+            } catch (\Throwable $e) {
+                $errorCode = $e->errorInfo[1];
+
+                // Retry just in case since it's just tiny tiny chance of duplicate reference.
+                if ($errorCode == 1062) return $this->createEmptyOrder($request, $save);
+            }
+        }
+
+        return $order;
+    }
+
     public function createDummyOrderFromRequest(Request $request)
     {
         //Create dummy order for subTotal calculation
@@ -85,6 +118,8 @@ class OrderHelper
         $order->payment_method_id = $request->input('payment_method', null);
         $order->currency = $request->input('currency');
         $order->conversion_rate = 1;
+
+        $lineItems = $request->input('line_items', []);
 
         $order->lineItems = $this->processLineItems($request, $order, true, true);
 

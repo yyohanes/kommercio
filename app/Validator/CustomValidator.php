@@ -209,6 +209,7 @@ class CustomValidator extends Validator
         $product_id = $value;
         $quantity = $parameters[0];
         $order_id = $parameters[1];
+        $store_id = isset($parameters[2]) ? $parameters[2] : null;
 
         $productPassed = true;
 
@@ -221,7 +222,7 @@ class CustomValidator extends Validator
             });
 
             $orderLimit = $product->getPerOrderLimit([
-                'store' => !empty($order->store)?$order->store->id:null,
+                'store' => $store_id ? : (!empty($order->store) ? $order->store->id : null),
                 'date' => Carbon::now()->format('Y-m-d')
             ]);
 
@@ -236,7 +237,7 @@ class CustomValidator extends Validator
             if ($productPassed) {
                 foreach ($product->categories as $category) {
                     $orderLimit = $category->getPerOrderLimit([
-                        'store' => !empty($order->store)?$order->store->id:null,
+                        'store' => $store_id ? : (!empty($order->store) ? $order->store->id : null),
                         'date' => Carbon::now()->format('Y-m-d')
                     ]);
 

@@ -21,7 +21,10 @@ class PasswordController extends Controller
 
     protected $linkRequestView;
 
-    use SendsPasswordResetEmails, ResetsPasswords;
+    use SendsPasswordResetEmails, ResetsPasswords {
+        ResetsPasswords::broker as resetPasswordsBroker;
+        SendsPasswordResetEmails::broker insteadof ResetsPasswords;
+    }
 
     /**
      * Create a new password controller instance.

@@ -3,15 +3,17 @@
 namespace Kommercio\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Kommercio\Facades\LanguageHelper;
 use Kommercio\Facades\RuntimeCache;
+use Kommercio\Models\Interfaces\CacheableInterface;
 use Kommercio\Models\Order\Order;
 use Kommercio\Models\RewardPoint\RewardPointTransaction;
 use Kommercio\Traits\Model\Profileable;
 use Kommercio\Traits\Model\FlatIndexable;
 
-class Customer extends Model
+class Customer extends Model implements CacheableInterface
 {
     use Profileable, FlatIndexable;
 
@@ -29,7 +31,7 @@ class Customer extends Model
     ];
     protected $dates = ['last_active'];
     protected $profileKeys = ['profile'];
-    
+
     protected $flatTable = 'customers_index';
     // TODO: Add more keys to flat index
     protected $flatIndexables = ['profile.email'];
@@ -81,6 +83,19 @@ class Customer extends Model
     }
 
     //Methods
+    /**
+     * @inheritdoc
+     */
+    public function getCacheKeys()
+    {
+        $tableName = $this->getTable();
+        $keys = [
+            $tableName . '_' . $this->id,
+        ];
+
+        return $keys;
+    }
+
     public function saveAddress($data, $billing = false, $shipping = false)
     {
         $profile = new Profile\Profile();
@@ -196,6 +211,14 @@ class Customer extends Model
     }
 
     //Statics
+    public static function findById(int $id) {
+        $tableName = (new static)->getTable();
+
+        return Cache::remember($tableName . '_' . $id, 3600, function() use ($id) {
+            return static::where('id', $id)->first();
+        });
+    }
+
     public static function saveCustomer($customer = null, $profileData=null, $accountData=null, $touchAccount = TRUE, $newRegistration = FALSE)
     {
         if(!isset($profileData['email']) || !filter_var($profileData['email'], FILTER_VALIDATE_EMAIL)){

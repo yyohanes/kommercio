@@ -5,6 +5,7 @@ namespace Kommercio\Models;
 use Carbon\Carbon;
 use Dimsav\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Cache;
 use Kommercio\Facades\FrontendHelper;
 use Kommercio\Models\Interfaces\ProductIndexInterface;
 use Kommercio\Models\Interfaces\SeoModelInterface;
@@ -292,8 +293,20 @@ class ProductCategory extends Model implements UrlAliasInterface, SeoModelInterf
         return $options;
     }
 
+    public static function findById($id) {
+        if (!$id) return null;
+
+        $tableName = (new static)->getTable();
+
+        return Cache::remember($tableName . '_' . $id, 25200, function() use ($id) {
+            return static::find($id);
+        });
+    }
+
     public static function getBySlug($slug)
     {
+        if (!$slug) return null;
+
         $qb = self::whereTranslation('slug', $slug);
         $category = $qb->first();
 

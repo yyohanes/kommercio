@@ -3,8 +3,10 @@
 namespace Kommercio\Models\Address;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Cache;
+use Kommercio\Models\Interfaces\CacheableInterface;
 
-class Address extends Model
+class Address extends Model implements CacheableInterface
 {
     public $timestamps = false;
 
@@ -53,6 +55,20 @@ class Address extends Model
     }
 
     //Methods
+
+    /**
+     * @inheritdoc
+     */
+    public function getCacheKeys()
+    {
+        $tableName = $this->getTable();
+        $keys = [
+            $tableName . '_' . $this->id,
+        ];
+
+        return $keys;
+    }
+
     public function setParent($parent_id)
     {
         if($this->parentType){
@@ -148,5 +164,14 @@ class Address extends Model
     public static function getAddressByType($id, $type)
     {
         $model = self::getClassNameByType($type);
+    }
+
+    public static function findById(int $id)
+    {
+        $tableName = (new static)->getTable();
+
+        return Cache::remember($tableName . '_' . $id, 3600, function() use ($id) {
+            return static::where('id', $id)->first();
+        });
     }
 }

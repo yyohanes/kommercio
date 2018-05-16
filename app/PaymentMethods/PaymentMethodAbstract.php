@@ -103,4 +103,13 @@ abstract class PaymentMethodAbstract
     {
         return true;
     }
+
+    /**
+     * Data may hold sensitive credentials/information. This method should be called to get data that is public facing like public API
+     * @return array
+     */
+    public function getPublicData()
+    {
+        return [];
+    }
 }

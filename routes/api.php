@@ -12,7 +12,11 @@ Route::group(
          */
 
         $routes = [
-            'products.php',
+            'auth.php',
+            'product.php',
+            'order.php',
+            'store.php',
+            'address.php',
         ];
 
         foreach ($routes as $route) {

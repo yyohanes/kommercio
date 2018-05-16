@@ -26,7 +26,7 @@ class ImageResource extends Resource {
         $crops = [];
 
         foreach (array_keys($cropStyles) as $cropStyle) {
-            $crops[$cropStyle] = asset($this->resource->getImagePath($cropStyle));
+            $crops[$cropStyle] = asset(config('app.url') . '/' . $this->resource->getImagePath($cropStyle));
         }
 
         return $crops;

@@ -183,6 +183,7 @@ return [
         \Barryvdh\DomPDF\ServiceProvider::class,
         \Sichikawa\LaravelSendgridDriver\MailServiceProvider::class,
         \Barryvdh\Cors\ServiceProvider::class,
+        \Laravel\Passport\PassportServiceProvider::class,
 
         /*
          * Application Service Providers...

@@ -8,6 +8,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Kommercio\Facades\ProjectHelper;
+use Kommercio\Models\Address\Area;
+use Kommercio\Models\Address\City;
+use Kommercio\Models\Address\Country;
+use Kommercio\Models\Address\District;
+use Kommercio\Models\Address\State;
 use Kommercio\Models\Interfaces\CacheableInterface;
 use Kommercio\Models\Store\OpeningTime;
 use Kommercio\Traits\Model\HasDataColumn;
@@ -58,6 +63,41 @@ class Store extends Model implements CacheableInterface
             'area_id' => $this->area_id,
             'postal_code' => $this->postal_code,
         ];
+    }
+
+    public function getCountryAttribute()
+    {
+        $country = Country::findById($this->country_id);
+
+        return $country;
+    }
+
+    public function getStateAttribute()
+    {
+        $state = State::findById($this->state_id);
+
+        return $state;
+    }
+
+    public function getCityAttribute()
+    {
+        $city = City::findById($this->city_id);
+
+        return $city;
+    }
+
+    public function getDistrictAttribute()
+    {
+        $district = District::findById($this->district_id);
+
+        return $district;
+    }
+
+    public function getAreaAttribute()
+    {
+        $area = Area::findById($this->area_id);
+
+        return $area;
     }
 
     public function getDefaultWarehouse()
@@ -141,6 +181,7 @@ class Store extends Model implements CacheableInterface
         $keys = [
             $tableName.'_'.$this->id.'.taxes',
             $tableName.'_'.$this->code,
+            $tableName.'_'.$this->id,
             [
                 $this->getTable() . '_' . $this->id . '_opening_times',
             ],
@@ -150,6 +191,14 @@ class Store extends Model implements CacheableInterface
     }
 
     //Static
+    public static function findById(int $id) {
+        $tableName = (new static)->getTable();
+
+        return Cache::remember($tableName . '_' . $id, 3600, function() use ($id) {
+            return static::where('id', $id)->first();
+        });
+    }
+
     public static function findByCode($code) {
         $tableName = (new static)->getTable();
 

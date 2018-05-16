@@ -984,101 +984,118 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface, Cac
     public function getUnavailableDeliveryDates($options)
     {
         $disabledDates = [];
-        $quantity = !empty($options['quantity'])?$options['quantity']:0;
         $saved_quantity = !empty($options['saved_quantity'])?$options['saved_quantity']:0;
         $saved_delivery_date = !empty($options['saved_delivery_date'])?$options['saved_delivery_date']:null;
         $quantity = !empty($options['quantity'])?$options['quantity']:0;
         $store_id = !empty($options['store_id'])?$options['store_id']:null;
         $months = !empty($options['months'])?$options['months']:[];
+        $dates = !empty($options['dates'])?$options['dates']:[];
         $format = !empty($options['format'])?$options['format']:'Y-m-d';
         $order = !empty($options['order'])?$options['order']:null;
         $store = $store_id?Store::findOrFail($store_id):null;
+        $productLineItems = $options['productLineItems'] ?? [];
 
         if($order){
             $productLineItems = $order->getProductLineItems();
-        }else{
-            $productLineItems = [];
         }
 
-        if(!$months){
-            throw new \Exception('You need to specify months.');
+        if(!$months && !$dates){
+            throw new \Exception('You need to specify months or dates.');
         }
 
-        foreach($months as $month){
-            $dayToRun = Carbon::createFromFormat('j-n-Y', '1-'.$month);
-            $dayToRun->setTime(12, 0, 0);
+        $daysToRun = [];
 
-            $lastDayOfMonth = clone $dayToRun;
-            $lastDayOfMonth->modify('last day of this month');
+        if ($dates) {
+            foreach ($dates as $date) {
+                $dayToRun = new Carbon($date);
+                $dayToRun->setTime(12, 0, 0);
 
-            $lastThreeDays = clone $lastDayOfMonth;
-            $lastThreeDays->modify('-3 days');
-
-            $now = Carbon::now()->setTime(0, 0, 0);
-
-            // If last 3 days of month, start searching next month
-            if ($lastThreeDays->lte($now) && $lastDayOfMonth->gte($now)) {
-                $dayToRun->modify('+1 month');
-                $lastDayOfMonth->modify('last day of next month');
+                $daysToRun[$dayToRun->format($format)] = $dayToRun;
             }
+        }
 
-            $lastDayOfMonth->modify('+10 days');
+        if ($months) {
+            foreach($months as $month){
+                $dayToRun = Carbon::createFromFormat('j-n-Y', '1-'.$month);
+                $dayToRun->setTime(12, 0, 0);
 
-            $dayToRun->modify('-10 days');
+                $lastDayOfMonth = clone $dayToRun;
+                $lastDayOfMonth->modify('last day of this month');
 
-            while($dayToRun->lte($lastDayOfMonth)){
-                if($store && !$store->isOpen(Carbon::createFromFormat('Y-m-d H:i:s',$dayToRun))){
+                $lastThreeDays = clone $lastDayOfMonth;
+                $lastThreeDays->modify('-3 days');
+
+                $now = Carbon::now()->setTime(0, 0, 0);
+
+                // If last 3 days of month, start searching next month
+                if ($lastThreeDays->lte($now) && $lastDayOfMonth->gte($now)) {
+                    $dayToRun->modify('+1 month');
+                    $lastDayOfMonth->modify('last day of next month');
+                }
+
+                $lastDayOfMonth->modify('+10 days');
+
+                $dayToRun->modify('-10 days');
+
+                while($dayToRun->lte($lastDayOfMonth)){
+                    $daysToRun[$dayToRun->format($format)] = $dayToRun;
+
+                    $dayToRun->addDay();
+                }
+            }
+        }
+
+        foreach ($daysToRun as $dayToRun) {
+            if($store && !$store->isOpen(Carbon::createFromFormat('Y-m-d H:i:s', $dayToRun))){
+                $disabledDates[] = $dayToRun->format($format);
+            }else{
+                $dayOrderCount = $this->getOrderCount([
+                    'delivery_date' => $dayToRun->format('Y-m-d'),
+                    'store_id' => $store_id,
+                ]);
+
+                if($dayToRun->format('j-n-Y') == $saved_delivery_date){
+                    $dayOrderCount -= $saved_quantity;
+                }
+
+                // Product Limit
+                $dayProductOrderLimit = $this->getOrderLimit([
+                    'delivery_date' => $dayToRun->format('Y-m-d'),
+                    'store' => $store_id,
+                    'type' => OrderLimit::TYPE_PRODUCT
+                ]);
+
+                if(is_array($dayProductOrderLimit) && ($dayProductOrderLimit['limit'] == 0 || $dayOrderCount + $quantity > $dayProductOrderLimit['limit'])){
                     $disabledDates[] = $dayToRun->format($format);
-                }else{
-                    $dayOrderCount = $this->getOrderCount([
-                        'delivery_date' => $dayToRun->format('Y-m-d'),
-                        'store_id' => $store_id,
-                    ]);
+                }
 
-                    if($dayToRun->format('j-n-Y') == $saved_delivery_date){
-                        $dayOrderCount -= $saved_quantity;
-                    }
+                // Category Limit
+                $dayCategoryOrderLimit = $this->getOrderLimit([
+                    'delivery_date' => $dayToRun->format('Y-m-d'),
+                    'store' => $store_id,
+                    'type' => OrderLimit::TYPE_PRODUCT_CATEGORY
+                ]);
 
-                    // Product Limit
-                    $dayProductOrderLimit = $this->getOrderLimit([
-                        'delivery_date' => $dayToRun->format('Y-m-d'),
-                        'store' => $store_id,
-                        'type' => OrderLimit::TYPE_PRODUCT
-                    ]);
-
-                    if(is_array($dayProductOrderLimit) && ($dayProductOrderLimit['limit'] == 0 || $dayOrderCount + $quantity > $dayProductOrderLimit['limit'])){
-                        $disabledDates[] = $dayToRun->format($format);
-                    }
-
-                    // Category Limit
-                    $dayCategoryOrderLimit = $this->getOrderLimit([
-                        'delivery_date' => $dayToRun->format('Y-m-d'),
-                        'store' => $store_id,
-                        'type' => OrderLimit::TYPE_PRODUCT_CATEGORY
-                    ]);
-
-                    if(is_array($dayCategoryOrderLimit)){
-                        foreach($productLineItems as $productLineItem){
-                            if($dayCategoryOrderLimit['object']->productRulesPassed($productLineItem->product)){
-                                $dayCategoryOrderLimit['object']->total += $productLineItem->quantity;
-                            }
+                if(is_array($dayCategoryOrderLimit)){
+                    foreach($productLineItems as $productLineItem){
+                        if($dayCategoryOrderLimit['object']->productRulesPassed($productLineItem->product)){
+                            $dayCategoryOrderLimit['object']->total += $productLineItem->quantity;
                         }
+                    }
 
-                        foreach($dayCategoryOrderLimit['object']->productCategories as $productCategory){
-                            $dayCategoryOrderCount = $productCategory->getOrderCount([
-                                'delivery_date' => $dayToRun->format('Y-m-d'),
-                                'store_id' => $store_id,
-                            ]);
-                            if($dayCategoryOrderLimit['limit'] == 0 || $dayCategoryOrderCount + $quantity > $dayCategoryOrderLimit['limit']){
-                                $disabledDates[] = $dayToRun->format($format);
-                            }
+                    foreach($dayCategoryOrderLimit['object']->productCategories as $productCategory){
+                        $dayCategoryOrderCount = $productCategory->getOrderCount([
+                            'delivery_date' => $dayToRun->format('Y-m-d'),
+                            'store_id' => $store_id,
+                        ]);
+                        if($dayCategoryOrderLimit['limit'] == 0 || $dayCategoryOrderCount + $quantity > $dayCategoryOrderLimit['limit']){
+                            $disabledDates[] = $dayToRun->format($format);
                         }
                     }
                 }
-
-                $dayToRun->addDay();
             }
         }
+
 
         return $disabledDates;
     }
@@ -1496,6 +1513,8 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface, Cac
 
     //Statics
     public static function findById($id) {
+        if (!$id) return null;
+
         $tableName = (new static)->getTable();
 
         return Cache::remember($tableName . '_' . $id, 25200, function() use ($id) {
@@ -1504,6 +1523,8 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface, Cac
     }
 
     public static function findBySKU($sku) {
+        if (!$sku) return null;
+
         $tableName = (new static)->getTable();
 
         return Cache::remember($tableName . '_' . $sku, 3600, function() use ($sku) {

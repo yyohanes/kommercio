@@ -1,9 +1,10 @@
 <?php
 
-namespace Kommercio\Http\Resources\Products;
+namespace Kommercio\Http\Resources\Product;
 
 use Illuminate\Http\Resources\Json\Resource;
 
+use Kommercio\Facades\CurrencyHelper;
 use Kommercio\Http\Resources\Media\ImageCollection;
 use Kommercio\Http\Resources\ProductCategory\ProductCategoryCollection;
 use Kommercio\Http\Resources\ProductCategory\ProductCategoryResource;
@@ -14,6 +15,7 @@ class ProductResource extends Resource {
         /** @var Product $product */
         $product = $this->resource;
         $productDetail = $product->productDetail;
+        $currency = CurrencyHelper::getCurrency($productDetail->currency);
 
         return [
             'id' => $product->id,
@@ -39,13 +41,18 @@ class ProductResource extends Resource {
             'visibility' => $productDetail->visibility,
             'available' => $productDetail->available,
             'active' => !empty($productDetail->active),
-            'currency' => $productDetail->currency,
             'taxable' => !empty($productDetail->taxable),
             'price' => [
                 'retailPrice' => $product->getRetailPrice(),
                 'retailPriceWithTax' => $product->getRetailPrice(true),
                 'netPrice' => $product->getNetPrice(),
                 'netPriceWithTax' => $product->getNetPrice(true),
+                'currency' => [
+                    'symbol' => $currency['symbol'],
+                    'iso' => $currency['iso'],
+                    'thousandSeparator' => $currency['thousand_separator'],
+                    'decimalSeparator' => $currency['decimal_separator'],
+                ],
             ],
             'defaultCategory' => new ProductCategoryResource($product->defaultCategory),
             'categories' => new ProductCategoryCollection($product->categories),

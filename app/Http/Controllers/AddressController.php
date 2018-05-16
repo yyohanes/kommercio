@@ -9,14 +9,25 @@ use Kommercio\Facades\LanguageHelper;
 
 class AddressController extends Controller
 {
-    public function options(Request $request, $type)
+    public function options(Request $request, string $type)
+    {
+        $options = $this->getOptions($request, $type);
+
+        return response()->json($options);
+    }
+
+    /**
+     * @param Request $request
+     * @param string $type
+     * @return array
+     */
+    protected function getOptions(Request $request, string $type)
     {
         $options = [];
 
         $parent = $request->input('parent', null);
-        $active_only = $request->input('active_only', 1) == 1;
-
-        $first_option = $request->input('first_option', 0) == 1;
+        $active_only = $request->input('active_only', true);
+        $first_option = $request->input('first_option', false);
 
         switch($type){
             case 'country':
@@ -47,10 +58,10 @@ class AddressController extends Controller
                 if($first_option){
                     $options = [trans(LanguageHelper::getTranslationKey('order.address.select_area'))];
                 }
-                $options = AddressHelper::getAreaOptions($parent, $active_only);
+                $options += AddressHelper::getAreaOptions($parent, $active_only);
                 break;
         }
 
-        return response()->json($options);
+        return $options;
     }
 }

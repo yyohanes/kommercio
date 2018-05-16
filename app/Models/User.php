@@ -4,12 +4,13 @@ namespace Kommercio\Models;
 
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Passport\HasApiTokens;
 use Kommercio\Notifications\Auth\ResetPasswordNotification;
 use Kommercio\Traits\Model\Profileable;
 
 class User extends Authenticatable
 {
-    use Profileable, Notifiable;
+    use Profileable, Notifiable, HasApiTokens;
 
     const STATUS_ACTIVE = 'active';
     const STATUS_INACTIVE = 'inactive';

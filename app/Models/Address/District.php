@@ -2,9 +2,7 @@
 
 namespace Kommercio\Models\Address;
 
-use Kommercio\Models\Interfaces\CacheableInterface;
-
-class District extends Address implements CacheableInterface
+class District extends Address
 {
     protected $table = 'address_districts';
 
@@ -30,6 +28,9 @@ class District extends Address implements CacheableInterface
             $tableName . '_city_' . $this->city->id . '_districts',
         ];
 
-        return $keys;
+        return array_merge(
+            parent::getCacheKeys(),
+            $keys
+        );
     }
 }

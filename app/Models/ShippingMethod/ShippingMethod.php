@@ -134,6 +134,7 @@ class ShippingMethod extends Model implements CacheableInterface
     {
         $tableName = $this->getTable();
         $keys = [
+            $tableName . '_' . $this->id,
             $tableName . '_' . $this->class,
         ];
 
@@ -225,6 +226,14 @@ class ShippingMethod extends Model implements CacheableInterface
         }
 
         return $return;
+    }
+
+    public static function findById(int $id) {
+        $tableName = (new static)->getTable();
+
+        return Cache::remember($tableName . '_' . $id, 25200, function() use ($id) {
+            return static::where('id', $id)->first();
+        });
     }
 
     public static function findByClass($class) {

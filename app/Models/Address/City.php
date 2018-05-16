@@ -2,9 +2,7 @@
 
 namespace Kommercio\Models\Address;
 
-use Kommercio\Models\Interfaces\CacheableInterface;
-
-class City extends Address implements CacheableInterface
+class City extends Address
 {
     protected $table = 'address_cities';
 
@@ -30,6 +28,9 @@ class City extends Address implements CacheableInterface
             $tableName . '_state_' . $this->state->id . '_cities',
         ];
 
-        return $keys;
+        return array_merge(
+            parent::getCacheKeys(),
+            $keys
+        );
     }
 }

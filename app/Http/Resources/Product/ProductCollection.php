@@ -1,6 +1,6 @@
 <?php
 
-namespace Kommercio\Http\Resources\Products;
+namespace Kommercio\Http\Resources\Product;
 
 use Illuminate\Http\Resources\Json\ResourceCollection;
 

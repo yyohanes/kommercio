@@ -1585,7 +1585,7 @@ class OrderController extends Controller
             }
         }
 
-        Event::fire(new OrderEvent('frontend_rules_built', $order, ['type' => $type, 'rules' => &$ruleBook, 'request' => $request]));
+        Event::fire(new OrderEvent('frontend_rules_built', $order, ['type' => $type, 'rules' => &$ruleBook[$type], 'request' => $request]));
 
         return $ruleBook[$type];
     }
