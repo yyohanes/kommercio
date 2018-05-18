@@ -1207,7 +1207,7 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface, Cac
     public function getStoreAttribute()
     {
         if(!$this->_store){
-            $this->_store = ProjectHelper::getActiveStore();
+            $this->_store = ProjectHelper::getStoreByRequest();
 
             //Check if has productDetail with this store. Otherwise, get default
             if(!$this->productDetails()->where('store_id', $this->_store->id)->count()){
