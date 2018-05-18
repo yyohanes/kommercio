@@ -8,6 +8,8 @@ Route::prefix('public')
             ->group(function() {
 
                 /**
+                 * @param {int} store_id
+                 * @param {string} store_code
                  * @param {string} categories comma-delimited category ids
                  */
                 Route::get('/products', [

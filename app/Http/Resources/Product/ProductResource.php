@@ -8,9 +8,12 @@ use Kommercio\Facades\CurrencyHelper;
 use Kommercio\Http\Resources\Media\ImageCollection;
 use Kommercio\Http\Resources\ProductCategory\ProductCategoryCollection;
 use Kommercio\Http\Resources\ProductCategory\ProductCategoryResource;
+use Kommercio\Http\Resources\ProductComposite\ProductCompositeResource;
 use Kommercio\Models\Product;
 
 class ProductResource extends Resource {
+    protected $hidden = [];
+
     public function toArray($request) {
         /** @var Product $product */
         $product = $this->resource;
@@ -56,6 +59,22 @@ class ProductResource extends Resource {
             ],
             'defaultCategory' => new ProductCategoryResource($product->defaultCategory),
             'categories' => new ProductCategoryCollection($product->categories),
+            'composites' => $this->when(
+                !in_array('composites', $this->hidden),
+                    $this->getProductComposites($product)
+                ),
         ];
+    }
+
+    /**
+     * @param Product $product
+     * @return \Illuminate\Support\Collection
+     */
+    protected function getProductComposites(Product $product) {
+        $productCompositeGroup = $product->productCompositeGroup;
+
+        if (!$productCompositeGroup) return collect([]);
+
+        return ProductCompositeResource::collection($productCompositeGroup->composites);
     }
 }

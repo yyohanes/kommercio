@@ -41,12 +41,16 @@ class ProjectHelper
         return intval(File::MAXIMUM_SIZE);
     }
 
-    public function getStoreByRequest(Request $request, $default = null)
+    public function getStoreByRequest(Request $request = null, $default = null)
     {
         $store = $default;
 
         if(!$store){
             $store = $this->getActiveStore();
+        }
+
+        if (empty($request)) {
+            $request = RequestFacade::instance();
         }
 
         $returnedStore = Event::fire(new StoreEvent('determine_store_by_request', $store, $request));

@@ -54,17 +54,19 @@ class FlatRateShipping extends ShippingMethodAbstract implements ShippingMethodS
 
                 $address_id = $order->shippingInformation->{$lowest_address_type.'_id'};
             }elseif($request){
-                if($request->has('shipping_profile.area_id')){
+                $shippingProfileKey = ($options['frontend'] ?? true) ? 'shippingProfile' : 'shipping_profile';
+
+                if($request->has($shippingProfileKey . '.area_id')){
                     $lowest_address_type = 'area';
-                }elseif($request->has('shipping_profile.district_id')){
+                }elseif($request->has($shippingProfileKey . '.district_id')){
                     $lowest_address_type = 'district';
-                }elseif($request->has('shipping_profile.city_id')){
+                }elseif($request->has($shippingProfileKey . '.city_id')){
                     $lowest_address_type = 'city';
-                }elseif($request->has('shipping_profile.state_id')){
+                }elseif($request->has($shippingProfileKey . '.state_id')){
                     $lowest_address_type = 'state';
                 }
 
-                $address_id = $request->input('shipping_profile.'.$lowest_address_type.'_id');
+                $address_id = $request->input($shippingProfileKey . '.' . $lowest_address_type . '_id');
             }
 
             $model = Address::getClassNameByType($lowest_address_type);

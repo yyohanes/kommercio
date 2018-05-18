@@ -37,18 +37,22 @@ class Stripe extends PaymentMethodAbstract implements PaymentMethodSettingFormIn
     public function finalProcessPayment($options = null)
     {
         $order = $options['order'];
+        $request = $options['request'] ?? null;
 
         if($order && $order->exists){
             \Stripe\Stripe::setApiKey($this->getSecretKey());
 
             $currency = CurrencyHelper::getCurrency($order->currency);
             $smallestUnit = isset($currency['smallest_unit']) ? $currency['smallest_unit'] : 1;
+            $stripeToken = ($request && $request->filled('stripeToken'))
+                ? $request->input('stripeToken')
+                : $order->getData('stripeToken');
 
             try{
                 $charge = \Stripe\Charge::create(array(
                     "amount" => $order->getOutstandingAmount() * $smallestUnit,
                     "currency" => $order->currency,
-                    "source" => $order->getData('stripeToken'),
+                    "source" => $stripeToken,
                     "description" => "Charge for ".$order->billingInformation->email,
                     "metadata" => [
                         "order_reference" => $order->reference

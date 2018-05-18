@@ -61,7 +61,12 @@ class OrderFormRequest extends \Illuminate\Foundation\Http\FormRequest {
 
         // Payment method additional validations
         $paymentMethod = PaymentMethod::findById($request->input('payment_method', 0));
-        if ($paymentMethod) $rules['payment_method'][] = $paymentMethod->getProcessor()->getValidationRules();
+        if ($paymentMethod) {
+            $rules = array_merge(
+                $rules,
+                $paymentMethod->getProcessor()->getValidationRules()
+            );
+        }
 
         return $rules;
     }

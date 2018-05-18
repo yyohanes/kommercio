@@ -234,7 +234,10 @@ class Order extends Model implements AuthorSignatureInterface
                     $lineItemDatum['children'][$compositeId] = [];
 
                     foreach($children as $child){
-                        $childProduct = Product::findOrFail($child['product_id']);
+                        $childProduct = Product::findById($child['product_id']);
+
+                        if (!$childProduct) continue;
+
                         $lineItemDatum['children'][$compositeId][] = [
                             'line_item_id' => $child['product_id'],
                             'line_item_type' => 'product',

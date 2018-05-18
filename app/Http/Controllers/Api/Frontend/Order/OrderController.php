@@ -24,6 +24,7 @@ use Kommercio\Http\Resources\ShippingMethod\ShippingOptionCollection;
 use Kommercio\Models\Customer;
 use Kommercio\Models\Order\LineItem;
 use Kommercio\Models\Order\Order;
+use Kommercio\Models\Order\Payment;
 use Kommercio\Models\PaymentMethod\PaymentMethod;
 use Kommercio\Models\Product;
 use Kommercio\Models\ProductCategory;
@@ -111,7 +112,6 @@ class OrderController extends Controller {
 
         $order = OrderHelper::createEmptyOrder($request);
         $paymentMethod = PaymentMethod::findById($request->input('payment_method'));
-        $shippingMethod = ShippingMethod::findById($request->input('shipping_method'));
         $currency = CurrencyHelper::getCurrentCurrency()['code'];
         $store = ProjectHelper::getStoreByRequest($request);
         $customer = Customer::findById($request->input('customer_id'));
@@ -144,8 +144,27 @@ class OrderController extends Controller {
         // Add products to cart
         foreach ($products as $product) {
             $quantity = $quantities[$product->id];
+            $children = [];
+            $composites = $request->input('products_children.' . $product->id, []);
 
-            $order->addToCart($product, $quantity);
+            foreach ($composites as $compositeId => $composite) {
+                foreach ($composite as $childProductId => $childQuantity) {
+                    if (empty($childQuantity) || $childQuantity <= 0) continue;
+
+                    $children[$compositeId][] = [
+                        'quantity' => $childQuantity,
+                        'product_id' => $childProductId,
+                    ];
+                }
+            }
+
+            $order->addToCart(
+                $product,
+                $quantity,
+                [
+                    'children' => $children,
+                ]
+            );
         }
 
         $profileDetails = $customerProfile->getDetails();
@@ -157,6 +176,20 @@ class OrderController extends Controller {
 
         $order->saveProfile('shipping', $profileDetails);
         $order->updateShippingMethod($request->input('shipping_option'));
+
+        // Final process payment
+        $paymentResult = $this->processFinalPayment(
+            $order,
+            $paymentMethod,
+            $request
+        );
+
+        if (is_array($paymentResult)) {
+            return new JsonResponse(
+                $paymentResult,
+                422
+            );
+        }
 
         $placedOrder = $this->processPlaceOrder($request, $order);
 
@@ -374,5 +407,18 @@ class OrderController extends Controller {
         Event::fire(new OrderUpdate($order, Order::STATUS_CART, true));
 
         return $order;
+    }
+
+    /**
+     * @param Order $order
+     * @param PaymentMethod $paymentMethod
+     * @param Request $request
+     * @return Payment|array
+     */
+    protected function processFinalPayment(Order $order, PaymentMethod $paymentMethod, Request $request) {
+        return $paymentMethod->getProcessor()->finalProcessPayment([
+            'order' => $order,
+            'request' => $request
+        ]);
     }
 }

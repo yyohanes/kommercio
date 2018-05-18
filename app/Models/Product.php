@@ -1410,39 +1410,52 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface, Cac
     }
 
     //Scopes
-    public function scopeActive($query)
+    public function scopeActive($query, Store $store = null)
     {
-        $store = ProjectHelper::getActiveStore();
+        if (empty($store)) {
+            $store = ProjectHelper::getActiveStore();
+        }
 
         $query->whereHas('productDetails', function($query) use ($store){
-            $query->where('active', true)->where('store_id', $store->id);
+            $query->where('active', true)
+                ->where('store_id', $store->id);
         });
     }
 
-    public function scopeIsNew($query)
+    public function scopeIsNew($query, Store $store = null)
     {
-        $store = ProjectHelper::getActiveStore();
+        if (empty($store)) {
+            $store = ProjectHelper::getActiveStore();
+        }
 
         $query->whereHas('productDetails', function($query) use ($store){
             $query->where('new', true)->where('store_id', $store->id);
         });
     }
 
-    public function scopeCatalogVisible($query)
+    public function scopeCatalogVisible($query, Store $store = null)
     {
-        $store = ProjectHelper::getActiveStore()->id;
+        if (empty($store)) {
+            $store = ProjectHelper::getActiveStore();
+        }
 
-        $query->whereHas('productDetails', function($query){
-            $query->whereIn('visibility', [ProductDetail::VISIBILITY_CATALOG, ProductDetail::VISIBILITY_EVERYWHERE]);
+        $query->whereHas('productDetails', function($query) use ($store) {
+            $query
+                ->whereIn('visibility', [ProductDetail::VISIBILITY_CATALOG, ProductDetail::VISIBILITY_EVERYWHERE])
+                ->where('store_id', $store->id);
         });
     }
 
-    public function scopeSearchVisible($query)
+    public function scopeSearchVisible($query, Store $store = null)
     {
-        $store = ProjectHelper::getActiveStore()->id;
+        if (empty($store)) {
+            $store = ProjectHelper::getActiveStore();
+        }
 
-        $query->whereHas('productDetails', function($query, $store){
-            $query->whereIn('visibility', [ProductDetail::VISIBILITY_SEARCH, ProductDetail::VISIBILITY_EVERYWHERE]);
+        $query->whereHas('productDetails', function($query) use ($store) {
+            $query
+                ->whereIn('visibility', [ProductDetail::VISIBILITY_SEARCH, ProductDetail::VISIBILITY_EVERYWHERE])
+                ->where('store_id', $store->id);
         });
     }
 

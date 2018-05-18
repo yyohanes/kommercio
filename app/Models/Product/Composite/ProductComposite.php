@@ -3,11 +3,13 @@
 namespace Kommercio\Models\Product\Composite;
 
 use Dimsav\Translatable\Translatable;
+use Illuminate\Support\Facades\Cache;
 use Kommercio\Facades\RuntimeCache;
 use Kommercio\Models\Abstracts\SluggableModel;
+use Kommercio\Models\Interfaces\CacheableInterface;
 use Kommercio\Models\Product;
 
-class ProductComposite extends SluggableModel
+class ProductComposite extends SluggableModel implements CacheableInterface
 {
     use Translatable;
 
@@ -20,51 +22,77 @@ class ProductComposite extends SluggableModel
 
     private $_isSingle;
 
+    public function getCacheKeys()
+    {
+        $tableName = $this->getTable();
+
+        return [
+            $tableName . '_' . $this->id . '_default_products',
+            $tableName . '_' . $this->id . '_product_selections',
+        ];
+    }
+
     //Methods
     public function getProductSelection()
     {
-        $results = RuntimeCache::getOrSet('product_composite_'.$this->id.'_products', function(){
-            $includedProducts = collect([]);
+        $tableName = $this->getTable();
 
-            foreach($this->products as $configuredProduct){
-                if($configuredProduct->isPurchaseable){
-                    $includedProducts->push($configuredProduct);
-                }else{
-                    $includedProducts = $includedProducts->merge($configuredProduct->variations);
+        $results = Cache::remember(
+            $tableName . '_' . $this->id . '_product_selections',
+            3600,
+            function() {
+                $includedProducts = collect([]);
+
+                foreach($this->products as $configuredProduct){
+                    if($configuredProduct->isPurchaseable){
+                        $includedProducts->push($configuredProduct);
+                    }else{
+                        $includedProducts = $includedProducts->merge($configuredProduct->variations);
+                    }
                 }
-            }
 
-            if($this->productCategories->count() > 0){
-                $categoryProducts = Product::joinDetail()->selectSelf()->whereHas('categories', function($query){
-                    $query->whereIn('id', $this->productCategories->pluck('id')->all());
-                });
+                if($this->productCategories->count() > 0){
+                    $categoryProducts = Product::joinDetail()->selectSelf()->whereHas('categories', function($query){
+                        $query->whereIn('id', $this->productCategories->pluck('id')->all());
+                    });
 
-                $includedProducts = $includedProducts->merge($categoryProducts->get());
-            }
-
-            foreach($includedProducts as $idx => $includedProduct){
-                if(!$includedProduct->productDetail->active){
-                    $includedProducts->forget($idx);
+                    $includedProducts = $includedProducts->merge($categoryProducts->get());
                 }
-            }
 
-            return $includedProducts;
-        });
+                foreach ($includedProducts as $idx => $includedProduct) {
+                    if (!$includedProduct->productDetail->active){
+                        $includedProducts->forget($idx);
+                    }
+                }
+
+                return $includedProducts;
+            }
+        );
 
         return $results;
     }
 
     public function getDefaultProducts()
     {
-        $includedProducts = $this->isSingle?$this->products:$this->defaultProducts;
+        $tableName = $this->getTable();
 
-        foreach($includedProducts as $idx => $includedProduct){
-            if(!$includedProduct->productDetail->active){
-                $includedProducts->forget($idx);
+        $results = Cache::remember(
+            $tableName . '_' . $this->id . '_default_products',
+            3600,
+            function() {
+                $includedProducts = $this->isSingle?$this->products:$this->defaultProducts;
+
+                foreach($includedProducts as $idx => $includedProduct){
+                    if(!$includedProduct->productDetail->active){
+                        $includedProducts->forget($idx);
+                    }
+                }
+
+                return $includedProducts;
             }
-        }
+        );
 
-        return $includedProducts;
+        return $results;
     }
 
     //Accessors
