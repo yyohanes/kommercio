@@ -129,6 +129,16 @@ class Page extends Model implements UrlAliasInterface, SeoModelInterface, Cachea
     }
 
     //Statics
+    public static function findById($id)
+    {
+        $tableName = (new static)->getTable();
+        $page = Cache::remember($tableName. '_' . $id, 3600, function() use ($id) {
+            return static::find($id);
+        });
+
+        return $page;
+    }
+
     public static function getPageBySlug($slug)
     {
         $tableName = (new static)->getTable();
