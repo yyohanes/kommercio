@@ -19,10 +19,16 @@ class PasswordController extends Controller {
         $response = $this->broker()->sendResetLink($request->only('email'));
 
         if ($response != Password::RESET_LINK_SENT) {
+            $error = 'Something went wrong. Please try again';
+
+            if ($response === Password::INVALID_USER) {
+                $error = 'Account with given credentials not found';
+            }
+
             return new JsonResponse(
                 [
                     'errors' => [
-                        'email' => ['Something went wrong. Please try again'],
+                        'email' => [$error],
                     ],
                 ],
                 422
