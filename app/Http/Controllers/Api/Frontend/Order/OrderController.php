@@ -168,7 +168,7 @@ class OrderController extends Controller {
         }
 
         $profileDetails = $customerProfile->getDetails();
-        $profileDetails['phone_number'] = $request->input('shippingProfile.phone_number', null);
+        $profileDetails['address_1'] = $request->input('shippingProfile.address_1', null);
         $profileDetails['address_1'] = $request->input('shippingProfile.address_1', null);
         $profileDetails['address_2'] = $request->input('shippingProfile.address_2', null);
         $profileDetails['postal_code'] = $request->input('shippingProfile.postal_code', null);
