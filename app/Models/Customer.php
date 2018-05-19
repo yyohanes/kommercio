@@ -268,7 +268,7 @@ class Customer extends Model implements CacheableInterface
         }
 
         if($customer->is_virgin){
-            // Customer needs to be saved before so profile knows it's owner
+            // Customer needs to be saved before so profile knows its owner
             $customer->save();
             $customer->saveProfile($profileData);
         }

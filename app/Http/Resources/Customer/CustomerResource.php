@@ -3,6 +3,7 @@
 namespace Kommercio\Http\Resources\Customer;
 
 use Illuminate\Http\Resources\Json\Resource;
+use Carbon\Carbon;
 use Kommercio\Models\Customer;
 
 class CustomerResource extends Resource {
@@ -12,17 +13,17 @@ class CustomerResource extends Resource {
         $customer = $this->resource;
         $customer->getProfile()->fillDetails();
 
+        $birthday = $customer->getProfile()->birthday;
+        $birthday = $birthday ? Carbon::createFromFormat('Y-m-d', $birthday) : null;
+
         return [
             'id' => $customer->id,
-            'email' => $customer->email,
-            'salute' => $customer->salute,
+            'email' => $customer->getProfile()->email,
+            'salute' => $customer->getProfile()->salute,
             'fullName' => $customer->getProfile()->full_name,
-            'address_1' => $customer->getProfile()->address_1,
-            'address_2' => $customer->getProfile()->address_2,
-            'postal_code' => $customer->getProfile()->postal_code,
             'phoneNumber' => $customer->getProfile()->phone_number,
             'homePhone' => $customer->getProfile()->home_phone,
-            'birthday' => $customer->getProfile()->birthday,
+            'birthday' => $birthday,
         ];
     }
 }

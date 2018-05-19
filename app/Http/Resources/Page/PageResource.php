@@ -15,7 +15,7 @@ class PageResource extends Resource {
         return [
             'id' => $page->id,
             'name' => $page->name,
-            'slug' => $page->code,
+            'slug' => $page->slug,
             'body' => $page->body,
             'images' => new ImageCollection($page->images),
             'metaTitle' => $page->meta_title,

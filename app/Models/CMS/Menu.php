@@ -84,7 +84,9 @@ class Menu extends SluggableModel implements CacheableInterface
         $tableName = $this->getTable();
 
         $keys = [
-            $tableName.'_'.$this->id.'.root_menu_items'
+            $tableName.'_'.$this->slug,
+            $tableName.'_'.$this->id.'.root_menu_items',
+            $tableName.'_'.$this->id.'.active_menu_items'
         ];
 
         return $keys;
@@ -103,10 +105,26 @@ class Menu extends SluggableModel implements CacheableInterface
     }
 
     // Static
+    public static function findById($id)
+    {
+        $tableName = (new static)->getTable();
+        $menu = Cache::remember($tableName. '_' . $id, 3600, function() use ($id) {
+            return static::find($id);
+        });
+
+        return $menu;
+    }
+
     public static function getBySlug($slug)
     {
-        $qb = self::whereTranslation('slug', $slug);
-        $menu = $qb->first();
+        $tableName = (new static)->getTable();
+
+        return Cache::remember($tableName . '_' . $slug, 3600, function() use ($slug) {
+            $qb = self::where('slug', $slug);
+            $menu = $qb->first();
+
+            return $menu;
+        });
 
         return $menu;
     }

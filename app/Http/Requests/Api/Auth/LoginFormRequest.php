@@ -2,7 +2,7 @@
 
 namespace Kommercio\Http\Requests\Api\Auth;
 
-class LoginRequest extends \Illuminate\Foundation\Http\FormRequest {
+class LoginFormRequest extends \Illuminate\Foundation\Http\FormRequest {
     /**
      * Determine if the user is authorized to make this request.
      *

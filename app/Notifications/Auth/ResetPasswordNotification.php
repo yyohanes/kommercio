@@ -27,15 +27,20 @@ class ResetPasswordNotification extends Notification
     public $user;
 
     /**
+     * @var string
+     */
+    public $redirectTo;
+
+    /**
      * Create a new notification instance.
      *
-     * @var User $user
      * @return void
      */
-    public function __construct(User $user, $token)
+    public function __construct(User $user, $token, $redirectTo = null)
     {
         $this->user = $user;
         $this->token = $token;
+        $this->redirectTo = $redirectTo;
     }
 
     /**
@@ -57,18 +62,19 @@ class ResetPasswordNotification extends Notification
      */
     public function toMail($notifiable)
     {
-//        return (new MailMessage)
-//                    ->view('auth.emails.password', [
-//                        'user' => $this->user,
-//                        'token' => $this->token
-//                    ]);
-
         $subjectKey = LanguageHelper::getTranslationKey('passwords.password_reset_subject');
+
+        $mailData = [
+            'user' => $this->user,
+            'token' => $this->token,
+            'redirectTo' => $this->redirectTo,
+        ];
+
         $mailable = new DefaultMail(
                     $notifiable->email,
                     trans($subjectKey),
                     'auth.password',
-                    ['user' => $this->user, 'token' => $this->token]);
+                    $mailData);
 
         return $mailable;
     }

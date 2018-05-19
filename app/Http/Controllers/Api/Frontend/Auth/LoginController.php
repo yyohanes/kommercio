@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use GuzzleHttp\Exception\BadResponseException;
 use Kommercio\Http\Controllers\Controller;
-use Kommercio\Http\Requests\Api\Auth\LoginRequest;
+use Kommercio\Http\Requests\Api\Auth\LoginFormRequest;
 use Kommercio\Http\Resources\Auth\AuthTokenResource;
 use Kommercio\Http\Resources\Auth\UserResource;
 use Kommercio\Http\Resources\Customer\CustomerResource;
@@ -35,7 +35,7 @@ class LoginController extends Controller {
         $this->request = $app->make('request');
     }
 
-    public function login(LoginRequest $request) {
+    public function login(LoginFormRequest $request) {
         $email = $request->input('email');
         $password = $request->input('password');
 

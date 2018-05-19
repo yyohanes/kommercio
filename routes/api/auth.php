@@ -22,6 +22,11 @@ Route::prefix('public')
                     'uses' => 'LoginController@logout',
                 ]);
 
+                Route::post('/forget-password', [
+                    'as' => 'api.frontend.auth.forget_password',
+                    'uses' => 'PasswordController@forgetPassword',
+                ]);
+
                 Route::middleware(['auth:api'])
                     ->group(function() {
                         Route::get('/me', [

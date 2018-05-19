@@ -4,11 +4,14 @@ namespace Kommercio\Models;
 
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Request;
 use Laravel\Passport\HasApiTokens;
+use Kommercio\Models\Interfaces\CacheableInterface;
 use Kommercio\Notifications\Auth\ResetPasswordNotification;
 use Kommercio\Traits\Model\Profileable;
 
-class User extends Authenticatable
+class User extends Authenticatable implements CacheableInterface
 {
     use Profileable, Notifiable, HasApiTokens;
 
@@ -56,7 +59,21 @@ class User extends Authenticatable
 
     public function sendPasswordResetNotification($token)
     {
-        $this->notify(new ResetPasswordNotification($this, $token));
+        $redirectTo = null;
+
+        // TODO: Find another way to get `redirectTo` instead of relying on Request facade
+        if (Request::filled('redirectTo')) {
+            $redirectTo = Request::input('redirectTo');
+        }
+
+        $this->notify(new ResetPasswordNotification($this, $token, $redirectTo));
+    }
+
+    public function getCacheKeys()
+    {
+        return [
+            $this->getTable() . '_' . $this->id,
+        ];
     }
 
     //Accessors
@@ -153,5 +170,13 @@ class User extends Authenticatable
         }
 
         return (isset($array[$option]))?$array[$option]:$array;
+    }
+
+    public static function findById(int $id) {
+        $tableName = (new static)->getTable();
+
+        return Cache::remember($tableName . '_' . $id, 3600, function() use ($id) {
+            return static::where('id', $id)->first();
+        });
     }
 }

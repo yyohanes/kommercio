@@ -12,12 +12,9 @@ Route::prefix('public')
                     'uses' => 'CustomerController@create',
                 ]);
 
-                Route::middleware(['auth:api'])
-                    ->group(function() {
-                        Route::post('/update', [
-                            'as' => 'api.frontend.customer.update',
-                            'uses' => 'CustomerController@update',
-                        ]);
-                    });
+                Route::post('/update/{id}', [
+                    'as' => 'api.frontend.customer.update',
+                    'uses' => 'CustomerController@update',
+                ]);
             });
     });

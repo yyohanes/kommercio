@@ -168,11 +168,15 @@ class OrderController extends Controller {
         }
 
         $profileDetails = $customerProfile->getDetails();
-        $profileDetails['country_id'] = $request->input('shippingProfile.country_id');
-        $profileDetails['state_id'] = $request->input('shippingProfile.state_id');
-        $profileDetails['city_id'] = $request->input('shippingProfile.city_id');
-        $profileDetails['district_id'] = $request->input('shippingProfile.district_id');
-        $profileDetails['area_id'] = $request->input('shippingProfile.area_id');
+        $profileDetails['phone_number'] = $request->input('shippingProfile.phone_number', null);
+        $profileDetails['address_1'] = $request->input('shippingProfile.address_1', null);
+        $profileDetails['address_2'] = $request->input('shippingProfile.address_2', null);
+        $profileDetails['postal_code'] = $request->input('shippingProfile.postal_code', null);
+        $profileDetails['country_id'] = $request->input('shippingProfile.country_id', null);
+        $profileDetails['state_id'] = $request->input('shippingProfile.state_id', null);
+        $profileDetails['city_id'] = $request->input('shippingProfile.city_id', null);
+        $profileDetails['district_id'] = $request->input('shippingProfile.district_id', null);
+        $profileDetails['area_id'] = $request->input('shippingProfile.area_id', null);
 
         $order->saveProfile('shipping', $profileDetails);
         $order->updateShippingMethod($request->input('shipping_option'));

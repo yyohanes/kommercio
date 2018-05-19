@@ -15,7 +15,7 @@ class UserResource extends Resource {
         $data = array_merge(
             [
                 'id' => $user->id,
-                'fullName' => $user->fullName,
+                'fullName' => $user->getProfile()->full_name,
                 'email' => $user->email,
                 'status' => $user->status,
             ],

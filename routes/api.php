@@ -14,6 +14,7 @@ Route::group(
         $routes = [
             'auth.php',
             'page.php',
+            'menu.php',
             'customer.php',
             'product.php',
             'order.php',
