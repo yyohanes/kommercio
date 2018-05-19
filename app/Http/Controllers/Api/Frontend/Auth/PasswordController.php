@@ -22,10 +22,10 @@ class PasswordController extends Controller {
             return new JsonResponse(
                 [
                     'errors' => [
-                        'Something went wrong. Please try again',
+                        'email' => ['Something went wrong. Please try again'],
                     ],
                 ],
-                500
+                422
             );
         }
 
