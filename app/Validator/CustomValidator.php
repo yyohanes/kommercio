@@ -211,15 +211,21 @@ class CustomValidator extends Validator
         $order_id = $parameters[1];
         $store_id = isset($parameters[2]) ? $parameters[2] : null;
 
+        if (empty($order_id) && empty($store_id))
+            throw new \Exception('Either order_id or store_id must be given');
+
         $productPassed = true;
 
         if($quantity > 0){
             $product = RuntimeCache::getOrSet('product_'.$product_id, function() use ($product_id){
                 return Product::findOrFail($product_id);
             });
-            $order = RuntimeCache::getOrSet('order_'.$order_id, function() use ($order_id){
-                return Order::findOrFail($order_id);
-            });
+
+            if ($order_id) {
+                $order = RuntimeCache::getOrSet('order_'.$order_id, function() use ($order_id){
+                    return Order::findOrFail($order_id);
+                });
+            }
 
             $orderLimit = $product->getPerOrderLimit([
                 'store' => $store_id ? : (!empty($order->store) ? $order->store->id : null),
@@ -358,6 +364,9 @@ class CustomValidator extends Validator
             $store_id = isset($parameters[2])?$parameters[2]:null;
         }
 
+        if (empty($order_id) && empty($store_id))
+            throw new \Exception('Either order_id or store_id must be given');
+
         if($quantity > 0){
             $delivery_date = null;
             if($type == 'delivery_date' && isset($parameters[2])){
@@ -372,9 +381,13 @@ class CustomValidator extends Validator
             $product = RuntimeCache::getOrSet('product_'.$product_id, function() use ($product_id){
                 return Product::findById($product_id);
             });
-            $order = RuntimeCache::getOrSet('order_'.$order_id, function() use ($order_id){
-                return Order::find($order_id);
-            });
+
+            $order = null;
+            if ($order_id) {
+                $order = RuntimeCache::getOrSet('order_'.$order_id, function() use ($order_id){
+                    return Order::find($order_id);
+                });
+            }
 
             $orderLimit = $product->getOrderLimit([
                 'store' => $store_id?:(!empty($order->store)?$order->store->id:null),
@@ -382,6 +395,7 @@ class CustomValidator extends Validator
                 'delivery_date' => $delivery_date,
                 'type' => OrderLimit::TYPE_PRODUCT
             ]);
+            \Log::info('order limit: ' . $orderLimit);
 
             $productLimitPassed = true;
 
@@ -394,6 +408,7 @@ class CustomValidator extends Validator
                 'checkout_at' => $today,
                 'store_id' => $store_id?:(!empty($order->store)?$order->store->id:null),
             ]);
+            \Log::info('order count: ' . $orderCount);
 
             if(is_array($orderLimit) && $orderLimit['limit_type'] == $type){
                 static::$_storage[$type.'_'.$product->id.'_available_quantity'] = $orderLimit['limit'] - $orderCount;
@@ -416,6 +431,7 @@ class CustomValidator extends Validator
                     'delivery_date' => $delivery_date,
                     'type' => OrderLimit::TYPE_PRODUCT_CATEGORY,
                 ]);
+                \Log::info('category order limit: ' . $categoryOrderLimit);
 
                 if(is_array($categoryOrderLimit)){
                     foreach($categoryOrderLimit['object']->productCategories as $productCategory){
@@ -424,6 +440,8 @@ class CustomValidator extends Validator
                             'checkout_at' => $today,
                             'store_id' => $store_id?:(!empty($order->store)?$order->store->id:null),
                         ]);
+
+                        \Log::info('category order count: ' . $categoryOrderCount);
 
                         $categoryLimitPassed = ($categoryOrderLimit['limit'] - $categoryOrderCount) >= $quantity;
 

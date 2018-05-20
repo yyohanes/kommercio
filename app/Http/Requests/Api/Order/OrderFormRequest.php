@@ -46,10 +46,6 @@ class OrderFormRequest extends \Illuminate\Foundation\Http\FormRequest {
             'shippingProfile.city_id' => 'descendant_address:city',
             'shippingProfile.district_id' => 'descendant_address:district',
             'shippingProfile.area_id' => 'descendant_address:area',
-            'payment_method' => [
-                'required',
-                'exists:payment_methods,id',
-            ],
             'shipping_method' => [
                 'required',
                 'exists:shipping_methods,id',
@@ -58,6 +54,13 @@ class OrderFormRequest extends \Illuminate\Foundation\Http\FormRequest {
                 'required',
             ],
         ];
+
+        $productRules = static::getProductRules($request);
+
+        $rules = array_merge(
+            $rules,
+            $productRules
+        );
 
         // Payment method additional validations
         $paymentMethod = PaymentMethod::findById($request->input('payment_method', 0));
@@ -123,13 +126,17 @@ class OrderFormRequest extends \Illuminate\Foundation\Http\FormRequest {
 
     protected static function getProductRules(Request $request) {
         $rules = [
-            'products' => [
+            'quantities.*' => [
                 'required',
-                'array',
+                'min:1',
             ],
         ];
 
-        foreach ($request->input('products', []) as $productId => $quantity) {
+        foreach ($request->input('products', []) as $key => $productId) {
+            $quantity = $request->input('quantities.' . $key, null);
+
+            if (is_null($quantity)) continue;
+
             $productRules = [
                 'required',
                 'exists:products,id,deleted_at,NULL',
@@ -139,14 +146,14 @@ class OrderFormRequest extends \Illuminate\Foundation\Http\FormRequest {
                 'is_purchaseable',
             ];
 
-            $productRules[] = 'per_order_limit:' . $quantity . ',null,' . $request->input('store_id');
-            $productRules[] = 'today_order_limit:' . $quantity . ',null,' . $request->input('store_id');
+            $productRules[] = 'per_order_limit:' . $quantity . ',,' . $request->input('store_id');
+            $productRules[] = 'today_order_limit:' . $quantity . ',,' . $request->input('store_id');
 
             if (ProjectHelper::getConfig('enable_delivery_date', FALSE)) {
-                $productRules[] = 'delivery_order_limit:' . $quantity . ',null,' . $request->input('store_id') . ',' . $request->input('delivery_date');
+                $productRules[] = 'delivery_order_limit:' . $quantity . ',,' . $request->input('delivery_date') . ',' . $request->input('store_id');
             }
 
-            $rules['product.' . $productId] = $productRules;
+            $rules['products.*'] = $productRules;
         }
 
         return $rules;

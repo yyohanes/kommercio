@@ -134,8 +134,9 @@ class OrderController extends Controller {
 
         $products = [];
         $quantities = [];
-        foreach ($request->input('products', []) as $productId => $quantity) {
+        foreach ($request->input('products', []) as $key => $productId) {
             $product = Product::findById($productId);
+            $quantity = $request->input('quantities.' . $key);
 
             $products[$product->id] = $product;
             $quantities[$product->id] = $quantity;
@@ -168,7 +169,6 @@ class OrderController extends Controller {
         }
 
         $profileDetails = $customerProfile->getDetails();
-        $profileDetails['address_1'] = $request->input('shippingProfile.address_1', null);
         $profileDetails['address_1'] = $request->input('shippingProfile.address_1', null);
         $profileDetails['address_2'] = $request->input('shippingProfile.address_2', null);
         $profileDetails['postal_code'] = $request->input('shippingProfile.postal_code', null);
