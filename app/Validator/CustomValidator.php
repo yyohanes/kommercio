@@ -395,7 +395,6 @@ class CustomValidator extends Validator
                 'delivery_date' => $delivery_date,
                 'type' => OrderLimit::TYPE_PRODUCT
             ]);
-            \Log::info('order limit: ' . $orderLimit);
 
             $productLimitPassed = true;
 
@@ -408,7 +407,6 @@ class CustomValidator extends Validator
                 'checkout_at' => $today,
                 'store_id' => $store_id?:(!empty($order->store)?$order->store->id:null),
             ]);
-            \Log::info('order count: ' . $orderCount);
 
             if(is_array($orderLimit) && $orderLimit['limit_type'] == $type){
                 static::$_storage[$type.'_'.$product->id.'_available_quantity'] = $orderLimit['limit'] - $orderCount;
@@ -431,7 +429,6 @@ class CustomValidator extends Validator
                     'delivery_date' => $delivery_date,
                     'type' => OrderLimit::TYPE_PRODUCT_CATEGORY,
                 ]);
-                \Log::info('category order limit: ' . $categoryOrderLimit);
 
                 if(is_array($categoryOrderLimit)){
                     foreach($categoryOrderLimit['object']->productCategories as $productCategory){
@@ -440,8 +437,6 @@ class CustomValidator extends Validator
                             'checkout_at' => $today,
                             'store_id' => $store_id?:(!empty($order->store)?$order->store->id:null),
                         ]);
-
-                        \Log::info('category order count: ' . $categoryOrderCount);
 
                         $categoryLimitPassed = ($categoryOrderLimit['limit'] - $categoryOrderCount) >= $quantity;
 

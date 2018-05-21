@@ -190,7 +190,9 @@ class OrderController extends Controller {
 
         if (is_array($paymentResult)) {
             return new JsonResponse(
-                $paymentResult,
+                [
+                    'errors' => $paymentResult,
+                ],
                 422
             );
         }
