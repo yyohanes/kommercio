@@ -136,6 +136,8 @@ class OrderController extends Controller {
         $quantities = [];
         foreach ($request->input('products', []) as $key => $productId) {
             $product = Product::findById($productId);
+            // TODO: Find out bug that causes a product counted as multiple quantities
+            // $quantity = $request->input('quantities.' . $key, 1);
             $quantity = 1;
 
             $products[$product->id] = $product;
@@ -169,6 +171,7 @@ class OrderController extends Controller {
         }
 
         $profileDetails = $customerProfile->getDetails();
+        $profileDetails['phone_number'] = $request->input('shippingProfile.phone_number', null);
         $profileDetails['address_1'] = $request->input('shippingProfile.address_1', null);
         $profileDetails['address_2'] = $request->input('shippingProfile.address_2', null);
         $profileDetails['postal_code'] = $request->input('shippingProfile.postal_code', null);
