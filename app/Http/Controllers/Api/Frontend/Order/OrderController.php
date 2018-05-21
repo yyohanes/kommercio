@@ -136,7 +136,7 @@ class OrderController extends Controller {
         $quantities = [];
         foreach ($request->input('products', []) as $key => $productId) {
             $product = Product::findById($productId);
-            $quantity = $request->input('quantities.' . $key);
+            $quantity = 1;
 
             $products[$product->id] = $product;
             $quantities[$product->id] = $quantity;
