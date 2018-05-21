@@ -55,7 +55,8 @@ class Stripe extends PaymentMethodAbstract implements PaymentMethodSettingFormIn
                     "source" => $stripeToken,
                     "description" => "Charge for ".$order->shippingInformation->email,
                     "metadata" => [
-                        "order_reference" => $order->reference
+                        "order_id" => $order->id,
+                        "order_reference" => $order->reference,
                     ]
                 ));
 
