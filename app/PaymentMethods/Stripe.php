@@ -53,7 +53,7 @@ class Stripe extends PaymentMethodAbstract implements PaymentMethodSettingFormIn
                     "amount" => $order->getOutstandingAmount() * $smallestUnit,
                     "currency" => $order->currency,
                     "source" => $stripeToken,
-                    "description" => "Charge for ".$order->billingInformation->email,
+                    "description" => "Charge for ".$order->shippingInformation->email,
                     "metadata" => [
                         "order_reference" => $order->reference
                     ]
