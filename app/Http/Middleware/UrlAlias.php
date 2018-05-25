@@ -54,7 +54,7 @@ class UrlAlias
 
         $query = '?'.$dupRequest->getQueryString();
 
-        $uriWithoutQuery = str_replace($query, '', $request_uri_string);
+        $uriWithoutQuery = substr($dupRequest->getPathInfo(),1);
 
         if(strlen($uriWithoutQuery) == 0){
             $request_uri_string = config('project.home_uri', config('kommercio.home_uri'));
