@@ -25,7 +25,7 @@
     'required' => TRUE,
 ])
 
-@include('backend.master.form.fields.password', [
+@include('backend.master.form.fields.text', [
     'name' => 'data[password]',
     'label' => 'Password',
     'key' => 'data.password',
