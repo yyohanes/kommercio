@@ -100,8 +100,8 @@ class DHLJob implements ShouldQueue
             $client = new WebserviceClient($config['env']);
             $xml = $client->call($dhlRequest);
 
+            $this->logResponse($config['request_reference'], $xml);
             $dhlResponse = $this->getDHLResponse($xml);
-            $this->logResponse($config['request_reference'], $dhlResponse->toXML());
 
             $labelFileName = $this->getAndStoreLabel($requestReference, $dhlResponse);
 
