@@ -59,6 +59,8 @@ class DHLJob implements ShouldQueue
 
         $this->addressConfig = DHL::getConfig($address);
 
+        throw new \Exception('whatever');
+
         if (!$this->addressConfig) {
             throw new \Exception('No DHL configuration for ' . $address->name . ' [' . $address->addressType .']');
         };

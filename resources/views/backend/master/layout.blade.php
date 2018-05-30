@@ -26,7 +26,7 @@
         <link href="{{ asset('backend/assets/template/global/plugins/jquery-file-upload/css/jquery.fileupload.css') }}" rel="stylesheet" type="text/css" />
         <link href="{{ asset('backend/assets/template/global/plugins/jquery-file-upload/css/jquery.fileupload-ui.css') }}" rel="stylesheet" type="text/css" />
         <!-- END GLOBAL MANDATORY STYLES -->
-    
+
         <!-- BEGIN PAGE STYLES -->
         @yield('top_page_styles')
         <!-- END PAGE STYLES -->
@@ -181,6 +181,16 @@
                         <div class="alert alert-success">
                             {{ $success }}
                         </div>
+                        @endforeach
+                    </div>
+                @endif
+
+                @if(Session::has('error'))
+                    <div class="col-md-12" style="display: none;">
+                        @foreach(Session::get('error') as $error)
+                            <div class="alert alert-danger">
+                                {{ $error }}
+                            </div>
                         @endforeach
                     </div>
                 @endif
