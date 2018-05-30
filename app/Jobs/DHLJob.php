@@ -124,6 +124,8 @@ class DHLJob implements ShouldQueue
 
         if ($warehouseCity) {
             $warehouseCityName = $warehouseCity->name;
+        } else if ($warehouse->custom_city) {
+            $warehouseCityName = $warehouse->custom_city;
         }
 
         if (empty($warehouseCityName)) {
