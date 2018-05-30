@@ -2,7 +2,9 @@
 
 namespace Kommercio\PaymentMethods;
 
+use Illuminate\Http\Request;
 use Kommercio\Models\Order\Order;
+use Kommercio\Models\Order\Payment;
 use Kommercio\Models\PaymentMethod\PaymentMethod;
 
 abstract class PaymentMethodAbstract
@@ -33,6 +35,14 @@ abstract class PaymentMethodAbstract
      * Determine if Checkout externally
      */
     public function isExternalCheckout()
+    {
+        return false;
+    }
+
+    /**
+     * Determine if external
+     */
+    public function isExternal()
     {
         return false;
     }
@@ -111,5 +121,18 @@ abstract class PaymentMethodAbstract
     public function getPublicData()
     {
         return [];
+    }
+
+    public function getPaymentForm(PaymentMethod $payment, $options = null)
+    {
+        return null;
+    }
+
+    /**
+     * Payment form
+     */
+    public function handleExternalNotification(Request $request, Payment $payment)
+    {
+        // Do nothing
     }
 }

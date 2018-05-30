@@ -2,6 +2,7 @@
 
 namespace Kommercio\ShippingMethods;
 
+use Kommercio\Models\Order\DeliveryOrder\DeliveryOrder;
 use Kommercio\Models\ShippingMethod\ShippingMethod;
 
 abstract class ShippingMethodAbstract
@@ -31,5 +32,15 @@ abstract class ShippingMethodAbstract
     public function requireAddress()
     {
         return TRUE;
+    }
+
+    public function useCustomPackagingSlip(DeliveryOrder $deliveryOrder)
+    {
+        return false;
+    }
+
+    public function customPackagingSlip(DeliveryOrder $deliveryOrder)
+    {
+        return false;
     }
 }

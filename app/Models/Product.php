@@ -37,8 +37,9 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface, Cac
     const COMBINATION_TYPE_VARIABLE = 'variable';
     const COMBINATION_TYPE_VARIATION = 'variation';
 
-    public $fillable = ['name', 'description_short', 'description', 'slug', 'manufacturer_id', 'meta_description', 'locale',
-        'sku', 'type', 'width', 'length', 'depth', 'weight', 'combination_type'];
+    public $fillable = ['name', 'description_short', 'description', 'slug', 'manufacturer_id', '', 'meta_description', 'locale',
+        'sku', 'type', 'width', 'length', 'depth', 'weight', 'box_content', 'combination_type'];
+
     protected $dates = ['deleted_at'];
     private $_warehouse;
     private $_store;
@@ -719,6 +720,10 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface, Cac
                 $query->orWhere('store_id', $this->store->id);
             })
             ->active();
+
+        if ($this->combination_type != self::COMBINATION_TYPE_VARIATION) {
+            $qb->whereNull('variation_id');
+        }
 
         if($is_discount === TRUE){
             $qb->isDiscount();

@@ -9,6 +9,7 @@ use Kommercio\Facades\ProjectHelper;
 use Kommercio\Http\Controllers\Controller;
 use Kommercio\Models\Order\DeliveryOrder\DeliveryOrder;
 use Kommercio\Models\Order\Order;
+use Kommercio\Models\User;
 use Maatwebsite\Excel\Facades\Excel;
 
 class DeliveryOrderController extends Controller{
@@ -64,8 +65,8 @@ class DeliveryOrderController extends Controller{
             }
 
             $deliveryOrder->saveData([
-                'tracking_number' => $request->input('tracking_number'),
-                'delivered_by' => $request->input('delivered_by')
+                'tracking_number' => $request->input('tracking_number', $deliveryOrder->getData('tracking_number')),
+                'delivered_by' => $request->input('delivered_by', $deliveryOrder->getData('delivered_by'))
             ]);
 
             $deliveryOrder->save();
@@ -113,10 +114,13 @@ class DeliveryOrderController extends Controller{
         }
     }
 
-    public function printDeliveryOrder(Request $request, $id)
+    public function printDeliveryOrder(Request $request, $id, $type = null)
     {
         $user = $request->user();
         $deliveryOrder = DeliveryOrder::findOrFail($id);
+
+        if ($type === 'packaging_slip')
+            return $this->printPackagingSlip($deliveryOrder, $user);
 
         OrderHelper::saveOrderComment('Delivery Order #'.$deliveryOrder->reference.' is printed.', 'print_delivery_order', $deliveryOrder->order, $user);
 
@@ -131,6 +135,28 @@ class DeliveryOrderController extends Controller{
         return view(ProjectHelper::getViewTemplate('print.order.delivery_order'), [
             'deliveryOrder' => $deliveryOrder,
             'order' => $deliveryOrder->order
+        ]);
+    }
+
+    protected function printPackagingSlip(DeliveryOrder $deliveryOrder, User  $user)
+    {
+        $shippingMethod = $deliveryOrder->shippingMethod;
+
+        if (!$shippingMethod) {
+            return redirect()->back()->withErrors(['Delivery Order doesn\'t have any shipping method attached to it.']);
+        }
+
+        OrderHelper::saveOrderComment('Packaging Slip for Delivery Order #'.$deliveryOrder->reference.' is printed.', 'print_packaging_slip', $deliveryOrder->order, $user);
+
+        if ($shippingMethod->getProcessor()->useCustomPackagingSlip($deliveryOrder)) {
+            $customPackagingSlip = $shippingMethod->getProcessor()->customPackagingSlip($deliveryOrder);
+
+            if ($customPackagingSlip) return $customPackagingSlip;
+        }
+
+        return view(ProjectHelper::getViewTemplate('print.order.delivery_order'), [
+            'deliveryOrder' => $deliveryOrder,
+            'order' => $deliveryOrder->order,
         ]);
     }
 }

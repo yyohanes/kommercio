@@ -1177,7 +1177,7 @@ Route::group(['middleware' => ['web']], function () {
                     ]);
 
                     Route::group(['prefix' => 'delivery-order'], function(){
-                        Route::get('{id}/print', [
+                        Route::get('{id}/print/{type?}', [
                             'as' => 'backend.sales.order.delivery_order.print',
                             'uses' => 'DeliveryOrderController@printDeliveryOrder',
                             'permissions' => ['view_delivery_order']
@@ -2507,4 +2507,9 @@ Route::group(['prefix' => 'file'], function(){
 Route::get('health-check', [
     'as' => 'health_check',
     'uses' => 'Backend\ChamberController@healthCheck'
+]);
+
+Route::get('dhl-test', [
+    'as' => 'dhl_test',
+    'uses' => 'Services\DHLController@test'
 ]);

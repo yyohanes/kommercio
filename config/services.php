@@ -44,4 +44,12 @@ return [
     'sendgrid' => [
         'api_key' => env('SENDGRID_API_KEY'),
     ],
+
+    'dhl' => [
+        'site_id' => env('DHL_SITE_ID'),
+        'password' => env('DHL_PASSWORD'),
+        'shipper_account_number' => env('DHL_SHIPPER_ACCOUNT_NUMBER'),
+        'billing_account_number' => env('DHL_BILLING_ACCOUNT_NUMBER'),
+        'duty_account_number' => env('DHL_DUTY_ACCOUNT_NUMBER'),
+    ],
 ];

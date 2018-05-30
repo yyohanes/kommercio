@@ -15,11 +15,12 @@ use Kommercio\Models\Address\District;
 use Kommercio\Models\Address\State;
 use Kommercio\Models\Interfaces\CacheableInterface;
 use Kommercio\Models\Store\OpeningTime;
+use Kommercio\Traits\Model\HasAddress;
 use Kommercio\Traits\Model\HasDataColumn;
 
 class Store extends Model implements CacheableInterface
 {
-    use HasDataColumn;
+    use HasDataColumn, HasAddress;
 
     const TYPE_ONLINE = 'online';
     const TYPE_OFFLINE = 'offline';

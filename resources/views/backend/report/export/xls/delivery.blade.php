@@ -21,8 +21,8 @@ if($store != 'all'){
         <th>Phone</th>
         <th>Email</th>
         <th>Address</th>
-        @foreach($orderedProducts as $orderedProduct)
-            <th>{{ $orderedProduct['product']->name }}</th>
+        @foreach($includedProducts as $includedProduct)
+            <th>{{ $includedProduct['product']->name }}</th>
         @endforeach
         <th>Outstanding</th>
         <th>Total</th>
@@ -45,8 +45,8 @@ if($store != 'all'){
             <td>{{ $order->shippingInformation->phone_number }}</td>
             <td>{{ $order->shippingInformation->email }}</td>
             <td>{!! AddressHelper::printAddress($order->shippingInformation->getDetails()) !!}</td>
-            @foreach($orderedProducts as $orderedProductIdx=>$orderedProduct)
-                <td>{{ $order->getProductQuantity($orderedProductIdx, true) + 0 }}</td>
+            @foreach($includedProducts as $includedProduct)
+                <td>{{ $order->getProductQuantity($includedProduct['product']->id, true) + 0 }}</td>
             @endforeach
             <td>{{ $order->outstanding }}</td>
             <td>{{ CurrencyHelper::convert($order->total, $order->currency, $order->currency) }}</td>

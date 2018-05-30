@@ -16,6 +16,7 @@ use Kommercio\Http\Requests;
 use Kommercio\Http\Controllers\Controller;
 use Kommercio\Models\Order\LineItem;
 use Kommercio\Models\Order\Order;
+use Kommercio\Models\Product;
 use Kommercio\Models\ShippingMethod\ShippingMethod;
 use Kommercio\Models\Store;
 use Maatwebsite\Excel\Facades\Excel;
@@ -226,6 +227,8 @@ class ReportController extends Controller
             ]);
         }
 
+        $includedProducts = [];
+
         //Get Ordered Products. Use custom query because we want to sort by Sort Order
         $orderedProductsQb = LineItem::lineItemType('product')
             ->whereIn('order_id', $orders->pluck('id')->all())
@@ -233,7 +236,6 @@ class ReportController extends Controller
             ->orderBy('PD.sort_order', 'ASC');
 
         $orderedProducts = [];
-
         foreach($orderedProductsQb->get() as $lineItem){
             if(!isset($orderedProducts[$lineItem->line_item_id])){
                 $orderedProducts[$lineItem->line_item_id] = [
@@ -245,6 +247,33 @@ class ReportController extends Controller
             $orderedProducts[$lineItem->line_item_id]['quantity'] += $lineItem->quantity;
         }
 
+        $store = ProjectHelper::getDefaultStore();
+        $stickyProducts = Product::joinDetail($store->id)->selectSelf()->active()->where('sticky_line_item', 1)->orderBy('sort_order', 'ASC')->get();
+
+        foreach ($stickyProducts as $stickyProduct) {
+            $quantity = isset($orderedProducts[$stickyProduct->id])
+                ? $orderedProducts[$stickyProduct->id]['quantity']
+                : 0;
+
+            $product = isset($orderedProducts[$stickyProduct->id])
+                ? $orderedProducts[$stickyProduct->id]['product']
+                : $stickyProduct;
+
+            $includedProducts[] = [
+                'quantity' => $quantity,
+                'product' => $product,
+            ];
+
+            if (isset($orderedProducts[$stickyProduct->id])) {
+                unset($orderedProducts[$stickyProduct->id]);
+            }
+        }
+
+        $includedProducts = array_merge(
+            $includedProducts,
+            array_values($orderedProducts)
+        );
+
         if($request->input('export_to_xls', false)){
             $excelExport = new DeliveryReportExport([
                 'filter' => $filter,
@@ -252,7 +281,7 @@ class ReportController extends Controller
                 'shippingMethod' => $shippingMethod,
                 'date' => $date,
                 'dateType' => $dateType,
-                'orderedProducts' => $orderedProducts,
+                'includedProducts' => $includedProducts,
             ]);
 
             return $excelExport->download('Delivery Report ' . $filter['date'] . '.xls');
@@ -270,7 +299,7 @@ class ReportController extends Controller
             'date' => $date,
             'dateType' => $dateType,
             'orders' => $orders,
-            'orderedProducts' => $orderedProducts,
+            'includedProducts' => $includedProducts,
             'shippingMethodOptions' => $shippingMethodOptions,
             'shippingMethod' => $shippingMethod,
             'printAllInvoicesUrl' => $printAllInvoicesUrl,

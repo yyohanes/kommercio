@@ -3,9 +3,12 @@
 namespace Kommercio\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Kommercio\Traits\Model\HasAddress;
 
 class Warehouse extends Model
 {
+    use HasAddress;
+
     protected $guarded = ['location'];
 
     //Relations

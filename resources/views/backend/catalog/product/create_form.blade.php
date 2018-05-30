@@ -626,6 +626,17 @@
                     'unit' => 'gr',
                     'valueColumnClass' => 'col-md-4'
                 ])
+
+                @include('backend.master.form.fields.textarea', [
+                    'name' => 'box_content',
+                    'label' => 'Package Box Content',
+                    'key' => 'box_content',
+                    'attr' => [
+                        'class' => 'form-control',
+                        'id' => 'box_content',
+                    ],
+                    'valueColumnClass' => 'col-md-4'
+                ])
             </div>
         </div>
 

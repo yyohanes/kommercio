@@ -36,11 +36,11 @@ class ProductCategory extends Model implements UrlAliasInterface, SeoModelInterf
 
     public function hasProduct($product)
     {
-        if(!is_int($product)){
+        if(is_int($product)){
             $product_id = $product;
+        } else {
+            $product_id = $product->id;
         }
-
-        $product_id = $product->id;
 
         return $this->products()->where('id', $product_id)->count() > 0;
     }

@@ -3,6 +3,8 @@
 namespace Kommercio\Http\Requests\Backend\ShippingMethod;
 
 use Kommercio\Http\Requests\Request;
+use Kommercio\Models\ShippingMethod\ShippingMethod;
+use Kommercio\ShippingMethods\ShippingMethodSettingsInterface;
 
 class ShippingMethodFormRequest extends Request
 {
@@ -31,6 +33,18 @@ class ShippingMethodFormRequest extends Request
             'stores' => 'required_if:store_scope,selected',
             'stores.*' => 'nullable|exists:stores,id'
         ];
+
+        if($this->route('id')){
+            $shippingMethod = ShippingMethod::findOrFail($this->route('id'));
+
+            if($shippingMethod->getProcessor() instanceof ShippingMethodSettingsInterface){
+                $additionalValidation = call_user_func(get_class($shippingMethod->getProcessor()).'::additionalSettingValidation', $this);
+
+                if(is_array($additionalValidation)){
+                    $rules += $additionalValidation;
+                }
+            }
+        }
 
         return $rules;
     }

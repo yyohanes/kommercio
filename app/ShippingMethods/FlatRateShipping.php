@@ -181,4 +181,20 @@ class FlatRateShipping extends ShippingMethodAbstract implements ShippingMethodS
 
         return $rate;
     }
+
+    public function renderAdditionalSetting()
+    {
+        return null;
+    }
+
+    public function processAdditionalSetting(Request $request)
+    {
+        // Stub
+    }
+
+    //Statics
+    public static function additionalSettingValidation(Request $request)
+    {
+        return [];
+    }
 }

@@ -25,7 +25,7 @@ class DeliveryReportExport implements FromView {
         $this->shippingMethod = $options['shippingMethod'];
         $this->date = $options['date'];
         $this->dateType = $options['dateType'];
-        $this->orderedProducts = $options['orderedProducts'];
+        $this->includedProducts = $options['includedProducts'];
     }
 
     public function view(): View
@@ -36,7 +36,7 @@ class DeliveryReportExport implements FromView {
             'shippingMethod' => $this->shippingMethod,
             'date' => $this->date,
             'dateType' => $this->dateType,
-            'orderedProducts' => $this->orderedProducts,
+            'includedProducts' => $this->includedProducts,
         ]);
     }
 }
