@@ -178,6 +178,7 @@ class OrderController extends Controller {
         $profileDetails['country_id'] = $request->input('shippingProfile.country_id', null);
         $profileDetails['state_id'] = $request->input('shippingProfile.state_id', null);
         $profileDetails['city_id'] = $request->input('shippingProfile.city_id', null);
+        $profileDetails['custom_city'] = $request->input('shippingProfile.custom_city', null);
         $profileDetails['district_id'] = $request->input('shippingProfile.district_id', null);
         $profileDetails['area_id'] = $request->input('shippingProfile.area_id', null);
 
