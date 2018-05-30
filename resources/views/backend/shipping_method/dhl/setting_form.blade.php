@@ -34,7 +34,7 @@
     ],
     'options' => $dutyPaymentTypeOptions,
     'valueColumnClass' => 'col-md-6',
-    'defaultOptions' => old('regionCode', $regionCode),
+    'defaultOptions' => old('regionCode', $dutyPaymentType),
 ])
 
 @include('backend.master.form.fields.number', [
