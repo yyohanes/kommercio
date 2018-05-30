@@ -910,6 +910,7 @@ class OrderController extends Controller{
     {
         $user = $request->user();
         $order = Order::find($id);
+        $errors = [];
 
         if($request->isMethod('GET')){
             $options = [
@@ -1000,42 +1001,48 @@ class OrderController extends Controller{
                         $deliveryOrderData['data']['delivered_by'] = $request->input('delivered_by');
                     }
 
-                    $deliveryOrder = $order->createDeliveryOrder($deliveredLineItems, $deliveryOrderData);
-                    Event::fire(new DeliveryOrderEvent(DeliveryOrderEvent::ON_NEW_DELIVERY_ORDER, $deliveryOrder));
+                    try {
+                        $deliveryOrder = $order->createDeliveryOrder($deliveredLineItems, $deliveryOrderData);
+                        Event::fire(new DeliveryOrderEvent(DeliveryOrderEvent::ON_NEW_DELIVERY_ORDER, $deliveryOrder));
 
-                    if ($request->input('mark_shipped')) {
-                        $deliveryOrder->changeStatus(DeliveryOrder::STATUS_SHIPPED, $request->input('send_notification'));
+                        if ($request->input('mark_shipped')) {
+                            $deliveryOrder->changeStatus(DeliveryOrder::STATUS_SHIPPED, $request->input('send_notification'));
 
-                        if ($order->isFullyShipped) {
-                            OrderHelper::saveOrderComment('Delivery Order #' . $deliveryOrder->reference . ' is created. Order is fully shipped.', 'fully_shipped', $order, $user);
-                            OrderHelper::saveOrderComment('Order is fully shipped.', 'fully_shipped', $order, $user, OrderComment::TYPE_EXTERNAL_MEMO, [
-                                'delivery_order_id' => $deliveryOrder->id
-                            ]);
+                            if ($order->isFullyShipped) {
+                                OrderHelper::saveOrderComment('Delivery Order #' . $deliveryOrder->reference . ' is created. Order is fully shipped.', 'fully_shipped', $order, $user);
+                                OrderHelper::saveOrderComment('Order is fully shipped.', 'fully_shipped', $order, $user, OrderComment::TYPE_EXTERNAL_MEMO, [
+                                    'delivery_order_id' => $deliveryOrder->id
+                                ]);
 
-                            $order->status = Order::STATUS_SHIPPED;
-                            $message = 'Order has been <span class="label bg-' . OrderHelper::getOrderStatusLabelClass($order->status) . ' bg-font-' . OrderHelper::getOrderStatusLabelClass($order->status) . '">fully shipped.</span>';
+                                $order->status = Order::STATUS_SHIPPED;
+                                $message = 'Order has been <span class="label bg-' . OrderHelper::getOrderStatusLabelClass($order->status) . ' bg-font-' . OrderHelper::getOrderStatusLabelClass($order->status) . '">fully shipped.</span>';
+                            } else {
+                                OrderHelper::saveOrderComment('Delivery Order #' . $deliveryOrder->reference . ' is created. Order is partially shipped.', 'partially_shipped', $order, $user);
+                                OrderHelper::saveOrderComment('Order is partially shipped.', 'partially_shipped', $order, $user, OrderComment::TYPE_EXTERNAL_MEMO, [
+                                    'delivery_order_id' => $deliveryOrder->id
+                                ]);
+                                $message = 'Order has been partially shipped with Delivery Order <span class="label bg-' . OrderHelper::getOrderStatusLabelClass($order->status) . ' bg-font-' . OrderHelper::getOrderStatusLabelClass($order->status) . '">#' . $deliveryOrder->reference . '.</span>';
+                            }
                         } else {
-                            OrderHelper::saveOrderComment('Delivery Order #' . $deliveryOrder->reference . ' is created. Order is partially shipped.', 'partially_shipped', $order, $user);
-                            OrderHelper::saveOrderComment('Order is partially shipped.', 'partially_shipped', $order, $user, OrderComment::TYPE_EXTERNAL_MEMO, [
-                                'delivery_order_id' => $deliveryOrder->id
-                            ]);
-                            $message = 'Order has been partially shipped with Delivery Order <span class="label bg-' . OrderHelper::getOrderStatusLabelClass($order->status) . ' bg-font-' . OrderHelper::getOrderStatusLabelClass($order->status) . '">#' . $deliveryOrder->reference . '.</span>';
-                        }
-                    } else {
-                        if ($order->isFullyShipped) {
-                            OrderHelper::saveOrderComment('Delivery Order #' . $deliveryOrder->reference . ' is created. Order will be fully shipped.', 'future_fully_shipped', $order, $user);
-                            OrderHelper::saveOrderComment('Order will be fully shipped.', 'future_fully_shipped', $order, $user, OrderComment::TYPE_EXTERNAL_MEMO, [
-                                'delivery_order_id' => $deliveryOrder->id
-                            ]);
+                            if ($order->isFullyShipped) {
+                                OrderHelper::saveOrderComment('Delivery Order #' . $deliveryOrder->reference . ' is created. Order will be fully shipped.', 'future_fully_shipped', $order, $user);
+                                OrderHelper::saveOrderComment('Order will be fully shipped.', 'future_fully_shipped', $order, $user, OrderComment::TYPE_EXTERNAL_MEMO, [
+                                    'delivery_order_id' => $deliveryOrder->id
+                                ]);
 
-                            $message = 'Order will be <span class="label bg-' . OrderHelper::getOrderStatusLabelClass($order->status) . ' bg-font-' . OrderHelper::getOrderStatusLabelClass($order->status) . '">fully shipped.</span>';
-                        } else {
-                            OrderHelper::saveOrderComment('Delivery Order #' . $deliveryOrder->reference . ' is created. Order will be partially shipped.', 'future_partially_shipped', $order, $user);
-                            OrderHelper::saveOrderComment('Order will be partially shipped.', 'future_partially_shipped', $order, $user, OrderComment::TYPE_EXTERNAL_MEMO, [
-                                'delivery_order_id' => $deliveryOrder->id
-                            ]);
-                            $message = 'Order will be partially shipped with Delivery Order <span class="label bg-' . OrderHelper::getOrderStatusLabelClass($order->status) . ' bg-font-' . OrderHelper::getOrderStatusLabelClass($order->status) . '">#' . $deliveryOrder->reference . '.</span>';
+                                $message = 'Order will be <span class="label bg-' . OrderHelper::getOrderStatusLabelClass($order->status) . ' bg-font-' . OrderHelper::getOrderStatusLabelClass($order->status) . '">fully shipped.</span>';
+                            } else {
+                                OrderHelper::saveOrderComment('Delivery Order #' . $deliveryOrder->reference . ' is created. Order will be partially shipped.', 'future_partially_shipped', $order, $user);
+                                OrderHelper::saveOrderComment('Order will be partially shipped.', 'future_partially_shipped', $order, $user, OrderComment::TYPE_EXTERNAL_MEMO, [
+                                    'delivery_order_id' => $deliveryOrder->id
+                                ]);
+                                $message = 'Order will be partially shipped with Delivery Order <span class="label bg-' . OrderHelper::getOrderStatusLabelClass($order->status) . ' bg-font-' . OrderHelper::getOrderStatusLabelClass($order->status) . '">#' . $deliveryOrder->reference . '.</span>';
+                            }
                         }
+                    } catch (\Throwable $e) {
+                        $deliveryOrder->changeStatus(DeliveryOrder::STATUS_CANCELLED, false, 'Delivery Order cancelled due error. Reason: ' . $e->getMessage());
+
+                        $errors[] = 'There is an error processing this Delivery Order. ' . $e->getMessage();
                     }
                     break;
                 case 'completed':
@@ -1065,15 +1072,27 @@ class OrderController extends Controller{
                     break;
             }
 
-            $order->save();
+            if (count($errors) === 0) {
+                $order->save();
 
-            Event::fire(new OrderUpdate($order, $originalStatus, $request->input('send_notification')));
-            Event::fire(new OrderEvent('internal_place_order', $order));
+                Event::fire(new OrderUpdate($order, $originalStatus, $request->input('send_notification')));
+                Event::fire(new OrderEvent('internal_place_order', $order));
+            }
 
             if(!$internal){
-                return redirect($request->input('backUrl', route('backend.sales.order.index')))->with('success', [$message]);
+                $response = redirect($request->input('backUrl', route('backend.sales.order.index')));
+
+                if (count($errors) === 0) {
+                    return $response->with('success', [$message]);
+                } else {
+                    return $response->with('error', $errors);
+                }
             }else{
-                return $order;
+                if (count($errors) === 0) {
+                    return $order;
+                }
+
+                return false;
             }
         }
     }

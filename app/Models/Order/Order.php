@@ -651,10 +651,16 @@ class Order extends Model implements AuthorSignatureInterface
             'city_id',
             'district_id',
             'area_id',
+            'custom_city',
             'postal_code',
             'address_1',
             'address_2'
         ];
+
+        // Remove custom city if there is city id
+        if (!empty($fields['city_id'])) {
+            $fields['custom_city'] = '';
+        }
 
         foreach ($fields as $field) {
             if (!isset($data[$field])) {

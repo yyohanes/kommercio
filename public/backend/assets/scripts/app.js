@@ -39,6 +39,23 @@ var KommercioApp = function(){
     });
   }
 
+    var convertErrorMessagesToGrowl = function(){
+        $('.alert-danger').each(function(idx, obj){
+            $.bootstrapGrowl($(obj).text(), {
+                ele: 'body', // which element to append to
+                type: 'danger', // (null, 'info', 'danger', 'success')
+                offset: {from: 'top', amount: 20}, // 'top', or 'bottom'
+                align: 'right', // ('left', 'right', or 'center')
+                width: 250, // (integer, or 'auto')
+                delay: 4000, // Time while the message will be displayed. It's not equivalent to the *demo* timeOut!
+                allow_dismiss: true, // If true then will display a cross to close the popup.
+                stackup_spacing: 10 // spacing between consecutively stacked growls.
+            });
+
+            $(obj).remove();
+        });
+    }
+
   return {
     init: function(){
       this.csrfHeaderSetup(global_vars.csrf_token);
@@ -52,6 +69,7 @@ var KommercioApp = function(){
       });
 
       convertSuccessMessagesToGrowl();
+      convertErrorMessagesToGrowl();
       handleFixedHeaderTable();
     },
     errorPopup: function(message){
