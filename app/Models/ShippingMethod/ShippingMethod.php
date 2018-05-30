@@ -2,9 +2,9 @@
 
 namespace Kommercio\Models\ShippingMethod;
 
-use Dimsav\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
+use Dimsav\Translatable\Translatable;
 use Kommercio\Facades\CurrencyHelper;
 use Kommercio\Facades\PriceFormatter;
 use Kommercio\Facades\ProjectHelper;
@@ -13,10 +13,11 @@ use Kommercio\Models\Order\Order;
 use Kommercio\Models\Store;
 use Kommercio\Models\PaymentMethod\PaymentMethod;
 use Kommercio\ShippingMethods\ShippingMethodInterface;
+use Kommercio\Traits\Model\HasDataColumn;
 
 class ShippingMethod extends Model implements CacheableInterface
 {
-    use Translatable;
+    use Translatable, HasDataColumn;
 
     public $timestamps = FALSE;
 

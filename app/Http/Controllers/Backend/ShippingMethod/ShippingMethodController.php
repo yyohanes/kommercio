@@ -8,6 +8,7 @@ use Kommercio\Http\Requests\Backend\ShippingMethod\ShippingMethodFormRequest;
 use Kommercio\Models\PaymentMethod\PaymentMethod;
 use Kommercio\Models\ShippingMethod\ShippingMethod;
 use Kommercio\Models\Store;
+use Kommercio\ShippingMethods\ShippingMethodSettingsInterface;
 
 class ShippingMethodController extends Controller{
     public function index()
@@ -40,7 +41,8 @@ class ShippingMethodController extends Controller{
         return view('backend.shipping_method.create', [
             'shippingMethod' => $shippingMethod,
             'storeOptions' => $storeOptions,
-            'paymentMethodOptions' => $paymentMethods->pluck('name', 'id')->all()
+            'paymentMethodOptions' => $paymentMethods->pluck('name', 'id')->all(),
+            'additionalFieldsForm' => false,
         ]);
     }
 
@@ -77,9 +79,16 @@ class ShippingMethodController extends Controller{
             $storeOptions[$type][$store->id] = $store->name;
         }
 
+        $additionalFieldsForm = null;
+
+        if($shippingMethod->getProcessor() instanceof ShippingMethodSettingsInterface){
+            $additionalFieldsForm = $shippingMethod->getProcessor()->renderAdditionalSetting();
+        }
+
         return view('backend.shipping_method.edit', [
             'shippingMethod' => $shippingMethod,
             'storeOptions' => $storeOptions,
+            'additionalFieldsForm' => $additionalFieldsForm,
             'paymentMethodOptions' => $paymentMethods->pluck('name', 'id')->all()
         ]);
     }
@@ -89,6 +98,11 @@ class ShippingMethodController extends Controller{
         $shippingMethod = ShippingMethod::findOrFail($id);
 
         $shippingMethod->fill($request->all());
+
+        if($request->has('data')){
+            $shippingMethod->saveData($request->input('data', []));
+        }
+
         $shippingMethod->save();
 
         $shippingMethod->paymentMethods()->sync($request->input('payment_methods', []));
@@ -97,6 +111,10 @@ class ShippingMethodController extends Controller{
             $shippingMethod->stores()->sync($request->input('stores', []));
         }else{
             $shippingMethod->stores()->sync([]);
+        }
+
+        if($shippingMethod->getProcessor() instanceof ShippingMethodSettingsInterface){
+            $shippingMethod->getProcessor()->processAdditionalSetting($request);
         }
 
         return redirect($request->get('backUrl', route('backend.shipping_method.index')))->with('success', [$shippingMethod->name.' has successfully been updated.']);

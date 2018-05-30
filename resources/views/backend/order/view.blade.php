@@ -452,6 +452,9 @@
                                                                             @if(!in_array($deliveryOrder->status, [\Kommercio\Models\Order\DeliveryOrder\DeliveryOrder::STATUS_CANCELLED]))
                                                                                 <a href="{{ route('backend.sales.order.delivery_order.print', ['id' => $deliveryOrder->id]) }}" class="btn btn-default" target="_blank"><i class="fa fa-print"></i> Print</a>
                                                                             @endif
+                                                                            @if(!in_array($deliveryOrder->status, [\Kommercio\Models\Order\DeliveryOrder\DeliveryOrder::STATUS_CANCELLED]))
+                                                                                <a href="{{ route('backend.sales.order.delivery_order.print', ['id' => $deliveryOrder->id, 'type' => 'packaging_slip']) }}" class="btn btn-default" target="_blank"><i class="fa fa-print"></i> Packaging Slip</a>
+                                                                            @endif
                                                                             @if(Gate::allows('access', ['resend_order_email']) && in_array($deliveryOrder->status, [\Kommercio\Models\Order\DeliveryOrder\DeliveryOrder::STATUS_SHIPPED]))
                                                                                 <a class="btn btn-default modal-ajax" href="{{  route('backend.sales.order.delivery_order.resend_email', ['id' => $deliveryOrder->id, 'process' => \Kommercio\Models\Order\DeliveryOrder\DeliveryOrder::STATUS_SHIPPED, 'backUrl' => Request::fullUrl()])}}" target="_blank"><i class="fa fa-envelope-o"></i> Resend Email</a>
                                                                             @endif

@@ -1004,8 +1004,10 @@ class Order extends Model implements AuthorSignatureInterface
     public function createDeliveryOrder($deliveredLineItems, $options = [])
     {
         $deliveryOrder = new DeliveryOrder($options);
+        $deliveryOrder->status = DeliveryOrder::STATUS_PENDING;
         $deliveryOrder->store()->associate($this->store);
         $deliveryOrder->customer()->associate($this->customer);
+        $deliveryOrder->shippingMethod()->associate($this->getShippingMethod());
         $deliveryOrder->order()->associate($this);
         $deliveryOrder->generateReference();
 

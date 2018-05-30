@@ -15,6 +15,7 @@ use Kommercio\Models\Interfaces\AuthorSignatureInterface;
 use Kommercio\Models\Log;
 use Kommercio\Models\Order\Order;
 use Kommercio\Models\Profile\Profile;
+use Kommercio\Models\ShippingMethod\ShippingMethod;
 use Kommercio\Models\Store;
 use Kommercio\Traits\Model\AuthorSignature;
 use Kommercio\Traits\Model\HasDataColumn;
@@ -28,7 +29,7 @@ class DeliveryOrder extends Model implements AuthorSignatureInterface
     const STATUS_SHIPPED = 'shipped';
     const STATUS_CANCELLED = 'cancelled';
 
-    protected $fillable = ['reference', 'counter', 'total_quantity', 'total_weight', 'status', 'notes'];
+    protected $fillable = ['reference', 'counter', 'total_quantity', 'total_weight', 'status', 'notes', 'shipping_method_id'];
 
     // Relations
     public function order()
@@ -44,6 +45,11 @@ class DeliveryOrder extends Model implements AuthorSignatureInterface
     public function store()
     {
         return $this->belongsTo(Store::class);
+    }
+
+    public function shippingMethod()
+    {
+        return $this->belongsTo(ShippingMethod::class);
     }
 
     public function items()
@@ -181,6 +187,17 @@ class DeliveryOrder extends Model implements AuthorSignatureInterface
         $this->total_quantity = $quantity;
 
         return $this->total_quantity;
+    }
+
+    public function calculateTotalAmount()
+    {
+        $total = 0;
+
+        foreach ($this->lineItems as $lineItem) {
+            $total += $lineItem->calculateTotal();
+        }
+
+        return $total;
     }
 
     public function calculateTotalWeight()

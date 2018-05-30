@@ -1011,22 +1011,37 @@ class OrderController extends Controller{
 
                     if ($request->input('mark_shipped')) {
                         $deliveryOrder->changeStatus(DeliveryOrder::STATUS_SHIPPED, $request->input('send_notification'));
-                    }
 
-                    if($order->isFullyShipped){
-                        OrderHelper::saveOrderComment('Delivery Order #'.$deliveryOrder->reference.' is created. Order is fully shipped.', 'fully_shipped', $order, $user);
-                        OrderHelper::saveOrderComment('Order is fully shipped.', 'fully_shipped', $order, $user, OrderComment::TYPE_EXTERNAL_MEMO, [
-                            'delivery_order_id' => $deliveryOrder->id
-                        ]);
+                        if ($order->isFullyShipped) {
+                            OrderHelper::saveOrderComment('Delivery Order #' . $deliveryOrder->reference . ' is created. Order is fully shipped.', 'fully_shipped', $order, $user);
+                            OrderHelper::saveOrderComment('Order is fully shipped.', 'fully_shipped', $order, $user, OrderComment::TYPE_EXTERNAL_MEMO, [
+                                'delivery_order_id' => $deliveryOrder->id
+                            ]);
 
-                        $order->status = Order::STATUS_SHIPPED;
-                        $message = 'Order has been <span class="label bg-'.OrderHelper::getOrderStatusLabelClass($order->status).' bg-font-'.OrderHelper::getOrderStatusLabelClass($order->status).'">fully shipped.</span>';
-                    }else{
-                        OrderHelper::saveOrderComment('Delivery Order #'.$deliveryOrder->reference.' is created. Order is partially shipped.', 'partially_shipped', $order, $user);
-                        OrderHelper::saveOrderComment('Order is partially shipped.', 'partially_shipped', $order, $user, OrderComment::TYPE_EXTERNAL_MEMO, [
-                            'delivery_order_id' => $deliveryOrder->id
-                        ]);
-                        $message = 'Order has been partially shipped with Delivery Order <span class="label bg-'.OrderHelper::getOrderStatusLabelClass($order->status).' bg-font-'.OrderHelper::getOrderStatusLabelClass($order->status).'">#'.$deliveryOrder->reference.'.</span>';
+                            $order->status = Order::STATUS_SHIPPED;
+                            $message = 'Order has been <span class="label bg-' . OrderHelper::getOrderStatusLabelClass($order->status) . ' bg-font-' . OrderHelper::getOrderStatusLabelClass($order->status) . '">fully shipped.</span>';
+                        } else {
+                            OrderHelper::saveOrderComment('Delivery Order #' . $deliveryOrder->reference . ' is created. Order is partially shipped.', 'partially_shipped', $order, $user);
+                            OrderHelper::saveOrderComment('Order is partially shipped.', 'partially_shipped', $order, $user, OrderComment::TYPE_EXTERNAL_MEMO, [
+                                'delivery_order_id' => $deliveryOrder->id
+                            ]);
+                            $message = 'Order has been partially shipped with Delivery Order <span class="label bg-' . OrderHelper::getOrderStatusLabelClass($order->status) . ' bg-font-' . OrderHelper::getOrderStatusLabelClass($order->status) . '">#' . $deliveryOrder->reference . '.</span>';
+                        }
+                    } else {
+                        if ($order->isFullyShipped) {
+                            OrderHelper::saveOrderComment('Delivery Order #' . $deliveryOrder->reference . ' is created. Order will be fully shipped.', 'future_fully_shipped', $order, $user);
+                            OrderHelper::saveOrderComment('Order will be fully shipped.', 'future_fully_shipped', $order, $user, OrderComment::TYPE_EXTERNAL_MEMO, [
+                                'delivery_order_id' => $deliveryOrder->id
+                            ]);
+
+                            $message = 'Order will be <span class="label bg-' . OrderHelper::getOrderStatusLabelClass($order->status) . ' bg-font-' . OrderHelper::getOrderStatusLabelClass($order->status) . '">fully shipped.</span>';
+                        } else {
+                            OrderHelper::saveOrderComment('Delivery Order #' . $deliveryOrder->reference . ' is created. Order will be partially shipped.', 'future_partially_shipped', $order, $user);
+                            OrderHelper::saveOrderComment('Order will be partially shipped.', 'future_partially_shipped', $order, $user, OrderComment::TYPE_EXTERNAL_MEMO, [
+                                'delivery_order_id' => $deliveryOrder->id
+                            ]);
+                            $message = 'Order will be partially shipped with Delivery Order <span class="label bg-' . OrderHelper::getOrderStatusLabelClass($order->status) . ' bg-font-' . OrderHelper::getOrderStatusLabelClass($order->status) . '">#' . $deliveryOrder->reference . '.</span>';
+                        }
                     }
                     break;
                 case 'completed':

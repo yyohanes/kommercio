@@ -103,6 +103,11 @@ class EventServiceProvider extends ServiceProvider
             $this->listen['Kommercio\Events\CartPriceRuleEvent'][] = 'Project\Project\Listeners\CartPriceRuleListener';
         }
 
+        //Add package Delivery Order Event Listener
+        if (file_exists(base_path('packages/project/src/Project/Listeners/DeliveryOrderListener.php'))) {
+            $this->listen['Kommercio\Events\DeliveryOrderEvent'][] = 'Project\Project\Listeners\DeliveryOrderListener';
+        }
+
         //Reverse listeners so Project goes first
         foreach($this->listen as $eventName => $listener){
             $this->listen[$eventName] = array_reverse($this->listen[$eventName]);
