@@ -109,6 +109,13 @@ class Profile extends Model {
             unset($details['full_name']);
         }
 
+        // Remove custom city if city_id is given
+        if (isset($details['custom_city'])) {
+            if (!empty($details['city_id'])) {
+                $details['custom_city'] = '';
+            }
+        }
+
         $profileFieldsFromAttributes = array_keys($details);
 
         $flippedProfiles = array_flip($profileFieldsFromAttributes);

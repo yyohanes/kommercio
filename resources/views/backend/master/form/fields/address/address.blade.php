@@ -70,6 +70,21 @@
                     'label' => FALSE
                 ])
             </div>
+
+            <div class="col-md-6">
+                @include('backend.master.form.fields.text', [
+                    'name' => $name.'[custom_city]',
+                    'label' => 'City',
+                    'key' => $name.'.custom_city',
+                    'attr' => [
+                        'class' => 'form-control custom-city-text',
+                        'id' => $name.'[custom_city]',
+                        'placeholder' => 'City'
+                    ],
+                    'label' => FALSE
+                ])
+            </div>
+
             <div class="col-md-6">
                 @include('backend.master.form.fields.address.district', [
                     'name' => $name.'[district_id]',

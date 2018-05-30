@@ -62,7 +62,7 @@ class AddressHelper
         if ($country_id) {
             $cacheKey = 'address_states_country_' . $country_id . '_states';
         }
-        
+
         if ($this->_alwaysRefresh) {
             Cache::forget($cacheKey);
             unset($this->_states);
@@ -109,11 +109,11 @@ class AddressHelper
     {
         $state_id = intval($state_id);
         $cacheKey = 'address_cities_all';
-        
+
         if ($state_id) {
             $cacheKey = 'address_cities_state_' . $state_id . '_cities';
         }
-        
+
         if ($this->_alwaysRefresh) {
             Cache::forget($cacheKey);
             unset($this->_cities);
@@ -160,11 +160,11 @@ class AddressHelper
     {
         $city_id = intval($city_id);
         $cacheKey = 'address_districts_all';
-        
+
         if ($city_id) {
             $cacheKey = 'address_districts_city_' . $city_id . '_districts';
         }
-        
+
         if ($this->_alwaysRefresh) {
             Cache::forget($cacheKey);
             unset($this->_districts);
@@ -211,11 +211,11 @@ class AddressHelper
     {
         $district_id = intval($district_id);
         $cacheKey = 'address_areas_all';
-        
+
         if (!empty($district_id)) {
             $cacheKey = 'address_areas_district_' . $district_id . '_areas';
         }
-        
+
         if ($this->_alwaysRefresh) {
             Cache::forget($cacheKey);
             unset($this->_areas);
@@ -312,6 +312,8 @@ class AddressHelper
             if($city){
                 $addressElements['city'] = $city->name;
             }
+        } elseif (!empty($data['custom_city'])) {
+            $addressElements['city'] = $data['custom_city'];
         }
 
         if(!empty($data['state_id'])){
@@ -349,7 +351,7 @@ class AddressHelper
         $locations = [];
         $oneLiners = ['state', 'city', 'district', 'area'];
         foreach ($oneLiners as $oneLiner) {
-            if(isset($addressElements[$oneLiner])){
+            if(!empty($addressElements[$oneLiner])){
                 $locations[] = $addressElements[$oneLiner];
                 unset($addressElements[$oneLiner]);
             }
