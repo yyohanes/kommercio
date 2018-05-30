@@ -59,8 +59,6 @@ class DHLJob implements ShouldQueue
 
         $this->addressConfig = DHL::getConfig($address);
 
-        throw new \Exception('whatever');
-
         if (!$this->addressConfig) {
             throw new \Exception('No DHL configuration for ' . $address->name . ' [' . $address->addressType .']');
         };
@@ -126,7 +124,9 @@ class DHLJob implements ShouldQueue
 
         if ($warehouseCity) {
             $warehouseCityName = $warehouseCity->name;
-        } else {
+        }
+
+        if (empty($warehouseCityName)) {
             $warehouseDhlConfig = DHL::getConfig($warehouseCountry);
             $warehouseCityName = $warehouseDhlConfig['fallbackCityName'];
         }
@@ -164,7 +164,11 @@ class DHLJob implements ShouldQueue
 
         if ($shippingInformation->city) {
             $cityName = $shippingInformation->city->name;
-        } else {
+        } else if ($shippingInformation->custom_city) {
+            $cityName = $shippingInformation->custom_city;
+        }
+
+        if (empty($cityName)) {
             $cityName = $this->addressConfig['fallbackCityName'];
         }
 
