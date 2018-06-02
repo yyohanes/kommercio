@@ -59,8 +59,6 @@ class DHLJob implements ShouldQueue
 
         $this->addressConfig = DHL::getConfig($address);
 
-        throw new \Exception('whatever');
-
         if (!$this->addressConfig) {
             throw new \Exception('No DHL configuration for ' . $address->name . ' [' . $address->addressType .']');
         };
@@ -102,8 +100,8 @@ class DHLJob implements ShouldQueue
             $client = new WebserviceClient($config['env']);
             $xml = $client->call($dhlRequest);
 
+            $this->logResponse($config['request_reference'], $xml);
             $dhlResponse = $this->getDHLResponse($xml);
-            $this->logResponse($config['request_reference'], $dhlResponse->toXML());
 
             $labelFileName = $this->getAndStoreLabel($requestReference, $dhlResponse);
 
@@ -126,7 +124,11 @@ class DHLJob implements ShouldQueue
 
         if ($warehouseCity) {
             $warehouseCityName = $warehouseCity->name;
-        } else {
+        } else if ($warehouse->custom_city) {
+            $warehouseCityName = $warehouse->custom_city;
+        }
+
+        if (empty($warehouseCityName)) {
             $warehouseDhlConfig = DHL::getConfig($warehouseCountry);
             $warehouseCityName = $warehouseDhlConfig['fallbackCityName'];
         }
@@ -152,7 +154,7 @@ class DHLJob implements ShouldQueue
         $request->Billing->ShipperAccountNumber = $config['shipper_account_number'];
         $request->Billing->ShippingPaymentType = 'S';
         // $request->Billing->BillingAccountNumber = $config['billing_account_number'];
-        // $request->Billing->DutyPaymentType = 'S';
+        $request->Billing->DutyPaymentType = $this->addressConfig['dutyPaymentType'];
         // $request->Billing->DutyAccountNumber = $config['duty_account_number'];
 
         $request->Consignee->CompanyName = $shippingInformation->full_name;
@@ -164,7 +166,11 @@ class DHLJob implements ShouldQueue
 
         if ($shippingInformation->city) {
             $cityName = $shippingInformation->city->name;
-        } else {
+        } else if ($shippingInformation->custom_city) {
+            $cityName = $shippingInformation->custom_city;
+        }
+
+        if (empty($cityName)) {
             $cityName = $this->addressConfig['fallbackCityName'];
         }
 
@@ -216,10 +222,13 @@ class DHLJob implements ShouldQueue
             $request->Shipper->Contact->Email = $config['contact_email'];
         }
 
-        if ($orderTotal >= $this->addressConfig['dutiableMinimum']) {
-            $request->ShipmentDetails->IsDutiable = 'Y';
-            $request->Dutiable->DeclaredValue = number_format($orderTotal, 2);
-            $request->Dutiable->DeclaredCurrency = strtoupper($this->order->currency);
+        $dutiable = $orderTotal >= $this->addressConfig['dutiableMinimum'];
+
+        $request->ShipmentDetails->IsDutiable = $dutiable ? 'Y' : 'N';
+        $request->Dutiable->DeclaredValue = number_format($orderTotal, 2);
+        $request->Dutiable->DeclaredCurrency = strtoupper($this->order->currency);
+
+        if ($dutiable) {
             $request->Dutiable->TermsOfTrade = 'DAP';
         }
 

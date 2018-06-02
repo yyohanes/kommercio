@@ -38,20 +38,26 @@
         </td>
         @endif
     <td>
-        {{ $doItem->quantity+0 }}
+        @if ($doItem)
+            {{ $doItem->quantity+0 }}
+        @else
+            {{ $lineItem->quantity+0 }}
+        @endif
     </td>
 </tr>
 
-@foreach($lineItem->children as $childLineItem)
-    @if($childLineItem->productComposite)
-    <tr class="child-line-item-header">
-        <td colspan="100">
-            {{ $childLineItem->productComposite->name }}
-        </td>
-    </tr>
+@foreach($lineItem->product->composites as $productComposite)
+    <?php $children = $lineItem->getChildrenByComposite($productComposite); ?>
 
-    @foreach($lineItem->getChildrenByComposite($childLineItem->productComposite) as $child)
-        @include('emails.delivery_order.line_items.product', ['composite' => $childLineItem->productComposite, 'lineItem' => $child, 'child' => true])
-    @endforeach
+    @if($children->count() > 0)
+        <tr class="child-line-item child-line-item-header">
+            <td colspan="100">
+                {{ $productComposite->name }}
+            </td>
+        </tr>
+
+        @foreach($children as $child)
+            @include('emails.delivery_order.line_items.product', ['composite' => $childLineItem->productComposite, 'lineItem' => $child, 'child' => true, 'doItem' => null])
+        @endforeach
     @endif
 @endforeach

@@ -63,6 +63,7 @@ class Store extends Model implements CacheableInterface
             'district_id' => $this->district_id,
             'area_id' => $this->area_id,
             'postal_code' => $this->postal_code,
+            'custom_city' => $this->custom_city,
         ];
     }
 

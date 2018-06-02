@@ -45,15 +45,18 @@ class DHL extends ShippingMethodAbstract implements ShippingMethodSettingsInterf
         $config = static::getConfig($address);
         $currencyOptions = CurrencyHelper::getCurrencyOptions();
         $regionCodeOptions = array_combine(static::getRegionCodes(), static::getRegionCodes());
+        $dutyPaymentTypeOptions = array_combine(static::getDutyPaymentTypes(), static::getDutyPaymentTypes());
 
         return view('backend.shipping_method.dhl.setting_form', [
             'regionCode' => isset($config['regionCode']) ? $config['regionCode'] : null,
+            'dutyPaymentType' => isset($config['dutyPaymentType']) ? $config['dutyPaymentType'] : null,
             'fallbackCityName' => isset($config['fallbackCityName']) ? $config['fallbackCityName'] : null,
             'dutiableMinimum' => isset($config['dutiableMinimum']) ? $config['dutiableMinimum'] : null,
             'dutiableCurrency' => isset($config['dutiableCurrency']) ? $config['dutiableCurrency'] : CurrencyHelper::getCurrentCurrency()['iso'],
             'currencyOptions' => $currencyOptions,
             'regionCodeOptions' => $regionCodeOptions,
             'shippingMethod' => $this->shippingMethod,
+            'dutyPaymentTypeOptions' => $dutyPaymentTypeOptions,
         ])->render();
     }
 
@@ -72,6 +75,10 @@ class DHL extends ShippingMethodAbstract implements ShippingMethodSettingsInterf
                 'required',
                 'in:' . implode(',', array_values(static::getRegionCodes())),
             ],
+            'dutyPaymentType' => [
+                'required',
+                'in:' . implode(',', array_values(static::getDutyPaymentTypes())),
+            ],
             'dutiableCurrency' => 'in:' . implode(',', array_keys($currencyOptions)),
         ];
 
@@ -88,6 +95,7 @@ class DHL extends ShippingMethodAbstract implements ShippingMethodSettingsInterf
 
             $config = [
                 'regionCode' => $request->input('regionCode'),
+                'dutyPaymentType' => $request->input('dutyPaymentType'),
                 'fallbackCityName' => $request->input('fallbackCityName'),
                 'dutiableMinimum' => $request->input('dutiableMinimum'),
                 'dutiableCurrency' => $request->input('dutiableCurrency'),
@@ -128,6 +136,15 @@ class DHL extends ShippingMethodAbstract implements ShippingMethodSettingsInterf
             'AP',
             'AM',
             'EU',
+        ];
+    }
+
+    public static function getDutyPaymentTypes()
+    {
+        return [
+            'S',
+            'R',
+            'T',
         ];
     }
 

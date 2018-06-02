@@ -24,6 +24,19 @@
     'defaultValue' => old('fallbackCityName', $fallbackCityName),
 ])
 
+@include('backend.master.form.fields.select', [
+    'name' => 'dutyPaymentType',
+    'label' => 'Duty Payment Type',
+    'key' => 'dutyPaymentType',
+    'attr' => [
+        'class' => 'form-control',
+        'id' => 'dutyPaymentType',
+    ],
+    'options' => $dutyPaymentTypeOptions,
+    'valueColumnClass' => 'col-md-6',
+    'defaultOptions' => old('regionCode', $dutyPaymentType),
+])
+
 @include('backend.master.form.fields.number', [
     'name' => 'dutiableMinimum',
     'label' => 'Dutiable Minimum',
