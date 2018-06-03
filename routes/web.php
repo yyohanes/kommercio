@@ -2356,6 +2356,12 @@ Route::group(['middleware' => ['web']], function () {
                     'uses' => 'ReportController@productionSchedule',
                     'permissions' => ['view_production_schedule']
                 ]);
+
+                Route::get('shipment', [
+                    'as' => 'backend.report.shipment',
+                    'uses' => 'ShipmentController@index',
+                    'permissions' => ['view_delivery_report']
+                ]);
             });
 
             //Users

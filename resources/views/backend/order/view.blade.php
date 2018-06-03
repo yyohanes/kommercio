@@ -398,10 +398,12 @@
                                                             <thead>
                                                             <tr>
                                                                 <th> </th>
-                                                                <th> Delivery Order No. </th>
-                                                                <th> Total Quantity </th>
+                                                                <th> No. </th>
+                                                                <th> Total Qty </th>
                                                                 <th> Status </th>
                                                                 <th> Date </th>
+                                                                <th> Tracking No </th>
+                                                                <th> Shipper </th>
                                                                 <th> Issued by </th>
                                                                 <th></th>
                                                             </tr>
@@ -445,6 +447,20 @@
                                                                         </div>
                                                                     </td>
                                                                     <td>{{ $deliveryOrder->created_at->format('d M Y H:i') }}</td>
+                                                                    <td>
+                                                                        @if(!empty($deliveryOrder->getData('tracking_number', null)))
+                                                                            {{ $deliveryOrder->getData('tracking_number') }}
+                                                                        @else
+                                                                            -
+                                                                        @endif
+                                                                    </td>
+                                                                    <td>
+                                                                        @if(!empty($deliveryOrder->getData('delivered_by', null)))
+                                                                            {{ $deliveryOrder->getData('delivered_by') }}
+                                                                        @else
+                                                                            -
+                                                                        @endif
+                                                                    </td>
                                                                     <td>{{ $deliveryOrder->createdBy?$deliveryOrder->createdBy->email:null }}</td>
                                                                     <td>
                                                                         <div class="btn-group btn-group-xs">
@@ -452,7 +468,7 @@
                                                                             @if(!in_array($deliveryOrder->status, [\Kommercio\Models\Order\DeliveryOrder\DeliveryOrder::STATUS_CANCELLED]))
                                                                                 <a href="{{ route('backend.sales.order.delivery_order.print', ['id' => $deliveryOrder->id]) }}" class="btn btn-default" target="_blank"><i class="fa fa-print"></i> Print</a>
                                                                             @endif
-                                                                            @if(!in_array($deliveryOrder->status, [\Kommercio\Models\Order\DeliveryOrder\DeliveryOrder::STATUS_CANCELLED]))
+                                                                            @if($deliveryOrder->isPrintable)
                                                                                 <a href="{{ route('backend.sales.order.delivery_order.print', ['id' => $deliveryOrder->id, 'type' => 'packaging_slip']) }}" class="btn btn-default" target="_blank"><i class="fa fa-print"></i> Packaging Slip</a>
                                                                             @endif
                                                                             @if(Gate::allows('access', ['resend_order_email']) && in_array($deliveryOrder->status, [\Kommercio\Models\Order\DeliveryOrder\DeliveryOrder::STATUS_SHIPPED]))

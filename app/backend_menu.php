@@ -184,6 +184,13 @@ $menus['report']['children']['delivery'] = [
     'active_path' => 'report/delivery',
 ];
 
+$menus['report']['children']['shipment'] = [
+    'name' => 'Shipment',
+    'route' => 'backend.report.shipment',
+    'permissions' => 'view_delivery_report',
+    'active_path' => 'report/shipment',
+];
+
 if(config('project.enable_delivery_date', false)){
     $menus['report']['children']['production_schedule'] = [
         'name' => 'Production Schedule',

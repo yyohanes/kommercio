@@ -227,10 +227,7 @@ class DHLJob implements ShouldQueue
         $request->ShipmentDetails->IsDutiable = $dutiable ? 'Y' : 'N';
         $request->Dutiable->DeclaredValue = number_format($orderTotal, 2);
         $request->Dutiable->DeclaredCurrency = strtoupper($this->order->currency);
-
-        if ($dutiable) {
-            $request->Dutiable->TermsOfTrade = 'DAP';
-        }
+        $request->Dutiable->TermsOfTrade = 'DDP';
 
         $request->EProcShip = 'N';
         $request->LabelImageFormat = 'PDF';
