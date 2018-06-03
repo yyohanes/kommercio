@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Event;
 use Kommercio\Events\CouponEvent;
 use Kommercio\Events\OrderEvent;
 use Kommercio\Events\OrderUpdate;
+use Kommercio\Facades\AddressHelper;
 use Kommercio\Facades\CurrencyHelper;
 use Kommercio\Facades\OrderHelper;
 use Kommercio\Facades\PriceFormatter;
@@ -170,19 +171,36 @@ class OrderController extends Controller {
             );
         }
 
-        $profileDetails = $customerProfile->getDetails();
-        $profileDetails['phone_number'] = $request->input('shippingProfile.phone_number', null);
-        $profileDetails['address_1'] = $request->input('shippingProfile.address_1', null);
-        $profileDetails['address_2'] = $request->input('shippingProfile.address_2', null);
-        $profileDetails['postal_code'] = $request->input('shippingProfile.postal_code', null);
-        $profileDetails['country_id'] = $request->input('shippingProfile.country_id', null);
-        $profileDetails['state_id'] = $request->input('shippingProfile.state_id', null);
-        $profileDetails['city_id'] = $request->input('shippingProfile.city_id', null);
-        $profileDetails['custom_city'] = $request->input('shippingProfile.custom_city', null);
-        $profileDetails['district_id'] = $request->input('shippingProfile.district_id', null);
-        $profileDetails['area_id'] = $request->input('shippingProfile.area_id', null);
+        // Currently, our priority is correct delivery information.
+        $shippingProfileDetails = $customerProfile->getDetails();
+        $shippingProfileDetails['full_name'] = $request->input('shippingProfile.full_name', null);
+        $shippingProfileDetails['email'] = $request->input('shippingProfile.email', null);
+        $shippingProfileDetails['phone_number'] = $request->input('shippingProfile.phone_number', null);
+        $shippingProfileDetails['address_1'] = $request->input('shippingProfile.address_1', null);
+        $shippingProfileDetails['address_2'] = $request->input('shippingProfile.address_2', null);
+        $shippingProfileDetails['postal_code'] = $request->input('shippingProfile.postal_code', null);
+        $shippingProfileDetails['country_id'] = $request->input('shippingProfile.country_id', null);
+        $shippingProfileDetails['state_id'] = $request->input('shippingProfile.state_id', null);
+        $shippingProfileDetails['city_id'] = $request->input('shippingProfile.city_id', null);
+        $shippingProfileDetails['custom_city'] = $request->input('shippingProfile.custom_city', null);
+        $shippingProfileDetails['district_id'] = $request->input('shippingProfile.district_id', null);
+        $shippingProfileDetails['area_id'] = $request->input('shippingProfile.area_id', null);
 
-        $order->saveProfile('shipping', $profileDetails);
+        // Only billing name & phone number is overridable. If address infos are all empty, override with shipping.
+        $billingProfileDetails = $this->isProfileOverrideable($customerProfile->getDetails())
+            ? $shippingProfileDetails
+            : $customerProfile->getDetails();
+
+        $billingProfileDetails = array_merge(
+            $billingProfileDetails,
+            [
+                'full_name' => $request->input('billingProfile.full_name', null),
+                'phone_number' => $request->input('billingProfile.phone_number', null),
+            ]
+        );
+
+        $order->saveProfile('billing', $billingProfileDetails);
+        $order->saveProfile('shipping', $shippingProfileDetails);
         $order->updateShippingMethod($request->input('shipping_option'));
 
         // Final process payment
@@ -384,11 +402,6 @@ class OrderController extends Controller {
 
         $this->placeOrder($request, $order);
 
-        if(!ProjectHelper::getConfig('require_billing_information')){
-            // Copy Shipping info to Billing
-            $order->saveProfile('billing', $order->shippingInformation->getDetails());
-        }
-
         $profileData = $order->billingInformation->getDetails();
         $customer = Customer::saveCustomer(
             $order->customer,
@@ -430,5 +443,20 @@ class OrderController extends Controller {
             'order' => $order,
             'request' => $request
         ]);
+    }
+
+    /**
+     * @param array $profileData
+     * @return bool
+     */
+    protected function isProfileOverrideable(array $profileData) {
+        $addressFields = AddressHelper::getAddressFields();
+
+        $bools = array_map(function($field) use ($profileData) {
+            return empty($profileData[$field]);
+        }, $addressFields);
+        \Log::info(count(array_unique($bools)) === 1);
+
+        return count(array_unique($bools)) === 1;
     }
 }

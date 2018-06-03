@@ -258,6 +258,21 @@ class AddressHelper
         return $options->pluck('name', 'id')->all();
     }
 
+    public function getAddressFields()
+    {
+        return [
+            'address_1',
+            'address_2',
+            'area_id',
+            'district_id',
+            'city_id',
+            'custom_city',
+            'state_id',
+            'country_id',
+            'postal_code',
+        ];
+    }
+
     public function getAddressFormat()
     {
         return [
