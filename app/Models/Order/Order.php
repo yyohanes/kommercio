@@ -1019,11 +1019,24 @@ class Order extends Model implements AuthorSignatureInterface
         $deliveryOrder->shippingMethod()->associate($this->getShippingMethod());
         $deliveryOrder->order()->associate($this);
         $deliveryOrder->generateReference();
+        $deliveryOrderData = [
+            'shipping_method' => $this->getSelectedShippingMethod(),
+        ];
 
-        if(!empty($options['data'])){
-            $deliveryOrder->saveData($options['data']);
+        if (!empty($options['delivery_date'])) {
+            $deliveryOrder->delivery_date = $options['delivery_date'];
+        }
+        else if ($this->delivery_date) {
+            $deliveryOrder->delivery_date = $this->delivery_date;
         }
 
+        if(!empty($options['data'])){
+            $deliveryOrderData = array_merge(
+                $deliveryOrderData,
+                $options['data']
+            );
+        }
+        $deliveryOrder->saveData($deliveryOrderData);
         $deliveryOrder->save();
 
         if(!empty($options['shippingProfile'])){

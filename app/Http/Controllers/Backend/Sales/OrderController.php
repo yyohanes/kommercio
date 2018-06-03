@@ -1101,6 +1101,7 @@ class OrderController extends Controller{
     {
         $processedOrders = [];
         $unprocessedOrders = [];
+        $failedOrders = [];
         $message = '';
         $selectedOrderCount = count($request->input('order_id', []));
 
@@ -1134,12 +1135,18 @@ class OrderController extends Controller{
                     $processedCount = 0;
 
                     foreach($request->input('order_id', []) as $order_id){
-                        if($this->process($request, $process, $order_id, TRUE)){
+                        if ($this->process($request, $process, $order_id, TRUE)) {
                             $processedCount += 1;
+                        } else {
+                            $failedOrders[] = Order::findOrFail($order_id);
                         }
                     }
 
-                    $message = $processedCount.' '.str_plural('Order', $processedCount).' successfully set to <span class="label bg-'.OrderHelper::getOrderStatusLabelClass(Order::STATUS_SHIPPED).' bg-font-'.OrderHelper::getOrderStatusLabelClass(Order::STATUS_SHIPPED).'">'.Order::getStatusOptions(Order::STATUS_SHIPPED).'.</span>';
+                    if($request->input('mark_shipped')){
+                        $message = $processedCount.' '.str_plural('Order', $processedCount).' successfully set to <span class="label bg-'.OrderHelper::getOrderStatusLabelClass(Order::STATUS_SHIPPED).' bg-font-'.OrderHelper::getOrderStatusLabelClass(Order::STATUS_SHIPPED).'">'.Order::getStatusOptions(Order::STATUS_SHIPPED).'.</span>';
+                    } else {
+                        $message = $processedCount.' '.str_plural('Order', $processedCount).' will be <span class="label bg-'.OrderHelper::getOrderStatusLabelClass(Order::STATUS_SHIPPED).' bg-font-'.OrderHelper::getOrderStatusLabelClass(Order::STATUS_SHIPPED).'">'.Order::getStatusOptions(Order::STATUS_SHIPPED).'.</span>';
+                    }
                 }else{
                     foreach($request->input('id') as $order_id){
                         $order = Order::findOrFail($order_id);
@@ -1207,7 +1214,17 @@ class OrderController extends Controller{
         }
 
         if($request->input('confirm') == '1'){
-            return redirect($request->input('backUrl', route('backend.sales.order.index')))->with('success', [$message]);
+            $response = redirect($request->input('backUrl', route('backend.sales.order.index')))
+                ->with('success', [$message]);
+
+            if (count($failedOrders) > 0) {
+                $errors = array_map(function($failedOrder) {
+                    return 'Order #' . $failedOrder->reference . ' can\'t be processed.';
+                }, $failedOrders);
+                $response->with('error', $errors);
+            }
+
+            return $response;
         }else{
             if(count($processedOrders) > 0){
                 return view('backend.order.process.bulk.'.$processForm, [

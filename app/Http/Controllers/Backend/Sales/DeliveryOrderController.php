@@ -151,7 +151,15 @@ class DeliveryOrderController extends Controller{
         if ($shippingMethod->getProcessor()->useCustomPackagingSlip($deliveryOrder)) {
             $customPackagingSlip = $shippingMethod->getProcessor()->customPackagingSlip($deliveryOrder);
 
-            if ($customPackagingSlip) return $customPackagingSlip;
+            if ($customPackagingSlip) {
+                $fileName = $deliveryOrder->order->reference . '.pdf';
+
+                return response($customPackagingSlip)
+                    ->header('Content-Type', 'application/pdf')
+                    ->header('Content-Description', 'DHL label ' . $deliveryOrder->order->reference)
+                    ->header('Content-Disposition', 'attachment; filename=' . $fileName)
+                    ->header('Filename', $fileName);
+            };
         }
 
         return view(ProjectHelper::getViewTemplate('print.order.delivery_order'), [
