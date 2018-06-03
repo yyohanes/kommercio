@@ -358,7 +358,7 @@ class OrderController extends Controller{
 
             $rowMeat = array_merge($rowMeat, [
                 $order->billing_full_name.'<div class="expanded-detail">'.$order->billingInformation->email.'<br/>'.$order->billingInformation->phone_number.'<br/>'.AddressHelper::printAddress($order->billingInformation->getDetails()).'</div>',
-                $order->shipping_full_name.'<div class="expanded-detail">'.$order->shippingInformation->email.'<br/>'.$order->shippingInformation->phone_number.'<br/>'.AddressHelper::printAddress($order->billingInformation->getDetails()).'</div>',
+                $order->shipping_full_name.'<div class="expanded-detail">'.$order->shippingInformation->email.'<br/>'.$order->shippingInformation->phone_number.'<br/>'.AddressHelper::printAddress($order->shippingInformation->getDetails()).'</div>',
             ]);
 
             foreach($stickyProducts as $stickyProduct){
@@ -704,8 +704,8 @@ class OrderController extends Controller{
 
         if(!$oldValues){
             $oldValues['existing_customer'] = $order->customer?$order->customer->getProfile()->email:null;
-            $oldValues['profile'] = $order->billingProfile?$order->billingProfile->getDetails():[];
-            $oldValues['shipping_profile'] = $order->shippingProfile?$order->shippingProfile->getDetails():[];
+            $oldValues['profile'] = $order->billingInformation?$order->billingInformation->getDetails():[];
+            $oldValues['shipping_profile'] = $order->shippingInformation?$order->shippingInformation->getDetails():[];
             $oldValues['payment_method'] = $order->payment_method_id;
             $oldValues['store_id'] = $order->store_id;
             $oldValues['user_id'] = $order->customer && $order->customer->user?$order->customer->user->id:null;
