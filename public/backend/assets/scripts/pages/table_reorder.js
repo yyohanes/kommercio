@@ -76,10 +76,15 @@ var DatasetReorder = function () {
             var $table = $(obj);
             var $tableWrapper = $(obj).parents('.dataset-wrapper');
             var $paging = typeof $table.data('dataset-paging') !== 'undefined'?$table.data('dataset-paging'):true;
-            var $dataTable = $table.DataTable({
+            var options = {
                 ordering: false,
                 paging: $paging
-            });
+            };
+            var additionalOptions = $(obj).data('dataset-options');
+            if (!additionalOptions) {
+                additionalOptions = {};
+            }
+            var $dataTable = $table.DataTable($.extend({}, options, additionalOptions));
 
             if($table.find('.group-checkable').length > 0){
                 $table.find('.group-checkable').change(function () {
