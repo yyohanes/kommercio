@@ -12,6 +12,7 @@ use Kommercio\Events\OrderEvent;
 use Kommercio\Events\OrderUpdate;
 use Kommercio\Facades\AddressHelper;
 use Kommercio\Facades\CurrencyHelper;
+use Kommercio\Facades\NewsletterSubscriptionHelper;
 use Kommercio\Facades\OrderHelper;
 use Kommercio\Facades\PriceFormatter;
 use Kommercio\Facades\ProjectHelper;
@@ -209,6 +210,18 @@ class OrderController extends Controller {
             $paymentMethod,
             $request
         );
+
+        if ($request->input('_subscribe_newsletter', false) && $request->filled('billingProfile.email')) {
+            try {
+                NewsletterSubscriptionHelper::subscribe(
+                    'default',
+                    $request->input('billingProfile.email'),
+                    $request->input('billingProfile.full_name', null)
+                );
+            } catch (\Throwable $e) {
+                \Log::error($e);
+            }
+        }
 
         if (is_array($paymentResult)) {
             return new JsonResponse(
