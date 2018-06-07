@@ -48,6 +48,7 @@ class DHL extends ShippingMethodAbstract implements ShippingMethodSettingsInterf
         $dutyPaymentTypeOptions = array_combine(static::getDutyPaymentTypes(), static::getDutyPaymentTypes());
 
         return view('backend.shipping_method.dhl.setting_form', [
+            'dhlName' => isset($config['dhlName']) ? $config['dhlName'] : null,
             'regionCode' => isset($config['regionCode']) ? $config['regionCode'] : null,
             'dutyPaymentType' => isset($config['dutyPaymentType']) ? $config['dutyPaymentType'] : null,
             'fallbackCityName' => isset($config['fallbackCityName']) ? $config['fallbackCityName'] : null,
@@ -67,6 +68,10 @@ class DHL extends ShippingMethodAbstract implements ShippingMethodSettingsInterf
         $currencyOptions = CurrencyHelper::getCurrencyOptions();
 
         $rules = [
+            'dhlName' => [
+                'nullable',
+                'string',
+            ],
             'dutiableMinimum' => [
                 'nullable',
                 'min:0',
@@ -94,6 +99,7 @@ class DHL extends ShippingMethodAbstract implements ShippingMethodSettingsInterf
                 ->where('address_id', $id);
 
             $config = [
+                'dhlName' => $request->input('dhlName'),
                 'regionCode' => $request->input('regionCode'),
                 'dutyPaymentType' => $request->input('dutyPaymentType'),
                 'fallbackCityName' => $request->input('fallbackCityName'),
