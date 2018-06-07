@@ -155,6 +155,8 @@ class DHLJob implements ShouldQueue
         // $request->RequestedPickupTime = 'Y';
         // $request->NewShipper = 'Y';
         $request->LanguageCode = 'en';
+        $request->RequestArchiveDoc = 'Y';
+        $request->NumberOfArchiveDoc = '2';
         $request->PiecesEnabled = 'Y';
         $request->Billing->ShipperAccountNumber = $config['shipper_account_number'];
         $request->Billing->ShippingPaymentType = 'S';
