@@ -15,7 +15,7 @@
  */
 
 /**
- * File:        Request.php
+ * File:        ServiceHeader.php
  * Project:     DHL API
  *
  * @author      Al-Fallouji Bashar
@@ -26,9 +26,9 @@ namespace DHL\Datatype\GB;
 use DHL\Datatype\Base;
 
 /**
- * Request Request model for DHL API
+ * MetaData Request model for DHL API
  */
-class Request extends Base
+class MetaData extends Base
 {
     /**
      * Is this object a subobject
@@ -41,15 +41,19 @@ class Request extends Base
      * @var array
      */
     protected $_params = array(
-        'ServiceHeader' => array(
-            'type' => 'ServiceHeader',
-            'required' => false,
-            'subobject' => true,
-        ),
-        'MetaData' => array(
-            'type' => 'MetaData',
+        'SoftwareName' => array(
+            'type' => 'SoftwareName',
             'required' => true,
-            'subobject' => true,
+            'subobject' => false,
+            'comment' => 'Identifies the software name.',
+            'maxLength' => '30',
+        ),
+        'SoftwareVersion' => array(
+            'type' => 'SoftwareVersion',
+            'required' => true,
+            'subobject' => false,
+            'comment' => 'Identifies the software name.',
+            'maxLength' => '10',
         ),
     );
 }

@@ -2,7 +2,7 @@
 
 namespace Kommercio\Jobs;
 
-use DHL\Datatype\GB\Label;
+use DHL\Datatype\GB\MetaData;
 use Illuminate\Bus\Queueable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
@@ -15,6 +15,7 @@ use DHL\Entity\GB\ShipmentResponse;
 use DHL\Entity\GB\ShipmentRequest;
 use DHL\Client\Web as WebserviceClient;
 use DHL\Datatype\GB\Piece;
+use DHL\Datatype\GB\Label;
 use Kommercio\Events\DeliveryOrderEvent;
 use Kommercio\Models\Address\City;
 use Kommercio\Models\Address\Country;
@@ -153,6 +154,11 @@ class DHLJob implements ShouldQueue
         $request->MessageTime = Carbon::now()->toW3cString();
         $request->MessageReference = $config['request_reference'];
         $request->RegionCode = $this->addressConfig['regionCode'];
+
+        // MetaData
+        $request->SoftwareName = 'Kommercio';
+        $request->SoftwareVersion = '1.1';
+
         // $request->RequestedPickupTime = 'Y';
         // $request->NewShipper = 'Y';
         $request->LanguageCode = 'en';
@@ -246,8 +252,8 @@ class DHLJob implements ShouldQueue
         $request->Label = new Label();
         $request->Label->LabelTemplate = '8X4_PDF';
 
-        $request->RequestArchiveDoc = 'Y';
-        $request->NumberOfArchiveDoc = 3;
+        // $request->RequestArchiveDoc = 'Y';
+        // $request->NumberOfArchiveDoc = 2;
 
         return $request;
     }
