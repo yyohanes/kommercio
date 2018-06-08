@@ -2,6 +2,7 @@
 
 namespace Kommercio\Jobs;
 
+use DHL\Datatype\GB\Label;
 use Illuminate\Bus\Queueable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
@@ -155,8 +156,6 @@ class DHLJob implements ShouldQueue
         // $request->RequestedPickupTime = 'Y';
         // $request->NewShipper = 'Y';
         $request->LanguageCode = 'en';
-        $request->RequestArchiveDoc = 'Y';
-        $request->NumberOfArchiveDoc = '2';
         $request->PiecesEnabled = 'Y';
         $request->Billing->ShipperAccountNumber = $config['shipper_account_number'];
         $request->Billing->ShippingPaymentType = 'S';
@@ -244,6 +243,11 @@ class DHLJob implements ShouldQueue
 
         $request->EProcShip = 'N';
         $request->LabelImageFormat = 'PDF';
+        $request->Label = new Label();
+        $request->Label->LabelTemplate = '8X4_PDF';
+
+        $request->RequestArchiveDoc = 'Y';
+        $request->NumberOfArchiveDoc = 3;
 
         return $request;
     }
