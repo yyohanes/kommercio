@@ -1,4 +1,16 @@
 {!! Form::open(['class' => 'form-horizontal']) !!}
+@include('backend.master.form.fields.text', [
+    'name' => 'dhlName',
+    'label' => 'DHL Name',
+    'key' => 'dhlName',
+    'attr' => [
+        'class' => 'form-control',
+        'id' => 'dhlName',
+    ],
+    'valueColumnClass' => 'col-md-6',
+    'defaultValue' => old('dhlName', $dhlName),
+])
+
 @include('backend.master.form.fields.select', [
     'name' => 'regionCode',
     'label' => 'Region Code',

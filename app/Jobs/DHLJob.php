@@ -2,6 +2,7 @@
 
 namespace Kommercio\Jobs;
 
+use DHL\Datatype\GB\MetaData;
 use Illuminate\Bus\Queueable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
@@ -14,6 +15,7 @@ use DHL\Entity\GB\ShipmentResponse;
 use DHL\Entity\GB\ShipmentRequest;
 use DHL\Client\Web as WebserviceClient;
 use DHL\Datatype\GB\Piece;
+use DHL\Datatype\GB\Label;
 use Kommercio\Events\DeliveryOrderEvent;
 use Kommercio\Models\Address\City;
 use Kommercio\Models\Address\Country;
@@ -120,7 +122,9 @@ class DHLJob implements ShouldQueue
         $singleProductLineItem = $this->deliveryOrder->lineItems->get(0);
         $warehouse = $this->store->warehouses->first();
         $warehouseCountry = Country::findOrFail($warehouse->country_id);
+        $warehouseCountryName = $warehouseCountry->name;
         $warehouseCity = City::find($warehouse->city_id);
+        $warehouseDhlConfig = DHL::getConfig($warehouseCountry);
 
         if ($warehouseCity) {
             $warehouseCityName = $warehouseCity->name;
@@ -128,9 +132,12 @@ class DHLJob implements ShouldQueue
             $warehouseCityName = $warehouse->custom_city;
         }
 
-        if (empty($warehouseCityName)) {
-            $warehouseDhlConfig = DHL::getConfig($warehouseCountry);
+        if (!empty($warehouseDhlConfig) && empty($warehouseCityName)) {
             $warehouseCityName = $warehouseDhlConfig['fallbackCityName'];
+        }
+
+        if (!empty($warehouseDhlConfig) && !empty($warehouseDhlConfig['dhlName'])) {
+            $warehouseCountryName = $warehouseDhlConfig['dhlName'];
         }
 
         $orderTotal = $this->deliveryOrder->calculateTotalAmount();
@@ -147,6 +154,11 @@ class DHLJob implements ShouldQueue
         $request->MessageTime = Carbon::now()->toW3cString();
         $request->MessageReference = $config['request_reference'];
         $request->RegionCode = $this->addressConfig['regionCode'];
+
+        // MetaData
+        $request->SoftwareName = 'Kommercio';
+        $request->SoftwareVersion = '1.1';
+
         // $request->RequestedPickupTime = 'Y';
         // $request->NewShipper = 'Y';
         $request->LanguageCode = 'en';
@@ -159,6 +171,8 @@ class DHLJob implements ShouldQueue
 
         $request->Consignee->CompanyName = $shippingInformation->full_name;
         $request->Consignee->addAddressLine($this->formatAddress($shippingInformation->address_1));
+
+        $shippingCountryName = $shippingInformation->country->name;
 
         if ($shippingInformation->address_2) {
             $request->Consignee->addAddressLine($this->formatAddress($shippingInformation->address_2));
@@ -174,10 +188,14 @@ class DHLJob implements ShouldQueue
             $cityName = $this->addressConfig['fallbackCityName'];
         }
 
+        if (!empty($this->addressConfig['dhlName'])) {
+            $shippingCountryName = $this->addressConfig['dhlName'];
+        }
+
         $request->Consignee->City = $cityName;
         $request->Consignee->PostalCode = $shippingInformation->postal_code;
         $request->Consignee->CountryCode = $shippingInformation->country->iso_code;
-        $request->Consignee->CountryName = $shippingInformation->country->name;
+        $request->Consignee->CountryName = $shippingCountryName;
         $request->Consignee->Contact->PersonName = $shippingInformation->full_name;
         $request->Consignee->Contact->PhoneNumber = $shippingInformation->phone_number;
         $request->Consignee->Contact->Email = $shippingInformation->email;
@@ -212,7 +230,7 @@ class DHLJob implements ShouldQueue
         }
 
         $request->Shipper->CountryCode = $warehouseCountry->iso_code;
-        $request->Shipper->CountryName = $warehouseCountry->name;
+        $request->Shipper->CountryName = $warehouseCountryName;
         $request->Shipper->City = $warehouseCityName;
         $request->Shipper->PostalCode = $warehouse->postal_code;
         $request->Shipper->Contact->PersonName = $config['contact_person'];
@@ -231,6 +249,11 @@ class DHLJob implements ShouldQueue
 
         $request->EProcShip = 'N';
         $request->LabelImageFormat = 'PDF';
+        $request->Label = new Label();
+        $request->Label->LabelTemplate = '8X4_PDF';
+
+        // $request->RequestArchiveDoc = 'Y';
+        // $request->NumberOfArchiveDoc = 2;
 
         return $request;
     }

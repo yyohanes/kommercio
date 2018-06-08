@@ -22,7 +22,7 @@
  * @version     0.1
  */
 
-namespace DHL\Datatype\GB; 
+namespace DHL\Datatype\GB;
 use DHL\Datatype\Base;
 
 /**
@@ -46,8 +46,8 @@ class Label extends Base
             'required' => false,
             'subobject' => false,
             'comment' => 'LabelTemplate',
-            'enumeration' => '8X4_A4_PDF,8X4_thermal,8X4_A4_TC_PDF,6X4_A4_PDF,6X4_thermal,8X4_CI_PDF,8X4_CI_thermal',
-        ), 
+            'enumeration' => '8X4_PDF,8X4_A4_PDF,8X4_thermal,8X4_A4_TC_PDF,6X4_A4_PDF,6X4_thermal,8X4_CI_PDF,8X4_CI_thermal',
+        ),
         'Logo' => array(
             'type' => 'YesNo',
             'required' => false,
@@ -55,12 +55,12 @@ class Label extends Base
             'comment' => 'Boolean flag',
             'length' => '1',
             'enumeration' => 'Y,N',
-        ), 
+        ),
         'CustomerLogo' => array(
             'type' => 'CustomerLogo',
             'required' => false,
             'subobject' => true,
-        ), 
+        ),
         'Resolution' => array(
             'type' => 'Resolution',
             'required' => false,
@@ -68,6 +68,6 @@ class Label extends Base
             'comment' => 'Resolution',
             'minInclusive' => '200',
             'maxInclusive' => '300',
-        ), 
+        ),
     );
 }
