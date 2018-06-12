@@ -3,9 +3,12 @@
 namespace Kommercio\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Kommercio\Traits\Model\HasAddress;
 
 class Warehouse extends Model
 {
+    use HasAddress;
+
     protected $guarded = ['location'];
 
     //Relations
@@ -36,6 +39,7 @@ class Warehouse extends Model
             'district_id' => $this->district_id,
             'area_id' => $this->area_id,
             'postal_code' => $this->postal_code,
+            'custom_city' => $this->custom_city,
         ];
     }
 

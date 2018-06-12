@@ -15,6 +15,7 @@ use Kommercio\Models\Interfaces\AuthorSignatureInterface;
 use Kommercio\Models\Log;
 use Kommercio\Models\Order\Order;
 use Kommercio\Models\Profile\Profile;
+use Kommercio\Models\ShippingMethod\ShippingMethod;
 use Kommercio\Models\Store;
 use Kommercio\Traits\Model\AuthorSignature;
 use Kommercio\Traits\Model\HasDataColumn;
@@ -28,7 +29,11 @@ class DeliveryOrder extends Model implements AuthorSignatureInterface
     const STATUS_SHIPPED = 'shipped';
     const STATUS_CANCELLED = 'cancelled';
 
-    protected $fillable = ['reference', 'counter', 'total_quantity', 'total_weight', 'status', 'notes'];
+    protected $dates = [
+        'delivery_date',
+    ];
+
+    protected $fillable = ['reference', 'counter', 'total_quantity', 'total_weight', 'status', 'notes', 'shipping_method_id', 'delivery_date'];
 
     // Relations
     public function order()
@@ -44,6 +49,11 @@ class DeliveryOrder extends Model implements AuthorSignatureInterface
     public function store()
     {
         return $this->belongsTo(Store::class);
+    }
+
+    public function shippingMethod()
+    {
+        return $this->belongsTo(ShippingMethod::class);
     }
 
     public function items()
@@ -70,6 +80,40 @@ class DeliveryOrder extends Model implements AuthorSignatureInterface
     public function getIsShippableAttribute()
     {
         return !in_array($this->status, [self::STATUS_CANCELLED, self::STATUS_SHIPPED]) && Gate::allows('access', ['complete_delivery_order']);
+    }
+
+    public function getIsPrintableAttribute()
+    {
+        return !in_array($this->status, [self::STATUS_CANCELLED]) && Gate::allows('access', ['print_delivery_order']);
+    }
+
+    public function getStatusLabelAttribute()
+    {
+        $label = self::getStatusOptions($this->status);
+
+        return $label;
+    }
+
+    public function getShippingInformationAttribute()
+    {
+        if($this->shippingProfile){
+            $this->shippingProfile->fillDetails();
+        }else{
+            return new Profile();
+        }
+
+        return $this->shippingProfile;
+    }
+
+    public function getShippingMethodNameAttribute()
+    {
+        $shippingMethodKey = $this->getData('shipping_method', null);
+
+        if (!$shippingMethodKey || !$this->shippingMethod) return null;
+
+        $selectorMethod = $this->shippingMethod->getSelectedMethod($shippingMethodKey);
+
+        return $selectorMethod['name'];
     }
 
     /**
@@ -181,6 +225,17 @@ class DeliveryOrder extends Model implements AuthorSignatureInterface
         $this->total_quantity = $quantity;
 
         return $this->total_quantity;
+    }
+
+    public function calculateTotalAmount()
+    {
+        $total = 0;
+
+        foreach ($this->lineItems as $lineItem) {
+            $total += $lineItem->calculateTotal();
+        }
+
+        return $total;
     }
 
     public function calculateTotalWeight()

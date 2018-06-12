@@ -356,7 +356,7 @@ class OrderController extends Controller{
 
             $rowMeat = array_merge($rowMeat, [
                 $order->billing_full_name.'<div class="expanded-detail">'.$order->billingInformation->email.'<br/>'.$order->billingInformation->phone_number.'<br/>'.AddressHelper::printAddress($order->billingInformation->getDetails()).'</div>',
-                $order->shipping_full_name.'<div class="expanded-detail">'.$order->shippingInformation->email.'<br/>'.$order->shippingInformation->phone_number.'<br/>'.AddressHelper::printAddress($order->billingInformation->getDetails()).'</div>',
+                $order->shipping_full_name.'<div class="expanded-detail">'.$order->shippingInformation->email.'<br/>'.$order->shippingInformation->phone_number.'<br/>'.AddressHelper::printAddress($order->shippingInformation->getDetails()).'</div>',
             ]);
 
             foreach($stickyProducts as $stickyProduct){
@@ -710,8 +710,8 @@ class OrderController extends Controller{
 
         if(!$oldValues){
             $oldValues['existing_customer'] = $order->customer?$order->customer->getProfile()->email:null;
-            $oldValues['profile'] = $order->billingProfile?$order->billingProfile->getDetails():[];
-            $oldValues['shipping_profile'] = $order->shippingProfile?$order->shippingProfile->getDetails():[];
+            $oldValues['profile'] = $order->billingInformation?$order->billingInformation->getDetails():[];
+            $oldValues['shipping_profile'] = $order->shippingInformation?$order->shippingInformation->getDetails():[];
             $oldValues['payment_method'] = $order->payment_method_id;
             $oldValues['store_id'] = $order->store_id;
             $oldValues['user_id'] = $order->customer && $order->customer->user?$order->customer->user->id:null;
@@ -916,6 +916,7 @@ class OrderController extends Controller{
     {
         $user = $request->user();
         $order = Order::find($id);
+        $errors = [];
 
         if($request->isMethod('GET')){
             $options = [
@@ -1006,27 +1007,48 @@ class OrderController extends Controller{
                         $deliveryOrderData['data']['delivered_by'] = $request->input('delivered_by');
                     }
 
-                    $deliveryOrder = $order->createDeliveryOrder($deliveredLineItems, $deliveryOrderData);
-                    Event::fire(new DeliveryOrderEvent(DeliveryOrderEvent::ON_NEW_DELIVERY_ORDER, $deliveryOrder));
+                    try {
+                        $deliveryOrder = $order->createDeliveryOrder($deliveredLineItems, $deliveryOrderData);
+                        Event::fire(new DeliveryOrderEvent(DeliveryOrderEvent::ON_NEW_DELIVERY_ORDER, $deliveryOrder));
 
-                    if ($request->input('mark_shipped')) {
-                        $deliveryOrder->changeStatus(DeliveryOrder::STATUS_SHIPPED, $request->input('send_notification'));
-                    }
+                        if ($request->input('mark_shipped')) {
+                            $deliveryOrder->changeStatus(DeliveryOrder::STATUS_SHIPPED, $request->input('send_notification'));
 
-                    if($order->isFullyShipped){
-                        OrderHelper::saveOrderComment('Delivery Order #'.$deliveryOrder->reference.' is created. Order is fully shipped.', 'fully_shipped', $order, $user);
-                        OrderHelper::saveOrderComment('Order is fully shipped.', 'fully_shipped', $order, $user, OrderComment::TYPE_EXTERNAL_MEMO, [
-                            'delivery_order_id' => $deliveryOrder->id
-                        ]);
+                            if ($order->isFullyShipped) {
+                                OrderHelper::saveOrderComment('Delivery Order #' . $deliveryOrder->reference . ' is created. Order is fully shipped.', 'fully_shipped', $order, $user);
+                                OrderHelper::saveOrderComment('Order is fully shipped.', 'fully_shipped', $order, $user, OrderComment::TYPE_EXTERNAL_MEMO, [
+                                    'delivery_order_id' => $deliveryOrder->id
+                                ]);
 
-                        $order->status = Order::STATUS_SHIPPED;
-                        $message = 'Order has been <span class="label bg-'.OrderHelper::getOrderStatusLabelClass($order->status).' bg-font-'.OrderHelper::getOrderStatusLabelClass($order->status).'">fully shipped.</span>';
-                    }else{
-                        OrderHelper::saveOrderComment('Delivery Order #'.$deliveryOrder->reference.' is created. Order is partially shipped.', 'partially_shipped', $order, $user);
-                        OrderHelper::saveOrderComment('Order is partially shipped.', 'partially_shipped', $order, $user, OrderComment::TYPE_EXTERNAL_MEMO, [
-                            'delivery_order_id' => $deliveryOrder->id
-                        ]);
-                        $message = 'Order has been partially shipped with Delivery Order <span class="label bg-'.OrderHelper::getOrderStatusLabelClass($order->status).' bg-font-'.OrderHelper::getOrderStatusLabelClass($order->status).'">#'.$deliveryOrder->reference.'.</span>';
+                                $order->status = Order::STATUS_SHIPPED;
+                                $message = 'Order has been <span class="label bg-' . OrderHelper::getOrderStatusLabelClass($order->status) . ' bg-font-' . OrderHelper::getOrderStatusLabelClass($order->status) . '">fully shipped.</span>';
+                            } else {
+                                OrderHelper::saveOrderComment('Delivery Order #' . $deliveryOrder->reference . ' is created. Order is partially shipped.', 'partially_shipped', $order, $user);
+                                OrderHelper::saveOrderComment('Order is partially shipped.', 'partially_shipped', $order, $user, OrderComment::TYPE_EXTERNAL_MEMO, [
+                                    'delivery_order_id' => $deliveryOrder->id
+                                ]);
+                                $message = 'Order has been partially shipped with Delivery Order <span class="label bg-' . OrderHelper::getOrderStatusLabelClass($order->status) . ' bg-font-' . OrderHelper::getOrderStatusLabelClass($order->status) . '">#' . $deliveryOrder->reference . '.</span>';
+                            }
+                        } else {
+                            if ($order->isFullyShipped) {
+                                OrderHelper::saveOrderComment('Delivery Order #' . $deliveryOrder->reference . ' is created. Order will be fully shipped.', 'future_fully_shipped', $order, $user);
+                                OrderHelper::saveOrderComment('Order will be fully shipped.', 'future_fully_shipped', $order, $user, OrderComment::TYPE_EXTERNAL_MEMO, [
+                                    'delivery_order_id' => $deliveryOrder->id
+                                ]);
+
+                                $message = 'Order will be <span class="label bg-' . OrderHelper::getOrderStatusLabelClass($order->status) . ' bg-font-' . OrderHelper::getOrderStatusLabelClass($order->status) . '">fully shipped.</span>';
+                            } else {
+                                OrderHelper::saveOrderComment('Delivery Order #' . $deliveryOrder->reference . ' is created. Order will be partially shipped.', 'future_partially_shipped', $order, $user);
+                                OrderHelper::saveOrderComment('Order will be partially shipped.', 'future_partially_shipped', $order, $user, OrderComment::TYPE_EXTERNAL_MEMO, [
+                                    'delivery_order_id' => $deliveryOrder->id
+                                ]);
+                                $message = 'Order will be partially shipped with Delivery Order <span class="label bg-' . OrderHelper::getOrderStatusLabelClass($order->status) . ' bg-font-' . OrderHelper::getOrderStatusLabelClass($order->status) . '">#' . $deliveryOrder->reference . '.</span>';
+                            }
+                        }
+                    } catch (\Throwable $e) {
+                        $deliveryOrder->changeStatus(DeliveryOrder::STATUS_CANCELLED, false, 'Delivery Order cancelled due error. Reason: ' . $e->getMessage());
+
+                        $errors[] = 'There is an error processing this Delivery Order. ' . $e->getMessage();
                     }
                     break;
                 case 'completed':
@@ -1056,15 +1078,27 @@ class OrderController extends Controller{
                     break;
             }
 
-            $order->save();
+            if (count($errors) === 0) {
+                $order->save();
 
-            Event::fire(new OrderUpdate($order, $originalStatus, $request->input('send_notification')));
-            Event::fire(new OrderEvent('internal_place_order', $order));
+                Event::fire(new OrderUpdate($order, $originalStatus, $request->input('send_notification')));
+                Event::fire(new OrderEvent('internal_place_order', $order));
+            }
 
             if(!$internal){
-                return redirect($request->input('backUrl', route('backend.sales.order.index')))->with('success', [$message]);
+                $response = redirect($request->input('backUrl', route('backend.sales.order.index')));
+
+                if (count($errors) === 0) {
+                    return $response->with('success', [$message]);
+                } else {
+                    return $response->with('error', $errors);
+                }
             }else{
-                return $order;
+                if (count($errors) === 0) {
+                    return $order;
+                }
+
+                return false;
             }
         }
     }
@@ -1073,6 +1107,7 @@ class OrderController extends Controller{
     {
         $processedOrders = [];
         $unprocessedOrders = [];
+        $failedOrders = [];
         $message = '';
         $selectedOrderCount = count($request->input('order_id', []));
 
@@ -1106,12 +1141,18 @@ class OrderController extends Controller{
                     $processedCount = 0;
 
                     foreach($request->input('order_id', []) as $order_id){
-                        if($this->process($request, $process, $order_id, TRUE)){
+                        if ($this->process($request, $process, $order_id, TRUE)) {
                             $processedCount += 1;
+                        } else {
+                            $failedOrders[] = Order::findOrFail($order_id);
                         }
                     }
 
-                    $message = $processedCount.' '.str_plural('Order', $processedCount).' successfully set to <span class="label bg-'.OrderHelper::getOrderStatusLabelClass(Order::STATUS_SHIPPED).' bg-font-'.OrderHelper::getOrderStatusLabelClass(Order::STATUS_SHIPPED).'">'.Order::getStatusOptions(Order::STATUS_SHIPPED).'.</span>';
+                    if($request->input('mark_shipped')){
+                        $message = $processedCount.' '.str_plural('Order', $processedCount).' successfully set to <span class="label bg-'.OrderHelper::getOrderStatusLabelClass(Order::STATUS_SHIPPED).' bg-font-'.OrderHelper::getOrderStatusLabelClass(Order::STATUS_SHIPPED).'">'.Order::getStatusOptions(Order::STATUS_SHIPPED).'.</span>';
+                    } else {
+                        $message = $processedCount.' '.str_plural('Order', $processedCount).' will be <span class="label bg-'.OrderHelper::getOrderStatusLabelClass(Order::STATUS_SHIPPED).' bg-font-'.OrderHelper::getOrderStatusLabelClass(Order::STATUS_SHIPPED).'">'.Order::getStatusOptions(Order::STATUS_SHIPPED).'.</span>';
+                    }
                 }else{
                     foreach($request->input('id') as $order_id){
                         $order = Order::findOrFail($order_id);
@@ -1179,7 +1220,17 @@ class OrderController extends Controller{
         }
 
         if($request->input('confirm') == '1'){
-            return redirect($request->input('backUrl', route('backend.sales.order.index')))->with('success', [$message]);
+            $response = redirect($request->input('backUrl', route('backend.sales.order.index')))
+                ->with('success', [$message]);
+
+            if (count($failedOrders) > 0) {
+                $errors = array_map(function($failedOrder) {
+                    return 'Order #' . $failedOrder->reference . ' can\'t be processed.';
+                }, $failedOrders);
+                $response->with('error', $errors);
+            }
+
+            return $response;
         }else{
             if(count($processedOrders) > 0){
                 return view('backend.order.process.bulk.'.$processForm, [

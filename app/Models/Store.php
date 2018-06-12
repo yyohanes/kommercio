@@ -10,11 +10,12 @@ use Illuminate\Support\Facades\Cache;
 use Kommercio\Facades\ProjectHelper;
 use Kommercio\Models\Interfaces\CacheableInterface;
 use Kommercio\Models\Store\OpeningTime;
+use Kommercio\Traits\Model\HasAddress;
 use Kommercio\Traits\Model\HasDataColumn;
 
 class Store extends Model implements CacheableInterface
 {
-    use HasDataColumn;
+    use HasDataColumn, HasAddress;
 
     const TYPE_ONLINE = 'online';
     const TYPE_OFFLINE = 'offline';
@@ -57,6 +58,7 @@ class Store extends Model implements CacheableInterface
             'district_id' => $this->district_id,
             'area_id' => $this->area_id,
             'postal_code' => $this->postal_code,
+            'custom_city' => $this->custom_city,
         ];
     }
 

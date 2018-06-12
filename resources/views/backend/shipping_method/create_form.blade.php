@@ -112,3 +112,7 @@
         'data-height' => 100
     ],
 ])
+
+@if($additionalFieldsForm)
+    {!! $additionalFieldsForm !!}
+@endif

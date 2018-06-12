@@ -42,6 +42,7 @@
             "database", "packages/project/src/Project/database"
         ],
         "psr-4": {
+            "DHL\\": "libs/DHL/",
             "Kommercio\\": "app/",
             "Project\\": "packages/project/src"
         },

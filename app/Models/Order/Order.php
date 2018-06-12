@@ -648,10 +648,16 @@ class Order extends Model implements AuthorSignatureInterface
             'city_id',
             'district_id',
             'area_id',
+            'custom_city',
             'postal_code',
             'address_1',
             'address_2'
         ];
+
+        // Remove custom city if there is city id
+        if (!empty($fields['city_id'])) {
+            $fields['custom_city'] = '';
+        }
 
         foreach ($fields as $field) {
             if (!isset($data[$field])) {
@@ -1004,15 +1010,30 @@ class Order extends Model implements AuthorSignatureInterface
     public function createDeliveryOrder($deliveredLineItems, $options = [])
     {
         $deliveryOrder = new DeliveryOrder($options);
+        $deliveryOrder->status = DeliveryOrder::STATUS_PENDING;
         $deliveryOrder->store()->associate($this->store);
         $deliveryOrder->customer()->associate($this->customer);
+        $deliveryOrder->shippingMethod()->associate($this->getShippingMethod());
         $deliveryOrder->order()->associate($this);
         $deliveryOrder->generateReference();
+        $deliveryOrderData = [
+            'shipping_method' => $this->getSelectedShippingMethod(),
+        ];
 
-        if(!empty($options['data'])){
-            $deliveryOrder->saveData($options['data']);
+        if (!empty($options['delivery_date'])) {
+            $deliveryOrder->delivery_date = $options['delivery_date'];
+        }
+        else if ($this->delivery_date) {
+            $deliveryOrder->delivery_date = $this->delivery_date;
         }
 
+        if(!empty($options['data'])){
+            $deliveryOrderData = array_merge(
+                $deliveryOrderData,
+                $options['data']
+            );
+        }
+        $deliveryOrder->saveData($deliveryOrderData);
         $deliveryOrder->save();
 
         if(!empty($options['shippingProfile'])){
