@@ -877,13 +877,13 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface, Cac
             if(!empty($countOptions['delivery_date'])){
                 if (is_array($countOptions['delivery_date'])) {
                     // Range is set but either from / to is empty, returns 0
-                    if (isset($countOptions['delivery_date']['from']) || isset($countOptions['delivery_date']['to'])) {
+                    if (!empty($countOptions['delivery_date']['from']) || !empty($countOptions['delivery_date']['to'])) {
                         // Important Note: Delivery date range doesn't filter days selection
-                        if (isset($countOptions['delivery_date']['from'])) {
+                        if (!empty($countOptions['delivery_date']['from'])) {
                             $lineItemQb->whereRaw('DATE_FORMAT(O.delivery_date, \'%Y-%m-%d\') >= ?', [$countOptions['delivery_date']['from']]);
                         }
 
-                        if (isset($countOptions['delivery_date']['to'])) {
+                        if (!empty($countOptions['delivery_date']['to'])) {
                             $lineItemQb->whereRaw('DATE_FORMAT(O.delivery_date, \'%Y-%m-%d\') <= ?', [$countOptions['delivery_date']['to']]);
                         }
                     } else {
@@ -956,7 +956,7 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface, Cac
         if($deliveryDate){
             // Delivery Limit
             $deliveryOrderLimits = OrderLimit::getOrderLimits([
-                'limit_type' => OrderLimit::LIMIT_DELIVERY_DATE,
+                'limit_type' => [OrderLimit::LIMIT_DELIVERY_DATE, OrderLimit::LIMIT_DELIVERY_DATE_RANGE],
                 'date' => $deliveryDate,
                 'store' => $store,
                 'type' => isset($options['type'])?$options['type']:OrderLimit::TYPE_PRODUCT,
@@ -1070,21 +1070,30 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface, Cac
             if($store && !$store->isOpen(Carbon::createFromFormat('Y-m-d H:i:s', $dayToRun))){
                 $disabledDates[] = $dayToRun->format($format);
             }else{
-                $dayOrderCount = $this->getOrderCount([
-                    'delivery_date' => $dayToRun->format('Y-m-d'),
-                    'store_id' => $store_id,
-                ]);
-
-                if($dayToRun->format('j-n-Y') == $saved_delivery_date){
-                    $dayOrderCount -= $saved_quantity;
-                }
-
                 // Product Limit
                 $dayProductOrderLimit = $this->getOrderLimit([
                     'delivery_date' => $dayToRun->format('Y-m-d'),
                     'store' => $store_id,
                     'type' => OrderLimit::TYPE_PRODUCT
                 ]);
+
+                // Limit is range based
+                $deliveryDate = $dayToRun->format('Y-m-d');
+                if ($dayProductOrderLimit['object'] && $dayProductOrderLimit['object'] === OrderLimit::LIMIT_DELIVERY_DATE_RANGE) {
+                    $deliveryDate = [
+                        'from' => $dayProductOrderLimit['object']->date_from,
+                        'to' => $dayProductOrderLimit['object']->date_to,
+                    ];
+                }
+
+                $dayOrderCount = $this->getOrderCount([
+                    'delivery_date' => $deliveryDate,
+                    'store_id' => $store_id,
+                ]);
+
+                if($dayToRun->format('j-n-Y') == $saved_delivery_date){
+                    $dayOrderCount -= $saved_quantity;
+                }
 
                 if(is_array($dayProductOrderLimit) && ($dayProductOrderLimit['limit'] == 0 || $dayOrderCount + $quantity > $dayProductOrderLimit['limit'])){
                     $disabledDates[] = $dayToRun->format($format);
@@ -1105,10 +1114,20 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface, Cac
                     }
 
                     foreach($dayCategoryOrderLimit['object']->productCategories as $productCategory){
+                        $deliveryDate = $dayToRun->format('Y-m-d');
+
+                        if ($dayCategoryOrderLimit['object'] && $dayCategoryOrderLimit['object'] === OrderLimit::LIMIT_DELIVERY_DATE_RANGE) {
+                            $deliveryDate = [
+                                'from' => $dayCategoryOrderLimit['object']->date_from,
+                                'to' => $dayCategoryOrderLimit['object']->date_to,
+                            ];
+                        }
+
                         $dayCategoryOrderCount = $productCategory->getOrderCount([
-                            'delivery_date' => $dayToRun->format('Y-m-d'),
+                            'delivery_date' => $deliveryDate,
                             'store_id' => $store_id,
                         ]);
+
                         if($dayCategoryOrderLimit['limit'] == 0 || $dayCategoryOrderCount + $quantity > $dayCategoryOrderLimit['limit']){
                             $disabledDates[] = $dayToRun->format($format);
                         }

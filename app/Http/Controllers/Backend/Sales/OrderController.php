@@ -1429,7 +1429,7 @@ class OrderController extends Controller{
 
         if($request->filled('delivery_date')){
             $deliveryOrderLimits = OrderLimit::getOrderLimits([
-                'limit_type' => OrderLimit::LIMIT_DELIVERY_DATE,
+                'limit_type' => [OrderLimit::LIMIT_DELIVERY_DATE, OrderLimit::LIMIT_DELIVERY_DATE_RANGE],
                 'date' => Carbon::createFromFormat('Y-m-d', $request->input('delivery_date')),
                 'store' => $store_id,
                 'type' => OrderLimit::TYPE_PRODUCT_CATEGORY,
