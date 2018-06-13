@@ -2483,11 +2483,6 @@ Route::group(['middleware' => ['web']], function () {
         'uses' => 'Backend\Catalog\ProductController@availabilityCalendar',
     ]);
 
-    Route::get('secret-chamber-tunnel', [
-        'as' => 'chamber_secret_tunnel',
-        'uses' => 'Backend\ChamberController@secretTunnel'
-    ]);
-
     Route::group(['prefix' => 'cron'], function(){
 
     });

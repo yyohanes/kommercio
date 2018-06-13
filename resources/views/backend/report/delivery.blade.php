@@ -237,6 +237,7 @@
                         <i class="fa fa-check"></i> Submit</button>
                 </div>
 
+                {{-- data-dataset-options='{"scrollX":true,"scrollY":640,"fixedColumns":{"leftColumns":4}}' --}}
                 <table id="delivery-table" class="table table-striped table-bordered table-hover dataset-table fixed-header-table" data-dataset-paging="false">
                     <thead>
                     <tr>
@@ -289,6 +290,7 @@
     @parent
 
     <script src="{{ asset('backend/assets/template/global/scripts/datatable.js') }}" type="text/javascript"></script>
+    <script src="{{ asset('backend/assets/template/global/plugins/datatables/datatables.min.js') }}" type="text/javascript"></script>
     <script src="{{ asset('backend/assets/template/global/plugins/datatables/datatables.min.js') }}" type="text/javascript"></script>
     <script src="{{ asset('backend/assets/template/global/plugins/datatables/plugins/bootstrap/datatables.bootstrap.js') }}" type="text/javascript"></script>
 

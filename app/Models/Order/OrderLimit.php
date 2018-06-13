@@ -19,6 +19,7 @@ class OrderLimit extends Model implements StoreManagedInterface, CacheableInterf
     const LIMIT_ORDER_DATE = 'checkout_at';
     const LIMIT_DELIVERY_DATE = 'delivery_date';
     const LIMIT_PER_ORDER = 'per_order';
+    const LIMIT_DELIVERY_DATE_RANGE = 'delivery_date_range';
 
     /**
      * @var int Total of counted products
@@ -246,6 +247,7 @@ class OrderLimit extends Model implements StoreManagedInterface, CacheableInterf
 
         if (config('project.enable_delivery_date')) {
             $array[self::LIMIT_DELIVERY_DATE] = 'Total per Delivery Date';
+            $array[self::LIMIT_DELIVERY_DATE_RANGE] = 'Total per Delivery Date Range';
         }
 
         if (empty($option)) {
