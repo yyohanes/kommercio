@@ -880,11 +880,11 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface, Cac
                     if (!empty($countOptions['delivery_date']['from']) || !empty($countOptions['delivery_date']['to'])) {
                         // Important Note: Delivery date range doesn't filter days selection
                         if (!empty($countOptions['delivery_date']['from'])) {
-                            $lineItemQb->whereRaw('DATE_FORMAT(O.delivery_date, \'%Y-%m-%d\') >= ?', [$countOptions['delivery_date']['from']]);
+                            $lineItemQb->whereRaw('DATE_FORMAT(O.delivery_date, \'%Y-%m-%d\') >= ?', [$countOptions['delivery_date']['from']->format('Y-m-d')]);
                         }
 
                         if (!empty($countOptions['delivery_date']['to'])) {
-                            $lineItemQb->whereRaw('DATE_FORMAT(O.delivery_date, \'%Y-%m-%d\') <= ?', [$countOptions['delivery_date']['to']]);
+                            $lineItemQb->whereRaw('DATE_FORMAT(O.delivery_date, \'%Y-%m-%d\') <= ?', [$countOptions['delivery_date']['to']->format('Y-m-d')]);
                         }
                     } else {
                         return 0;
