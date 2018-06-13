@@ -136,7 +136,11 @@ class OrderLimit extends Model implements StoreManagedInterface, CacheableInterf
 
     public function scopeWhereLimitType($query, $limit_type)
     {
-        $query->where('limit_type', $limit_type);
+        if (is_array($limit_type)) {
+            $query->whereIn('limit_type', $limit_type);
+        } else {
+            $query->where('limit_type', $limit_type);
+        }
     }
 
     public function scopeWithinDate($qb, Carbon $date)
