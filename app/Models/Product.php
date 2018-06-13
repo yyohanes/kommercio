@@ -1059,7 +1059,7 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface, Cac
 
                     // Limit is range based
                     $deliveryDate = $dayToRun->format('Y-m-d');
-                    if ($dayProductOrderLimit['object'] && $dayProductOrderLimit['object'] === OrderLimit::LIMIT_DELIVERY_DATE_RANGE) {
+                    if ($dayProductOrderLimit['object'] && $dayProductOrderLimit['object']->limit_type === OrderLimit::LIMIT_DELIVERY_DATE_RANGE) {
                         $deliveryDate = [
                             'from' => $dayProductOrderLimit['object']->date_from,
                             'to' => $dayProductOrderLimit['object']->date_to,
@@ -1096,7 +1096,7 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface, Cac
                         foreach($dayCategoryOrderLimit['object']->productCategories as $productCategory){
                             $deliveryDate = $dayToRun->format('Y-m-d');
 
-                            if ($dayCategoryOrderLimit['object'] && $dayCategoryOrderLimit['object'] === OrderLimit::LIMIT_DELIVERY_DATE_RANGE) {
+                            if ($dayCategoryOrderLimit['object'] && $dayCategoryOrderLimit['object']->limit_type === OrderLimit::LIMIT_DELIVERY_DATE_RANGE) {
                                 $deliveryDate = [
                                     'from' => $dayCategoryOrderLimit['object']->date_from,
                                     'to' => $dayCategoryOrderLimit['object']->date_to,
