@@ -35,7 +35,7 @@ class WarehouseFormRequest extends Request
         $attributes = parent::all();
 
         foreach($attributes['location'] as $idx => $location){
-            if(!$location){
+            if(!$location && $idx !== 'custom_city'){
                 unset($attributes['location'][$idx]);
             }
         }
