@@ -875,7 +875,23 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface, Cac
             }
 
             if(!empty($countOptions['delivery_date'])){
-                $lineItemQb->whereRaw('DATE_FORMAT(O.delivery_date, \'%Y-%m-%d\') = ?', [$countOptions['delivery_date']]);
+                if (is_array($countOptions['delivery_date'])) {
+                    // Range is set but either from / to is empty, returns 0
+                    if (isset($countOptions['delivery_date']['from']) || isset($countOptions['delivery_date']['to'])) {
+                        // Important Note: Delivery date range doesn't filter days selection
+                        if (isset($countOptions['delivery_date']['from'])) {
+                            $lineItemQb->whereRaw('DATE_FORMAT(O.delivery_date, \'%Y-%m-%d\') >= ?', [$countOptions['delivery_date']['from']]);
+                        }
+
+                        if (isset($countOptions['delivery_date']['to'])) {
+                            $lineItemQb->whereRaw('DATE_FORMAT(O.delivery_date, \'%Y-%m-%d\') <= ?', [$countOptions['delivery_date']['to']]);
+                        }
+                    } else {
+                        return 0;
+                    }
+                } else {
+                    $lineItemQb->whereRaw('DATE_FORMAT(O.delivery_date, \'%Y-%m-%d\') = ?', [$countOptions['delivery_date']]);
+                }
             }
 
             if(!empty($countOptions['checkout_at'])){
