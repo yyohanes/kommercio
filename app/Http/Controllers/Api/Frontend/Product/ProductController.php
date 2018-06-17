@@ -23,7 +23,9 @@ class ProductController extends Controller {
         }
 
         /** @var Builder $qb */
-        $qb = Product::productEntity()
+        $qb = Product::joinDetail()
+            ->selectSelf()
+            ->productEntity()
             ->active($store)
             ->catalogVisible($store);
 
@@ -32,6 +34,14 @@ class ProductController extends Controller {
             $qb->whereHas('categories', function($query) use ($categories) {
                 $query->whereIn('id', $categories);
             });
+        }
+
+        if ($request->get('sort')) {
+            $sort = explode(':', $request->get('sort'));
+            $sortBy = $sort[0] ?? 'sort_order';
+            $sortDirection = $sort[1] ?? 'asc';
+
+            $qb->orderBy($sortBy, $sortDirection);
         }
 
         $products = $qb->paginate($perPage);
