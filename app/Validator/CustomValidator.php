@@ -171,12 +171,8 @@ class CustomValidator extends Validator
         $delivery_date = $parameters[2];
         $delivery_date = Carbon::createFromFormat('Y-m-d', $delivery_date)->format('d F Y');
 
-        if(static::$_storage['order_limit']->type == OrderLimit::TYPE_PRODUCT_CATEGORY){
-            $left = static::$_storage['order_limit']->limit + 0;
-        }else{
-            $left = static::$_storage['delivery_date_'.$this->getValue($attribute).'_available_quantity']?:0;
-            $left = $left < 1?0:$left;
-        }
+        $left = static::$_storage['delivery_date_'.$this->getValue($attribute).'_available_quantity'] ? : 0;
+        $left = $left < 1 ? 0 : $left;
 
         $message = trans_choice(LanguageHelper::getTranslationKey('validation.delivery_order_limit'), $left);
         $message = $this->replaceProductAttribute($message, $attribute, $rule, $parameters);
@@ -398,26 +394,34 @@ class CustomValidator extends Validator
 
             $productLimitPassed = true;
 
-            if (empty($orderLimit)) {
-                return $productLimitPassed;
-            }
+            if (!empty($orderLimit)) {
+                $deliveryDateToCount = $delivery_date;
 
-            $orderCount = $product->getOrderCount([
-                'delivery_date' => $delivery_date,
-                'checkout_at' => $today,
-                'store_id' => $store_id?:(!empty($order->store)?$order->store->id:null),
-            ]);
+                // If delivery date range, set from & to
+                if ($orderLimit['object']->limit_type === OrderLimit::LIMIT_DELIVERY_DATE_RANGE) {
+                    $deliveryDateToCount = [
+                        'from' => $orderLimit['object']->date_from,
+                        'to' => $orderLimit['object']->date_to,
+                    ];
+                }
 
-            if(is_array($orderLimit) && $orderLimit['limit_type'] == $type){
-                static::$_storage[$type.'_'.$product->id.'_available_quantity'] = $orderLimit['limit'] - $orderCount;
+                $orderCount = $product->getOrderCount([
+                    'delivery_date' => $deliveryDateToCount,
+                    'checkout_at' => $today,
+                    'store_id' => $store_id?:(!empty($order->store)?$order->store->id:null),
+                ]);
 
-                $productLimitPassed = ($orderLimit['limit'] - $orderCount) >= $quantity;
+                if(is_array($orderLimit) && $orderLimit['limit_type'] == $type){
+                    static::$_storage[$type.'_'.$product->id.'_available_quantity'] = $orderLimit['limit'] - $orderCount;
 
-                if(!$productLimitPassed){
-                    static::$_storage['order_limit'] = $orderLimit['object'];
-                    static::$_storage['invalidated_object'] = $product;
+                    $productLimitPassed = ($orderLimit['limit'] - $orderCount) >= $quantity;
 
-                    return $productLimitPassed;
+                    if(!$productLimitPassed){
+                        static::$_storage['order_limit'] = $orderLimit['object'];
+                        static::$_storage['invalidated_object'] = $product;
+
+                        return $productLimitPassed;
+                    }
                 }
             }
 
@@ -430,10 +434,24 @@ class CustomValidator extends Validator
                     'type' => OrderLimit::TYPE_PRODUCT_CATEGORY,
                 ]);
 
+                if (empty($categoryOrderLimit)) {
+                    return $productLimitPassed;
+                }
+
+                $deliveryDateToCount = $delivery_date;
+
+                // If delivery date range, set from & to
+                if ($categoryOrderLimit['object']->limit_type === OrderLimit::LIMIT_DELIVERY_DATE_RANGE) {
+                    $deliveryDateToCount = [
+                        'from' => $categoryOrderLimit['object']->date_from,
+                        'to' => $categoryOrderLimit['object']->date_to,
+                    ];
+                }
+
                 if(is_array($categoryOrderLimit)){
                     foreach($categoryOrderLimit['object']->productCategories as $productCategory){
                         $categoryOrderCount = $productCategory->getOrderCount([
-                            'delivery_date' => $delivery_date,
+                            'delivery_date' => $deliveryDateToCount,
                             'checkout_at' => $today,
                             'store_id' => $store_id?:(!empty($order->store)?$order->store->id:null),
                         ]);

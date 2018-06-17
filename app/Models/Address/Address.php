@@ -13,7 +13,8 @@ class Address extends Model implements CacheableInterface
     protected $guarded = ['parent_id'];
     protected $casts = [
         'active' => 'boolean',
-        'has_descendant' => 'boolean'
+        'has_descendant' => 'boolean',
+        'show_custom_city' => 'boolean',
     ];
     public $addressType;
     public $parentType;

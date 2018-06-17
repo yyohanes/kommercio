@@ -48,6 +48,20 @@
         'help-block' => 'Country Code/Phone Prefix',
         'required' => TRUE
     ])
+
+    @include('backend.master.form.fields.checkbox', [
+        'name' => 'show_custom_city',
+        'label' => 'Show Custom City',
+        'key' => 'show_custom_city',
+        'attr' => [
+            'class' => 'make-switch',
+            'id' => 'show_custom_city',
+            'data-on-color' => 'warning',
+            'data-size' => 'small',
+        ],
+        'value' => 1,
+        'checked' => old('show_custom_city', $address->show_custom_city)
+    ])
 @endif
 
 @if($type != 'area')

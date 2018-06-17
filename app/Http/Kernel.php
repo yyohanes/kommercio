@@ -40,7 +40,8 @@ class Kernel extends HttpKernel
         'api' => [
             \Kommercio\Http\Middleware\EncryptCookies::class,
             \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
-            'throttle:60,1',
+            // TODO: Re-enable this when DevOps has elegantly establish micro-service and we are able to determine real ip address
+            //'throttle:60,1',
             'bindings',
             \Barryvdh\Cors\HandleCors::class,
         ],

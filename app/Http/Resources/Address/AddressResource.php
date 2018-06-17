@@ -14,6 +14,10 @@ class AddressResource extends Resource {
             'name' => $address->name,
             'isoCode' => $address->iso_code,
             'countryCode' => $address->country_code,
+            'customCity' => $this->when(
+                strtolower($address->addressType) === 'country',
+                $address->show_custom_city
+            ),
             'hasDescendant' => !!$address->has_descendant,
             'active' => !!$address->active,
             'sortOrder' => $address->sort_order,

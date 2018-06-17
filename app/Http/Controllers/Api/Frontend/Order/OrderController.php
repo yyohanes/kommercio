@@ -138,9 +138,7 @@ class OrderController extends Controller {
         $quantities = [];
         foreach ($request->input('products', []) as $key => $productId) {
             $product = Product::findById($productId);
-            // TODO: Find out bug that causes a product counted as multiple quantities
-            // $quantity = $request->input('quantities.' . $key, 1);
-            $quantity = 1;
+            $quantity = $request->input('quantities.' . $key, 1);
 
             $products[$product->id] = $product;
             $quantities[$product->id] = $quantity;
@@ -204,12 +202,18 @@ class OrderController extends Controller {
         $order->saveProfile('shipping', $shippingProfileDetails);
         $order->updateShippingMethod($request->input('shipping_option'));
 
-        // Final process payment
-        $paymentResult = $this->processFinalPayment(
-            $order,
-            $paymentMethod,
-            $request
-        );
+        try {
+            $this->placeOrder($request, $order);
+
+            // Final process payment
+            $paymentResult = $this->processFinalPayment(
+                $order,
+                $paymentMethod,
+                $request
+            );
+        } catch (\Throwable $e) {
+            report($e);
+        }
 
         if ($request->input('_subscribe_newsletter', false) && $request->filled('billingProfile.email')) {
             try {
@@ -382,8 +386,13 @@ class OrderController extends Controller {
      * @param Request $request
      * @param Order $order
      * @return Order
+     * @throws \Throwable
      */
     protected function placeOrder(Request $request, Order $order) {
+        if (!empty($order->status) && !in_array($order->status, [Order::STATUS_CART, Order::STATUS_ADMIN_CART])) {
+            throw new \Exception('Order status is not in cart.');
+        }
+
         $order->status = Order::STATUS_PENDING;
         $order->checkout_at = Carbon::now();
         $order->ip_address = $request->ip();
@@ -391,29 +400,6 @@ class OrderController extends Controller {
         $order->generateReference();
 
         Event::fire(new OrderEvent('before_order_placed', $order));
-
-        foreach($order->getCouponLineItems() as $couponLineItem){
-            if($couponLineItem->coupon){
-                Event::fire(new CouponEvent('used', $couponLineItem->coupon));
-            }
-        }
-
-        return $order;
-    }
-
-    /**
-     * @param Request $request
-     * @param Order $order
-     * @return Order
-     * @throws \Exception
-     */
-    protected function processPlaceOrder(Request $request, Order $order) {
-        if (!empty($order->status) && !in_array($order->status, [Order::STATUS_CART, Order::STATUS_ADMIN_CART])) {
-            throw new \Exception('Order status is not in cart.');
-        }
-        $order->processStocks();
-
-        $this->placeOrder($request, $order);
 
         $profileData = $order->billingInformation->getDetails();
         $customer = Customer::saveCustomer(
@@ -427,12 +413,29 @@ class OrderController extends Controller {
             $order->customer()->associate($customer);
         }
 
+        foreach($order->getCouponLineItems() as $couponLineItem){
+            if($couponLineItem->coupon){
+                Event::fire(new CouponEvent('used', $couponLineItem->coupon));
+            }
+        }
+
         OrderHelper::processLineItems($request, $order, false);
 
         Event::fire(new OrderEvent('before_checkout_calculate_total', $order));
 
         $order->load('lineItems');
         $order->calculateTotal();
+
+        return $order;
+    }
+
+    /**
+     * @param Request $request
+     * @param Order $order
+     * @return Order
+     */
+    protected function processPlaceOrder(Request $request, Order $order) {
+        $order->processStocks();
 
         $order->saveData(['checkout_step' => 'complete'], TRUE);
         Event::fire(new OrderEvent('before_update_order', $order));
@@ -468,7 +471,6 @@ class OrderController extends Controller {
         $bools = array_map(function($field) use ($profileData) {
             return empty($profileData[$field]);
         }, $addressFields);
-        \Log::info(count(array_unique($bools)) === 1);
 
         return count(array_unique($bools)) === 1;
     }
