@@ -157,7 +157,7 @@ class OrderFormRequest extends \Illuminate\Foundation\Http\FormRequest {
                 $productRules[] = 'delivery_order_limit:' . $quantity . ',,' . $request->input('delivery_date') . ',' . $request->input('store_id');
             }
 
-            $rules['products.*'] = $productRules;
+            $rules['products.' . $key] = $productRules;
         }
 
         return $rules;
