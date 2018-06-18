@@ -1446,7 +1446,7 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface, Cac
     public function setStoreAttribute($store)
     {
         if(is_int($store)){
-            $store = Store::find($store);
+            $store = Store::findById($store);
         }
 
         $this->_store = $store;

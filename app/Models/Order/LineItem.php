@@ -251,7 +251,7 @@ class LineItem extends Model
 
     public function linkProductById($id)
     {
-        $product = Product::findOrFail($id);
+        $product = Product::findById($id);
         $this->linkProduct($product);
     }
 

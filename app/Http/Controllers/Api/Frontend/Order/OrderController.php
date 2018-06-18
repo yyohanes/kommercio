@@ -17,6 +17,7 @@ use Kommercio\Facades\OrderHelper;
 use Kommercio\Facades\PriceFormatter;
 use Kommercio\Facades\ProjectHelper;
 use Kommercio\Http\Controllers\Controller;
+use Kommercio\Http\Requests\Api\Order\ShippingMethodsFormRequest;
 use Kommercio\Http\Requests\Api\Order\OrderFormRequest;
 use Kommercio\Http\Resources\Order\DisabledDateCollection;
 use Kommercio\Http\Resources\Order\OrderLimitResource;
@@ -40,14 +41,46 @@ class OrderController extends Controller {
      * @param Request $request
      * @return JsonResponse
      */
-    public function shippingMethods(Request $request) {
+    public function shippingMethods(ShippingMethodsFormRequest $request) {
+        // If products is passed in, simulate free edit dummy order
+        if ($request->filled('products')) {
+            $lineItemsData = [];
+            foreach ($request->input('products', []) as $key => $productId) {
+                $product = Product::findById($productId);
+
+                $quantity = $request->input('quantities.' . $key, 1);
+
+                $lineItemsData[] = [
+                    'line_item_id' => $productId,
+                    'line_item_type' => 'product',
+                    'quantity' => $quantity,
+                    'net_price' => $product->getNetPrice(),
+                ];
+            }
+
+            $request->replace(array_merge(
+                $request->input(),
+                [
+                    'line_items' => $lineItemsData,
+                ]
+            ));
+        }
+
         $order = OrderHelper::createDummyOrderFromRequest($request);
 
-        $shippingOptions = ShippingMethod::getShippingMethods([
+        $getShippingOptions = [
             'order' => $order,
             'request' => $request,
             'frontend' => TRUE,
-        ]);
+        ];
+
+        // If shipping_method is passed, only get options from that shipping method
+        if ($request->filled('shipping_method')) {
+            $shippingMethod = ShippingMethod::findById($request->input('shipping_method'));
+            $shippingOptions = $shippingMethod->getPrices($getShippingOptions);
+        } else {
+            $shippingOptions = ShippingMethod::getShippingMethods($getShippingOptions);
+        }
 
         $collection = new Collection();
 
@@ -79,6 +112,12 @@ class OrderController extends Controller {
         return $response->response();
     }
 
+    /**
+     * Get available shipping methods
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
     public function paymentMethods(Request $request) {
         $order = OrderHelper::createDummyOrderFromRequest($request);
 
@@ -123,6 +162,7 @@ class OrderController extends Controller {
             'payment_method_id' => $paymentMethod->id,
             'currency' => $currency,
             'conversion_rate' => 1,
+            'notes' => $request->input('notes', null),
         ];
 
         if ($deliveryDateIsOn) {

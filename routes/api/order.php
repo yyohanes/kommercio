@@ -10,6 +10,11 @@ Route::prefix('public')
                 /**
                  * Get available shipping methods
                  * @param {int} store_id
+                 * @param {int} shipping_method
+                 * @param {array} quantities
+                 * @param {int} quantities.*
+                 * @param {array} products
+                 * @param {int} products.*
                  */
                 Route::get('/shipping-methods', [
                     'as' => 'api.frontend.order.shipping_methods',

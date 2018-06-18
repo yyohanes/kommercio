@@ -119,8 +119,6 @@ class OrderHelper
         $order->currency = $request->input('currency');
         $order->conversion_rate = 1;
 
-        $lineItems = $request->input('line_items', []);
-
         $order->lineItems = $this->processLineItems($request, $order, true, true);
 
         return $order;
@@ -130,7 +128,6 @@ class OrderHelper
     {
         $cartPriceRules = $this->getCartRules($request, $order, $freeEdit);
 
-        //$taxes = ProjectHelperFacade::getActiveStore()->getTaxes();
         $data = [
             'country_id' => $order->shippingInformation->country_id?:$request->input('shipping_profile.country_id'),
             'state_id' => $order->shippingInformation->state_id?:$request->input('shipping_profile.state_id'),
