@@ -405,10 +405,17 @@ class CustomValidator extends Validator
                     ];
                 }
 
+                $storeToCheck = $store_id ? : (!empty($order->store) ? $order->store->id : null);
+
+                // When order limit applies to all stores, order total should be counted from all stores
+                if (isset($orderLimit['object']) && empty($orderLimit['object']->store_id)) {
+                    $storeToCheck = null;
+                }
+
                 $orderCount = $product->getOrderCount([
                     'delivery_date' => $deliveryDateToCount,
                     'checkout_at' => $today,
-                    'store_id' => $store_id?:(!empty($order->store)?$order->store->id:null),
+                    'store_id' => $storeToCheck,
                 ]);
 
                 if(is_array($orderLimit) && $orderLimit['limit_type'] == $type){
@@ -450,10 +457,17 @@ class CustomValidator extends Validator
 
                 if(is_array($categoryOrderLimit)){
                     foreach($categoryOrderLimit['object']->productCategories as $productCategory){
+                        $storeToCheck = $store_id ? : (!empty($order->store) ? $order->store->id : null);
+
+                        // When order limit applies to all stores, order total should be counted from all stores
+                        if (isset($orderLimit['object']) && empty($orderLimit['object']->store_id)) {
+                            $storeToCheck = null;
+                        }
+
                         $categoryOrderCount = $productCategory->getOrderCount([
                             'delivery_date' => $deliveryDateToCount,
                             'checkout_at' => $today,
-                            'store_id' => $store_id?:(!empty($order->store)?$order->store->id:null),
+                            'store_id' => $storeToCheck,
                         ]);
 
                         $categoryLimitPassed = ($categoryOrderLimit['limit'] - $categoryOrderCount) >= $quantity;

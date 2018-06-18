@@ -1078,6 +1078,7 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface, Cac
                 ]);
 
                 // Limit is range based
+                $storeToCheck = $store_id;
                 $deliveryDate = $dayToRun->format('Y-m-d');
                 if ($dayProductOrderLimit['object'] && $dayProductOrderLimit['object']->limit_type === OrderLimit::LIMIT_DELIVERY_DATE_RANGE) {
                     $deliveryDate = [
@@ -1086,9 +1087,14 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface, Cac
                     ];
                 }
 
+                // When order limit applies to all stores, order total should be counted from all stores
+                if (isset($dayProductOrderLimit['object']) && empty($dayProductOrderLimit['object']->store_id)) {
+                    $storeToCheck = null;
+                }
+
                 $dayOrderCount = $this->getOrderCount([
                     'delivery_date' => $deliveryDate,
-                    'store_id' => $store_id,
+                    'store_id' => $storeToCheck,
                 ]);
 
                 if($dayToRun->format('j-n-Y') == $saved_delivery_date){
@@ -1123,9 +1129,16 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface, Cac
                             ];
                         }
 
+                        $storeToCheck = $store_id;
+
+                        // When order limit applies to all stores, order total should be counted from all stores
+                        if (isset($dayCategoryOrderLimit['object']) && empty($dayCategoryOrderLimit['object']->store_id)) {
+                            $storeToCheck = null;
+                        }
+
                         $dayCategoryOrderCount = $productCategory->getOrderCount([
                             'delivery_date' => $deliveryDate,
-                            'store_id' => $store_id,
+                            'store_id' => $storeToCheck,
                         ]);
 
                         if($dayCategoryOrderLimit['limit'] == 0 || $dayCategoryOrderCount + $quantity > $dayCategoryOrderLimit['limit']){
