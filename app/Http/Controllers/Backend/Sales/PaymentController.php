@@ -43,7 +43,7 @@ class PaymentController extends Controller{
 
         $paymentMethods = PaymentMethod::getPaymentMethods([
             'order' => $order
-        ]);
+        ], PaymentMethod::LOCATION_BACKOFFICE);
 
         $paymentMethodOptions = [];
         foreach($paymentMethods as $paymentMethod){
