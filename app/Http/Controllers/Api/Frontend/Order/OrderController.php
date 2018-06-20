@@ -243,7 +243,7 @@ class OrderController extends Controller {
         $order->updateShippingMethod($request->input('shipping_option'));
 
         try {
-            $this->placeOrder($request, $order);
+            $this->beforePlaceOrder($request, $order);
 
             // Final process payment
             $paymentResult = $this->processFinalPayment(
@@ -253,6 +253,15 @@ class OrderController extends Controller {
             );
         } catch (\Throwable $e) {
             report($e);
+        }
+
+        if (is_array($paymentResult)) {
+            return new JsonResponse(
+                [
+                    'errors' => $paymentResult,
+                ],
+                422
+            );
         }
 
         if ($request->input('_subscribe_newsletter', false) && $request->filled('billingProfile.email')) {
@@ -265,15 +274,6 @@ class OrderController extends Controller {
             } catch (\Throwable $e) {
                 \Log::error($e);
             }
-        }
-
-        if (is_array($paymentResult)) {
-            return new JsonResponse(
-                [
-                    'errors' => $paymentResult,
-                ],
-                422
-            );
         }
 
         $placedOrder = $this->processPlaceOrder($request, $order);
@@ -428,18 +428,10 @@ class OrderController extends Controller {
      * @return Order
      * @throws \Throwable
      */
-    protected function placeOrder(Request $request, Order $order) {
+    protected function beforePlaceOrder(Request $request, Order $order) {
         if (!empty($order->status) && !in_array($order->status, [Order::STATUS_CART, Order::STATUS_ADMIN_CART])) {
             throw new \Exception('Order status is not in cart.');
         }
-
-        $order->status = Order::STATUS_PENDING;
-        $order->checkout_at = Carbon::now();
-        $order->ip_address = $request->ip();
-        $order->user_agent = $request->header('User-Agent');
-        $order->generateReference();
-
-        Event::fire(new OrderEvent('before_order_placed', $order));
 
         $profileData = $order->billingInformation->getDetails();
         $customer = Customer::saveCustomer(
@@ -466,6 +458,8 @@ class OrderController extends Controller {
         $order->load('lineItems');
         $order->calculateTotal();
 
+        Event::fire(new OrderEvent('before_order_placed', $order));
+
         return $order;
     }
 
@@ -475,6 +469,12 @@ class OrderController extends Controller {
      * @return Order
      */
     protected function processPlaceOrder(Request $request, Order $order) {
+        $order->status = Order::STATUS_PENDING;
+        $order->checkout_at = Carbon::now();
+        $order->ip_address = $request->ip();
+        $order->user_agent = $request->header('User-Agent');
+        $order->generateReference();
+
         $order->processStocks();
 
         $order->saveData(['checkout_step' => 'complete'], TRUE);
