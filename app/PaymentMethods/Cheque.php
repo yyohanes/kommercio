@@ -5,7 +5,7 @@ namespace Kommercio\PaymentMethods;
 use Illuminate\Http\Request;
 use Kommercio\Models\PaymentMethod\PaymentMethod;
 
-class CompanyCredit extends PaymentMethodAbstract
+class Cheque extends PaymentMethodAbstract
 {
     /**
      * @inheritdoc
