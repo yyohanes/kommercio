@@ -4,6 +4,7 @@ namespace Kommercio\ShippingMethods;
 
 use Kommercio\Models\Order\DeliveryOrder\DeliveryOrder;
 use Kommercio\Models\ShippingMethod\ShippingMethod;
+use Kommercio\Models\Order\Order;
 
 abstract class ShippingMethodAbstract
 {
@@ -42,5 +43,10 @@ abstract class ShippingMethodAbstract
     public function customPackagingSlip(DeliveryOrder $deliveryOrder)
     {
         return false;
+    }
+
+    public function handleNewOrder(Order $order)
+    {
+        // Stub
     }
 }

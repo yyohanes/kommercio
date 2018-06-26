@@ -6,11 +6,11 @@
     'attr' => [
         'class' => 'form-control',
         'id' => 'postal_settings',
-        'placeholder' => 'zone-1|^01[0-9]{4}$|60|6|8|300|0',
+        'placeholder' => 'zone-1|^01[0-9]{4}$|60|6|8|300|0|30',
     ],
     'valueColumnClass' => 'col-md-6',
     'defaultValue' => old('postal_settings', $postalSettings),
-    'help_text' => 'Format: Zone Name (slugified)   |   Postal (Regex)  | Lead Time (Minute)    |   Capacity    |   Price   |   Minimum Amount  |   Maximum Amount  |   Free Shipping Minimum Amount',
+    'help_text' => 'Format: Zone Name (slugified)   |   Postal (Regex)  | Lead Time (Minute)    |   Capacity (Hourly)    |   Price   |   Minimum Amount  |   Maximum Amount  |   Free Shipping Minimum Amount   |   Limit',
 ])
 
 {!! Form::hidden('shipping_method', $shippingMethod->id) !!}

@@ -3,7 +3,6 @@
 namespace Kommercio\ShippingMethods;
 
 use Kommercio\Models\Order\DeliveryOrder\DeliveryOrder;
-use Kommercio\Models\Order\Order;
 use Kommercio\Models\ShippingMethod\ShippingMethod;
 
 interface ShippingMethodInterface

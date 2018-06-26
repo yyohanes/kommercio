@@ -6,8 +6,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Kommercio\Models\Address\Address;
+use Kommercio\Models\Order\Order;
 
-class SameDayDelivery extends ShippingMethodAbstract implements ShippingMethodSettingsInterface {
+class SameDayDelivery extends ShippingMethodAbstract implements ShippingMethodSettingsInterface
+{
     static public $table = 'shipping_same_day_delivery_configs';
 
     public function getAvailableMethods()
@@ -65,7 +67,7 @@ class SameDayDelivery extends ShippingMethodAbstract implements ShippingMethodSe
             return redirect()->back()
                 ->withErrors($validator)
                 ->withInput();
-        }else{
+        } else {
             $type = $address->addressType;
             $id = $address->id;
 
@@ -82,15 +84,20 @@ class SameDayDelivery extends ShippingMethodAbstract implements ShippingMethodSe
                 'data' => json_encode($config),
             ];
 
-            if($qb->count() > 0){
+            if ($qb->count() > 0) {
                 $qb->update($data);
-            }else{
+            } else {
                 DB::table(static::$table)->insert($data);
             }
 
             return redirect()->back()
                 ->with('success', ['Postal Code Delivery configuration for ' . $address->name . ' is successfully saved.']);
         }
+    }
+
+    public function handleNewOrder(Order $order)
+    {
+
     }
 
     public function renderAdditionalSetting()
@@ -101,6 +108,72 @@ class SameDayDelivery extends ShippingMethodAbstract implements ShippingMethodSe
     public function processAdditionalSetting(Request $request)
     {
         // Stub
+    }
+
+    /**
+     * @param string $postalCode
+     * @return array|null
+     */
+    public function getConfigByPostalCode(string $postalCode, Address $address)
+    {
+        $config = static::getConfig($address);
+        $postalSettings = isset($config['postal_settings']) ? $config['postal_settings'] : null;
+
+        if (empty($postalSettings)) return null;
+
+        $configLines = explode(PHP_EOL, $postalSettings);
+
+        foreach ($configLines as $configLine) {
+            try {
+                $parsedConfig = $this->parseConfigLine($configLine);
+                $pattern = $parsedConfig['postal_pattern'];
+
+                if (preg_match('/' . $pattern . '/i', $postalCode))
+                    return $parsedConfig;
+            } catch (\Exception $e) {
+                // Do nothing
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @param string $configLine
+     * @return array
+     * @throws \Exception
+     */
+    protected function parseConfigLine(string $configLine): array
+    {
+        $map = [
+            'zone_name',
+            'postal_pattern',
+            'lead_time',
+            'capacity',
+            'price',
+            'minimum_amount',
+            'maximum_amount',
+            'free_shipping_minimum',
+            'limit',
+        ];
+
+        $exploded = explode('|', $configLine);
+
+        if (count($exploded) !== count($map)) {
+            throw new \Exception('Config: "' . $configLine . '". ' . count($map) . ' parameters are needed.');
+        }
+
+        $config = [];
+
+        foreach ($exploded as $idx => $configItem) {
+            if (!isset($map[$idx])) {
+                throw new \Exception('Config: "' . $configLine . '". Out of bound config at index ' . $idx);
+            }
+
+            $config[$map[$idx]] = $configItem;
+        }
+
+        return $config;
     }
 
     protected static function getAddressConfig($address)
@@ -121,15 +194,15 @@ class SameDayDelivery extends ShippingMethodAbstract implements ShippingMethodSe
     {
         $config = static::getAddressConfig($address);
 
-        if(!$config){
+        if (!$config) {
             $parent = $address->getParent();
 
-            while($parent){
+            while ($parent) {
                 $config = static::getAddressConfig($parent);
 
-                if($config){
+                if ($config) {
                     return $config;
-                }else{
+                } else {
                     $parent = $parent->getParent();
                 }
             }
