@@ -26,7 +26,17 @@ class SameDayDelivery extends ShippingMethodAbstract implements ShippingMethodSe
 
     public function getPrices($options = null)
     {
-        return parent::getPrices($options);
+        $fee = 14.02;
+
+        $methods = $this->getAvailableMethods();
+        foreach ($methods as $methodId => &$method) {
+            $method['price'] = [
+                'currency' => 'sgd',
+                'amount' => $fee
+            ];
+        }
+
+        return $methods;
     }
 
     public function renderSettingView(Address $address)
@@ -130,8 +140,6 @@ class SameDayDelivery extends ShippingMethodAbstract implements ShippingMethodSe
 
     public static function additionalSettingValidation(Request $request)
     {
-        return [
-            'data.postal_settings' => 'required',
-        ];
+        return [];
     }
 }
