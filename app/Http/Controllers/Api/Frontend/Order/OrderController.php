@@ -19,6 +19,7 @@ use Kommercio\Facades\ProjectHelper;
 use Kommercio\Http\Controllers\Controller;
 use Kommercio\Http\Requests\Api\Order\ShippingMethodsFormRequest;
 use Kommercio\Http\Requests\Api\Order\OrderFormRequest;
+use Kommercio\Http\Resources\Order\DayAvailabilityResource;
 use Kommercio\Http\Resources\Order\DisabledDateCollection;
 use Kommercio\Http\Resources\Order\OrderLimitResource;
 use Kommercio\Http\Resources\Order\OrderResource;
@@ -360,6 +361,86 @@ class OrderController extends Controller {
         $disabledDateCollection = $disabledDateCollection->unique();
 
         $response = new DisabledDateCollection($disabledDateCollection->values());
+
+        return $response
+            ->response()
+            ->withHeaders([
+                'Cache-Control' => 'max-age=0, no-cache, must-revalidate, proxy-revalidate'
+            ]);
+    }
+
+    /**
+     * Get available times of given dates
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function daysAvailability(Request $request) {
+        $rules = [
+            'products' => [
+                'nullable',
+                'array',
+            ],
+            'products.*' => [
+                'nullable',
+                'integer',
+            ],
+            'dates' => [
+                'required',
+                'string',
+            ],
+            'shippingProfile' => [
+                'nullable',
+                'array',
+            ],
+            'shipping_method_id' => [
+                'required',
+                'integer',
+            ],
+        ];
+
+        $this->validate($request, $rules);
+
+        $dates = explode(',', $request->get('dates', ''));
+
+        $products = [];
+        $orderedQuantities = [];
+
+        foreach ($request->get('products', []) as $productId => $orderedQuantity) {
+            $product = Product::findById($productId);
+
+            if (!$product) continue;
+
+            $products[$productId] = $product;
+            $orderedQuantities[$productId] = $orderedQuantity;
+        }
+
+        $store = ProjectHelper::getStoreByRequest($request);
+
+        $options = [
+            'store' => $store,
+            'shippingProfile' => $request->input('shippingProfile'),
+        ];
+
+        $shippingMethod = ShippingMethod::findById($request->input('shipping_method_id'));
+
+        $returnedDates = [];
+        foreach ($dates as $date) {
+            // We rely on shipping method to give us available times
+            // TODO: Add availability-by-time feature?
+            try {
+                $returnedDates[$date] = $shippingMethod
+                    ->getProcessor()
+                    ->getDayAvailability(
+                        Carbon::createFromFormat('Y-m-d', $date),
+                        $options
+                    );
+            } catch (\Exception $e) {
+                report($e);
+            }
+        }
+
+        $response = new DayAvailabilityResource($returnedDates);
 
         return $response
             ->response()

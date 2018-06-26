@@ -44,6 +44,21 @@ Route::prefix('public')
                 ]);
 
                 /**
+                 * Returns available times of given dates
+                 *
+                 * @param {array} products ordered products. array key is product id and value is quantity
+                 * eg: products[3] = 10; products[4] = 1
+                 * @param {dates} dates list of dates in Y-m-d format to check
+                 * @param {int} store_id store to check
+                 * @param {int} shipping_method_id shipping method to check
+                 * @param {int} shipping_method_option shipping method option to check
+                 */
+                Route::get('/days-availability', [
+                    'as' => 'api.frontend.order.days_availability',
+                    'uses' => 'OrderController@daysAvailability',
+                ]);
+
+                /**
                  * Get per-order limits
                  * @param {int} store_id
                  * @param {date} date format Y-m-d
