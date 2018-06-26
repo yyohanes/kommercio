@@ -2,11 +2,13 @@
 
 namespace Kommercio\ShippingMethods;
 
+use Cocur\Slugify\Slugify;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Kommercio\Models\Address\Address;
 use Kommercio\Models\Order\Order;
+use Kommercio\Models\Tag;
 
 class SameDayDelivery extends ShippingMethodAbstract implements ShippingMethodSettingsInterface
 {
@@ -97,7 +99,27 @@ class SameDayDelivery extends ShippingMethodAbstract implements ShippingMethodSe
 
     public function handleNewOrder(Order $order)
     {
+        // TODO: Find lowest address config. Currently hard coded to Country
+        $address = $order->shippingInformation->country;
+        $postalConfig = $this->getConfigByPostalCode(
+            $order->shippingInformation->getAddress()['postal_code'],
+            $address
+        );
 
+        if (empty($postalConfig)) return;
+
+        // Tag order based on postal code zone
+        $zoneNameSlug = with(new Slugify())->slugify($postalConfig['zone_name']);
+        $zoneTag = Tag::findBySlug($zoneNameSlug);
+        if (!$zoneTag) {
+            $zoneTag = Tag::create([
+                'name' => $postalConfig['zone_name'],
+            ]);
+        }
+
+        $order->tags()->detach($zoneTag);
+        $order->tags()->attach($zoneTag);
+        $order->load('tags');
     }
 
     public function renderAdditionalSetting()
@@ -125,7 +147,7 @@ class SameDayDelivery extends ShippingMethodAbstract implements ShippingMethodSe
 
         foreach ($configLines as $configLine) {
             try {
-                $parsedConfig = $this->parseConfigLine($configLine);
+                $parsedConfig = $this->parseConfigLine(trim($configLine));
                 $pattern = $parsedConfig['postal_pattern'];
 
                 if (preg_match('/' . $pattern . '/i', $postalCode))
@@ -157,7 +179,7 @@ class SameDayDelivery extends ShippingMethodAbstract implements ShippingMethodSe
             'limit',
         ];
 
-        $exploded = explode('|', $configLine);
+        $exploded = explode(';', $configLine);
 
         if (count($exploded) !== count($map)) {
             throw new \Exception('Config: "' . $configLine . '". ' . count($map) . ' parameters are needed.');
