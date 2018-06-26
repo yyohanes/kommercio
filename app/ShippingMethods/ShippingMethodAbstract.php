@@ -2,6 +2,7 @@
 
 namespace Kommercio\ShippingMethods;
 
+use Carbon\Carbon;
 use Kommercio\Models\Order\DeliveryOrder\DeliveryOrder;
 use Kommercio\Models\ShippingMethod\ShippingMethod;
 use Kommercio\Models\Order\Order;
@@ -57,10 +58,11 @@ abstract class ShippingMethodAbstract
     /**
      * This method is intended to be used to get availability per day by time slots
      * This is not ready for use.
-     * @param Order $order
+     * @param Carbon $datetime
+     * @param array $options
      * @return array
      */
-    public function getDayAvailability(Order $order)
+    public function getDayAvailability(Carbon $datetime, array $options = [])
     {
         return [];
     }
