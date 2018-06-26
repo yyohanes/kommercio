@@ -45,8 +45,23 @@ abstract class ShippingMethodAbstract
         return false;
     }
 
+    /**
+     * Method called on new order
+     * @param Order $order
+     */
     public function handleNewOrder(Order $order)
     {
         // Stub
+    }
+
+    /**
+     * This method is intended to be used to get availability per day by time slots
+     * This is not ready for use.
+     * @param Order $order
+     * @return array
+     */
+    public function getDayAvailability(Order $order)
+    {
+        return [];
     }
 }

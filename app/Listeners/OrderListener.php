@@ -48,10 +48,17 @@ class OrderListener
 
     protected function placeOrder(Order $order, $internal = false)
     {
-        //Generate invoice if not yet created. Possible by payment
+        // Generate invoice if not yet created. Possible by payment
         if($order->invoices->count() < 1){
             Invoice::createInvoice($order);
             $order->load('invoices');
+        }
+
+        // Give shipping method a chance to handle new order
+        try {
+            $order->getShippingMethod()->getProcessor()->handleNewOrder($order);
+        } catch (\Exception $e) {
+            \Log::error($e);
         }
 
         if(!$internal){
