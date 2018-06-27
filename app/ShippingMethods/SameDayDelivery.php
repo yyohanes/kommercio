@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Kommercio\Models\Address\Address;
 use Kommercio\Models\Order\Order;
+use Kommercio\Models\Store;
 use Kommercio\Models\Tag;
 
 class SameDayDelivery extends ShippingMethodAbstract implements ShippingMethodSettingsInterface
@@ -118,12 +119,20 @@ class SameDayDelivery extends ShippingMethodAbstract implements ShippingMethodSe
         $order->load('tags');
 
         // Add lead time to delivery time
-        $leadTime = $postalConfig['lead_time'];
-        $now = Carbon::now()->modify('+ ' . $leadTime .' minutes');
+        $leadTime = round($postalConfig['lead_time'] / 60);
+        $capacity = $postalConfig['capacity'];
+
+        $now = Carbon::now();
+        $dateTimeFrom = $order->delivery_date->setTimeFrom($now);
+        $dateTimeTo = clone $dateTimeFrom;
+        $dateTimeTo->addHour($leadTime);
+
+        $orderCount = $this->getOrderCount($postalConfig['zone_name'], $order->store, $dateTimeFrom, $dateTimeTo);
+        $availableInterval = ($orderCount / $capacity) < $capacity ? $leadTime : floor($orderCount / $capacity) * $leadTime + 1;
 
         /** @var Carbon $deliveryDateTime */
-        $deliveryDateTime = $order->delivery_date;
-        $deliveryDateTime->setTime($now->hour, $now->minute);
+        $deliveryDateTime = $now;
+        $deliveryDateTime->addHour($availableInterval);
 
         $order->update([
             'delivery_date' => $deliveryDateTime,
@@ -144,24 +153,19 @@ class SameDayDelivery extends ShippingMethodAbstract implements ShippingMethodSe
             );
 
             if ($postalConfig) {
-                $zoneTag = $this->getZoneTag($postalConfig['zone_name']);
-
-                $orderCount = Order
-                    ::whereHas('tags', function($qb) use ($zoneTag, $store) {
-                        $qb->where('id', $zoneTag->id);
-                    })
-                    ->where('store_id', $store->id)
-                    ->whereRaw('DATE_FORMAT(delivery_date, \'%Y-%m-%d\') = ?', [$datetime->format('Y-m-d')])
-                    ->usageCounted()
-                    ->count()
-                ;
-
+                $leadTime = round($postalConfig['lead_time'] / 60);
                 $limit = intval($postalConfig['limit']);
                 $capacity = intval($postalConfig['capacity']);
 
+                $now = Carbon::now();
+                $dateTimeFrom = $datetime->setTimeFrom($now);
+                $dateTimeTo = clone $dateTimeFrom;
+                $dateTimeTo->addMinute($postalConfig['lead_time']);
+
+                $orderCount = $this->getOrderCount($postalConfig['zone_name'], $store, $dateTimeFrom, $dateTimeTo);
+
                 if ($limit > 0 && $orderCount < $limit) {
-                    $availableInterval = intval(ceil($orderCount / $capacity));
-                    $availableInterval = $availableInterval === 0 ? 1 : $availableInterval;
+                    $availableInterval = ($orderCount / $capacity) < $capacity ? $leadTime : floor($orderCount / $capacity) * $leadTime + 1;
 
                     $nextHour = Carbon::now()->addHour($availableInterval);
                     $times[] = $nextHour->format('H:i:s');
@@ -246,6 +250,22 @@ class SameDayDelivery extends ShippingMethodAbstract implements ShippingMethodSe
         }
 
         return $config;
+    }
+
+    private function getOrderCount(string $zoneName, Store $store, $dateTimeFrom, $dateTimeTo)
+    {
+        $zoneTag = $this->getZoneTag($zoneName);
+
+        return Order
+            ::whereHas('tags', function($qb) use ($zoneTag, $store) {
+                $qb->where('id', $zoneTag->id);
+            })
+            ->where('store_id', $store->id)
+            ->where('delivery_date', '>=', $dateTimeFrom->format('Y-m-d H:i:s'))
+            ->where('delivery_date', '<=', $dateTimeTo->format('Y-m-d H:i:s'))
+            ->usageCounted()
+            ->count()
+        ;
     }
 
     private function getZoneTag(string $zoneName): Tag
