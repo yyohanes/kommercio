@@ -2,6 +2,7 @@
 
 namespace Kommercio\ShippingMethods;
 
+use Carbon\Carbon;
 use Cocur\Slugify\Slugify;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -97,6 +98,7 @@ class SameDayDelivery extends ShippingMethodAbstract implements ShippingMethodSe
         }
     }
 
+    /** @inheritdoc */
     public function handleNewOrder(Order $order)
     {
         // TODO: Find lowest address config. Currently hard coded to Country
@@ -109,17 +111,65 @@ class SameDayDelivery extends ShippingMethodAbstract implements ShippingMethodSe
         if (empty($postalConfig)) return;
 
         // Tag order based on postal code zone
-        $zoneNameSlug = with(new Slugify())->slugify($postalConfig['zone_name']);
-        $zoneTag = Tag::findBySlug($zoneNameSlug);
-        if (!$zoneTag) {
-            $zoneTag = Tag::create([
-                'name' => $postalConfig['zone_name'],
-            ]);
-        }
+        $zoneTag = $this->getZoneTag($postalConfig['zone_name']);
 
         $order->tags()->detach($zoneTag);
         $order->tags()->attach($zoneTag);
         $order->load('tags');
+
+        // Add lead time to delivery time
+        $leadTime = $postalConfig['lead_time'];
+        $now = Carbon::now()->modify('+ ' . $leadTime .' minutes');
+
+        /** @var Carbon $deliveryDateTime */
+        $deliveryDateTime = $order->delivery_date;
+        $deliveryDateTime->setTime($now->hour, $now->minute);
+
+        $order->update([
+            'delivery_date' => $deliveryDateTime,
+        ]);
+    }
+
+    /** @inheritdoc */
+    public function getDayAvailability(Carbon $datetime, array $options = [])
+    {
+        $times = [];
+        $shippingProfile = $options['shippingProfile'] ?? [];
+        $store = $options['store'] ?? null;
+
+        if ($store && isset($shippingProfile['postal_code'])) {
+            $postalConfig = $this->getConfigByPostalCode(
+                $shippingProfile['postal_code'],
+                $store->country
+            );
+
+            if ($postalConfig) {
+                $zoneTag = $this->getZoneTag($postalConfig['zone_name']);
+
+                $orderCount = Order
+                    ::whereHas('tags', function($qb) use ($zoneTag, $store) {
+                        $qb->where('id', $zoneTag->id);
+                    })
+                    ->where('store_id', $store->id)
+                    ->whereRaw('DATE_FORMAT(delivery_date, \'%Y-%m-%d\') = ?', [$datetime->format('Y-m-d')])
+                    ->usageCounted()
+                    ->count()
+                ;
+
+                $limit = intval($postalConfig['limit']);
+                $capacity = intval($postalConfig['capacity']);
+
+                if ($limit > 0 && $orderCount < $limit) {
+                    $availableInterval = intval(ceil($orderCount / $capacity));
+                    $availableInterval = $availableInterval === 0 ? 1 : $availableInterval;
+
+                    $nextHour = Carbon::now()->addHour($availableInterval);
+                    $times[] = $nextHour->format('H:i:s');
+                }
+            }
+        }
+
+        return $times;
     }
 
     public function renderAdditionalSetting()
@@ -196,6 +246,19 @@ class SameDayDelivery extends ShippingMethodAbstract implements ShippingMethodSe
         }
 
         return $config;
+    }
+
+    private function getZoneTag(string $zoneName): Tag
+    {
+        $zoneNameSlug = with(new Slugify())->slugify($zoneName);
+        $zoneTag = Tag::findBySlug($zoneNameSlug);
+        if (!$zoneTag) {
+            $zoneTag = Tag::create([
+                'name' => $zoneName,
+            ]);
+        }
+
+        return $zoneTag;
     }
 
     protected static function getAddressConfig($address)
