@@ -351,7 +351,9 @@ class OrderController extends Controller{
             ];
 
             if(config('project.enable_delivery_date', false)){
-                $rowMeat[] = $order->delivery_date?$order->delivery_date->format('d M Y'):'';
+                $deliveryDate = $order->delivery_date ? $order->delivery_date->format('d M Y') : '';
+                $deliveryTime = $order->delivery_date ? $order->delivery_date->format('H:i:s') : '';
+                $rowMeat[] = $deliveryTime === '00:00:00' ? $deliveryDate : $order->delivery_date->format('d M Y H:i');
             }
 
             $rowMeat = array_merge($rowMeat, [
