@@ -34,7 +34,7 @@ class SameDayDelivery extends ShippingMethodAbstract implements ShippingMethodSe
 
     public function getPrices($options = null)
     {
-        $fee = 14.02;
+        $fee = 0;
 
         $methods = $this->getAvailableMethods();
         foreach ($methods as $methodId => &$method) {
