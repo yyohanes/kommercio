@@ -7,6 +7,8 @@ use Cocur\Slugify\Slugify;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Kommercio\Facades\EmailHelper;
+use Kommercio\Facades\ProjectHelper;
 use Kommercio\Models\Address\Address;
 use Kommercio\Models\Order\Order;
 use Kommercio\Models\Store;
@@ -124,11 +126,9 @@ class SameDayDelivery extends ShippingMethodAbstract implements ShippingMethodSe
 
         $now = Carbon::now();
         $dateTimeFrom = $order->delivery_date->setTimeFrom($now);
-        $dateTimeTo = clone $dateTimeFrom;
-        $dateTimeTo->addHour($leadTime);
 
-        $orderCount = $this->getOrderCount($postalConfig['zone_name'], $order->store, $dateTimeFrom, $dateTimeTo);
-        $availableInterval = ($orderCount / $capacity) < $capacity ? $leadTime : floor($orderCount / $capacity) * $leadTime + 1;
+        $orderCount = $this->getOrderCount($postalConfig['zone_name'], $order->store, $dateTimeFrom);
+        $availableInterval = $orderCount < $capacity ? $leadTime : ceil($orderCount / $capacity) * $leadTime;
 
         /** @var Carbon $deliveryDateTime */
         $deliveryDateTime = $now;
@@ -137,6 +137,26 @@ class SameDayDelivery extends ShippingMethodAbstract implements ShippingMethodSe
         $order->update([
             'delivery_date' => $deliveryDateTime,
         ]);
+
+        // TODO: remove this when event is over
+        // World cup delivery van
+        if ($order->getShippingMethod() && $order->getShippingMethod()->class === 'SameDayDelivery') {
+            $subject = 'There is new order #' . $order->reference;
+
+            try {
+                EmailHelper::sendMail(
+                    'redha@kronoslogistic.com',
+                    $subject,
+                    ProjectHelper::getViewTemplate('order.third_party_logistic.confirmation'),
+                    [
+                        'order' => $order,
+                    ],
+                    'general'
+                );
+            } catch (\Exception $e) {
+                \Log::error($e);
+            }
+        }
     }
 
     /** @inheritdoc */
@@ -162,13 +182,15 @@ class SameDayDelivery extends ShippingMethodAbstract implements ShippingMethodSe
                 $dateTimeTo = clone $dateTimeFrom;
                 $dateTimeTo->addMinute($postalConfig['lead_time']);
 
-                $orderCount = $this->getOrderCount($postalConfig['zone_name'], $store, $dateTimeFrom, $dateTimeTo);
+                $orderCount = $this->getOrderCount($postalConfig['zone_name'], $store, $dateTimeFrom);
 
                 if ($limit > 0 && $orderCount < $limit) {
-                    $availableInterval = $orderCount < $capacity ? $leadTime : floor($orderCount / $capacity) * $leadTime + 1;
+                    $availableInterval = $orderCount < $capacity ? $leadTime : ceil($orderCount / $capacity) * $leadTime;
 
                     $nextHour = Carbon::now()->addHour($availableInterval);
-                    $times[] = $nextHour->format('H:i:s');
+                    $times[$nextHour->format('Y-m-d')] = [
+                        $nextHour->format('H:i:s')
+                    ];
                 }
             }
         }
@@ -252,19 +274,24 @@ class SameDayDelivery extends ShippingMethodAbstract implements ShippingMethodSe
         return $config;
     }
 
-    private function getOrderCount(string $zoneName, Store $store, $dateTimeFrom, $dateTimeTo)
+    private function getOrderCount(string $zoneName, Store $store, $dateTimeFrom, $dateTimeTo = null)
     {
         $zoneTag = $this->getZoneTag($zoneName);
 
-        return Order
+        $qb = Order
             ::whereHas('tags', function($qb) use ($zoneTag, $store) {
                 $qb->where('id', $zoneTag->id);
             })
             ->where('store_id', $store->id)
-            ->whereBetween('delivery_date', [$dateTimeFrom, $dateTimeTo])
-            ->usageCounted()
-            ->count()
-        ;
+            ->where('delivery_date', '>=', $dateTimeFrom)
+            ->usageCounted();
+
+        if ($dateTimeTo) {
+            $qb->where('delivery_date', '<=', $dateTimeTo);
+        }
+
+
+        return $qb->count();
     }
 
     private function getZoneTag(string $zoneName): Tag
