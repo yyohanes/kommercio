@@ -165,7 +165,7 @@ class SameDayDelivery extends ShippingMethodAbstract implements ShippingMethodSe
                 $orderCount = $this->getOrderCount($postalConfig['zone_name'], $store, $dateTimeFrom, $dateTimeTo);
 
                 if ($limit > 0 && $orderCount < $limit) {
-                    $availableInterval = ($orderCount / $capacity) < $capacity ? $leadTime : floor($orderCount / $capacity) * $leadTime + 1;
+                    $availableInterval = $orderCount < $capacity ? $leadTime : floor($orderCount / $capacity) * $leadTime + 1;
 
                     $nextHour = Carbon::now()->addHour($availableInterval);
                     $times[] = $nextHour->format('H:i:s');
@@ -261,8 +261,7 @@ class SameDayDelivery extends ShippingMethodAbstract implements ShippingMethodSe
                 $qb->where('id', $zoneTag->id);
             })
             ->where('store_id', $store->id)
-            ->where('delivery_date', '>=', $dateTimeFrom->format('Y-m-d H:i:s'))
-            ->where('delivery_date', '<=', $dateTimeTo->format('Y-m-d H:i:s'))
+            ->whereBetween('delivery_date', [$dateTimeFrom, $dateTimeTo])
             ->usageCounted()
             ->count()
         ;
