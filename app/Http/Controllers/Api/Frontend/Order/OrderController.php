@@ -429,12 +429,15 @@ class OrderController extends Controller {
             // We rely on shipping method to give us available times
             // TODO: Add availability-by-time feature?
             try {
-                $returnedDates[$date] = $shippingMethod
-                    ->getProcessor()
-                    ->getDayAvailability(
-                        Carbon::createFromFormat('Y-m-d', $date),
-                        $options
-                    );
+                $returnedDates = array_merge(
+                    $returnedDates,
+                    $shippingMethod
+                        ->getProcessor()
+                        ->getDayAvailability(
+                            Carbon::createFromFormat('Y-m-d', $date),
+                            $options
+                        )
+                );
             } catch (\Exception $e) {
                 report($e);
             }
