@@ -36,11 +36,22 @@ class SameDayDelivery extends ShippingMethodAbstract implements ShippingMethodSe
     {
         $fee = 0;
 
+        if ($options['order']) {
+            $store = $options['order']->store;
+
+            $config = static::getConfig($store->country);
+            $outOfStock = !empty($config['out_of_stock']);
+        }
+
         $methods = $this->getAvailableMethods();
         foreach ($methods as $methodId => &$method) {
             $method['price'] = [
                 'currency' => 'sgd',
                 'amount' => $fee
+            ];
+
+            $method['extra_data'] = [
+                'out_of_stock' => $outOfStock,
             ];
         }
 
@@ -51,9 +62,11 @@ class SameDayDelivery extends ShippingMethodAbstract implements ShippingMethodSe
     {
         $config = static::getConfig($address);
         $postalSettings = isset($config['postal_settings']) ? $config['postal_settings'] : null;
+        $outOfStock = isset($config['out_of_stock']) ? $config['out_of_stock'] : null;
 
         return view('backend.shipping_method.same_day_delivery.setting_form', [
             'postalSettings' => $postalSettings,
+            'outOfStock' => $outOfStock,
             'shippingMethod' => $this->shippingMethod,
         ])->render();
     }
@@ -64,6 +77,9 @@ class SameDayDelivery extends ShippingMethodAbstract implements ShippingMethodSe
             'postal_settings' => [
                 'required',
                 'string',
+            ],
+            'out_of_stock' => [
+                'boolean',
             ],
         ];
 
@@ -84,6 +100,11 @@ class SameDayDelivery extends ShippingMethodAbstract implements ShippingMethodSe
             $config = [
                 'postal_settings' => $request->input('postal_settings'),
             ];
+
+            if ($request->input('out_of_stock')) {
+                $config['out_of_stock'] = true;
+            }
+
             $data = [
                 'address_type' => $type,
                 'address_id' => $id,
