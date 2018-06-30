@@ -128,7 +128,7 @@ class SameDayDelivery extends ShippingMethodAbstract implements ShippingMethodSe
         $dateTimeFrom = $order->delivery_date->setTimeFrom($now);
 
         $orderCount = $this->getOrderCount($postalConfig['zone_name'], $order->store, $dateTimeFrom);
-        $availableInterval = $orderCount < $capacity ? $leadTime : ceil($orderCount / $capacity) * $leadTime;
+        $availableInterval = $orderCount < $capacity ? $leadTime : (floor($orderCount / $capacity) + 1) * $leadTime;
 
         /** @var Carbon $deliveryDateTime */
         $deliveryDateTime = $now;
@@ -145,7 +145,7 @@ class SameDayDelivery extends ShippingMethodAbstract implements ShippingMethodSe
 
             try {
                 EmailHelper::sendMail(
-                    'redha@kronoslogistic.com',
+                    'redha.shamsul@gmail.com',
                     $subject,
                     ProjectHelper::getViewTemplate('order.third_party_logistic.confirmation'),
                     [
@@ -185,7 +185,7 @@ class SameDayDelivery extends ShippingMethodAbstract implements ShippingMethodSe
                 $orderCount = $this->getOrderCount($postalConfig['zone_name'], $store, $dateTimeFrom);
 
                 if ($limit > 0 && $orderCount < $limit) {
-                    $availableInterval = $orderCount < $capacity ? $leadTime : ceil($orderCount / $capacity) * $leadTime;
+                    $availableInterval = $orderCount < $capacity ? $leadTime : (floor($orderCount / $capacity) + 1) * $leadTime;
 
                     $nextHour = Carbon::now()->addHour($availableInterval);
                     $times[$nextHour->format('Y-m-d')] = [
