@@ -32,6 +32,7 @@ class ShippingOptionResource extends Resource {
                     'decimalSeparator' => $currency['decimal_separator'],
                 ],
             ],
+            'extraData' => $shippingOption['extra_data'] ?? [],
             'shippingMethod' => new ShippingMethodResource($shippingMethod),
         ];
     }
