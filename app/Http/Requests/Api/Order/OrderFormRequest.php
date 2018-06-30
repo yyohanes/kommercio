@@ -136,6 +136,15 @@ class OrderFormRequest extends \Illuminate\Foundation\Http\FormRequest {
             ],
         ];
 
+        // HACK
+        // TODO: Remove this when world cup delivery is done
+        // TODO: Planning to do event / listener based rules modification by project
+        $isWorldCupDelivery = false;
+        if ($request->input('shipping_method')) {
+            $shippingMethod = ShippingMethod::findById($request->input('shipping_method'));
+            $isWorldCupDelivery = $shippingMethod && $shippingMethod->class === 'SameDayDelivery';
+        }
+
         foreach ($request->input('products', []) as $key => $productId) {
             $quantity = $request->input('quantities.' . $key, null);
 
@@ -154,7 +163,12 @@ class OrderFormRequest extends \Illuminate\Foundation\Http\FormRequest {
             $productRules[] = 'today_order_limit:' . $quantity . ',,' . $request->input('store_id');
 
             if (ProjectHelper::getConfig('enable_delivery_date', FALSE)) {
-                $productRules[] = 'delivery_order_limit:' . $quantity . ',,' . $request->input('delivery_date') . ',' . $request->input('store_id');
+                // HACK
+                // TODO: Remove this when world cup delivery is done and uncomment below line
+                // $productRules[] = 'delivery_order_limit:' . $quantity . ',,' . $request->input('delivery_date') . ',' . $request->input('store_id');
+                if (!$isWorldCupDelivery) {
+                    $productRules[] = 'delivery_order_limit:' . $quantity . ',,' . $request->input('delivery_date') . ',' . $request->input('store_id');
+                }
             }
 
             $rules['products.' . $key] = $productRules;
