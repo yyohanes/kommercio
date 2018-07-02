@@ -467,7 +467,13 @@ class OrderController extends Controller{
         $customer = Customer::getByEmail($request->input('profile.email'));
 
         $order->notes = $request->input('notes');
-        $order->delivery_date = $request->input('delivery_date', null);
+
+        $deliveryDate = $request->input('delivery_date', null);
+        if ($deliveryDate && $request->input('delivery_time', null)) {
+            $deliveryDate .= ' ' . $request->input('delivery_time');
+        }
+        $order->delivery_date = $deliveryDate;
+
         $order->payment_method_id = $request->input('payment_method', null);
         $order->currency = $request->input('currency');
         $order->conversion_rate = 1;
@@ -801,7 +807,12 @@ class OrderController extends Controller{
 
         $customer = Customer::getByEmail($request->input('profile.email'));
 
-        $order->delivery_date = $request->input('delivery_date', null);
+        $deliveryDate = $request->input('delivery_date', null);
+        if ($deliveryDate && $request->input('delivery_time', null)) {
+            $deliveryDate .= ' ' . $request->input('delivery_time');
+        }
+        $order->delivery_date = $deliveryDate;
+
         $order->notes = $request->input('notes');
         $order->payment_method_id = $request->input('payment_method', null);
         $order->currency = $request->input('currency');

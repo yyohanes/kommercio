@@ -44,6 +44,7 @@ class OrderFormRequest extends Request
 
         if(config('project.enable_delivery_date', FALSE)){
             $rules['delivery_date'] = 'required|date_format:Y-m-d';
+            $rules['delivery_time'] = 'nullable|date_format:H:i:s';
         }
 
         foreach($this->input('line_items', []) as $idx => $lineItem){
