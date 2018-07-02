@@ -112,6 +112,21 @@
                             'defaultValue' => old('delivery_date', $order->delivery_date?$order->delivery_date->format('Y-m-d'):null)
                         ])
                     </div>
+
+                    <div id="delivery-date-time">
+                        @include('backend.master.form.fields.text', [
+                            'name' => 'delivery_time',
+                            'label' => 'Delivery Time',
+                            'key' => 'delivery_time',
+                            'attr' => [
+                                'class' => 'form-control',
+                                'id' => 'delivery_time',
+                                'placeholder' => \Carbon\Carbon::now()->format('H:i:s'),
+                            ],
+                            'defaultValue' => old('delivery_time', $order->delivery_date ? $order->delivery_date->format('H:i:s') : null),
+                            'helpText' => 'This is only relevant for Same Day Delivery',
+                        ])
+                    </div>
                 @endif
 
                 @php
