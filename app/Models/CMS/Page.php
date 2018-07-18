@@ -139,7 +139,7 @@ class Page extends Model implements UrlAliasInterface, SeoModelInterface, Cachea
         return $page;
     }
 
-    public static function getPageBySlug($slug)
+    public static function getBySlug($slug)
     {
         $tableName = (new static)->getTable();
         $page = Cache::remember($tableName. '_' . $slug, 3600, function() use ($slug) {

@@ -66,6 +66,16 @@ class Block extends Model implements CacheableInterface
     }
 
     // Statics
+    public static function findById($id)
+    {
+        $tableName = (new static)->getTable();
+        $bannerGroup = Cache::remember($tableName. '_' . $id, 3600, function() use ($id) {
+            return static::find($id);
+        });
+
+        return $bannerGroup;
+    }
+
     public static function getBySlug($machine_name)
     {
         $block = Cache::rememberForever(with(new self())->getTable().'_'.$machine_name, function () use ($machine_name) {

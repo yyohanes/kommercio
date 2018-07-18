@@ -20,6 +20,8 @@ Route::group(
             'order.php',
             'store.php',
             'address.php',
+            'banner.php',
+            'block.php',
         ];
 
         foreach ($routes as $route) {

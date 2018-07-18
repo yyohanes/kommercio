@@ -30,7 +30,30 @@ class BannerGroup extends SluggableModel implements CacheableInterface
         $table = $this->getTable();
 
         return [
-            $table.'_'.$this->id.'_active_banners'
+            $table . '_' . $this->slug,
+            $table . '_' . $this->id,
+            $table . '_' . $this->id . '_active_banners',
         ];
+    }
+
+    // Statics
+    public static function findById($id)
+    {
+        $tableName = (new static)->getTable();
+        $bannerGroup = Cache::remember($tableName. '_' . $id, 3600, function() use ($id) {
+            return static::find($id);
+        });
+
+        return $bannerGroup;
+    }
+
+    public static function getBySlug($slug)
+    {
+        $tableName = (new static)->getTable();
+        $bannerGroup = Cache::remember($tableName. '_' . $slug, 3600, function() use ($slug) {
+            return self::where('slug', $slug)->first();
+        });
+
+        return $bannerGroup;
     }
 }

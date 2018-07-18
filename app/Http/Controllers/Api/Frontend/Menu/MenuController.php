@@ -27,11 +27,11 @@ class MenuController extends Controller {
             $menu->getTable() . '_' . $menu->id . '.active_menu_items',
             3600,
             function() use ($menu) {
-                $menuItems = $menu->menuItems;
+                $menuItems = $menu->rootMenuItems;
 
                 return $menuItems->filter(function($menuItem) {
                     return $menuItem->active;
-                });
+                })->values();
             }
         );
 

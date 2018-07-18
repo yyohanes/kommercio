@@ -19,7 +19,7 @@ class MenuItemResource extends Resource {
             'urlTarget' => $menuItem->target,
             'urlAlias' => $menuItem->externalPath,
             'sortOrder' => $menuItem->sort_order,
-            'isActive' => !empty($menuItem->active),
+            'active' => !empty($menuItem->active),
             'children' => static::collection($menuItem->children),
         ];
     }

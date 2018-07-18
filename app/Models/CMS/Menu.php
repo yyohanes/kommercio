@@ -98,7 +98,7 @@ class Menu extends SluggableModel implements CacheableInterface
         $rootMenuItems = Cache::rememberForever($this->getTable().'_'.$this->id.'.root_menu_items', function(){
             return $this->menuItems->filter(function($value, $key){
                 return empty($value->parent_id);
-            });
+            })->values();
         });
 
         return $rootMenuItems;

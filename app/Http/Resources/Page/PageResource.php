@@ -12,7 +12,7 @@ class PageResource extends Resource {
         /** @var Page $page */
         $page = $this->resource;
 
-        return [
+        $response = [
             'id' => $page->id,
             'name' => $page->name,
             'slug' => $page->slug,
@@ -23,5 +23,7 @@ class PageResource extends Resource {
             'sortOrder' => $page->sort_order,
             'active' => !empty($page->active),
         ];
+
+        return $response;
     }
 }

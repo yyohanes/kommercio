@@ -23,7 +23,7 @@ class Banner extends Model implements CacheableInterface
         'active' => 'boolean',
     ];
 
-    public $fillable = ['name', 'body', 'banner_group_id', 'menu_class', 'active', 'sort_order'];
+    public $fillable = ['name', 'body', 'banner_group_id', 'active', 'sort_order'];
     public $translatedAttributes = ['name', 'body', 'image', 'images', 'videos'];
     protected $toggleFields = ['active'];
 

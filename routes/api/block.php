@@ -3,13 +3,13 @@
 Route::prefix('public')
     ->namespace('Api\Frontend')
     ->group(function() {
-        Route::prefix('store')
-            ->namespace('Store')
+        Route::prefix('block')
+            ->namespace('Block')
             ->group(function() {
 
                 Route::get('/', [
-                    'as' => 'api.frontend.store.get',
-                    'uses' => 'StoreController@get',
+                    'as' => 'api.frontend.block.get',
+                    'uses' => 'BlockController@get',
                 ]);
             });
     });
