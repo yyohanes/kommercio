@@ -130,7 +130,7 @@ class ExportController extends Controller
             $data = [];
 
             if($rowNumber == 0){
-                $headers = ['salute', 'first_name', 'last_name', 'email', 'phone_number', 'address_1', 'address_2', 'area', 'district', 'city', 'state', 'country', 'postal_code', 'customer_since', 'birthday'];
+                $headers = ['salute', 'first_name', 'last_name', 'email', 'phone_number', 'address_1', 'address_2', 'area', 'district', 'city', 'state', 'country', 'postal_code', 'customer_since', 'last_seen', 'birthday'];
 
                 if (Gate::allows('access', ['view_sales_report'])) {
                     $headers = array_merge($headers, [
@@ -164,6 +164,7 @@ class ExportController extends Controller
                         $addressFields['country'],
                         $addressFields['postal_code'],
                         $customer->created_at->format('d M Y, H:i:s'),
+                        $customer->last_active ? $customer->last_active->format('d M Y, H:i:s') : '',
                         $customer->getProfile()->birthday?\Carbon\Carbon::createFromFormat('Y-m-d', $customer->getProfile()->birthday)->format('d M Y'):''
                     ];
 
