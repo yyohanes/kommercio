@@ -8,6 +8,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Gate;
 use Kommercio\Facades\AddressHelper;
 use Kommercio\Http\Controllers\Backend\Report\ReportController;
 use Kommercio\Http\Requests;
@@ -129,7 +130,16 @@ class ExportController extends Controller
             $data = [];
 
             if($rowNumber == 0){
-                $data[] = ['salute', 'first_name', 'last_name', 'email', 'phone_number', 'address_1', 'address_2', 'area', 'district', 'city', 'state', 'country', 'postal_code', 'customer_since', 'birthday'];
+                $headers = ['salute', 'first_name', 'last_name', 'email', 'phone_number', 'address_1', 'address_2', 'area', 'district', 'city', 'state', 'country', 'postal_code', 'customer_since', 'birthday'];
+
+                if (Gate::allows('access', ['view_sales_report'])) {
+                    $headers = array_merge($headers, [
+                        'num_orders',
+                        'orders_total',
+                    ]);
+                }
+
+                $data[] = $headers;
             }
 
             foreach($ids as $customerId){
@@ -139,7 +149,7 @@ class ExportController extends Controller
                 if($customer){
                     $addressFields = AddressHelper::extractAddressFields($customer->getProfile()->getAddress());
 
-                    $data[] = [
+                    $rowData = [
                         $customer->salute?Customer::getSaluteOptions($customer->salute):'',
                         $customer->getProfile()->first_name,
                         $customer->getProfile()->last_name,
@@ -156,6 +166,17 @@ class ExportController extends Controller
                         $customer->created_at->format('d M Y, H:i:s'),
                         $customer->getProfile()->birthday?\Carbon\Carbon::createFromFormat('Y-m-d', $customer->getProfile()->birthday)->format('d M Y'):''
                     ];
+
+                    if (Gate::allows('access', ['view_sales_report'])) {
+                        $orders = Order::whereIn('status', Order::getUsageCountedStatus())
+                            ->where('customer_id', $customer->id)->get();
+                        $rowData = array_merge($rowData, [
+                            $orders->count(),
+                            $orders->sum('total'),
+                        ]);
+                    }
+
+                    $data[] = $rowData;
                 }
             }
 

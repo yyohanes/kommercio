@@ -138,6 +138,7 @@ class CustomerController extends Controller{
             $rowMeat = array_merge($rowMeat, [
                 $customer->created_at?$customer->created_at->format('d M Y H:i'):'',
                 $customer->last_active?$customer->last_active->format('d M Y H:i'):'',
+                number_format($customer->total_orders),
                 PriceFormatter::formatNumber($customer->total),
                 $customerAction
             ]);

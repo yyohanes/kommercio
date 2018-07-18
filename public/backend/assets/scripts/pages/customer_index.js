@@ -29,8 +29,9 @@ var CustomerIndex = function () {
       columnDefs = columnDefs.concat([
         {"name": "created_at", "targets": 6+runtimeAdditonalColumns},
         {"name": "last_active", "targets": 7+runtimeAdditonalColumns},
-        {"name": "total", "targets": 8+runtimeAdditonalColumns},
-        {"name": "action", "orderable" : false, "targets": 9+runtimeAdditonalColumns}
+        {"name": "total_orders", "targets": 8+runtimeAdditonalColumns},
+        {"name": "total", "targets": 9+runtimeAdditonalColumns},
+        {"name": "action", "orderable" : false, "targets": 10+runtimeAdditonalColumns}
       ]);
 
         $dataTable.init({

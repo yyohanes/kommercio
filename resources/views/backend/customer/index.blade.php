@@ -13,7 +13,7 @@
     <script>
         enable_customer_group = {{ ProjectHelper::isFeatureEnabled('customer.customer_group')?'true':'false' }};
     </script>
-    <script src="{{ asset('backend/assets/scripts/pages/customer_index.js') }}" type="text/javascript"></script>
+    <script src="{{ asset('backend/assets/scripts/pages/customer_index.js?cb=1') }}" type="text/javascript"></script>
 @stop
 
 @section('breadcrumb')
@@ -57,6 +57,7 @@
                         @endif
                         <th>Since</th>
                         <th>Last Seen</th>
+                        <th>Order Count</th>
                         <th>Order Total</th>
                         <th></th>
                     </tr>
@@ -70,6 +71,7 @@
                         @if(ProjectHelper::isFeatureEnabled('customer.customer_group'))
                         <td>{!! Form::select('filter[customer_group]', ['' => 'All'] + \Kommercio\Models\Customer\CustomerGroup::getCustomerGroupOptions(), null, ['class' => 'form-control form-filter input-sm']) !!}</td>
                         @endif
+                        <td></td>
                         <td></td>
                         <td></td>
                         <td></td>
