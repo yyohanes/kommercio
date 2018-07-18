@@ -29,7 +29,7 @@ class Customer extends Model
     ];
     protected $dates = ['last_active'];
     protected $profileKeys = ['profile'];
-    
+
     protected $flatTable = 'customers_index';
     // TODO: Add more keys to flat index
     protected $flatIndexables = ['profile.email'];
@@ -150,12 +150,12 @@ class Customer extends Model
     public function scopeJoinOrderTotal($query, $status = [])
     {
         if(empty($status)){
-            $status = ['\''.Order::STATUS_COMPLETED.'\'', '\''.Order::STATUS_PROCESSING.'\'', '\''.Order::STATUS_PENDING.'\''];
+            $status = ['\''.Order::STATUS_COMPLETED.'\'', '\''.Order::STATUS_PROCESSING.'\'', '\''.Order::STATUS_PENDING.'\'', '\''.Order::STATUS_SHIPPED.'\''];
         }
 
         $customerTable = $this->orders()->getParent()->getTable();
 
-        $orderQuery = Order::selectRaw('customer_id, SUM(total * conversion_rate) AS total, SUM(discount_total * conversion_rate) AS discount_total, SUM(shipping_total * conversion_rate) AS shipping_total, SUM(tax_total * conversion_rate) AS tax_total, SUM(additional_total * conversion_rate) AS additional_total')
+        $orderQuery = Order::selectRaw('customer_id, COUNT(customer_id) AS total_orders, SUM(total * conversion_rate) AS total, SUM(discount_total * conversion_rate) AS discount_total, SUM(shipping_total * conversion_rate) AS shipping_total, SUM(tax_total * conversion_rate) AS tax_total, SUM(additional_total * conversion_rate) AS additional_total')
             ->groupBy('customer_id')
             ->whereRaw('status IN ('.implode(',',$status).')');
 
