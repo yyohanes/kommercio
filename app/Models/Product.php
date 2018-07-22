@@ -1015,6 +1015,7 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface, Cac
         $order = !empty($options['order'])?$options['order']:null;
         $store = $store_id?Store::findOrFail($store_id):null;
         $productLineItems = $options['productLineItems'] ?? [];
+        $tomorrow = Carbon::tomorrow();
 
         if($order){
             $productLineItems = $order->getProductLineItems();
@@ -1069,7 +1070,11 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface, Cac
         foreach ($daysToRun as $dayToRun) {
             if($store && !$store->isOpen(Carbon::createFromFormat('Y-m-d H:i:s', $dayToRun))){
                 $disabledDates[] = $dayToRun->format($format);
-            }else{
+            } else if ($dayToRun->lt($tomorrow)) {
+                // TODO: configuration to edit earliest delivery date based on shipping method. Don't forget to check delivery_date rule in OrderFormRequest.php
+                // Always block previous dates up to today
+                $disabledDates[] = $dayToRun->format($format);
+            } else {
                 // Product Limit
                 $dayProductOrderLimit = $this->getOrderLimit([
                     'delivery_date' => $dayToRun->format('Y-m-d'),

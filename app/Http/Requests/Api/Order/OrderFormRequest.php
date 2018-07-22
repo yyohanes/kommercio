@@ -108,6 +108,9 @@ class OrderFormRequest extends \Illuminate\Foundation\Http\FormRequest {
             $rules['delivery_date'] = [
                 'required',
                 'date_format:Y-m-d',
+                // TODO: configuration to edit earliest delivery date based on shipping method. Don't forget to check same comment in Product.php
+                // Always block previous dates up to today
+                'after:today',
             ];
 
             $store = Store::findById($request->input('store_id', 0));
