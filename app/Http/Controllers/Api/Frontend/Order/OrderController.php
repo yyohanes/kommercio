@@ -37,27 +37,71 @@ use Kommercio\Models\ShippingMethod\ShippingMethod;
 class OrderController extends Controller {
 
     /**
-     * Get orders by customer
+     * Get orders
      * @param Request $request
      * @return JsonResponse
      */
     public function index(Request $request) {
         $user = $request->user('api');
 
-        if (!$user) {
-            return new JsonResponse('Unknown user.', 400);
-        }
+        $qb = Order::checkout();
 
         $customer = $user->customer;
-        // TODO: Create customer-specific middleware
-        if (!$customer) {
-            return new JsonResponse('Unknown customer.', 400);
+        if ($customer) {
+            $qb->where('customer_id', $customer->id);
         }
 
-        $qb = Order::where('customer_id', $customer->id)->checkout();
         $orders = $qb->get();
 
         $resources = OrderResource::collection($orders);
+
+        return $resources->response();
+    }
+
+    /**
+     * Get order by reference
+     * @param string $reference
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function getByReference(Request $request, $reference) {
+        $user = $request->user('api');
+
+        $qb = Order::where('reference', $reference)
+            ->checkout();
+
+        $customer = $user->customer;
+        if ($customer) {
+            $qb->where('customer_id', $customer->id);
+        }
+
+        $order = $qb->firstOrFail();
+
+        $resources = new OrderResource($order);
+
+        return $resources->response();
+    }
+
+    /**
+     * Get order by public id
+     * @param string $publicId
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function getByPublicId(Request $request, $publicId) {
+        $user = $request->user('api');
+
+        $qb = Order::where('public_id', $publicId)
+            ->checkout();
+
+        $customer = $user->customer;
+        if ($customer) {
+            $qb->where('customer_id', $customer->id);
+        }
+
+        $order = $qb->firstOrFail();
+
+        $resources = new OrderResource($order);
 
         return $resources->response();
     }

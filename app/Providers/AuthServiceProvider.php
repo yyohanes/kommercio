@@ -35,7 +35,7 @@ class AuthServiceProvider extends ServiceProvider
             $router->forTransientTokens();
         });
 
-        Passport::tokensExpireIn(Carbon::now()->addMinutes(10));
+        Passport::tokensExpireIn(Carbon::now()->addMinutes(60));
         Passport::refreshTokensExpireIn(Carbon::now()->addDays(10));
 
         Gate::define('access', function ($user, $permission) {

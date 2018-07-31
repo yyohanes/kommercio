@@ -78,7 +78,23 @@ Route::prefix('public')
                 Route::middleware(['auth:api'])
                     ->group(function() {
                         /**
-                         * Get orders by customer
+                         * Get order by reference
+                         */
+                        Route::get('/get-by-reference/{reference}', [
+                            'as' => 'api.frontend.order.get_by_reference',
+                            'uses' => 'OrderController@getByReference',
+                        ]);
+
+                        /**
+                         * Get order by public id
+                         */
+                        Route::get('/get-by-public-id/{reference}', [
+                            'as' => 'api.frontend.order.get_by_public_id',
+                            'uses' => 'OrderController@getByPublicId',
+                        ]);
+
+                        /**
+                         * Get orders
                          */
                         Route::get('/', [
                             'as' => 'api.frontend.order.index',

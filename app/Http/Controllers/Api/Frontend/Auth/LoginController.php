@@ -68,7 +68,8 @@ class LoginController extends Controller {
     }
 
     public function refresh(Request $request) {
-        $refreshToken = $this->request->cookie(self::REFRESH_TOKEN_NAMESPACE);
+        $refreshToken = $request->cookie(self::REFRESH_TOKEN_NAMESPACE);
+        \Log::info($request->cookies->all());
 
         try {
             $response = $this->proxy(

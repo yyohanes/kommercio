@@ -146,7 +146,11 @@ class CustomerController extends Controller {
         $accountData = UtilityHelper::arrayIgnoreNull($accountData);
         if (!empty($accountData)) {
             $customer->user->fill($accountData);
-            $customer->user->password = $accountData['password'];
+
+            if (!empty($accountData['password'])) {
+                $customer->user->password = $accountData['password'];
+            }
+
             $customer->user->save();
         }
 
