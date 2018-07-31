@@ -130,25 +130,24 @@ class CustomerController extends Controller {
         ];
 
         $profileData = UtilityHelper::arrayIgnoreNull($profileData);
-
         if (!empty($profileData)) {
             $customer->saveProfile($profileData);
             $customer->save();
         }
 
-        if ($request->input('user_id')) {
-            $accountData = [
-                'email' => $request->input('email', null),
-                'status' => $request->input('user.status', null),
-                'password' => $request->filled('user.password')
-                    ? bcrypt($request->input('user.password'))
-                    : null,
-            ];
+        $accountData = [
+            'email' => $request->input('email', null),
+            'status' => $request->input('user.status', null),
+            'password' => !empty($request->input('user.password'))
+                ? bcrypt($request->input('user.password'))
+                : null,
+        ];
 
-            $accountData = UtilityHelper::arrayIgnoreNull($accountData);
-
-            $user = User::findById($request->input('user_id'));
-            $user->save($accountData);
+        $accountData = UtilityHelper::arrayIgnoreNull($accountData);
+        if (!empty($accountData)) {
+            $customer->user->fill($accountData);
+            $customer->user->password = $accountData['password'];
+            $customer->user->save();
         }
 
         return $customer;

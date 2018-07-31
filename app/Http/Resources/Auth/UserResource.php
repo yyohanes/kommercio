@@ -12,15 +12,12 @@ class UserResource extends Resource {
         $user = $this->resource;
         $user->getProfile()->fillDetails();
 
-        $data = array_merge(
-            [
-                'id' => $user->id,
-                'fullName' => $user->getProfile()->full_name,
-                'email' => $user->email,
-                'status' => $user->status,
-            ],
-            $this->additional
-        );
+        $data = [
+            'id' => $user->id,
+            'fullName' => $user->getProfile()->full_name,
+            'email' => $user->email,
+            'status' => $user->status,
+        ];
 
         return $data;
     }

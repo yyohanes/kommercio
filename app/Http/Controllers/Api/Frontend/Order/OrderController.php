@@ -37,6 +37,32 @@ use Kommercio\Models\ShippingMethod\ShippingMethod;
 class OrderController extends Controller {
 
     /**
+     * Get orders by customer
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function index(Request $request) {
+        $user = $request->user('api');
+
+        if (!$user) {
+            return new JsonResponse('Unknown user.', 400);
+        }
+
+        $customer = $user->customer;
+        // TODO: Create customer-specific middleware
+        if (!$customer) {
+            return new JsonResponse('Unknown customer.', 400);
+        }
+
+        $qb = Order::where('customer_id', $customer->id)->checkout();
+        $orders = $qb->get();
+
+        $resources = OrderResource::collection($orders);
+
+        return $resources->response();
+    }
+
+    /**
      * Get available shipping methods
      *
      * @param Request $request

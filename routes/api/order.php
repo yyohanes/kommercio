@@ -74,5 +74,16 @@ Route::prefix('public')
                     'as' => 'api.frontend.order.submit',
                     'uses' => 'OrderController@submit',
                 ]);
+
+                Route::middleware(['auth:api'])
+                    ->group(function() {
+                        /**
+                         * Get orders by customer
+                         */
+                        Route::get('/', [
+                            'as' => 'api.frontend.order.index',
+                            'uses' => 'OrderController@index',
+                        ]);
+                    });
             });
     });
