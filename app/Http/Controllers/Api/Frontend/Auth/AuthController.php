@@ -21,15 +21,8 @@ class AuthController extends Controller {
             return new JsonResponse('Unknown user.', 400);
         }
 
+        $user->load('customer');
         $response = new UserResource($user);
-
-        if ($user->isCustomer) {
-            $response->additional([
-                'data' => [
-                    'customer' => new CustomerResource($user->customer),
-                ],
-            ]);
-        }
 
         return $response->response();
     }
