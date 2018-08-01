@@ -44,7 +44,7 @@ class OrderController extends Controller {
     public function index(Request $request) {
         $user = $request->user('api');
 
-        $qb = Order::checkout();
+        $qb = Order::checkout()->orderBy('checkout_at', 'DESC');
 
         // TODO: Cache this per customer
         $customer = $user->customer;
