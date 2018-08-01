@@ -59,9 +59,10 @@ class LoginController extends Controller {
 
         $jsonResponse = new AuthTokenResource($response);
 
-        $additional = $this->getAdditionalData($user);
         $jsonResponse->additional([
-            'data' => $additional,
+            'data' => [
+                'user' => new UserResource($user),
+            ],
         ]);
 
         return $jsonResponse->response();
@@ -69,7 +70,6 @@ class LoginController extends Controller {
 
     public function refresh(Request $request) {
         $refreshToken = $request->cookie(self::REFRESH_TOKEN_NAMESPACE);
-        \Log::info($request->cookies->all());
 
         try {
             $response = $this->proxy(
@@ -156,25 +156,5 @@ class LoginController extends Controller {
             false,
             true // HttpOnly
         );
-    }
-
-    /**
-     * @param User $user
-     * @return array
-     */
-    private function getAdditionalData(User $user): array {
-        $userResource = new UserResource($user);
-
-        if ($user->isCustomer) {
-            $userResource->additional([
-                'customer' => new CustomerResource($user->customer),
-            ]);
-        }
-
-        $additional = [
-            'user' => $userResource,
-        ];
-
-        return $additional;
     }
 }

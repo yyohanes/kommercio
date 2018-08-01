@@ -23,6 +23,11 @@ class OrderResource extends Resource {
             'status' => $order->status,
             'deliveryDate' => $order->delivery_date->toIso8601String(),
             'checkoutAt' => $order->checkout_at->toIso8601String(),
+            'lineItems' => $this->whenLoaded('lineItems', LineItemResource::collection($order->lineItems)),
+            'customer' => $this->whenLoaded('customer', new CustomerResource($order->customer)),
+            'shippingLineItem' => $this->when($order->relationLoaded('lineItems'), new LineItemResource($order->getShippingLineItem())),
+            'shippingOption' => $this->when($order->relationLoaded('lineItems'), $order->getSelectedShippingMethod()),
+            'shippingMethod' => $this->when($order->relationLoaded('lineItems'), new ShippingMethodResource($order->getShippingMethod())),
             'quantity' => $order->calculateQuantityTotal(),
             'total' => [
                 'amount' => $order->calculateTotal(),
@@ -36,12 +41,8 @@ class OrderResource extends Resource {
             'store' => new StoreResource($order->store),
             'billingProfile' => $this->whenLoaded('billingProfile', new ProfileResource($order->billingProfile)),
             'shippingProfile' => $this->whenLoaded('shippingProfile', new ProfileResource($order->shippingProfile)),
-            'lineItems' => $this->whenLoaded('lineItems', LineItemResource::collection($order->lineItems)),
-            'customer' => $this->whenLoaded('customer', new CustomerResource($order->customer)),
-            'shippingLineItem' => $this->when($order->relationLoaded('lineItems'), new LineItemResource($order->getShippingLineItem())),
-            'shippingOption' => $this->when($order->relationLoaded('lineItems'), $order->getSelectedShippingMethod()),
-            'shippingMethod' => $this->when($order->relationLoaded('lineItems'), new ShippingMethodResource($order->getShippingMethod())),
             'paymentMethod' => $this->when(!!$paymentMethod, new PaymentMethodResource($paymentMethod)),
+            'notes' => $order->notes,
         ];
     }
 }

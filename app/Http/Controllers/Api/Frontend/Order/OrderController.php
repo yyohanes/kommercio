@@ -46,6 +46,7 @@ class OrderController extends Controller {
 
         $qb = Order::checkout();
 
+        // TODO: Cache this per customer
         $customer = $user->customer;
         if ($customer) {
             $qb->where('customer_id', $customer->id);

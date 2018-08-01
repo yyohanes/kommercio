@@ -3,6 +3,7 @@
 namespace Kommercio\Http\Resources\Auth;
 
 use Illuminate\Http\Resources\Json\Resource;
+use Kommercio\Http\Resources\Customer\CustomerResource;
 use Kommercio\Models\User;
 
 class UserResource extends Resource {
@@ -17,6 +18,7 @@ class UserResource extends Resource {
             'fullName' => $user->getProfile()->full_name,
             'email' => $user->email,
             'status' => $user->status,
+            'customer' => $this->whenLoaded('customer', new CustomerResource($user->customer)),
         ];
 
         return $data;
