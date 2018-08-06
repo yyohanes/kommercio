@@ -93,6 +93,7 @@ return [
     'composite_quantity' => ':composite quantity of :product must be :quantity',
     'redemption' => 'Your point is not enough to redeem :reward',
     'store_is_open' => 'Products are not available on :date',
+    'shipping_method_date' => ':shipping_method is not available on :date',
 
     /*
     |--------------------------------------------------------------------------

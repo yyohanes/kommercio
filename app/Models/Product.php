@@ -1070,10 +1070,6 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface, Cac
         foreach ($daysToRun as $dayToRun) {
             if($store && !$store->isOpen(Carbon::createFromFormat('Y-m-d H:i:s', $dayToRun))){
                 $disabledDates[] = $dayToRun->format($format);
-            } else if ($dayToRun->lt($tomorrow)) {
-                // TODO: configuration to edit earliest delivery date based on shipping method. Don't forget to check delivery_date rule in OrderFormRequest.php
-                // Always block previous dates up to today
-                $disabledDates[] = $dayToRun->format($format);
             } else {
                 // Product Limit
                 $dayProductOrderLimit = $this->getOrderLimit([

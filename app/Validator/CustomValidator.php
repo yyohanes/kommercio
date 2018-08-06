@@ -17,6 +17,7 @@ use Kommercio\Models\PriceRule\CartPriceRule;
 use Kommercio\Models\Product;
 use Kommercio\Models\ProductCategory;
 use Kommercio\Models\RewardPoint\Reward;
+use Kommercio\Models\ShippingMethod\ShippingMethod;
 use Kommercio\Models\Store;
 
 class CustomValidator extends Validator
@@ -503,5 +504,28 @@ class CustomValidator extends Validator
         $date = Carbon::createFromFormat('Y-m-d', $this->getValue($attribute));
 
         return str_replace(':date', $date->format('d F Y'), $message);
+    }
+
+    public function validateShippingMethodDate($attribute, $value, $parameters) {
+        $shippingMethodId = $parameters[0];
+        $shippingMethod = ShippingMethod::findById($shippingMethodId);
+
+        if (!$shippingMethod) return true;
+
+        $date = Carbon::createFromFormat('Y-m-d', $value);
+
+        return $shippingMethod->getProcessor()->validateDateAvailability($date);
+    }
+
+    public function replaceShippingMethodDate($message, $attribute, $rule, $parameters) {
+        $shippingMethodId = $parameters[0];
+        $shippingMethod = ShippingMethod::findById($shippingMethodId);
+
+        $date = Carbon::createFromFormat('Y-m-d', $this->getValue($attribute));
+
+        $message = str_replace(':shipping_method', $shippingMethod->name, $message);
+        $message = str_replace(':date', $date->format('d F Y'), $message);
+
+        return $message;
     }
 }

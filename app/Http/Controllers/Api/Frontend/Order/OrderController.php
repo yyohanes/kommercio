@@ -375,6 +375,9 @@ class OrderController extends Controller {
                 'required',
                 'string',
             ],
+            'shipping_method' => [
+                'numeric',
+            ],
         ];
 
         $this->validate($request, $rules);
@@ -398,6 +401,25 @@ class OrderController extends Controller {
         $store = ProjectHelper::getStoreByRequest($request);
 
         $storeId = $store->id;
+
+        // Give shipping method a chance to filter dates
+        if ($request->filled('shipping_method')) {
+            $shippingMethod = ShippingMethod::findById($request->get('shipping_method'));
+
+            if ($shippingMethod) {
+                try {
+                    foreach ($dates as $idx => $date) {
+                        $carbonDate = Carbon::createFromFormat('Y-m-d', $date);
+                        if (!$shippingMethod->getProcessor()->validateDateAvailability($carbonDate)) {
+                            $disabledDates[] = $date;
+                            unset($dates[$idx]);
+                        }
+                    }
+                } catch (\Throwable $e) {
+                    // no-op
+                }
+            }
+        }
 
         $options = [
             'store_id' => $storeId,

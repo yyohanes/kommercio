@@ -56,6 +56,17 @@ abstract class ShippingMethodAbstract
     }
 
     /**
+     * This method is intended to be used to validate if certain date is valid
+     * @param Carbon $datetime
+     * @param array $options
+     * @return bool
+     */
+    public function validateDateAvailability(Carbon $datetime, array $options = [])
+    {
+        return true;
+    }
+
+    /**
      * This method is intended to be used to get availability per day by time slots
      * This is not ready for use.
      * @param Carbon $datetime
