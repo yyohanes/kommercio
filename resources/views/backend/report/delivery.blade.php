@@ -148,6 +148,18 @@
     @endif
 @endsection
 
+@section('header_summary')
+    <div class="portlet">
+        <div class="portlet-body">
+        @foreach($includedProducts as $includedProduct)
+            <div>
+                <strong>{{ $includedProduct['product']->name }}</strong>: {{ $includedProduct['quantity'] + 0 }}
+            </div>
+        @endforeach
+        </div>
+    </div>
+@endsection
+
 @section('content')
     <div class="col-md-12">
         <div class="portlet light portlet-fit portlet-datatable bordered">
@@ -216,6 +228,8 @@
             </div>
 
             <div class="portlet-body dataset-wrapper">
+                @yield('header_summary')
+
                 <div class="table-group-actions">
                     <span> </span>
                     <select data-bulk_action="{{ route('backend.sales.order.bulk_action') }}" class="table-group-action-input form-control input-inline input-small input-sm">
