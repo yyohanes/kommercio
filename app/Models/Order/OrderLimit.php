@@ -292,8 +292,9 @@ class OrderLimit extends Model implements StoreManagedInterface, CacheableInterf
         $qb = OrderLimit::active()
             ->orderBy('sort_order', 'ASC');
 
+        // TODO: Remove backoffice option all together from backoffice
         if(isset($options['backoffice'])){
-            $qb->backoffice();
+            // $qb->backoffice();
         }
 
         if(!empty($options['limit_type'])){
