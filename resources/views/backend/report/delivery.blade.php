@@ -151,11 +151,25 @@
 @section('header_summary')
     <div class="portlet">
         <div class="portlet-body">
-        @foreach($includedProducts as $includedProduct)
-            <div>
-                <strong>{{ $includedProduct['product']->name }}</strong>: {{ $includedProduct['quantity'] + 0 }}
+            @php
+            $perColumn = floor(count($includedProducts) / 2);
+            @endphp
+            <div class="row">
+                <div class="col-md-6">
+                    @foreach(array_slice($includedProducts, 0, $perColumn) as $idx => $includedProduct)
+                        <div>
+                            <strong>{{ $includedProduct['product']->name }}</strong>: {{ $includedProduct['quantity'] + 0 }}
+                        </div>
+                    @endforeach
+                </div>
+                <div class="col-md-6">
+                    @foreach(array_slice($includedProducts, $perColumn, $perColumn) as $idx => $includedProduct)
+                        <div>
+                            <strong>{{ $includedProduct['product']->name }}</strong>: {{ $includedProduct['quantity'] + 0 }}
+                        </div>
+                    @endforeach
+                </div>
             </div>
-        @endforeach
         </div>
     </div>
 @endsection
