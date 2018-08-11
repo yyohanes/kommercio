@@ -531,7 +531,7 @@ class ProductController extends Controller{
         $notIns = array_keys($notIns);
 
         if($request->has('variation.new_attribute') && !$request->has('variation.remove_attribute')){
-            $notIns += $request->input('variation.new_attribute', []);
+            $notIns = array_merge($notIns, $request->input('variation.new_attribute', []));
         }
 
         foreach($notIns as $notIn){
@@ -881,7 +881,7 @@ class ProductController extends Controller{
         if($request->has('remove_feature') && isset($selectedFeatures[$request->input('remove_feature')])){
             unset($selectedFeatures[$request->input('remove_feature')]);
         }else{
-            $selectedFeatures += array_flip($newFeatures);
+            $selectedFeatures = array_merge($selectedFeatures, array_flip($newFeatures));
         }
 
         $allFeatures = ProductFeature::withTranslation()->get();
@@ -1151,9 +1151,7 @@ class ProductController extends Controller{
 
     public function getViewSuggestions()
     {
-        $viewSuggestions = [];
-
-        $viewSuggestions += ['frontend.catalog.product_category.view_'.$this->id, 'frontend.catalog.product_category.view'];
+        $viewSuggestions = ['frontend.catalog.product_category.view_'.$this->id, 'frontend.catalog.product_category.view'];
 
         return $viewSuggestions;
     }
