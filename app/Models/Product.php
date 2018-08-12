@@ -37,7 +37,7 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface, Cac
     const COMBINATION_TYPE_VARIABLE = 'variable';
     const COMBINATION_TYPE_VARIATION = 'variation';
 
-    public $fillable = ['name', 'description_short', 'description', 'slug', 'manufacturer_id', '', 'meta_description', 'locale',
+    public $fillable = ['name', 'description_short', 'description', 'slug', 'manufacturer_id', 'meta_description', 'locale',
         'sku', 'type', 'width', 'length', 'depth', 'weight', 'box_content', 'combination_type'];
 
     protected $dates = ['deleted_at'];
