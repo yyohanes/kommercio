@@ -140,4 +140,5 @@ return [
         '/one-page-checkout/',
         '/availability\/calendar/'
     ],
+    'country_code' => env('DEFAULT_COUNTRY', 'sg'),
 ];
