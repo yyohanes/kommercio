@@ -41,14 +41,25 @@ class AddShowCustomCityColumnAddress extends Migration
     public function down()
     {
         Schema::table('warehouses', function(Blueprint $table){
-            $table->dropColumn('postal_code');
-            $table->dropColumn('country_id');
-            $table->dropColumn('state_id');
-            $table->dropColumn('city_id');
-            $table->dropColumn('district_id');
-            $table->dropColumn('area_id');
-            $table->dropColumn('address_1');
-            $table->dropColumn('address_2');
+            Schema::table('address_countries', function(Blueprint $table){
+                $table->dropColumn('show_custom_city');
+            });
+
+            Schema::table('address_states', function(Blueprint $table){
+                $table->dropColumn('show_custom_city');
+            });
+
+            Schema::table('address_cities', function(Blueprint $table){
+                $table->dropColumn('show_custom_city');
+            });
+
+            Schema::table('address_districts', function(Blueprint $table){
+                $table->dropColumn('show_custom_city');
+            });
+
+            Schema::table('address_areas', function(Blueprint $table){
+                $table->dropColumn('show_custom_city');
+            });
         });
     }
 }
