@@ -99,9 +99,11 @@ class OrderFormRequest extends \Illuminate\Foundation\Http\FormRequest {
                 'required',
             ];
 
-            $rules['shippingProfile.postal_code'] = [
-                'required',
-            ];
+            if ($shippingMethod->requirePostalCode) {
+                $rules['shippingProfile.postal_code'] = [
+                    'required',
+                ];
+            }
         }
 
         if (ProjectHelper::getConfig('enable_delivery_date', FALSE)) {

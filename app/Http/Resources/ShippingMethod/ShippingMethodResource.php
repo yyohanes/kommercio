@@ -20,6 +20,7 @@ class ShippingMethodResource extends Resource {
             'taxable' => !empty($shippingMethod->taxable),
             'active' => !empty($shippingMethod->active),
             'requireAddress' => !empty($shippingMethod->requireAddress),
+            'requirePostalCode' => !empty($shippingMethod->requirePostalCode),
         ];
     }
 }
