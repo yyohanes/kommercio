@@ -36,6 +36,11 @@ abstract class ShippingMethodAbstract
         return TRUE;
     }
 
+    public function requirePostalCode()
+    {
+        return TRUE;
+    }
+
     public function useCustomPackagingSlip(DeliveryOrder $deliveryOrder)
     {
         return false;

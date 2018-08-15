@@ -147,6 +147,11 @@ class ShippingMethod extends Model implements CacheableInterface
         return $this->getProcessor()->requireAddress();
     }
 
+    public function getRequirePostalCodeAttribute()
+    {
+        return $this->getProcessor()->requirePostalCode();
+    }
+
     //Statics
     public static function getAvailableMethods()
     {
