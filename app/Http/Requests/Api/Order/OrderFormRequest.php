@@ -73,6 +73,11 @@ class OrderFormRequest extends \Illuminate\Foundation\Http\FormRequest {
                 $rules,
                 $paymentMethod->getProcessor()->getValidationRules()
             );
+
+            // Validate store_id if payment method is limited by store
+            if ($paymentMethod->stores->count() > 0) {
+                $rules['store_id'][] = 'in:' . $paymentMethod->stores->implode('id', ',');
+            }
         }
 
         return $rules;
