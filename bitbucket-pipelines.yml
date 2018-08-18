@@ -10,8 +10,7 @@ pipelines:
       - step:
           name: Pull Project
           script:
-            - cd $BITBUCKET_CLONE_DIR/packages/project/src
-            - git clone --branch="EW-17" ssh://git@bitbucket.org/irvinsaltedegg/eggyolk-package.git Project
+            - git clone --branch="EW-17" ssh://git@bitbucket.org/irvinsaltedegg/eggyolk-package.git $BITBUCKET_CLONE_DIR/packages/project/src/Project
       - step:
           name: PHP Build
           caches:
