@@ -95,7 +95,7 @@
 
 @task('optimise', ['on' => 'web'])
     echo '* Clearing cache and optimising *'
-    cd {{ $new_release_dir }}
+    cd {{ $path }}
 
     {{ $php }} artisan cache:clear
     {{ $php }} artisan config:clear
