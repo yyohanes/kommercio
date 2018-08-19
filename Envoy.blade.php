@@ -79,9 +79,9 @@
     echo "* Linking .env file to new release dir ({{ $path }}/envs/{{ $edition }}.{{ $env }}.txt -> {{ $new_release_dir }}/.env) *"
     ln -nfs {{ $path }}/envs/{{ $edition }}.{{ $env }}.txt {{ $new_release_dir }}/.env
 
-    if [ -f {{ $new_release_dir }}/storage ]; then
-        echo "* Moving existing storage dir *"
-        mv {{ $new_release_dir }}/storage {{ $new_release_dir }}/storage.orig 2>/dev/null
+    if [ ! -d {{ $path }}/storage ]; then
+        echo "* Creating storage dir *"
+        mkdir -p {{ $path }}/storage
     fi
 
     echo "* Linking storage directory to new release dir ({{ $path }}/storage -> {{ $new_release_dir }}/storage) *"
