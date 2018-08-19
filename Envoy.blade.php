@@ -79,9 +79,14 @@
     echo "* Linking .env file to new release dir ({{ $path }}/envs/{{ $edition }}.{{ $env }}.txt -> {{ $new_release_dir }}/.env) *"
     ln -nfs {{ $path }}/envs/{{ $edition }}.{{ $env }}.txt {{ $new_release_dir }}/.env
 
+    if [ -d {{ $new_release_dir }}/storage ]; then
+        echo "* Backing up storage folder *"
+        mv {{ $new_release_dir }}/storage {{ $new_release_dir }}/storage.orig 2>/dev/null
+    fi
+
     if [ ! -d {{ $path }}/storage ]; then
-        echo "* Creating storage dir *"
-        mkdir -p {{ $path }}/storage
+        echo "* Storage folder is empty. Filling with default content *"
+        yes | cp -rf {{ $new_release_dir }}/storage.orig/* {{ $path }}/storage
     fi
 
     echo "* Linking storage directory to new release dir ({{ $path }}/storage -> {{ $new_release_dir }}/storage) *"
@@ -124,7 +129,7 @@
 @task('start_docker_compose', ['on' => 'web'])
     echo "* Starting docker-compose *"
     cd {{ $path }}
-    docker-compose up -d
+    docker-compose up -d --force-recreate
 @endtask
 
 @task('migrate', ['on' => 'web'])

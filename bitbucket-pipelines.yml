@@ -8,11 +8,16 @@ pipelines:
   branches:
     EW-17:
       - step:
-          name: Clone package and build
+          name: Clone package
+          script:
+            - git clone --branch="EW-17" git@bitbucket.org:irvinsaltedegg/eggyolk-package.git $BITBUCKET_CLONE_DIR/packages/project/src/Project
+          artifacts:
+            - packages/project/src/Project/**
+      - step:
+          name: PHP build
           caches:
             - composer
           script:
-            - git clone --branch="EW-17" git@bitbucket.org:irvinsaltedegg/eggyolk-package.git $BITBUCKET_CLONE_DIR/packages/project/src/Project
             - composer install --optimize-autoloader --no-interaction --prefer-dist --ignore-platform-reqs
           artifacts:
             - vendor/**
