@@ -76,8 +76,8 @@
 @endtask
 
 @task('setup_symlinks', ['on' => 'web'])
-    echo "* Linking .env file to new release dir ({{ $path }}/envs/{{ $edition }}.{{ $env }}.txt -> {{ $new_release_dir }}/.env) *"
-    ln -nfs {{ $path }}/envs/{{ $edition }}.{{ $env }}.txt {{ $new_release_dir }}/.env
+    echo "* Copying .env file to new release dir ({{ $path }}/envs/{{ $edition }}.{{ $env }}.txt -> {{ $new_release_dir }}/.env) *"
+    cp {{ $path }}/envs/{{ $edition }}.{{ $env }}.txt {{ $new_release_dir }}/.env
 
     if [ -d {{ $new_release_dir }}/storage ]; then
         echo "* Backing up storage folder *"
@@ -123,7 +123,7 @@
 
 @task('cleanup', ['on' => 'web'])
     echo "* Executing cleanup command in {{ $releases_dir }} *"
-    ls -dt {{ $releases_dir }}/*/ | tail -n +2 | xargs rm -rf
+    ls -dt {{ $releases_dir }}/*/ | tail -n +4 | xargs rm -rf
 @endtask
 
 @task('start_docker_compose', ['on' => 'web'])
