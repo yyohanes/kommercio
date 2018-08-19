@@ -84,13 +84,13 @@
         mv {{ $new_release_dir }}/storage {{ $new_release_dir }}/storage.orig 2>/dev/null
     fi
 
-    if [ ! -d {{ $path }}/storage ]; then
+    if [ ! -d {{ $path }}/storage/app ]; then
         echo "* Storage folder is empty. Filling with default content *"
         yes | cp -rf {{ $new_release_dir }}/storage.orig/* {{ $path }}/storage
     fi
 
-    echo "* Linking storage directory to new release dir ({{ $path }}/storage -> {{ $new_release_dir }}/storage) *"
-    ln -nfs {{ $path }}/storage {{ $new_release_dir }}/storage
+    # echo "* Linking storage directory to new release dir ({{ $path }}/storage -> {{ $new_release_dir }}/storage) *"
+    # ln -nfs {{ $path }}/storage {{ $new_release_dir }}/storage
 @endtask
 
 @task('activate_release', ['on' => 'web'])
