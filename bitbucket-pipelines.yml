@@ -1,5 +1,5 @@
 image:
-  name: irvinsatedegg/eggyolk-build
+  name: irvinsaltedegg/eggyolk-build
   username: $DOCKER_HUB_USERNAME
   password: $DOCKER_HUB_PASSWORD
   email: $DOCKER_HUB_EMAIL
@@ -8,15 +8,11 @@ pipelines:
   branches:
     EW-17:
       - step:
-          name: Pull Project
-          script:
-            - cd $BITBUCKET_CLONE_DIR/packages/project/src
-            - git clone --branch="EW-17" ssh://git@bitbucket.org/irvinsaltedegg/eggyolk-package.git Project
-      - step:
-          name: PHP Build
+          name: Clone package and build
           caches:
             - composer
           script:
+            - git clone --branch="EW-17" git@bitbucket.org:irvinsaltedegg/eggyolk-package.git $BITBUCKET_CLONE_DIR/packages/project/src/Project
             - composer install --optimize-autoloader --no-interaction --prefer-dist --ignore-platform-reqs
           artifacts:
             - vendor/**
@@ -24,4 +20,4 @@ pipelines:
           name: Deploy (Staging)
           deployment: staging
           script:
-            - envoy run deploy --host=$DEPLOY_HOST --user=$DEPLOY_USER --path=$DEPLOY_PATH --build=$BITBUCKET_BUILD_NUMBER --commit=$BITBUCKET_COMMIT --branch=$BITBUCKET_BRANCH --php=php --dir=$BITBUCKET_CLONE_DIR
+            - envoy run deploy --env=staging --edition=hk --host=$DEPLOY_HOST --user=$DEPLOY_USER --path=$DEPLOY_PATH --build=$BITBUCKET_BUILD_NUMBER --commit=$BITBUCKET_COMMIT --branch=$BITBUCKET_BRANCH --php='docker-compose exec -T app php' --dir=$BITBUCKET_CLONE_DIR
