@@ -179,6 +179,7 @@
 @task('start_docker_compose', ['on' => $remoteServerNames])
     echo "* Starting docker-compose *"
     cd {{ $path }}
+    docker-compose image pull irvinsaltedegg/eggyolk-build
     docker-compose up -d --force-recreate
 @endtask
 
