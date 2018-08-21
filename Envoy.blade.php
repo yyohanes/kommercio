@@ -1,4 +1,20 @@
-@php
+@setup
+    // Sanity checks
+    if (empty($edition)) {
+        exit('ERROR: $edition var empty or not defined');
+    }
+    if (empty($path)) {
+        exit('ERROR: $path var empty or not defined');
+    }
+    if (empty($build)) {
+        exit('ERROR: $build var empty or not defined');
+    }
+    if (empty($commit)) {
+        exit('ERROR: $commit var empty or not defined');
+    }
+    if (!file_exists($dir)) {
+        exit("ERROR: cannot access $dir");
+    }
     if (empty($env)) {
         exit('ERROR: $env var empty or not defined');
     }
@@ -38,29 +54,10 @@
             ]
         );
     }
+    $remoteServerNames = array_keys($remoteServers);
     $servers = array_merge($servers, $remoteServers);
-@endphp
 
-@servers($servers)
 
-@setup
-    // Sanity checks
-    if (empty($edition)) {
-        exit('ERROR: $edition var empty or not defined');
-    }
-    if (empty($path)) {
-        exit('ERROR: $path var empty or not defined');
-    }
-    if (empty($build)) {
-        exit('ERROR: $build var empty or not defined');
-    }
-    if (empty($commit)) {
-        exit('ERROR: $commit var empty or not defined');
-    }
-
-    if (!file_exists($dir)) {
-        exit("ERROR: cannot access $dir");
-    }
 
     // Ensure given $path is a potential web directory (/home/* or /var/www/*)
     if (!(preg_match("/(\/home\/|\/var\/www)/i", $path) === 1)) {
@@ -75,7 +72,10 @@
     $php = empty($php) ? 'php' : $php;
 @endsetup
 
+@servers($servers)
+
 @story('deploy')
+    acknowledge_hosts
     warm_up_target
     rsync
     manifest_file
@@ -87,7 +87,18 @@
     migrate
 @endstory
 
-@task('warm_up_target', ['on' => $remoteServers])
+@task('acknowledge_hosts', ['on' => 'localhost'])
+    @foreach ($remoteServers as $hostName => $remoteServer)
+        @php
+            $hostMatch = explode('@', $remoteServer);
+            $host = $hostMatch[1];
+        @endphp
+        echo "* Trusting {{ $host }} as trusted host *"
+        ssh-keyscan {{ $host }} >> ~/.ssh/known_hosts
+    @endforeach
+@endtask
+
+@task('warm_up_target', ['on' => $remoteServerNames])
     echo "* Creating release folder on target *"
     mkdir -p {{ $new_release_dir }}
 @endtask
@@ -108,12 +119,12 @@
     @endforeach
 @endtask
 
-@task('manifest_file', ['on' => $remoteServers])
+@task('manifest_file', ['on' => $remoteServerNames])
     echo "* Writing deploy manifest file *"
     echo -e "{\"build\":\""{{ $build }}"\", \"commit\":\""{{ $commit }}"\", \"branch\":\""{{ $branch }}"\"}" > {{ $new_release_dir }}/deploy-manifest.json
 @endtask
 
-@task('setup_symlinks', ['on' => $remoteServers])
+@task('setup_symlinks', ['on' => $remoteServerNames])
     echo "* Copying .env file to new release dir ({{ $path }}/envs/{{ $edition }}.{{ $env }}.txt -> {{ $new_release_dir }}/.env) *"
     cp {{ $path }}/envs/{{ $edition }}.{{ $env }}.txt {{ $new_release_dir }}/.env
 
@@ -136,12 +147,12 @@
     # ln -nfs {{ $path }}/storage {{ $new_release_dir }}/storage
 @endtask
 
-@task('activate_release', ['on' => $remoteServers])
+@task('activate_release', ['on' => $remoteServerNames])
     echo "* Activating new release ({{ $new_release_dir }} -> {{ $current_release_dir }}) *"
     ln -nfs {{ $new_release_dir }} {{ $current_release_dir }}
 @endtask
 
-@task('optimise', ['on' => $remoteServers])
+@task('optimise', ['on' => $remoteServerNames])
     echo '* Clearing cache and optimising *'
     cd {{ $path }}
 
@@ -164,18 +175,18 @@
     #sudo supervisorctl start horizon # workaround
 @endtask
 
-@task('cleanup', ['on' => $remoteServers])
+@task('cleanup', ['on' => $remoteServerNames])
     echo "* Executing cleanup command in {{ $releases_dir }} *"
     ls -dt {{ $releases_dir }}/*/ | tail -n +4 | xargs rm -rf
 @endtask
 
-@task('start_docker_compose', ['on' => $remoteServers])
+@task('start_docker_compose', ['on' => $remoteServerNames])
     echo "* Starting docker-compose *"
     cd {{ $path }}
     docker-compose up -d --force-recreate
 @endtask
 
-@task('migrate', ['on' => $remoteServers])
+@task('migrate', ['on' => $remoteServerNames])
     echo '* Running migrations *'
     cd {{ $path }}
     {{ $php }} artisan migrate --force
