@@ -3,6 +3,10 @@
         exit('ERROR: $env var empty or not defined');
     }
 
+    if (empty($user)) {
+        exit('ERROR: $user var empty or not defined');
+    }
+
     $matchPattern = '/^(?:release|staging)_([a-zA-Z]{2})/i';
     if (empty($build_tag) || !preg_match($matchPattern, $build_tag)) {
         exit('ERROR: $build_tag var empty, not defined or in unknown format');
@@ -26,6 +30,14 @@
     }
 
     $remoteServers = $hosts[$edition][$env];
+    foreach ($remoteServers as $name => $remoteServer) {
+        $remoteServers = array_replace(
+            $remoteServers,
+            [
+                $name => $user . '@' . $remoteServer,
+            ]
+        );
+    }
     $servers = array_merge($servers, $remoteServers);
 @endphp
 
@@ -35,9 +47,6 @@
     // Sanity checks
     if (empty($edition)) {
         exit('ERROR: $edition var empty or not defined');
-    }
-    if (empty($user)) {
-        exit('ERROR: $user var empty or not defined');
     }
     if (empty($path)) {
         exit('ERROR: $path var empty or not defined');
@@ -61,8 +70,6 @@
     $current_release_dir = $path . '/current';
     $releases_dir = $path . '/releases';
     $new_release_dir = $releases_dir . '/' . $build . '_' . $commit;
-
-    $remote = $user . '@' . $host . ':' . $new_release_dir;
 
     // Command or path to invoke PHP
     $php = empty($php) ? 'php' : $php;
@@ -90,9 +97,15 @@
 @endtask
 
 @task('rsync', ['on' => 'localhost'])
-    echo "* Deploying code from {{ $dir }} to {{ $remote }} *"
-    # https://explainshell.com/explain?cmd=rsync+-zrSlh+--exclude-from%3Ddeployment-exclude-list.txt+.%2F.+%7B%7B+%24remote+%7D%7D
-    rsync -zrSlh --stats --exclude-from=deployment-exclude-list.txt {{ $dir }}/ {{ $remote }}
+    @foreach ($remoteServers as $remoteServer)
+        @php
+        $remote = $remoteServer . ':' . $new_release_dir;
+        @endphp
+
+        echo "* Deploying code from {{ $dir }} to {{ $remote }} *"
+        # https://explainshell.com/explain?cmd=rsync+-zrSlh+--exclude-from%3Ddeployment-exclude-list.txt+.%2F.+%7B%7B+%24remote+%7D%7D
+        rsync -zrSlh --stats --exclude-from=deployment-exclude-list.txt {{ $dir }}/ {{ $remote }}
+    @endforeach
 @endtask
 
 @task('manifest_file', ['on' => $remoteServers])
