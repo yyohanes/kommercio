@@ -54,8 +54,6 @@
     $remoteServerNames = array_keys($remoteServers);
     $servers = array_merge($servers, $remoteServers);
 
-
-
     // Ensure given $path is a potential web directory (/home/* or /var/www/*)
     if (!(preg_match("/(\/home\/|\/var\/www)/i", $path) === 1)) {
         exit('ERROR: $path provided doesn\'t look like a web directory path?');
@@ -66,7 +64,7 @@
     $new_release_dir = $releases_dir . '/' . $build . '_' . $commit;
 
     // Command or path to invoke PHP
-    $php = empty($php) ? 'php' : $php;
+    $php = empty($php) ? 'docker-compose exec -T app php' : $php;
 @endsetup
 
 @servers($servers)
@@ -81,6 +79,7 @@
     start_docker_compose
     optimise
     cleanup
+    warm_up_db
     migrate
 @endstory
 
@@ -181,6 +180,39 @@
     echo "* Starting docker-compose *"
     cd {{ $path }}
     docker-compose up -d --force-recreate
+@endtask
+
+@task('warm_up_db', ['on' => $remoteServerNames])
+    echo '* Warm up db *'
+    @php
+    $dotenv = file_get_contents('.env');
+    $rows = explode("\n", $dotenv);
+
+    $dbHost = 'localhost';
+    $dbName = 'eggyolk';
+    $dbUsername = 'dbuser';
+    $dbPassword = 'dbpassword';
+    foreach ($rows as $row) {
+        if (preg_match('/^DB_HOST/i', $row)) {
+            $dbHost = explode('=', $row)[1];
+        }
+
+        if (preg_match('/^DB_DATABASE/i', $row)) {
+            $dbName = explode('=', $row)[1];
+        }
+
+        if (preg_match('/^DB_USERNAME/i', $row)) {
+            $dbUsername = explode('=', $row)[1];
+        }
+
+        if (preg_match('/^DB_PASSWORD/i', $row)) {
+            $dbPassword = explode('=', $row)[1];
+        }
+    }
+    @endphp
+
+    cd {{ $path }}
+    docker-compose exec -T app bash -c "/var/helper_scripts/create_db_user.sh {{ $edition }} {{ $dbHost }} {{ $dbUsername }} {{ $dbPassword }}"
 @endtask
 
 @task('migrate', ['on' => $remoteServerNames])

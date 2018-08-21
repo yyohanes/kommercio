@@ -25,4 +25,4 @@ pipelines:
           name: Deploy (Staging)
           deployment: staging
           script:
-            - envoy run deploy --env=production --host=$DEPLOY_HOST --user=$DEPLOY_USER --path=$DEPLOY_PATH --build=$BITBUCKET_BUILD_NUMBER --commit=$BITBUCKET_COMMIT --branch=$BITBUCKET_BRANCH --php='docker-compose exec -T app php' --dir=$BITBUCKET_CLONE_DIR --build_tag=$BITBUCKET_TAG
+            - envoy run deploy --env=production --user=$DEPLOY_USER --path=$DEPLOY_PATH --build=$BITBUCKET_BUILD_NUMBER --commit=$BITBUCKET_COMMIT --branch=$BITBUCKET_BRANCH --php='docker-compose exec -T app php' --dir=$BITBUCKET_CLONE_DIR --build_tag=$BITBUCKET_TAG
