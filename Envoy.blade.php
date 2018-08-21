@@ -1,10 +1,38 @@
-@servers(['web' => $user.'@'.$host,'localhost' => '127.0.0.1'])
+@php
+    if (empty($env)) {
+        exit('ERROR: $env var empty or not defined');
+    }
+
+    $matchPattern = '/^(?:release|staging)_([a-zA-Z]{2})/i';
+    if (empty($build_tag) || !preg_match($matchPattern, $build_tag)) {
+        exit('ERROR: $build_tag var empty, not defined or in unknown format');
+    }
+
+    $match = [];
+    preg_match($matchPattern, $build_tag, $match);
+    $edition = $match[1];
+
+    $servers = [
+        'localhost' => '127.0.0.1',
+    ];
+    $hosts = include __DIR__ . '/deploy/hosts.php';
+
+    if (!isset($hosts[$edition])) {
+        exit("ERROR: $edition hosts cannot be found.");
+    }
+
+    if (!isset($hosts[$edition][$env])) {
+        exit("ERROR: $edition:$env hosts cannot be found.");
+    }
+
+    $remoteServers = $hosts[$edition][$env];
+    $servers = array_merge($servers, $remoteServers);
+@endphp
+
+@servers($servers)
 
 @setup
     // Sanity checks
-    if (empty($host)) {
-        exit('ERROR: $host var empty or not defined');
-    }
     if (empty($edition)) {
         exit('ERROR: $edition var empty or not defined');
     }
@@ -20,16 +48,13 @@
     if (empty($commit)) {
         exit('ERROR: $commit var empty or not defined');
     }
-    if (empty($env)) {
-        exit('ERROR: $env var empty or not defined');
-    }
 
-    if (file_exists($path) || is_writable($path)) {
-        exit("ERROR: cannot access $path");
+    if (!file_exists($dir)) {
+        exit("ERROR: cannot access $dir");
     }
 
     // Ensure given $path is a potential web directory (/home/* or /var/www/*)
-    if (!(preg_match("/(\/home\/|\/var\/www\/)/i", $path) === 1)) {
+    if (!(preg_match("/(\/home\/|\/var\/www)/i", $path) === 1)) {
         exit('ERROR: $path provided doesn\'t look like a web directory path?');
     }
 
@@ -55,7 +80,7 @@
     migrate
 @endstory
 
-@task('warm_up_target', ['on' => 'web'])
+@task('warm_up_target', ['on' => $remoteServers])
     echo "* Creating release folder on target *"
     mkdir -p {{ $new_release_dir }}
 @endtask
@@ -70,18 +95,23 @@
     rsync -zrSlh --stats --exclude-from=deployment-exclude-list.txt {{ $dir }}/ {{ $remote }}
 @endtask
 
-@task('manifest_file', ['on' => 'web'])
+@task('manifest_file', ['on' => $remoteServers])
     echo "* Writing deploy manifest file *"
     echo -e "{\"build\":\""{{ $build }}"\", \"commit\":\""{{ $commit }}"\", \"branch\":\""{{ $branch }}"\"}" > {{ $new_release_dir }}/deploy-manifest.json
 @endtask
 
-@task('setup_symlinks', ['on' => 'web'])
+@task('setup_symlinks', ['on' => $remoteServers])
     echo "* Copying .env file to new release dir ({{ $path }}/envs/{{ $edition }}.{{ $env }}.txt -> {{ $new_release_dir }}/.env) *"
     cp {{ $path }}/envs/{{ $edition }}.{{ $env }}.txt {{ $new_release_dir }}/.env
 
     if [ -d {{ $new_release_dir }}/storage ]; then
         echo "* Backing up storage folder *"
         mv {{ $new_release_dir }}/storage {{ $new_release_dir }}/storage.orig 2>/dev/null
+    fi
+
+    if [ ! -d {{ $path }}/storage ]; then
+        echo "* Required storage folder doesn't exist. Creating one... *"
+        mkdir -p {{ $path }}/storage 2>/dev/null
     fi
 
     if [ ! -d {{ $path }}/storage/app ]; then
@@ -93,12 +123,12 @@
     # ln -nfs {{ $path }}/storage {{ $new_release_dir }}/storage
 @endtask
 
-@task('activate_release', ['on' => 'web'])
+@task('activate_release', ['on' => $remoteServers])
     echo "* Activating new release ({{ $new_release_dir }} -> {{ $current_release_dir }}) *"
     ln -nfs {{ $new_release_dir }} {{ $current_release_dir }}
 @endtask
 
-@task('optimise', ['on' => 'web'])
+@task('optimise', ['on' => $remoteServers])
     echo '* Clearing cache and optimising *'
     cd {{ $path }}
 
@@ -121,18 +151,18 @@
     #sudo supervisorctl start horizon # workaround
 @endtask
 
-@task('cleanup', ['on' => 'web'])
+@task('cleanup', ['on' => $remoteServers])
     echo "* Executing cleanup command in {{ $releases_dir }} *"
     ls -dt {{ $releases_dir }}/*/ | tail -n +4 | xargs rm -rf
 @endtask
 
-@task('start_docker_compose', ['on' => 'web'])
+@task('start_docker_compose', ['on' => $remoteServers])
     echo "* Starting docker-compose *"
     cd {{ $path }}
     docker-compose up -d --force-recreate
 @endtask
 
-@task('migrate', ['on' => 'web'])
+@task('migrate', ['on' => $remoteServers])
     echo '* Running migrations *'
     cd {{ $path }}
     {{ $php }} artisan migrate --force

@@ -5,12 +5,12 @@ image:
   email: $DOCKER_HUB_EMAIL
 
 pipelines:
-  branches:
-    EW-17:
+  tags:
+    release_*:
       - step:
           name: Clone package
           script:
-            - git clone --branch="EW-17" git@bitbucket.org:irvinsaltedegg/eggyolk-package.git $BITBUCKET_CLONE_DIR/packages/project/src/Project
+            - git clone --branch="release" git@bitbucket.org:irvinsaltedegg/eggyolk-package.git $BITBUCKET_CLONE_DIR/packages/project/src/Project
           artifacts:
             - packages/project/src/Project/**
       - step:
@@ -25,4 +25,4 @@ pipelines:
           name: Deploy (Staging)
           deployment: staging
           script:
-            - envoy run deploy --env=staging --edition=hk --host=$DEPLOY_HOST --user=$DEPLOY_USER --path=$DEPLOY_PATH --build=$BITBUCKET_BUILD_NUMBER --commit=$BITBUCKET_COMMIT --branch=$BITBUCKET_BRANCH --php='docker-compose exec -T app php' --dir=$BITBUCKET_CLONE_DIR
+            - envoy run deploy --env=production --host=$DEPLOY_HOST --user=$DEPLOY_USER --path=$DEPLOY_PATH --build=$BITBUCKET_BUILD_NUMBER --commit=$BITBUCKET_COMMIT --branch=$BITBUCKET_BRANCH --php='docker-compose exec -T app php' --dir=$BITBUCKET_CLONE_DIR --build_tag=$BITBUCKET_TAG
