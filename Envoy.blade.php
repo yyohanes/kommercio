@@ -132,6 +132,7 @@
     if [ ! -d {{ $path }}/storage ]; then
         echo "* Required storage folder doesn't exist. Creating one... *"
         mkdir -p {{ $path }}/storage 2>/dev/null
+        chown -R {{ $user }}:www-data {{ $path }}/storage
     fi
 
     if [ ! -d {{ $path }}/storage/app ]; then
