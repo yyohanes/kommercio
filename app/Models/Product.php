@@ -214,20 +214,28 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface, Cac
 
     public function hasCategory($category)
     {
+        $categories = Cache::remember(
+            $this->getTable() . '_' . $this->id . '_categories',
+            30,
+            function() {
+                return $this->categories;
+            }
+        );
+
         if(is_int($category)){
-            foreach($this->categories as $categoryObj){
+            foreach($categories as $categoryObj){
                 if($categoryObj->id == $category){
                     return true;
                 }
             }
         }elseif(is_string($category)){
-            foreach($this->categories as $categoryObj){
+            foreach($categories as $categoryObj){
                 if($categoryObj->slug == $category){
                     return true;
                 }
             }
         }else{
-            foreach($this->categories as $categoryObj){
+            foreach($categories as $categoryObj){
                 if($categoryObj->id == $category->id){
                     return true;
                 }
@@ -1226,6 +1234,7 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface, Cac
         $tableName = $this->getTable();
         $keys = [
             $tableName.'_'.$this->id,
+            $tableName . '_' . $this->id . '_categories',
             $tableName.'_'.$this->sku,
             $tableName.'_'.$this->productDetail->id.'_'.$this->id.'.retail_price',
             $tableName.'_'.$this->productDetail->id.'_'.$this->id.'.net_price',
