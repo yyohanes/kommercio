@@ -22,6 +22,7 @@ Route::group(
             'address.php',
             'banner.php',
             'block.php',
+            'newsletter.php',
         ];
 
         foreach ($routes as $route) {
