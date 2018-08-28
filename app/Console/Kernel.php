@@ -38,7 +38,7 @@ class Kernel extends ConsoleKernel
         //Run every midnight
         $schedule->call(function(){
             Event::fire(new CronEvent('midnight'));
-        })->name('midnight-task')->daily()->withoutOverlapping();
+        })->name('midnight-task')->daily()->timezone(config('app.timezone'))->withoutOverlapping();
 
         //Run daily start of day
         $schedule->call(function(){
