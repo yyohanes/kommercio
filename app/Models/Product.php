@@ -941,6 +941,7 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface, Cac
     public function getOrderLimit($options = [])
     {
         if (ProjectHelper::cacheIsTaggable()) {
+            $options = $options + ['product_id' => $this->id];
             $hash = ProjectHelper::flattenArrayToKey($options);
 
             $orderLimit = Cache::tags(['order_limits'])->rememberForever($hash, function() use ($options) {
