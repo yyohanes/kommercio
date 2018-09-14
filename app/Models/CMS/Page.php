@@ -102,6 +102,7 @@ class Page extends Model implements UrlAliasInterface, SeoModelInterface, Cachea
             $tableName.'_'.$this->id,
             $tableName.'_'.$this->slug,
             $tableName.'_'.$this->id.'_translations',
+            $tableName.'_'.$this->id.'_children',
         ];
 
         return $keys;

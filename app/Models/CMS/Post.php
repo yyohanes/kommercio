@@ -4,14 +4,16 @@ namespace Kommercio\Models\CMS;
 
 use Dimsav\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Cache;
 use Kommercio\Facades\FrontendHelper;
+use Kommercio\Models\Interfaces\CacheableInterface;
 use Kommercio\Models\Interfaces\SeoModelInterface;
 use Kommercio\Models\Interfaces\UrlAliasInterface;
 use Kommercio\Traits\Model\SeoTrait;
 use Kommercio\Traits\Model\ToggleDate;
 use Illuminate\Support\Facades\DB;
 
-class Post extends Model implements UrlAliasInterface, SeoModelInterface
+class Post extends Model implements UrlAliasInterface, SeoModelInterface, CacheableInterface
 {
     use SeoTrait, Translatable, ToggleDate {
         Translatable::setAttribute as translateableSetAttribute;
@@ -81,6 +83,17 @@ class Post extends Model implements UrlAliasInterface, SeoModelInterface
         return $breadcrumbs;
     }
 
+    public function getCacheKeys()
+    {
+        $tableName = $this->getTable();
+        $keys = [
+            $tableName . '_' . $this->id,
+            $tableName . '_' . $this->slug,
+        ];
+
+        return $keys;
+    }
+
     //Methods
     public function getViewSuggestions()
     {
@@ -100,6 +113,27 @@ class Post extends Model implements UrlAliasInterface, SeoModelInterface
     public function getMetaImage()
     {
         return $this->thumbnail?$this->thumbnail->getImagePath('original'):null;
+    }
+
+    // Statics
+    public static function findById($id)
+    {
+        $tableName = (new static)->getTable();
+        $post = Cache::remember($tableName. '_' . $id, 3600, function() use ($id) {
+            return static::find($id);
+        });
+
+        return $post;
+    }
+
+    public static function getBySlug($slug)
+    {
+        $tableName = (new static)->getTable();
+        $postCategory = Cache::remember($tableName. '_' . $slug, 3600, function() use ($slug) {
+            return self::whereTranslation('slug', $slug)->first();
+        });
+
+        return $postCategory;
     }
 
     //Scopes

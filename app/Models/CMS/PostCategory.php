@@ -4,14 +4,18 @@ namespace Kommercio\Models\CMS;
 
 use Dimsav\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Cache;
 use Kommercio\Facades\FrontendHelper;
+use Kommercio\Models\Interfaces\CacheableInterface;
 use Kommercio\Models\Interfaces\SeoModelInterface;
 use Kommercio\Models\Interfaces\UrlAliasInterface;
 use Kommercio\Traits\Model\SeoTrait;
 
-class PostCategory extends Model implements UrlAliasInterface, SeoModelInterface
+class PostCategory extends Model implements UrlAliasInterface, SeoModelInterface, CacheableInterface
 {
-    use Translatable, SeoTrait;
+    use SeoTrait, Translatable {
+        Translatable::setAttribute as translateableSetAttribute;
+    }
 
     public $fillable = ['name', 'body', 'parent_id', 'sort_order', 'slug', 'meta_title', 'meta_description'];
     public $translatedAttributes = ['name', 'slug', 'body', 'meta_title', 'meta_description', 'images'];
@@ -112,6 +116,17 @@ class PostCategory extends Model implements UrlAliasInterface, SeoModelInterface
         });
     }
 
+    public function getCacheKeys()
+    {
+        $tableName = $this->getTable();
+        $keys = [
+            $tableName . '_' . $this->id,
+            $tableName . '_' . $this->slug,
+        ];
+
+        return $keys;
+    }
+
     //Accessors
     public function getChildrenCountAttribute()
     {
@@ -163,6 +178,26 @@ class PostCategory extends Model implements UrlAliasInterface, SeoModelInterface
         self::_loopChildrenOptions($options, $roots, 0, $exclude);
 
         return $options;
+    }
+
+    public static function findById($id)
+    {
+        $tableName = (new static)->getTable();
+        $postCategory = Cache::remember($tableName. '_' . $id, 3600, function() use ($id) {
+            return static::find($id);
+        });
+
+        return $postCategory;
+    }
+
+    public static function getBySlug($slug)
+    {
+        $tableName = (new static)->getTable();
+        $postCategory = Cache::remember($tableName. '_' . $slug, 3600, function() use ($slug) {
+            return self::whereTranslation('slug', $slug)->first();
+        });
+
+        return $postCategory;
     }
 
     private static function _loopChildrenOptions(&$options, $children, $level, $exclude=null)

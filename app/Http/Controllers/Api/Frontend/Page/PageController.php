@@ -36,7 +36,7 @@ class PageController extends Controller {
         }
 
         $children = Cache::remember(
-            $page->getTable() . '_' . $page->id . '.children',
+            $page->getTable() . '_' . $page->id . '_children',
             3600,
             function() use ($page) {
                 $children = $page->children;
