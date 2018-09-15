@@ -4,6 +4,7 @@ namespace Kommercio\Providers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\ServiceProvider;
+use Kommercio\Helpers\FileHelper;
 use Kommercio\Shortcode\VariableShortcode;
 use Kommercio\Validator\CustomValidator;
 
@@ -29,6 +30,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton('runtime_cache', 'Kommercio\Helpers\RuntimeCache');
         $this->app->singleton('frontend_helper', 'Kommercio\Helpers\FrontendHelper');
         $this->app->singleton('product_index_helper', 'Kommercio\Helpers\ProductIndexHelper');
+        $this->app->singleton(FileHelper::class, FileHelper::class);
 
         $this->app['validator']->resolver(function($translator, $data, $rules, $messages)
         {

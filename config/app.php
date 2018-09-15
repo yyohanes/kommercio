@@ -261,6 +261,7 @@ return [
         'FrontendHelper' => \Kommercio\Facades\FrontendHelper::class,
         'LanguageHelper' => \Kommercio\Facades\LanguageHelper::class,
         'KommercioAPIHelper' => \Kommercio\Facades\KommercioAPIHelper::class,
+        'FileHelper' => \Kommercio\Facades\FileHelper::class,
         'RuntimeCache' => \Kommercio\Facades\RuntimeCache::class,
         'ProductIndexHelper' => \Kommercio\Facades\ProductIndexHelper::class,
         'PDF' => Barryvdh\DomPDF\Facade::class,

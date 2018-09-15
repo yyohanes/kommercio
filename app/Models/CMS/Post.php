@@ -116,6 +116,10 @@ class Post extends Model implements UrlAliasInterface, SeoModelInterface, Cachea
     }
 
     // Statics
+
+    /**
+     * @return static
+     */
     public static function findById($id)
     {
         $tableName = (new static)->getTable();

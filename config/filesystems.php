@@ -56,10 +56,10 @@ return [
 
         's3' => [
             'driver' => 's3',
-            'key' => 'your-key',
-            'secret' => 'your-secret',
-            'region' => 'your-region',
-            'bucket' => 'your-bucket',
+            'key' => env('S3_ACCESS_KEY_ID', 'AKIAJFANEYG5DASR7UGA'),
+            'secret' => env('S3_SECRRET_ACCESS_KEY', 'VUQ+UQmA/O/DJD0w2gEmfhsoYK/6PqcrtNnJB7i/'),
+            'region' => env('S3_REGION', 'ap-southeast-1'),
+            'bucket' => env('S3_BUCKET', 'staging-eggyolk'),
         ],
 
     ],
