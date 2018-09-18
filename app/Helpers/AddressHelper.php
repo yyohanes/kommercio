@@ -333,10 +333,13 @@ class AddressHelper
         foreach($addressElements as $idx => $addressElement){
             if(empty($addressElement)){
                 unset($addressElements[$idx]);
+                continue;
             }
 
             if (in_array($idx, ['address_1', 'address_2']) && isset($addressElements[$idx])) {
-                $addressElements[$idx] = nl2br($addressElements[$idx]);
+                $addressElements[$idx] = nl2br(htmlentities($addressElements[$idx]));
+            } else {
+                $addressElements[$idx] = htmlentities($addressElements[$idx]);
             }
         }
 
