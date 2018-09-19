@@ -1131,7 +1131,12 @@ var OrderForm = function () {
 
             $.ajax(global_vars.product_line_item + '/' + suggestion.id, {
               method: 'POST',
-              data: 'store_id=' + $('#store-option').val() + '&product_index=' + $lineItem.data('line_item_key') + '&isParent=' + (typeof $lineItem.data('parent_line_item_key') == 'undefined'?1:0) + '&parent_index=' + $lineItem.data('parent_line_item_key') + '&parent_product='+$lineItem.data('parent_product')+'&composite=' + $lineItem.data('composite'),
+              data: 'store_id=' + ($('#store-option').val() || '')
+                      + '&product_index=' + $lineItem.data('line_item_key')
+                      + '&isParent=' + (!$lineItem.data('parent_line_item_key') ? 1 : 0)
+                      + '&parent_index=' + ($lineItem.data('parent_line_item_key') || '')
+                      + '&parent_product=' + ($lineItem.data('parent_product') || '')
+                      + '&composite=' + ($lineItem.data('composite') || ''),
               success: function(data){
                 App.unblockUI($lineItem);
 

@@ -62,7 +62,7 @@
         <?php
         $onlyStore = $managedStores->get(0);
         ?>
-        {!! Form::hidden('store_id', $order->store_id?$order->store_id:$onlyStore->id) !!}
+        {!! Form::hidden('store_id', $order->store_id?$order->store_id:$onlyStore->id, ['id' => 'store-option']) !!}
     @endif
 
     <div class="col-md-3">
