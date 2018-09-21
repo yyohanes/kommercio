@@ -7,6 +7,7 @@ use Kommercio\Excel\Exports\DeliveryOrderExport;
 use Kommercio\Facades\OrderHelper;
 use Kommercio\Facades\ProjectHelper;
 use Kommercio\Http\Controllers\Controller;
+use Kommercio\Models\Log;
 use Kommercio\Models\Order\DeliveryOrder\DeliveryOrder;
 use Kommercio\Models\Order\Order;
 use Kommercio\Models\User;
@@ -15,11 +16,56 @@ use Maatwebsite\Excel\Facades\Excel;
 class DeliveryOrderController extends Controller{
     public function miniView($delivery_order_id)
     {
-        $deliveryOrder = DeliveryOrder::find($delivery_order_id);
+        $deliveryOrder = DeliveryOrder::findOrFail($delivery_order_id);
 
         return view('backend.order.delivery_orders.mini_view', [
             'deliveryOrder' => $deliveryOrder
         ]);
+    }
+
+    public function miniForm(Request $request, $id)
+    {
+        $deliveryOrder = DeliveryOrder::findOrFail($id);
+
+        return view('backend.order.delivery_orders.mini_edit', [
+            'deliveryOrder' => $deliveryOrder,
+            'order' => $deliveryOrder->order,
+            'backUrl' => $request->input('backUrl', null),
+        ]);
+    }
+
+    public function miniSave(Request $request, $id)
+    {
+        $deliveryOrder = DeliveryOrder::findOrFail($id);
+        $before = [
+            'notes' => $deliveryOrder->notes,
+            'tracking_number' => $deliveryOrder->getData('tracking_number'),
+            'delivered_by' => $deliveryOrder->getData('delivered_by'),
+        ];
+        $after = [
+            'notes' => $request->input('notes'),
+            'tracking_number' => $request->input('tracking_number'),
+            'delivered_by' => $request->input('delivered_by'),
+        ];
+
+        if(!empty($request->input('notes'))){
+            $deliveryOrder->notes = $request->input('notes');
+        }
+
+        $deliveryOrder->saveData([
+            'tracking_number' => $request->input('tracking_number', $deliveryOrder->getData('tracking_number')),
+            'delivered_by' => $request->input('delivered_by', $deliveryOrder->getData('delivered_by'))
+        ]);
+
+        $deliveryOrder->save();
+
+        $data = [
+            'before' => $before,
+            'after' => $after,
+        ];
+        Log::log('delivery_order.update', 'Delivery order updated', $deliveryOrder, $deliveryOrder->status, $request->user()->email, $data);
+
+        return redirect($request->input('backUrl', route('backend.sales.order.view', ['id' => $deliveryOrder->order->id])) . '#tab_delivery_orders')->with('success', ['Delivery Order #' . $deliveryOrder->reference . ' is updated']);
     }
 
     public function quickStatusUpdate(Request $request, $id, $status)

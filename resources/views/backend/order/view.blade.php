@@ -415,6 +415,7 @@
                                                             @foreach($order->deliveryOrders->sortByDesc('created_at') as $idx => $deliveryOrder)
                                                                 @php
                                                                 $count += 1;
+                                                                $doEditable = Gate::allows('access', ['edit_delivery_order']);
                                                                 @endphp
                                                                 <tr>
                                                                     <td>{{ $count }}</td>
@@ -422,8 +423,8 @@
                                                                     <td>{{ ProjectHelper::formatNumber($deliveryOrder->total_quantity) }}</td>
                                                                     <td>
                                                                         @php
-                                                                        $doShippable = $deliveryOrder->isShippable;
-                                                                        $doCancellable = $deliveryOrder->isCancellable;
+                                                                            $doShippable = $deliveryOrder->isShippable;
+                                                                            $doCancellable = $deliveryOrder->isCancellable;
                                                                         @endphp
                                                                         <div class="btn-group">
                                                                             <span href="#" class="btn btn-sm {{ OrderHelper::getDeliveryOrderStatusLabelClass($deliveryOrder->status) }}">{{ \Kommercio\Models\Order\DeliveryOrder\DeliveryOrder::getStatusOptions($deliveryOrder->status) }}</span>
@@ -465,6 +466,9 @@
                                                                     <td>
                                                                         <div class="btn-group btn-group-xs">
                                                                             <a href="#" class="btn btn-default delivery-order-view-btn" data-delivery_order_id="{{ $deliveryOrder->id }}"><i class="fa fa-search"></i> View</a>
+                                                                            @if($doEditable)
+                                                                                <a href="{{ route('backend.sales.order.delivery_order.mini_form', ['id' => $deliveryOrder->id, 'backUrl' => Request::fullUrl()]) }}" class="btn btn-default modal-ajax"><i class="fa fa-pencil"></i> Edit</a>
+                                                                            @endif
                                                                             @if(!in_array($deliveryOrder->status, [\Kommercio\Models\Order\DeliveryOrder\DeliveryOrder::STATUS_CANCELLED]))
                                                                                 <a href="{{ route('backend.sales.order.delivery_order.print', ['id' => $deliveryOrder->id]) }}" class="btn btn-default" target="_blank"><i class="fa fa-print"></i> Print</a>
                                                                             @endif

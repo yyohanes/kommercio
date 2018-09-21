@@ -90,9 +90,19 @@
                 <ul class="list-group">
                     @foreach($deliveryOrder->getHistory() as $history)
                         <li class="list-group-item">
-                            Status set to <span class="label bg-{{ OrderHelper::getDeliveryOrderStatusLabelClass($history->value) }}">{{ \Kommercio\Models\Order\DeliveryOrder\DeliveryOrder::getStatusOptions($history->value) }}</span> by {{ $history->author }}<br/>
+                            Status is <span class="label bg-{{ OrderHelper::getDeliveryOrderStatusLabelClass($history->value) }}">{{ \Kommercio\Models\Order\DeliveryOrder\DeliveryOrder::getStatusOptions($history->value) }}</span> by {{ $history->author }}<br/>
+                            @php
+                            $diff = array_diff_assoc(
+                                $history->getData('after', []),
+                                $history->getData('before', [])
+                            );
+                            @endphp
                             @if($history->notes)
-                                <pre>Reason: {!! nl2br($history->notes) !!}</pre>
+                                <pre>{!! nl2br($history->notes) !!}</pre>
+                            @endif
+                            @if ($diff)
+                                Change<br/>
+                                <pre>{{ json_encode($diff) }}</pre>
                             @endif
                             <span class="badge badge-default">{{ $history->created_at->format('d-m-Y H:i') }}</span>
                         </li>

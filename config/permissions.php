@@ -122,6 +122,7 @@ $permissions = [
     'Delivery Order' => [
         'permissions' => [
             'print_delivery_order' => 'Print Delivery Order',
+            'edit_delivery_order' => 'Edit Delivery Order',
             'view_delivery_order' => 'View Delivery Order',
             'cancel_delivery_order' => 'Void Delivery Order',
             'complete_delivery_order' => 'Complete Delivery Order',

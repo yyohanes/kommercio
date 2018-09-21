@@ -1194,6 +1194,18 @@ Route::group(['middleware' => ['web']], function () {
                             'uses' => 'DeliveryOrderController@resendEmail',
                             'permissions' => ['resend_order_email', 'view_delivery_order']
                         ]);
+
+                        Route::get('{id}/form', [
+                            'as' => 'backend.sales.order.delivery_order.mini_form',
+                            'uses' => 'DeliveryOrderController@miniForm',
+                            'permissions' => ['edit_delivery_order']
+                        ]);
+
+                        Route::post('{id}/form/save', [
+                            'as' => 'backend.sales.order.delivery_order.mini_save',
+                            'uses' => 'DeliveryOrderController@miniSave',
+                            'permissions' => ['edit_delivery_order']
+                        ]);
                     });
 
                     Route::group(['prefix' => 'payment'], function(){
