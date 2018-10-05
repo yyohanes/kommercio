@@ -71,12 +71,14 @@ class OrderListener
                 $order->addRewardPoint();
             }
 
-            $subject = 'There is new order #'.$order->reference;
+            if (ProjectHelper::getConfig('order_options.new_order_notification', true)) {
+                $subject = 'There is new order #'.$order->reference;
 
-            $orderEmail = $order->store->getData('contacts.order.email');
-            $orderEmail = empty($orderEmail)?ProjectHelper::getConfig('contacts.order.email'):$orderEmail;
+                $orderEmail = $order->store->getData('contacts.order.email');
+                $orderEmail = empty($orderEmail)?ProjectHelper::getConfig('contacts.order.email'):$orderEmail;
 
-            EmailHelper::sendMail($orderEmail, $subject, 'order.admin_new_order', ['order' => $order, 'store' => $order->store], 'general');
+                EmailHelper::sendMail($orderEmail, $subject, 'order.admin_new_order', ['order' => $order, 'store' => $order->store], 'general');
+            }
         }
     }
 

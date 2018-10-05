@@ -71,6 +71,7 @@ return [
         'processed_order_status' => ['pending', 'processing'],
         'reference_format' => 'store_code:order_year:order_month:order_day:counter',
         'reference_counter_length' => 4,
+        'new_order_notification' => true,
     ],
     'invoice_options' => [
         'reference_format' => 'store_code:invoice_year:invoice_month:invoice_day:counter',
