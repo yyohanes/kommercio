@@ -53,13 +53,12 @@ class PostController extends Controller {
             });
         }
 
-        if ($request->get('sort')) {
-            $sort = explode(':', $request->get('sort'));
-            $sortBy = $sort[0] ?? 'created_at';
-            $sortDirection = $sort[1] ?? 'desc';
+        $sortOption = $request->get('sort', 'created_at:desc');
+        $sort = explode(':', $sortOption);
+        $sortBy = $sort[0] ?? 'created_at';
+        $sortDirection = $sort[1] ?? 'desc';
 
-            $qb->orderBy($sortBy, $sortDirection);
-        }
+        $qb->orderBy($sortBy, $sortDirection);
 
         $posts = $qb->paginate($perPage);
         $posts->appends($request->except('page'));
