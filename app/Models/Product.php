@@ -1030,10 +1030,6 @@ class Product extends Model implements UrlAliasInterface, SeoModelInterface, Cac
             $productLineItems = $order->getProductLineItems();
         }
 
-        if(!$months && !$dates){
-            throw new \Exception('You need to specify months or dates.');
-        }
-
         $daysToRun = [];
 
         if ($dates) {
