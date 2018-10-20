@@ -2,6 +2,7 @@
 
 namespace Kommercio\Http\Controllers\Api\Frontend\Auth;
 
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
@@ -50,7 +51,7 @@ class LoginController extends Controller {
                 ]
             );
         } catch (ModelNotFoundException $e) {
-            throw new \Exception('Credentials don\'t match.', 403);
+            throw new AuthenticationException();
         } catch (\Throwable $e) {
             throw $e;
         }
