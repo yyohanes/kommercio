@@ -19,6 +19,7 @@
         var show_store_column = {{ Auth::user()->manageMultipleStores?1:0 }};
         var view_payment = {{ Gate::allows('access', ['view_payment'])?1:0 }};
         var enable_delivery_date = {{ config('project.enable_delivery_date', false)?1:0 }};
+        var enable_customer_group = {{ ProjectHelper::isFeatureEnabled('customer.customer_group')?1:0 }};
     </script>
 
     <script src="{{ asset('backend/assets/scripts/pages/order_index.js?cb=1') }}" type="text/javascript"></script>
@@ -94,6 +95,9 @@
                             @endif
                             <th>Customer</th>
                             <th>Recipient</th>
+                            @if(ProjectHelper::isFeatureEnabled('customer.customer_group'))
+                            <th>Customer Group</th>
+                            @endif
                             @foreach($stickyProducts as $stickyProduct)
                                 <th>{{ $stickyProduct->name }}</th>
                             @endforeach
@@ -131,6 +135,9 @@
                             @endif
                             <td>{!! Form::text('filter[billing]', Request::input('filter.billing'), ['class' => 'form-control form-filter input-sm']) !!}</td>
                             <td>{!! Form::text('filter[shipping]', Request::input('filter.shipping'), ['class' => 'form-control form-filter input-sm']) !!}</td>
+                            @if(ProjectHelper::isFeatureEnabled('customer.customer_group'))
+                                <td>{!! Form::select('filter[customer_group]', ['' => 'All'] + $customerGroupOptions, [Request::input('filter.customer_group')], ['class' => 'form-control form-filter input-sm']) !!}</td>
+                            @endif
                             @foreach($stickyProducts as $stickyProduct)
                                 <td></td>
                             @endforeach

@@ -30,6 +30,11 @@ var OrderIndex = function () {
             {"name": "shipping", "targets": 6+runtimeAdditonalColumns, "orderable": false}
         ]);
 
+        if(enable_customer_group){
+            columnDefs.push({"name": "customer_group", "targets": 7+runtimeAdditonalColumns, "orderable": false});
+            runtimeAdditonalColumns += 1;
+        }
+
         for(var i=0; i<additional_columns;i+=1){
             columnDefs.push({"name": "sticky_product"+i, "targets": 7+i+runtimeAdditonalColumns, "orderable": false});
         }

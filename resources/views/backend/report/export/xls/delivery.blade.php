@@ -21,6 +21,9 @@ if($store != 'all'){
         <th>Phone</th>
         <th>Email</th>
         <th>Address</th>
+        @if(ProjectHelper::isFeatureEnabled('customer.customer_group'))
+            <th>Cust. Group</th>
+        @endif
         @foreach($includedProducts as $includedProduct)
             <th>{{ $includedProduct['product']->name }}</th>
         @endforeach
@@ -48,6 +51,9 @@ if($store != 'all'){
             @foreach($includedProducts as $includedProduct)
                 <td>{{ $order->getProductQuantity($includedProduct['product']->id, true) + 0 }}</td>
             @endforeach
+            @if(ProjectHelper::isFeatureEnabled('customer.customer_group'))
+                <td>{{ $order->customer ? $order->customer->customerGroups->pluck('name')->implode(', ') : '' }}</td>
+            @endif
             <td>{{ $order->outstanding }}</td>
             <td>{{ CurrencyHelper::convert($order->total, $order->currency, $order->currency) }}</td>
             <td>{{ $order->paymentMethod->name }}</td>

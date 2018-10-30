@@ -97,6 +97,9 @@
                 @if($order->shippingInformation->email)
                     <br/><i class="fa fa-envelope-square"></i> {{ $order->shippingInformation->email }}
                 @endif
+                @if($order->customer && $order->customer->customerGroups->count() > 0)
+                    <br/><strong>{{ $order->customer->customerGroups->pluck('name')->implode(', ') }}</strong>
+                @endif
             </td>
             <td>{!! AddressHelper::printAddress($order->shippingInformation->getDetails()) !!}</td>
             @foreach($includedProducts as $includedProduct)

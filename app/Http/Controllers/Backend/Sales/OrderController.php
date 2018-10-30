@@ -193,6 +193,14 @@ class OrderController extends Controller{
                         }else{
                             $qb->whereRaw('(total - COALESCE(P.paid_amount, 0)) > ?', [0]);
                         }
+                    }elseif($searchKey == 'customer_group') {
+                        if(!empty($search)){
+                            $qb->whereHas('customer', function($qb) use ($search) {
+                                $qb->whereHas('customerGroups', function($qb) use ($search) {
+                                    $qb->where('id', $search);
+                                });
+                            });
+                        }
                     }else{
                         $qb->where($searchKey, $search);
                     }
@@ -248,9 +256,15 @@ class OrderController extends Controller{
             $paymentMethodOptions[$paymentMethod->id] = $paymentMethod->name;
         }
 
+        $customerGroupOptions = [];
+        foreach(Customer\CustomerGroup::orderBy('id', 'asc')->get() as $customerGroup){
+            $customerGroupOptions[$customerGroup->id] = $customerGroup->name;
+        }
+
         return view('backend.order.index', [
             'stickyProducts' => $stickyProducts,
-            'paymentMethodOptions' => $paymentMethodOptions
+            'paymentMethodOptions' => $paymentMethodOptions,
+            'customerGroupOptions' => $customerGroupOptions,
         ]);
     }
 
@@ -362,6 +376,14 @@ class OrderController extends Controller{
                 $order->billing_full_name.'<div class="expanded-detail">'.$order->billingInformation->email.'<br/>'.$order->billingInformation->phone_number.'<br/>'.AddressHelper::printAddress($order->billingInformation->getDetails()).'</div>',
                 $order->shipping_full_name.'<div class="expanded-detail">'.$order->shippingInformation->email.'<br/>'.$order->shippingInformation->phone_number.'<br/>'.AddressHelper::printAddress($order->shippingInformation->getDetails()).'</div>',
             ]);
+
+            if (ProjectHelper::isFeatureEnabled('customer.customer_group')) {
+                $rowMeat = array_merge($rowMeat, [
+                    $order->customer
+                        ? $order->customer->customerGroups->pluck('name')->implode(', ')
+                        : null,
+                ]);
+            }
 
             foreach($stickyProducts as $stickyProduct){
                 $rowMeat[] = $order->getProductQuantity($stickyProduct->id);

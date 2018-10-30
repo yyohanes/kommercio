@@ -207,7 +207,7 @@ class ExportController extends Controller
             $data = [];
 
             if($rowNumber == 0){
-                $data[] = ['reference', 'checkout_at', 'delivery_date', 'customer', 'customer_name', 'customer_phone', 'recipient', 'recipient_name', 'recipient_phone', 'total', 'payment_method', 'outstanding', 'status', 'store'];
+                $data[] = ['reference', 'checkout_at', 'delivery_date', 'customer', 'customer_name', 'customer_phone', 'recipient', 'recipient_name', 'recipient_phone', 'customer_group', 'total', 'payment_method', 'outstanding', 'status', 'store'];
             }
 
             foreach($ids as $orderId){
@@ -224,6 +224,7 @@ class ExportController extends Controller
                         $order->shippingInformation->email,
                         $order->shippingInformation->full_name,
                         $order->shippingInformation->phone_number,
+                        $order->customer ? $order->customer->customerGroups->pluck('name')->implode(', ') : '',
                         $order->total,
                         $order->paymentMethod->name,
                         $order->getOutstandingAmount(),
