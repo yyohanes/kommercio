@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Kommercio\Http\Resources\Post\PostResource;
 use Kommercio\Http\Controllers\Controller;
 use Kommercio\Models\CMS\Post;
+use Kommercio\Models\CMS\PostCategory;
 
 class PostController extends Controller {
 
@@ -49,7 +50,17 @@ class PostController extends Controller {
         if ($request->get('categories')) {
             $categories = explode(',', $request->get('categories'));
             $qb->whereHas('postCategories', function($query) use ($categories) {
-                $query->whereIn('id', $categories);
+                $categoryIds = array_map(function($category) {
+                    if (!is_numeric($category)) {
+                        $categoryObject = PostCategory::getBySlug($category);
+
+                        return $categoryObject->id;
+                    }
+
+                    return $category;
+                }, $categories);
+
+                $query->whereIn('id', $categoryIds);
             });
         }
 
