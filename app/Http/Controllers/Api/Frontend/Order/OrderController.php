@@ -237,6 +237,15 @@ class OrderController extends Controller {
             'notes' => $request->input('notes', null),
         ];
 
+        // Allow overriding IP address and user-agent as this API might be behind proxy
+        if ($request->filled('ip_address')) {
+            $order->ip_address = $request->input('ip_address');
+        }
+
+        if ($request->filled('user_agent')) {
+            $order->user_agent = $request->input('user_agent');
+        }
+
         if ($deliveryDateIsOn) {
             $orderData['delivery_date'] = $request->input('delivery_date');
         }
