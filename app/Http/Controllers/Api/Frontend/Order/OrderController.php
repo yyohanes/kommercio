@@ -237,15 +237,6 @@ class OrderController extends Controller {
             'notes' => $request->input('notes', null),
         ];
 
-        // Allow overriding IP address and user-agent as this API might be behind proxy
-        if ($request->filled('ip_address')) {
-            $order->ip_address = $request->input('ip_address');
-        }
-
-        if ($request->filled('user_agent')) {
-            $order->user_agent = $request->input('user_agent');
-        }
-
         if ($deliveryDateIsOn) {
             $orderData['delivery_date'] = $request->input('delivery_date');
         }
@@ -657,8 +648,11 @@ class OrderController extends Controller {
     protected function processPlaceOrder(Request $request, Order $order) {
         $order->status = Order::STATUS_PENDING;
         $order->checkout_at = Carbon::now();
-        $order->ip_address = $request->ip();
-        $order->user_agent = $request->header('User-Agent');
+
+        // Allow overriding IP address and user-agent as this API might be behind proxy
+        $order->ip_address = $request->input('ip_address', $request->ip());
+        $order->user_agent = $request->input('user_agent', $request->header('User-Agent'));
+
         $order->generateReference();
 
         $order->processStocks();
