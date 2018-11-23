@@ -15,6 +15,7 @@ class Address extends Model implements CacheableInterface
         'active' => 'boolean',
         'has_descendant' => 'boolean',
         'show_custom_city' => 'boolean',
+        'use_remote_city' => 'boolean',
     ];
     public $addressType;
     public $parentType;

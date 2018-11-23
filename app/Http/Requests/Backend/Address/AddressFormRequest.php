@@ -62,6 +62,14 @@ class AddressFormRequest extends Request
             $attributes['has_descendant'] = 0;
         }
 
+        if(!$this->filled('show_custom_city')){
+            $attributes['show_custom_city'] = 0;
+        }
+
+        if(!$this->filled('use_remote_city')){
+            $attributes['use_remote_city'] = 0;
+        }
+
         $this->replace($attributes);
 
         return parent::all($keys);

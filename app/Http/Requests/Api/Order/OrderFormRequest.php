@@ -59,6 +59,14 @@ class OrderFormRequest extends \Illuminate\Foundation\Http\FormRequest {
             ],
         ];
 
+        if ($request->filled('shippingProfile.remote_place')) {
+            $rules['shippingProfile.remote_place.id'] = 'required';
+            $rules['shippingProfile.remote_place.source'] = 'required';
+            $rules['shippingProfile.remote_place.components.*.name'] = 'required|string';
+            $rules['shippingProfile.remote_place.components.*.type'] = 'required|string';
+            $rules['shippingProfile.remote_place.components.*.local_type'] = 'required|in:country,state,city,district,area';
+        }
+
         $productRules = static::getProductRules($request);
 
         $rules = array_merge(

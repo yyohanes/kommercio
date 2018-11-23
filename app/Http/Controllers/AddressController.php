@@ -21,6 +21,39 @@ class AddressController extends Controller
      * @param string $type
      * @return array
      */
+    protected function getAddresses(Request $request, string $type)
+    {
+        $addresses = [];
+
+        $parent = $request->input('parent', null);
+        $active_only = $request->input('active_only', true);
+
+        switch($type){
+            case 'country':
+                $addresses = AddressHelper::getCountries($active_only);
+                break;
+            case 'state':
+                $addresses = AddressHelper::getStates($parent);
+                break;
+            case 'city':
+                $addresses = AddressHelper::getCities($parent);
+                break;
+            case 'district':
+                $addresses = AddressHelper::getDistricts($parent);
+                break;
+            case 'area':
+                $addresses = AddressHelper::getAreas($parent);
+                break;
+        }
+
+        return $addresses;
+    }
+
+    /**
+     * @param Request $request
+     * @param string $type
+     * @return array
+     */
     protected function getOptions(Request $request, string $type)
     {
         $options = [];

@@ -6,7 +6,6 @@ Route::prefix('public')
         Route::prefix('address')
             ->namespace('Address')
             ->group(function() {
-
                 /**
                  * Get address options
                  * @param {int} parent
@@ -16,6 +15,16 @@ Route::prefix('public')
                 Route::get('{type}/options', [
                     'as' => 'api.frontend.address.options',
                     'uses' => 'AddressController@options',
+                ]);
+
+                /**
+                 * Get address
+                 * @param {int} parent
+                 * @param {bool} active_only
+                 */
+                Route::get('{type}', [
+                    'as' => 'api.frontend.address.index',
+                    'uses' => 'AddressController@index',
                 ]);
             });
     });

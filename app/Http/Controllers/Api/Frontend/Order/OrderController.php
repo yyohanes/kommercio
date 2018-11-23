@@ -25,6 +25,11 @@ use Kommercio\Http\Resources\Order\OrderLimitResource;
 use Kommercio\Http\Resources\Order\OrderResource;
 use Kommercio\Http\Resources\PaymentMethod\PublicPaymentMethodResource;
 use Kommercio\Http\Resources\ShippingMethod\ShippingOptionCollection;
+use Kommercio\Models\Address\Area;
+use Kommercio\Models\Address\City;
+use Kommercio\Models\Address\Country;
+use Kommercio\Models\Address\District;
+use Kommercio\Models\Address\State;
 use Kommercio\Models\Customer;
 use Kommercio\Models\Order\LineItem;
 use Kommercio\Models\Order\Order;
@@ -296,6 +301,30 @@ class OrderController extends Controller {
         $shippingProfileDetails['custom_city'] = $request->input('shippingProfile.custom_city', null);
         $shippingProfileDetails['district_id'] = $request->input('shippingProfile.district_id', null);
         $shippingProfileDetails['area_id'] = $request->input('shippingProfile.area_id', null);
+
+        $country = Country::findById($shippingProfileDetails['country_id']);
+
+        // Process remote place if country is using remote city
+        if ($request->filled('shippingProfile.remote_place') && $country->use_remote_city) {
+            $remotePlaces = $this->processRemotePlace($country, $request->input('shippingProfile.remote_place'));
+
+            // Override addresses with remote data
+            if ($remotePlaces['state']) {
+                $shippingProfileDetails['state_id'] = $remotePlaces['state']->id;
+            }
+
+            if ($remotePlaces['city']) {
+                $shippingProfileDetails['city_id'] = $remotePlaces['city']->id;
+            }
+
+            if ($remotePlaces['district']) {
+                $shippingProfileDetails['district_id'] = $remotePlaces['district']->id;
+            }
+
+            if ($remotePlaces['area']) {
+                $shippingProfileDetails['area_id'] = $remotePlaces['area']->id;
+            }
+        }
 
         // Only billing name & phone number is overridable. If address infos are all empty, override with shipping.
         $billingProfileDetails = $this->isProfileOverrideable($customerProfile->getDetails())
@@ -693,5 +722,127 @@ class OrderController extends Controller {
         }, $addressFields);
 
         return count(array_unique($bools)) === 1;
+    }
+
+    /**
+     * @param array $remotePlaceData
+     * @return array
+     */
+    protected function processRemotePlace(Country $country, array $remotePlaceData) {
+        $remoteSource = $remotePlaceData['source'];
+
+        $holder = [
+            'country' => $country,
+            'state' => null,
+            'city' => null,
+            'district' => null,
+            'area' => null,
+        ];
+        $components = $remotePlaceData['components'];
+
+        $map = [
+            'country' => 0,
+            'state' => 1,
+            'city' => 2,
+            'district' => 3,
+            'area' => 4,
+        ];
+
+        $components = array_sort($components, function($component) use ($map) {
+            return $map[$component['local_type']] ?? -1;
+        });
+
+        foreach ($components as $component) {
+            switch ($component['local_type']) {
+                case 'state':
+                    $state = $holder['country']
+                        ->states()
+                        ->where('name')
+                        ->first();
+
+                    if (!$state) {
+                        $state = new State([
+                            'name' => $component['name'],
+                            'active' => true,
+                            'remote_type' => $component['type'],
+                            'remote_source' => $remoteSource,
+                            'has_descendant' => count(array_filter($components, function($component) {
+                                return $component['local_type'] === 'city';
+                            })) > 0,
+                        ]);
+                        $state->setParent($holder['country']->id);
+                        $state->save();
+                    }
+
+                    $holder['state'] = $state;
+                    break;
+                case 'city':
+                    $city = $holder['state']
+                        ->cities()
+                        ->where('name')
+                        ->first();
+
+                    if (!$city) {
+                        $city = new City([
+                            'name' => $component['name'],
+                            'active' => true,
+                            'remote_type' => $component['type'],
+                            'remote_source' => $remoteSource,
+                            'has_descendant' => count(array_filter($components, function($component) {
+                                return $component['local_type'] === 'district';
+                            })) > 0,
+                        ]);
+                        $city->setParent($holder['state']->id);
+                        $city->save();
+                    }
+
+                    $holder['city'] = $city;
+                    break;
+                case 'district':
+                    $district = $holder['city']
+                        ->districts()
+                        ->where('name')
+                        ->first();
+
+                    if (!$district) {
+                        $district = new District([
+                            'name' => $component['name'],
+                            'active' => true,
+                            'remote_type' => $component['type'],
+                            'remote_source' => $remoteSource,
+                            'has_descendant' => count(array_filter($components, function($component) {
+                                return $component['local_type'] === 'area';
+                            })) > 0,
+                        ]);
+                        $district->setParent($holder['city']->id);
+                        $district->save();
+                    }
+
+                    $holder['district'] = $district;
+                    break;
+                case 'area':
+                    $area = $holder['district']
+                        ->areas()
+                        ->where('name')
+                        ->first();
+
+                    if (!$area) {
+                        $area = new Area([
+                            'name' => $component['name'],
+                            'active' => true,
+                            'remote_type' => $component['type'],
+                            'remote_source' => $remoteSource,
+                            'has_descendant' => false,
+                        ]);
+                        $area->setParent($holder['district']->id);
+                        $area->save();
+                    }
+
+                    $holder['area'] = $area;
+                    break;
+            }
+        }
+
+        return $holder;
     }
 }

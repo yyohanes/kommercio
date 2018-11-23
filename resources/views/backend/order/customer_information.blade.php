@@ -11,6 +11,7 @@
                 'data-typeahead_display' => 'email',
                 'data-typeahead_label' => 'name',
                 'placeholder' => 'Search Customer',
+                'autocomplete' => 'off',
             ];
         }
     ?>

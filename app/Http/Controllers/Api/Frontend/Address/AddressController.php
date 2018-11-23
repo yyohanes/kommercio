@@ -6,8 +6,26 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Kommercio\Http\Controllers\AddressController as BaseAddressController;
 use Kommercio\Http\Resources\Address\AddressOptionResource;
+use Kommercio\Http\Resources\Address\AddressResource;
 
 class AddressController extends BaseAddressController {
+
+    /**
+     * @param Request $request
+     * @param string $type
+     * @return JsonResponse
+     */
+    public function index(Request $request, string $type) {
+        $addresses = collect([]);
+
+        foreach ($this->getAddresses($request, $type) as $address) {
+            $addresses->push($address);
+        }
+
+        $response = AddressResource::collection($addresses);
+
+        return $response->response();
+    }
 
     /**
      * @param Request $request

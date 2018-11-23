@@ -376,6 +376,27 @@ class AddressHelper
         return implode('<br/>', $addressLineElements);
     }
 
+    public function findLowestType(array $types) {
+        $map = [
+            'country' => 0,
+            'state' => 1,
+            'city' => 2,
+            'district' => 3,
+            'area' => 4,
+        ];
+
+        $typeIndeces = array_map(function($type) {
+            return $map[$type] ?? -1;
+        }, $types);
+        $typeIndeces = array_filter($typeIndeces, function($typeIndex) {
+            return $typeIndex >= 0;
+        });
+
+        $smallestIndex = min($typeIndeces);
+
+        return array_search($smallestIndex, $map);
+    }
+
     public function setAlwaysRefresh($active)
     {
         $this->_alwaysRefresh = $active;

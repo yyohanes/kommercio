@@ -62,6 +62,20 @@
         'value' => 1,
         'checked' => old('show_custom_city', $address->show_custom_city)
     ])
+
+    @include('backend.master.form.fields.checkbox', [
+        'name' => 'use_remote_city',
+        'label' => 'Use Remote City',
+        'key' => 'use_remote_city',
+        'attr' => [
+            'class' => 'make-switch',
+            'id' => 'use_remote_city',
+            'data-on-color' => 'warning',
+            'data-size' => 'small',
+        ],
+        'value' => 1,
+        'checked' => old('use_remote_city', $address->use_remote_city)
+    ])
 @endif
 
 @if($type != 'area')

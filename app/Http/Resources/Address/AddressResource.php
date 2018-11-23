@@ -18,6 +18,10 @@ class AddressResource extends Resource {
                 strtolower($address->addressType) === 'country',
                 $address->show_custom_city
             ),
+            'remoteCity' => $this->when(
+                strtolower($address->addressType) === 'country',
+                $address->use_remote_city
+            ),
             'hasDescendant' => !!$address->has_descendant,
             'active' => !!$address->active,
             'sortOrder' => $address->sort_order,
