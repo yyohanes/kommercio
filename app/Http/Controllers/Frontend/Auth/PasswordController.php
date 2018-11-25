@@ -9,7 +9,6 @@ use Kommercio\Facades\LanguageHelper;
 use Kommercio\Facades\ProjectHelper;
 use Kommercio\Http\Controllers\Controller;
 use Illuminate\Foundation\Auth\ResetsPasswords;
-use Illuminate\Support\Facades\Request as RequestFacade;
 
 class PasswordController extends Controller
 {
@@ -107,9 +106,9 @@ class PasswordController extends Controller
         ]);
     }
 
-    protected function sendResetLinkResponse($response)
+    protected function sendResetLinkResponse(Request $request, $response)
     {
-        if (RequestFacade::ajax()) {
+        if ($request->ajax()) {
             return new JsonResponse([
                 'success' => [
                     trans($response)
@@ -123,7 +122,7 @@ class PasswordController extends Controller
 
     protected function sendResetLinkFailedResponse(Request $request, $response)
     {
-        if (RequestFacade::ajax()) {
+        if ($request->ajax()) {
             return new JsonResponse(
                 ['email' => [trans($response)]], 422);
         }
@@ -131,9 +130,9 @@ class PasswordController extends Controller
         return redirect()->back()->withErrors(['email' => trans($response)]);
     }
 
-    protected function sendResetResponse($response)
+    protected function sendResetResponse(Request $request, $response)
     {
-        if (RequestFacade::ajax()) {
+        if ($request->ajax()) {
             return new JsonResponse([
                 'success' => [
                     trans($response)

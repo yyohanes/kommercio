@@ -15,6 +15,7 @@ class ProjectServiceProvider extends ServiceProvider
     {
         $this->loadViewsFrom(__DIR__.'/Project/views', 'project');
         $this->loadTranslationsFrom(__DIR__.'/Project/translations', 'project');
+        $this->loadRoutesFrom(__DIR__.'/Project/routes.php');
 
         if(file_exists(base_path('packages/project/src/Project/ServiceProviderBridge.php'))){
             \Project\Project\ServiceProviderBridge::onBoot($this->app);
@@ -39,7 +40,5 @@ class ProjectServiceProvider extends ServiceProvider
         if(file_exists(base_path('packages/project/src/Project/ServiceProviderBridge.php'))) {
             \Project\Project\ServiceProviderBridge::onRegister($this->app);
         }
-
-        include_once __DIR__.'/Project/routes.php';
     }
 }
