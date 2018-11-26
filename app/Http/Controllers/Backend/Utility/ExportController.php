@@ -303,7 +303,7 @@ class ExportController extends Controller
     {
         $batch = Batch::findOrFail($batch_id);
 
-        Excel::load($batch->getStoragePath().'/'.$batch->getFilename())->convert('xls');
+        return response()->download($batch->getStoragePath().'/'.$batch->getFilename());
     }
 
     protected function processResponse($view_name, $return, Request $request, \Closure $getAdditionalViewOptions = null)
