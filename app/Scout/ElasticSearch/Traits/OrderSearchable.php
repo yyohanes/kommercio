@@ -113,6 +113,9 @@ trait OrderSearchable {
             'total' => [
                 'type' => 'float',
             ],
+            'total_quantity' => [
+                'type' => 'float',
+            ],
             'currency' => [
                 'type' => 'keyword',
             ],
@@ -341,6 +344,7 @@ trait OrderSearchable {
             'tax_total' => $this->tax_total,
             'rounding_total' => $this->rounding_total,
             'total' => $this->total,
+            'total_quantity' => $this->calculateQuantityTotal(),
             'currency' => $this->currency,
             'status' => $this->status,
             'notes' => $this->notes,

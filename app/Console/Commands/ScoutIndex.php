@@ -42,16 +42,26 @@ class ScoutIndex extends Command
 
         switch($type) {
             case 'Order':
-                $orders = Order::checkout()->get();
-                $bar = $this->output->createProgressBar($orders->count());
+                $perBatch = 100;
+                $allRecords = Order::checkout()->count();
+                $totalBatch = ceil($allRecords / $perBatch);
 
-                foreach ($orders as $order) {
-                    $order->searchable();
-                    foreach ($order->allLineItems as $lineItem) {
-                        $lineItem->searchable();
+                $bar = $this->output->createProgressBar($allRecords);
+
+                for ($i = 0; $i < $totalBatch; $i += 1) {
+                    $orders = Order::checkout()
+                        ->skip($i * $perBatch)
+                        ->take($perBatch)
+                        ->get();
+
+                    foreach ($orders as $order) {
+                        $order->searchable();
+                        foreach ($order->allLineItems as $lineItem) {
+                            $lineItem->searchable();
+                        }
+
+                        $bar->advance();
                     }
-
-                    $bar->advance();
                 }
             default:
                 $this->error('Unknown selection.');

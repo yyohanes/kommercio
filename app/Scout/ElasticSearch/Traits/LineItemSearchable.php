@@ -72,6 +72,14 @@ trait LineItemSearchable {
                     'id' => [
                         'type' => 'integer',
                     ],
+                    'checkout_at' => [
+                        'type' => 'date',
+                        'format' => 'date_time_no_millis',
+                    ],
+                    'delivery_date' => [
+                        'type' => 'date',
+                        'format' => 'date_time_no_millis',
+                    ],
                     'store' => [
                         'properties' => [
                             'id' => [
@@ -265,6 +273,8 @@ trait LineItemSearchable {
             'notes' => $this->notes,
             'order' => $this->order ? [
                 'id' => $this->order->id,
+                'checkout_at' => $this->order->checkout_at ? $this->order->checkout_at->format('Y-m-d\TH:i:sO') : null,
+                'delivery_date' => $this->order->delivery_date ? $this->order->delivery_date->format('Y-m-d\TH:i:sO') : null,
                 'billingInformation' => $billingProfile ? [
                     'first_name' => $billingProfile->first_name,
                     'last_name' => $billingProfile->last_name,
