@@ -207,13 +207,23 @@ class ExportController extends Controller
             $data = [];
 
             if($rowNumber == 0){
-                $data[] = ['reference', 'checkout_at', 'delivery_date', 'customer', 'customer_name', 'customer_phone', 'recipient', 'recipient_name', 'recipient_phone', 'customer_group', 'total', 'payment_method', 'outstanding', 'status', 'store'];
+                $data[] = ['reference', 'checkout_at', 'delivery_date', 'customer', 'customer_name', 'customer_phone', 'recipient', 'recipient_name', 'recipient_phone', 'customer_group', 'total', 'payment_method', 'outstanding', 'status', 'store', 'tracking_number'];
             }
 
             foreach($ids as $orderId){
                 $order = Order::find($orderId);
 
                 if($order){
+                    $deliveryOrders = $order->deliveryOrders;
+                    $trackingNumbers = $deliveryOrders->reduce(function($acc, $deliveryOrder) {
+                        $acc->push($deliveryOrder->getData('tracking_number', null));
+
+                        return $acc;
+                    }, collect([]));
+                    $trackingNumbers = $trackingNumbers->filter(function($trackingNumber) {
+                        return !empty($trackingNumber);
+                    });
+
                     $data[] = [
                         $order->reference,
                         $order->checkout_at ? $order->checkout_at->format('Y-m-d H:i:s') : null,
@@ -230,6 +240,7 @@ class ExportController extends Controller
                         $order->getOutstandingAmount(),
                         Order::getStatusOptions($order->status, TRUE),
                         $order->store->name,
+                        $trackingNumbers->implode(', '),
                     ];
                 }
             }

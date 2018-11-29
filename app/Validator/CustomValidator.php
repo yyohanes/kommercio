@@ -134,7 +134,7 @@ class CustomValidator extends Validator
 
         $model = call_user_func(array(Address::getClassNameByType($parent), 'find'), $parentId);
 
-        if($model && $model->has_descendant && $model->getChildren()->count() > 0){
+        if($model && !$model->use_remote_city && $model->has_descendant && $model->getChildren()->count() > 0){
             return !empty($value);
         }
 
