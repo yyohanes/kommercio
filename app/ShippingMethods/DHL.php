@@ -101,6 +101,7 @@ class DHL extends ShippingMethodAbstract implements ShippingMethodSettingsInterf
             $config = [
                 'dhlName' => $request->input('dhlName'),
                 'regionCode' => $request->input('regionCode'),
+                'countryCode' => $request->input('countryCode'),
                 'dutyPaymentType' => $request->input('dutyPaymentType'),
                 'fallbackCityName' => $request->input('fallbackCityName'),
                 'dutiableMinimum' => $request->input('dutiableMinimum'),

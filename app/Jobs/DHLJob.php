@@ -192,9 +192,15 @@ class DHLJob implements ShouldQueue
             $shippingCountryName = $this->addressConfig['dhlName'];
         }
 
+        if (!empty($this->addressConfig['countryCode'])) {
+            $shippingCountryName = $this->addressConfig['countryCode'];
+        } else {
+            $shippingCountryCode = $shippingInformation->country->iso_code;
+        }
+
         $request->Consignee->City = $cityName;
         $request->Consignee->PostalCode = $shippingInformation->postal_code;
-        $request->Consignee->CountryCode = $shippingInformation->country->iso_code;
+        $request->Consignee->CountryCode = $shippingCountryCode;
         $request->Consignee->CountryName = $shippingCountryName;
         $request->Consignee->Contact->PersonName = $shippingInformation->full_name;
         $request->Consignee->Contact->PhoneNumber = $shippingInformation->phone_number;
@@ -209,7 +215,22 @@ class DHLJob implements ShouldQueue
         $piece->PieceContents = '1';
         $request->ShipmentDetails->addPiece($piece);
 
-        $request->ShipmentDetails->Contents = $singleProductLineItem->product->box_content;
+        $contents = $singleProductLineItem->product->box_content;
+        if ($singleProductLineItem->children->count() > 0) {
+            $contentsArray = [];
+
+            foreach ($singleProductLineItem->children as $childLineItem) {
+                $childBoxContent = $childLineItem->product->box_content;
+                if (empty($childBoxContent)) {
+                    $childBoxContent = $childLineItem->product->name;
+                }
+
+                $contentsArray[] = $childBoxContent;
+            }
+
+            $contents = implode("\n", $contentsArray);
+        }
+        $request->ShipmentDetails->Contents = $contents;
         $request->ShipmentDetails->GlobalProductCode = 'P';
         $request->ShipmentDetails->LocalProductCode = 'P';
         $request->ShipmentDetails->Date = date('Y-m-d');

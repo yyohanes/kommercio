@@ -25,6 +25,18 @@
 ])
 
 @include('backend.master.form.fields.text', [
+    'name' => 'countryCode',
+    'label' => 'Country Code',
+    'key' => 'countryCode',
+    'attr' => [
+        'class' => 'form-control',
+        'id' => 'countryCode',
+    ],
+    'valueColumnClass' => 'col-md-6',
+    'defaultValue' => old('countryCode', $countryCode),
+])
+
+@include('backend.master.form.fields.text', [
     'name' => 'fallbackCityName',
     'label' => 'Fallback City Name',
     'key' => 'fallbackCityName',
