@@ -54,6 +54,7 @@ class DHL extends ShippingMethodAbstract implements ShippingMethodSettingsInterf
             'fallbackCityName' => isset($config['fallbackCityName']) ? $config['fallbackCityName'] : null,
             'dutiableMinimum' => isset($config['dutiableMinimum']) ? $config['dutiableMinimum'] : null,
             'dutiableCurrency' => isset($config['dutiableCurrency']) ? $config['dutiableCurrency'] : CurrencyHelper::getCurrentCurrency()['iso'],
+            'countryCode' => isset($config['countryCode']) ? $config['countryCode'] : null,
             'currencyOptions' => $currencyOptions,
             'regionCodeOptions' => $regionCodeOptions,
             'shippingMethod' => $this->shippingMethod,
