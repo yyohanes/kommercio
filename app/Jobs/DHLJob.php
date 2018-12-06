@@ -193,7 +193,7 @@ class DHLJob implements ShouldQueue
         }
 
         if (!empty($this->addressConfig['countryCode'])) {
-            $shippingCountryName = $this->addressConfig['countryCode'];
+            $shippingCountryCode = $this->addressConfig['countryCode'];
         } else {
             $shippingCountryCode = $shippingInformation->country->iso_code;
         }
