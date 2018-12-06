@@ -228,7 +228,7 @@ class DHLJob implements ShouldQueue
                 $contentsArray[] = $childBoxContent;
             }
 
-            $contents = implode("\n", $contentsArray);
+            $contents = implode(', ', $contentsArray);
         }
         $request->ShipmentDetails->Contents = $contents;
         $request->ShipmentDetails->GlobalProductCode = 'P';
