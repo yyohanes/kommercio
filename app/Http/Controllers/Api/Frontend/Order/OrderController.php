@@ -832,7 +832,6 @@ class OrderController extends Controller {
                             'active' => true,
                             'remote_type' => $component['type'],
                             'remote_source' => $remoteSource,
-                            'has_descendant' => false,
                         ]);
                         $area->setParent($holder['district']->id);
                         $area->save();
