@@ -757,7 +757,7 @@ class OrderController extends Controller {
                 case 'state':
                     $state = $holder['country']
                         ->states()
-                        ->where('name')
+                        ->where('name', $component['name'])
                         ->first();
 
                     if (!$state) {
@@ -779,7 +779,7 @@ class OrderController extends Controller {
                 case 'city':
                     $city = $holder['state']
                         ->cities()
-                        ->where('name')
+                        ->where('name', $component['name'])
                         ->first();
 
                     if (!$city) {
@@ -801,7 +801,7 @@ class OrderController extends Controller {
                 case 'district':
                     $district = $holder['city']
                         ->districts()
-                        ->where('name')
+                        ->where('name', $component['name'])
                         ->first();
 
                     if (!$district) {
@@ -823,7 +823,7 @@ class OrderController extends Controller {
                 case 'area':
                     $area = $holder['district']
                         ->areas()
-                        ->where('name')
+                        ->where('name', $component['name'])
                         ->first();
 
                     if (!$area) {
