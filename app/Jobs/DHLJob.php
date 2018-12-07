@@ -208,33 +208,34 @@ class DHLJob implements ShouldQueue
 
         $request->Reference->ReferenceID = $this->order->reference;
 
-        // TODO: Make this per product line item
-        $piece = new Piece();
-        $piece->PackageType = 'YP';
-        $piece->Weight = number_format($this->order->getTotalWeight() / 1000, 2);
-        $piece->PieceContents = '1';
-        $request->ShipmentDetails->addPiece($piece);
+        $pieces = [];
+        foreach ($this->deliveryOrder->lineItems as $lineItem) {
+            if (!$lineItem->product) continue;
 
-        $contents = $singleProductLineItem->product->box_content;
+            $piece = new Piece();
+            $piece->PackageType = 'YP';
+            $piece->Weight = number_format($lineItem->product->weight / 1000, 2);
+            $piece->PieceContents = (string) ($lineItem->quantity + 0);
+            $request->ShipmentDetails->addPiece($piece);
+            $pieces[] = $piece;
+        }
+
+        $contents = [$singleProductLineItem->product->box_content];
         if ($singleProductLineItem->children->count() > 0) {
-            $contentsArray = [];
-
             foreach ($singleProductLineItem->children as $childLineItem) {
                 $childBoxContent = $childLineItem->product->box_content;
                 if (empty($childBoxContent)) {
                     $childBoxContent = $childLineItem->product->name;
                 }
 
-                $contentsArray[] = $childBoxContent;
+                $contents[] = sprintf('%sx%d', $childBoxContent, intval($childLineItem->quantity));
             }
-
-            $contents = implode(', ', $contentsArray);
         }
-        $request->ShipmentDetails->Contents = $contents;
+        $request->ShipmentDetails->Contents = substr(implode(', ', $contents), 0, 90);
         $request->ShipmentDetails->GlobalProductCode = 'P';
         $request->ShipmentDetails->LocalProductCode = 'P';
         $request->ShipmentDetails->Date = date('Y-m-d');
-        $request->ShipmentDetails->NumberOfPieces = 1;
+        $request->ShipmentDetails->NumberOfPieces = count($pieces);
         $request->ShipmentDetails->Weight = number_format($this->deliveryOrder->calculateTotalWeight() / 1000, 2);
         $request->ShipmentDetails->WeightUnit = 'K';
         $request->ShipmentDetails->DoorTo = 'DD';
