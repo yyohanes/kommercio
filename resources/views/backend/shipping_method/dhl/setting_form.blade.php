@@ -37,6 +37,18 @@
 ])
 
 @include('backend.master.form.fields.text', [
+    'name' => 'overrideCityName',
+    'label' => 'Overriding City Name',
+    'key' => 'overrideCityName',
+    'attr' => [
+        'class' => 'form-control',
+        'id' => 'overrideCityName',
+    ],
+    'valueColumnClass' => 'col-md-6',
+    'defaultValue' => old('overrideCityName', $overrideCityName),
+])
+
+@include('backend.master.form.fields.text', [
     'name' => 'fallbackCityName',
     'label' => 'Fallback City Name',
     'key' => 'fallbackCityName',

@@ -184,6 +184,10 @@ class DHLJob implements ShouldQueue
             $cityName = $shippingInformation->custom_city;
         }
 
+        if (!empty($this->addressConfig['overrideCityName'])) {
+            $cityName = $this->addressConfig['overrideCityName'];
+        }
+
         if (empty($cityName)) {
             $cityName = $this->addressConfig['fallbackCityName'];
         }
