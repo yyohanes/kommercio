@@ -104,6 +104,7 @@ $permissions = [
             'ship_order' => 'Ship Order',
             'complete_order' => 'Complete Order',
             'cancel_order' => 'Cancel Order',
+            'export_order' => 'Export Order',
             'resend_order_email' => 'Resend Order Email',
             'edit_settled_order' => 'Edit Settled Order',
             'add_unavailable_product' => 'Add Unavailable Product',
