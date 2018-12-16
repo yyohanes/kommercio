@@ -46,10 +46,6 @@ class OrderFormRequest extends \Illuminate\Foundation\Http\FormRequest {
             'shippingProfile.email' => 'required|email',
             'shippingProfile.phone_number' => 'required',
             'shippingProfile.country_id' => 'required',
-            'shippingProfile.state_id' => 'descendant_address:state',
-            'shippingProfile.city_id' => 'descendant_address:city',
-            'shippingProfile.district_id' => 'descendant_address:district',
-            'shippingProfile.area_id' => 'descendant_address:area',
             'shipping_method' => [
                 'required',
                 'exists:shipping_methods,id',
@@ -58,6 +54,19 @@ class OrderFormRequest extends \Illuminate\Foundation\Http\FormRequest {
                 'required',
             ],
         ];
+
+        $shippingMethod = ShippingMethod::findById($request->input('shipping_method'));
+        if ($shippingMethod && $shippingMethod->requireAddress) {
+            $rules = array_merge(
+                $rules,
+                [
+                    'shippingProfile.state_id' => 'descendant_address:state',
+                    'shippingProfile.city_id' => 'descendant_address:city',
+                    'shippingProfile.district_id' => 'descendant_address:district',
+                    'shippingProfile.area_id' => 'descendant_address:area',
+                ]
+            );
+        }
 
         if ($request->filled('shippingProfile.remote_place')) {
             $rules['shippingProfile.remote_place.id'] = 'required';

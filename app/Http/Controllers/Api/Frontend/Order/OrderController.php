@@ -303,6 +303,7 @@ class OrderController extends Controller {
         $shippingProfileDetails['area_id'] = $request->input('shippingProfile.area_id', null);
 
         $country = Country::findById($shippingProfileDetails['country_id']);
+        $shippingMethod = ShippingMethod::findById($request->get('shipping_method'));
 
         // Process remote place if country is using remote city
         if ($request->filled('shippingProfile.remote_place') && $country->use_remote_city) {
@@ -324,6 +325,15 @@ class OrderController extends Controller {
             if ($remotePlaces['area']) {
                 $shippingProfileDetails['area_id'] = $remotePlaces['area']->id;
             }
+        } else if ($shippingMethod && !$shippingMethod->requireAddress) {
+            // Address is required for an order. But some shipping method doesn't require them.
+            // Thus, get it from store addresses
+            $storeAddress = $store->getAddress();
+            $shippingProfileDetails['state_id'] = $shippingProfileDetails['state_id'] ?? ($storeAddress['state_id'] ?: null);
+            $shippingProfileDetails['city_id'] = $shippingProfileDetails['city_id'] ?? ($storeAddress['city_id'] ?: null);
+            $shippingProfileDetails['custom_city'] = $shippingProfileDetails['custom_city'] ?? ($storeAddress['custom_city'] ?: null);
+            $shippingProfileDetails['district_id'] = $shippingProfileDetails['district_id'] ?? ($storeAddress['district_id'] ?: null);
+            $shippingProfileDetails['area_id'] = $shippingProfileDetails['area_id'] ?? ($storeAddress['area_id'] ?: null);
         }
 
         // Only billing name & phone number is overridable. If address infos are all empty, override with shipping.
