@@ -658,7 +658,7 @@ class OrderController extends Controller {
         if ($shippingMethod && !$shippingMethod->requireAddress) {
             $addressFields = AddressHelper::getAddressFields();
             foreach ($addressFields as $addressField) {
-                if ($profileData[$addressField]) {
+                if (isset($profileData[$addressField])) {
                     unset($profileData[$addressField]);
                 }
             }
