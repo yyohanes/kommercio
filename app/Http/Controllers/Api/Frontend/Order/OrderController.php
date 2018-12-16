@@ -650,6 +650,20 @@ class OrderController extends Controller {
         }
 
         $profileData = $order->billingInformation->getDetails();
+
+        $shippingMethod = ShippingMethod::findById($request->input('shipping_method'));
+        // Address is required for an order. But some shipping method doesn't require them.
+        // In such case, we fill it with store address NOT customer address.
+        // To prevent misleading customer, customer should not save this address.
+        if ($shippingMethod && !$shippingMethod->requireAddress) {
+            $addressFields = AddressHelper::getAddressFields();
+            foreach ($addressFields as $addressField) {
+                if ($profileData[$addressField]) {
+                    unset($profileData[$addressField]);
+                }
+            }
+        }
+
         $customer = Customer::saveCustomer(
             $order->customer,
             $profileData,
