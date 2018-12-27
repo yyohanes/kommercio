@@ -47,6 +47,7 @@
         ],
         "psr-4": {
             "DHL\\": "libs/DHL/",
+            "KommercioIndexer\\": "libs/KommercioIndexer/",
             "Kommercio\\": "app/",
             "Project\\": "packages/project/src"
         },
