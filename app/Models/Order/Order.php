@@ -13,7 +13,6 @@ use Kommercio\Facades\ProjectHelper;
 use Kommercio\Models\Interfaces\AuthorSignatureInterface;
 use Kommercio\Models\Order\DeliveryOrder\DeliveryOrder;
 use Kommercio\Models\Order\DeliveryOrder\DeliveryOrderItem;
-use Kommercio\Models\PriceRule\CartPriceRule;
 use Kommercio\Models\PriceRule\Coupon;
 use Kommercio\Models\Product;
 use Kommercio\Models\Profile\Profile;
@@ -25,11 +24,11 @@ use Kommercio\Models\Tax;
 use Kommercio\Traits\Model\AuthorSignature;
 use Kommercio\Traits\Model\FlatIndexable;
 use Kommercio\Traits\Model\HasDataColumn;
-use Kommercio\Models\Order\Payment;
+use Kommercio\Scout\ElasticSearch\Traits\OrderSearchable;
 
 class Order extends Model implements AuthorSignatureInterface
 {
-    use SoftDeletes, AuthorSignature, HasDataColumn, FlatIndexable;
+    use SoftDeletes, AuthorSignature, HasDataColumn, FlatIndexable, OrderSearchable;
 
     const STATUS_CANCELLED = 'cancelled';
     const STATUS_ADMIN_CART = 'admin_cart';

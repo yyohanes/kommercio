@@ -5,7 +5,7 @@
             'id' => $type.'[email]',
         ];
 
-        if($type == 'profile'){
+        if(in_array($type, ['profile', 'shipping_profile'])){
             $emailAttr += [
                 'data-typeahead_remote' => route('backend.customer.autocomplete'),
                 'data-typeahead_display' => 'email',

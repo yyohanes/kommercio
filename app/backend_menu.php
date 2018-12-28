@@ -364,7 +364,7 @@ $menus['access'] = [
 ];
 
 if(file_exists(base_path('packages/project/src/Project/config/backend_menu.php'))){
-    include_once(base_path('packages/project/src/Project/config/backend_menu.php'));
+    include(base_path('packages/project/src/Project/config/backend_menu.php'));
 }
 
 return $menus;
