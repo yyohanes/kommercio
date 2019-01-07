@@ -83,6 +83,10 @@ class OrderJob implements ShouldQueue {
                 'last_name' => $customerDetails['last_name'] ?? null,
             ],
             'payment_method' => $order->paymentMethod->class,
+            'shipping_method' => [
+                'group' => $order->getShippingMethod() ? $order->getShippingMethod()->class : null,
+                'method' => $order->getSelectedShippingMethod(),
+            ],
         ];
 
         $processLineItem = function($lineItem) {
@@ -129,10 +133,7 @@ class OrderJob implements ShouldQueue {
             return $lineItemData;
         });
 
-//        Storage::put(sprintf('order_%s.json', $order->id), json_encode($data));
-//        return;
         $indexerConfig = new Config(config('kommercio_indexer.site_id'), config('kommercio_indexer.base_path'));
-        // $indexerConfig = new Config('irv_sg', 'http://docker.for.mac.localhost:3000');
         $indexerService = new OrderService($indexerConfig);
         $indexerService->indexOrder($data);
     }
