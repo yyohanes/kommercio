@@ -14,13 +14,12 @@ use Kommercio\Models\PriceRule\Coupon;
 use Kommercio\Models\Product;
 use Kommercio\Models\ProductDetail;
 use Kommercio\Models\Tax;
-use Kommercio\Scout\ElasticSearch\Traits\LineItemSearchable;
 use Kommercio\Traits\Model\HasDataColumn;
 use Kommercio\Traits\Model\MediaAttachable;
 
 class LineItem extends Model
 {
-    use HasDataColumn, MediaAttachable, LineItemSearchable;
+    use HasDataColumn, MediaAttachable;
 
     public $fillable = ['line_item_id', 'line_item_type', 'name', 'base_price', 'quantity', 'taxable', 'notes', 'net_price', 'discount_total', 'tax_total', 'total', 'sort_order', 'data', 'temporary', 'product_composite_id', 'parent_id'];
     protected $casts = [

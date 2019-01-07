@@ -169,8 +169,6 @@ return [
         \Sichikawa\LaravelSendgridDriver\MailServiceProvider::class,
         \Barryvdh\Cors\ServiceProvider::class,
         \Laravel\Passport\PassportServiceProvider::class,
-        \Laravel\Scout\ScoutServiceProvider::class,
-        \ScoutElastic\ScoutElasticServiceProvider::class,
 
         /*
          * Application Service Providers...

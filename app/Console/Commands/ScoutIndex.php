@@ -3,6 +3,7 @@
 namespace Kommercio\Console\Commands;
 
 use Illuminate\Console\Command;
+use Kommercio\Jobs\Index\OrderJob;
 use Kommercio\Models\Order\Order;
 
 class ScoutIndex extends Command
@@ -55,10 +56,8 @@ class ScoutIndex extends Command
                         ->get();
 
                     foreach ($orders as $order) {
-                        $order->searchable();
-                        foreach ($order->allLineItems as $lineItem) {
-                            $lineItem->searchable();
-                        }
+                        $job = new OrderJob($order);
+                        $job->handle();
 
                         $bar->advance();
                     }

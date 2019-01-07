@@ -24,11 +24,10 @@ use Kommercio\Models\Tax;
 use Kommercio\Traits\Model\AuthorSignature;
 use Kommercio\Traits\Model\FlatIndexable;
 use Kommercio\Traits\Model\HasDataColumn;
-use Kommercio\Scout\ElasticSearch\Traits\OrderSearchable;
 
 class Order extends Model implements AuthorSignatureInterface
 {
-    use SoftDeletes, AuthorSignature, HasDataColumn, FlatIndexable, OrderSearchable;
+    use SoftDeletes, AuthorSignature, HasDataColumn, FlatIndexable;
 
     const STATUS_CANCELLED = 'cancelled';
     const STATUS_ADMIN_CART = 'admin_cart';

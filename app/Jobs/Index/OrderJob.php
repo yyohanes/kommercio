@@ -7,6 +7,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Storage;
 use KommercioIndexer\Config;
 use KommercioIndexer\Services\OrderService;
 use Kommercio\Models\Order\Order;
@@ -35,11 +36,21 @@ class OrderJob implements ShouldQueue {
             'status' => $order->status,
             'notes' => $order->notes,
             'currency' => $order->currency,
+            // Uncomment below to explicitly define currency rate
+            // 'currency_rate' => $order->currency_rate,
             'ip_address' => $order->ip_address,
             'user_agent' => $order->user_agent,
             'data' => $order->data ? unserialize($order->data) : null,
             'delivery_date' => $order->delivery_date ? $order->delivery_date->format('Y-m-d\TH:i:sP') : null,
             'checkout_at' => $order->checkout_at ? $order->checkout_at->format('Y-m-d\TH:i:sP') : null,
+            'subtotal' => $order->subtotal,
+            'additional_total' => $order->additional_total,
+            'shipping_total' => $order->shipping_total,
+            'discount_total' => $order->discount_total,
+            'tax_error_total' => $order->tax_error_total,
+            'tax_total' => $order->tax_total,
+            'total' => $order->total,
+            'total_quantity' => $order->calculateQuantityTotal(),
             'billing_profile' => array_merge(
                 [
                     'email' => $billingDetails['email'] ?? null,
@@ -74,7 +85,7 @@ class OrderJob implements ShouldQueue {
             'payment_method' => $order->paymentMethod->class,
         ];
 
-        $data['line_items'] = $order->allLineItems->map(function($lineItem) {
+        $processLineItem = function($lineItem) {
             $data = [
                 'line_item_id' => $lineItem->line_item_id,
                 'line_item_type' => $lineItem->line_item_type,
@@ -89,7 +100,6 @@ class OrderJob implements ShouldQueue {
                 'taxable' => $lineItem->taxable,
                 'sort_order' => $lineItem->sort_order,
                 'notes' => $lineItem->notes,
-                'parent_id' => $lineItem->parent_id,
                 'data' => !empty($lineItem->data) ? unserialize($lineItem->data) : null,
             ];
 
@@ -109,10 +119,20 @@ class OrderJob implements ShouldQueue {
             }
 
             return $data;
+        };
+        $data['line_items'] = $order->lineItems->map(function($lineItem) use ($processLineItem) {
+            $lineItemData = $processLineItem($lineItem);
+            if ($lineItem->children->count() > 0) {
+                $lineItemData['children'] = $lineItem->children->map($processLineItem);
+            }
+
+            return $lineItemData;
         });
 
-        // $indexerConfig = new Config(config('kommercio_indexer.site_id'), config('kommercio_indexer.base_path'));
-        $indexerConfig = new Config('irv_sg', 'http://docker.for.mac.localhost:3000');
+//        Storage::put(sprintf('order_%s.json', $order->id), json_encode($data));
+//        return;
+        $indexerConfig = new Config(config('kommercio_indexer.site_id'), config('kommercio_indexer.base_path'));
+        // $indexerConfig = new Config('irv_sg', 'http://docker.for.mac.localhost:3000');
         $indexerService = new OrderService($indexerConfig);
         $indexerService->indexOrder($data);
     }
@@ -123,6 +143,9 @@ class OrderJob implements ShouldQueue {
      */
     protected function getProfileAddress(Profile $profile) {
         return [
+            'address_1' => $profile->address_1,
+            'address_2' => $profile->address_2,
+            'postal_code' => $profile->postal_code,
             'country' => $profile->country ? [
                 'iso_code' => $profile->country->iso_code,
                 'name' => $profile->country->name,
@@ -130,8 +153,8 @@ class OrderJob implements ShouldQueue {
             'state' => $profile->state ? [
                 'name' => $profile->state->name,
             ] : null,
-            'city' => $profile->city ? [
-                'name' => $profile->city->name,
+            'city' => $profile->custom_city || $profile->city ? [
+                'name' => $profile->custom_city ?: ($profile->city ? $profile->city->name : null),
             ] : null,
             'district' => $profile->district ? [
                 'name' => $profile->district->name,

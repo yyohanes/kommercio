@@ -7,6 +7,7 @@ use Kommercio\Events\CouponEvent;
 use Kommercio\Events\OrderEvent;
 use Kommercio\Facades\EmailHelper;
 use Kommercio\Facades\ProjectHelper;
+use Kommercio\Jobs\Index\OrderJob;
 use Kommercio\Models\Order\Invoice;
 use Kommercio\Models\Order\Order;
 use Kommercio\Models\PaymentMethod\PaymentMethod;
@@ -22,8 +23,7 @@ class OrderListener
      * @param  OrderEvent  $event
      * @return void
      */
-    public function handle(OrderEvent $event)
-    {
+    public function handle(OrderEvent $event) {
         $order = $event->order;
 
         if($event->type == 'before_order_placed'){
@@ -41,13 +41,11 @@ class OrderListener
         }
     }
 
-    protected function beforeOrderPlaced(Order $order)
-    {
+    protected function beforeOrderPlaced(Order $order) {
 
     }
 
-    protected function placeOrder(Order $order, $internal = false)
-    {
+    protected function placeOrder(Order $order, $internal = false) {
         // Generate invoice if not yet created. Possible by payment
         if($order->invoices->count() < 1){
             Invoice::createInvoice($order);
@@ -80,20 +78,23 @@ class OrderListener
                 EmailHelper::sendMail($orderEmail, $subject, 'order.admin_new_order', ['order' => $order, 'store' => $order->store], 'general');
             }
         }
+
+        if (config('kommercio_indexer.enable', false)) {
+            dispatch(new OrderJob($order));
+        }
     }
 
-    protected function placedOrderUpdated(Order $order)
-    {
+    protected function placedOrderUpdated(Order $order) {
+        if (config('kommercio_indexer.enable', false)) {
+            dispatch(new OrderJob($order));
+        }
+    }
+
+    protected function shippingMethodChanged(Order $order) {
 
     }
 
-    protected function shippingMethodChanged(Order $order)
-    {
-
-    }
-
-    protected function processPayment(Order $order)
-    {
+    protected function processPayment(Order $order) {
         $paymentMethod = PaymentMethod::find($order->payment_method_id);
 
         if($paymentMethod){

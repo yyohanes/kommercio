@@ -1111,7 +1111,7 @@ class OrderController extends Controller{
                 $order->save();
 
                 Event::fire(new OrderUpdate($order, $originalStatus, $request->input('send_notification')));
-                Event::fire(new OrderEvent('internal_place_order', $order));
+                Event::fire(new OrderEvent('placed_order_updated', $order));
             }
 
             if(!$internal){
