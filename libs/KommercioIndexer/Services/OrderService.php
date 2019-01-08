@@ -11,30 +11,25 @@ class OrderService extends BaseService {
      * @throws GuzzleException
      */
     public function indexOrder(array $orderData) {
-        try {
-            $response = $this
-                ->getClient()
-                ->request(
-                    'POST',
-                    $this->getBasePath(),
-                    [
-                        'json' => $orderData,
-                        'headers' => [
-                            'Accept' => 'application/json',
-                        ],
-                        'query' => [
-                            'site_id' => $this->getSiteId(),
-                        ],
-                    ]
-                );
+        $response = $this
+            ->getClient()
+            ->request(
+                'POST',
+                $this->getBasePath(),
+                [
+                    'json' => $orderData,
+                    'headers' => [
+                        'Accept' => 'application/json',
+                    ],
+                    'query' => [
+                        'site_id' => $this->getSiteId(),
+                    ],
+                ]
+            );
 
-            $jsonResponse = json_decode($response->getBody()->getContents(), true);
+        $jsonResponse = json_decode($response->getBody()->getContents(), true);
 
-            return $jsonResponse;
-        } catch (GuzzleException $e) {
-            report($e);
-            return [];
-        }
+        return $jsonResponse;
     }
 
     /**
