@@ -72,7 +72,7 @@ class KommercioIndex extends Command
                         $job = new OrderJob($order);
 
                         try {
-                            $job->handle();
+                            dispatch($job)->onQueue('low');
                         } catch (\Throwable $e) {
                             $this->error(sprintf('Error indexing order #%s', $order->id));
                         }
