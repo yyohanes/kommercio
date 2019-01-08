@@ -7,14 +7,14 @@ use Illuminate\Console\Command;
 use Kommercio\Jobs\Index\OrderJob;
 use Kommercio\Models\Order\Order;
 
-class ScoutIndex extends Command
+class KommercioIndex extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'scout-index {type} {--from_date=} {--to_date=}';
+    protected $signature = 'kommercio-index {type} {--from_date=} {--to_date=}';
 
     /**
      * The console command description.
