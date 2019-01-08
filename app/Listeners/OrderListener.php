@@ -80,13 +80,13 @@ class OrderListener
         }
 
         if (config('kommercio_indexer.enable', false)) {
-            dispatch(new OrderJob($order));
+            dispatch(new OrderJob($order))->onQueue('low');
         }
     }
 
     protected function placedOrderUpdated(Order $order) {
         if (config('kommercio_indexer.enable', false)) {
-            dispatch(new OrderJob($order));
+            dispatch(new OrderJob($order))->onQueue('low');
         }
     }
 
