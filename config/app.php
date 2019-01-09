@@ -1,4 +1,4 @@
-x2<?php
+<?php
 
 return [
     /*
