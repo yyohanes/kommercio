@@ -27,6 +27,6 @@ Route::group(
         ];
 
         foreach ($routes as $route) {
-            require_once(base_path('routes/api/' . $route));
+            require(base_path('routes/api/' . $route));
         }
     });

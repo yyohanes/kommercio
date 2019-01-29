@@ -18,6 +18,7 @@ class CustomerResource extends Resource {
 
         return [
             'id' => $customer->id,
+            'reference' => $customer->reference,
             'email' => $customer->getProfile()->email,
             'salute' => $customer->getProfile()->salute,
             'fullName' => $customer->getProfile()->full_name,

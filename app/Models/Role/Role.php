@@ -26,6 +26,7 @@ class Role extends Model
     public function clearPermissions()
     {
         DB::table($this->role_permissions_table)->where('role_id', $this->id)->delete();
+        unset($this->_permissions);
     }
 
     public function savePermissions($permissions)

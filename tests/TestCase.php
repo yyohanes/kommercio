@@ -1,10 +1,11 @@
 <?php
 
-use Illuminate\Support\Facades\DB;
-use Illuminate\Database\SQLiteConnection;
+use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 
-class TestCase extends Illuminate\Foundation\Testing\TestCase
+class TestCase extends BaseTestCase
 {
+    use \Illuminate\Foundation\Testing\DatabaseMigrations;
+
     /**
      * The base URL to use while testing the application.
      *
@@ -12,13 +13,14 @@ class TestCase extends Illuminate\Foundation\Testing\TestCase
      */
     protected $baseUrl = 'http://localhost';
 
+    /**
+     * @inheritdoc
+     */
     protected function setUp() {
         parent::setUp();
 
-        // Because we rely on testing database, we try to migrate if there is migrations.
-        $this->artisan('migrate');
-
-        $this->app[Illuminate\Contracts\Console\Kernel::class]->setArtisan(null);
+        // Prevent all Queueable
+        \Illuminate\Support\Facades\Queue::fake();
     }
 
     /**

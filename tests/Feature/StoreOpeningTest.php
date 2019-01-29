@@ -8,9 +8,6 @@ use Kommercio\Models\ProductDetail;
 use Kommercio\Models\Store;
 use Kommercio\Models\Store\OpeningTime;
 use TestCase;
-use Illuminate\Foundation\Testing\WithoutMiddleware;
-use Illuminate\Foundation\Testing\DatabaseMigrations;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
 
 class StoreOpeningTest extends TestCase
 {

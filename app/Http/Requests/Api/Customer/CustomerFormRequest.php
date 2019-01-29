@@ -61,12 +61,16 @@ class CustomerFormRequest extends \Illuminate\Foundation\Http\FormRequest {
                 'nullable',
                 'date_format:Y-m-d',
             ],
+            '_create_account' => [
+                'nullable',
+                'boolean',
+            ],
             'user.password' => [
                 'required_with:_create_account',
                 'min:6',
             ],
             'user.status' => [
-                'required_with:user._create_account',
+                'required_with:_create_account',
                 'in:' . implode(',', $statusAllowedOptions),
             ],
             'signup_newsletter' => [

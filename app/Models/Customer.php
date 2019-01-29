@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Kommercio\Facades\LanguageHelper;
+use Kommercio\Facades\ProjectHelper;
 use Kommercio\Facades\RuntimeCache;
 use Kommercio\Models\Interfaces\CacheableInterface;
 use Kommercio\Models\Order\Order;
@@ -82,7 +83,7 @@ class Customer extends Model implements CacheableInterface
         return $this->hasMany('Kommercio\Models\Customer\Bookmark');
     }
 
-    //Methods
+    // Methods
     /**
      * @inheritdoc
      */
@@ -152,6 +153,17 @@ class Customer extends Model implements CacheableInterface
         }
 
         return $rewardPointTransaction;
+    }
+
+    public function generateReference() {
+        if (!empty(trim($this->reference))) {
+            return trim($this->reference);
+        }
+
+        $prefix = ProjectHelper::getConfig('customer.reference_prefix');
+        $id = str_pad($this->getKey(), 6, '0', STR_PAD_LEFT);
+
+        return sprintf('%s%s', empty($prefix) ? '' : $prefix . ' ', $id);
     }
 
     //Scopes

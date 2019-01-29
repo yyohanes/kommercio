@@ -18,7 +18,6 @@ class Access
     public function handle($request, Closure $next, $guard = null)
     {
         $route = $request->route();
-        //dd($route);
         $routeAction = $route->getAction();
         $permissions = !empty($routeAction['permissions'])?$routeAction['permissions']:null;
 
@@ -35,6 +34,10 @@ class Access
             }
 
             if(!$allowed){
+                if ($request->expectsJson()) {
+                    return response('Forbidden.', 403);
+                }
+
                 return redirect()->back()->withErrors(['You are not authorized to do this action.']);
             }
         }

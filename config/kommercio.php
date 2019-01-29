@@ -142,4 +142,7 @@ return [
         '/availability\/calendar/'
     ],
     'country_code' => env('DEFAULT_COUNTRY', 'sg'),
+    'customer' => [
+        'reference_prefix' => env('CUSTOMER_REFERENCE_PREFIX', ''),
+    ],
 ];
