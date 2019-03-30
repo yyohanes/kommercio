@@ -167,7 +167,7 @@ class PaypalExternalCheckout extends PaymentMethodAbstract implements PaymentMet
                         ->setCurrency($currencyIso)
                         ->setQuantity($lineitem->quantity)
                         ->setSku($lineitem->product->sku)
-                        ->setPrice($lineitem->calculateSubtotal());
+                        ->setPrice($lineitem->calculateSubNet());
 
                     $itemList->addItem($item);
                 }else if(!$lineitem->isShipping && !$lineitem->isTax){
@@ -175,7 +175,7 @@ class PaypalExternalCheckout extends PaymentMethodAbstract implements PaymentMet
                     $item->setName($lineitem->name)
                         ->setCurrency($currencyIso)
                         ->setQuantity($lineitem->quantity)
-                        ->setPrice($lineitem->calculateSubtotal());
+                        ->setPrice($lineitem->calculateSubNet());
 
                     $itemList->addItem($item);
                 }
