@@ -117,7 +117,7 @@ abstract class PaymentMethodAbstract
     /**
      * Payment form
      */
-    public function getPaymentForm(PaymentMethod $payment, $options = null)
+    public function getPaymentForm(Payment $payment, $options = null)
     {
         return null;
     }
