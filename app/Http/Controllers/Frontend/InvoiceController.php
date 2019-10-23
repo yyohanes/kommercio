@@ -11,6 +11,7 @@ use Kommercio\Http\Controllers\Controller;
 use Kommercio\Models\Order\Invoice;
 use Kommercio\Models\Order\Order;
 use Kommercio\Models\PaymentMethod\PaymentMethod;
+use Symfony\Component\HttpFoundation\JsonResponse;
 
 class InvoiceController extends Controller
 {
@@ -97,6 +98,21 @@ class InvoiceController extends Controller
 
         if($errors){
             return redirect()->back()->withErrors($errors);
+        }
+
+        if ($order->paymentMethod->isExternal()) {
+            $externalPaymentUrl = route('frontend.order.checkout.payment', ['payment_public_id' => $paymentResponse->public_id]);
+
+            if ($request->ajax()) {
+                $response = new JsonResponse([
+                    'redirect' => $externalPaymentUrl,
+                    '_token' => csrf_token()
+                ]);
+            } else {
+                $response = redirect()->to($externalPaymentUrl);
+            }
+
+            return $response;
         }
 
         return redirect()->back()->with('success', [trans(LanguageHelper::getTranslationKey('frontend.order.invoice.payment.success'))]);
