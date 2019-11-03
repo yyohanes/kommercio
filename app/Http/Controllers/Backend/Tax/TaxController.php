@@ -210,6 +210,7 @@ class TaxController extends Controller
             'city_id' => $request->input('city_id', null),
             'district_id' => $request->input('district_id', null),
             'area_id' => $request->input('area_id', null),
+            'store_id' => $request->input('store_id', null),
         ];
 
         $return = [];

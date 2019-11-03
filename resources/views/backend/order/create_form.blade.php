@@ -403,5 +403,5 @@
         </div>
     </script>
 
-    <script src="{{ asset('backend/assets/scripts/pages/order_form.js') }}" type="text/javascript"></script>
+    <script src="{{ asset('backend/assets/scripts/pages/order_form.js?cb=1') }}" type="text/javascript"></script>
 @stop
