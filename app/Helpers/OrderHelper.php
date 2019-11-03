@@ -95,13 +95,13 @@ class OrderHelper
     {
         $cartPriceRules = $this->getCartRules($request, $order, $freeEdit);
 
-        //$taxes = ProjectHelperFacade::getActiveStore()->getTaxes();
         $data = [
             'country_id' => $order->shippingInformation->country_id?:$request->input('shipping_profile.country_id'),
             'state_id' => $order->shippingInformation->state_id?:$request->input('shipping_profile.state_id'),
             'city_id' => $order->shippingInformation->city_id?:$request->input('shipping_profile.city_id'),
             'district_id' => $order->shippingInformation->district_id?:$request->input('shipping_profile.district_id'),
             'area_id' => $order->shippingInformation->area_id?:$request->input('shipping_profile.area_id'),
+            'store_id' => $order->store_id?:$request->input('store_id'),
         ];
 
         $taxes = Tax::getTaxes($data);
