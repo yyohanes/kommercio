@@ -87,8 +87,11 @@ var OrderForm = function () {
       //Calculate Taxes
       for(var j in $lineItems[i].taxes){
         $orderTaxTotal += $lineItems[i].taxes[j];
-        $taxes[j].total += $lineItems[i].taxes[j];
-        $taxes[j].total = formHelper.roundNumber($taxes[j].total);
+
+        if ($taxes[j]) {
+          $taxes[j].total += $lineItems[i].taxes[j];
+          $taxes[j].total = formHelper.roundNumber($taxes[j].total);
+        }
       }
     }
 
