@@ -113,6 +113,7 @@ var OrderForm = function () {
   var calculateTax = function($lineItem, $quantity)
   {
     var $thisTaxAmount = 0;
+    var isTaxProcessed = false;
 
     for(var i in $taxes){
       var $taxAmount = {
@@ -126,6 +127,11 @@ var OrderForm = function () {
       $thisTaxAmount += $taxAmount.net;
 
       $lineItem.taxes[i] = $taxAmount.net * $quantity;
+      isTaxProcessed = true;
+    }
+
+    if (!isTaxProcessed) {
+      $lineItem.taxes = {};
     }
 
     $lineItem.net = $lineItem.net + $thisTaxAmount;
@@ -1096,6 +1102,10 @@ var OrderForm = function () {
       */
 
       $('#shipping-information-wrapper').on('address.change', function(){
+        $('#order-form').trigger('order.major_change');
+      });
+
+      $('#store-option').on('change', function(){
         $('#order-form').trigger('order.major_change');
       });
 
