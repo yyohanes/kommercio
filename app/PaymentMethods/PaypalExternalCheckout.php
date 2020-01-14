@@ -167,15 +167,17 @@ class PaypalExternalCheckout extends PaymentMethodAbstract implements PaymentMet
                         ->setCurrency($currencyIso)
                         ->setQuantity($lineitem->quantity)
                         ->setSku($lineitem->product->sku)
-                        ->setPrice($lineitem->calculateSubNet());
+                        ->setTax($lineitem->tax_total)
+                        ->setPrice($lineitem->calculateNet(false));
 
                     $itemList->addItem($item);
-                }else if(!$lineitem->isShipping && !$lineitem->isTax){
+                }else if(!$lineitem->isTax){
                     $item = new Item();
                     $item->setName($lineitem->name)
                         ->setCurrency($currencyIso)
                         ->setQuantity($lineitem->quantity)
-                        ->setPrice($lineitem->calculateSubNet());
+                        ->setTax($lineitem->tax_total)
+                        ->setPrice($lineitem->calculateNet(false));
 
                     $itemList->addItem($item);
                 }
@@ -183,9 +185,8 @@ class PaypalExternalCheckout extends PaymentMethodAbstract implements PaymentMet
 
             $details = new Details();
             $details
-                ->setShipping($order->calculateShippingTotal())
                 ->setTax($order->calculateTaxTotal())
-                ->setSubtotal($order->calculateSubtotal() + $order->calculateDiscountTotal());
+                ->setSubtotal($order->calculateSubtotal() + $order->calculateShippingTotal() + $order->calculateDiscountTotal());
 
             $amount = new Amount();
             $amount
@@ -214,6 +215,7 @@ class PaypalExternalCheckout extends PaymentMethodAbstract implements PaymentMet
                 ->setPayer($payer)
                 ->setRedirectUrls($redirectUrls)
                 ->setTransactions(array($transaction));
+            \Log::info($paypalPayment->toJSON());
 
             if($this->paymentMethod->hasData('web_experience_profile_id')){
                 $paypalPayment->setExperienceProfileId($this->paymentMethod->getData('web_experience_profile_id'));
