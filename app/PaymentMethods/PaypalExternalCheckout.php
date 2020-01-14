@@ -215,7 +215,6 @@ class PaypalExternalCheckout extends PaymentMethodAbstract implements PaymentMet
                 ->setPayer($payer)
                 ->setRedirectUrls($redirectUrls)
                 ->setTransactions(array($transaction));
-            \Log::info($paypalPayment->toJSON());
 
             if($this->paymentMethod->hasData('web_experience_profile_id')){
                 $paypalPayment->setExperienceProfileId($this->paymentMethod->getData('web_experience_profile_id'));
