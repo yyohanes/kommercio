@@ -245,6 +245,7 @@ class PaypalExternalCheckout extends PaymentMethodAbstract implements PaymentMet
     public function handleExternalNotification(Request $request, Payment $payment) {
         $options = [];
         $status = $request->get('status');
+        $error = null;
 
         if($status == 'success'){
             $paymentId = $request->input('paymentId');
@@ -255,55 +256,56 @@ class PaypalExternalCheckout extends PaymentMethodAbstract implements PaymentMet
                 $payment = Payment::getPaymentFromExternal($paypalPayment->getTransactions()[0]->getInvoiceNumber());
                 $order = $payment->order;
             } catch (\Throwable $e) {
-                throw $e;
+                $error = $e;
             }
 
-            $currency = CurrencyHelper::getCurrency($order->currency);
-            $currencyIso = $currency['iso'];
+            if (!$error) {
+                $currency = CurrencyHelper::getCurrency($order->currency);
+                $currencyIso = $currency['iso'];
 
-            $payerId = $request->input('PayerID');
-            $execution = new PaymentExecution();
-            $execution->setPayerId($payerId);
+                $payerId = $request->input('PayerID');
+                $execution = new PaymentExecution();
+                $execution->setPayerId($payerId);
 
-            $transaction = new Transaction();
-            $amount = new Amount();
-            $details = new Details();
+                $transaction = new Transaction();
+                $amount = new Amount();
+                $details = new Details();
 
-            $details
-                ->setTax($order->calculateTaxTotal())
-                ->setSubtotal($order->calculateSubtotal() + $order->calculateShippingTotal() + $order->calculateDiscountTotal());
+                $details
+                    ->setTax($order->calculateTaxTotal())
+                    ->setSubtotal($order->calculateSubtotal() + $order->calculateShippingTotal() + $order->calculateDiscountTotal());
 
-            $amount
-                ->setCurrency($currencyIso)
-                ->setDetails($details)
-                ->setTotal($order->calculateTotal());
+                $amount
+                    ->setCurrency($currencyIso)
+                    ->setDetails($details)
+                    ->setTotal($order->calculateTotal());
 
-            $transaction->setAmount($amount);
+                $transaction->setAmount($amount);
 
-            $execution->addTransaction($transaction);
+                $execution->addTransaction($transaction);
 
-            $newStatus = Payment::STATUS_FAILED;
+                $newStatus = Payment::STATUS_FAILED;
 
-            try{
-                $paypalPayment->execute($execution, $this->getApiContext());
+                try{
+                    $paypalPayment->execute($execution, $this->getApiContext());
+                    $options['response'] = json_encode($paypalPayment->toArray(), JSON_PRETTY_PRINT);
 
-                if ($paypalPayment->getState() !== 'approved') {
-                    throw new \Exception('Payment is not approved.');
+                    if ($paypalPayment->getState() !== 'approved') {
+                        $error = new \Exception('Payment is not approved.');
+                    }
+
+                    $newStatus = Payment::STATUS_SUCCESS;
+                } catch (\Throwable $e) {
+                    $options['response'] = json_encode($paypalPayment->toArray(), JSON_PRETTY_PRINT);
+                    $error = $e;
                 }
-
-                $options['response'] = json_encode($paypalPayment->toArray(), JSON_PRETTY_PRINT);
-
-                $newStatus = Payment::STATUS_SUCCESS;
-
-                $return = [
-                    'result' => 1,
-                    'payment' => $paypalPayment->toJSON()
-                ];
-            } catch (\Throwable $e) {
-                throw $e;
             }
         }else{
             $newStatus = Payment::STATUS_FAILED;
+        }
+
+        if ($error) {
+            \Log::error($error->getMessage());
         }
 
         $note = 'Status change from '.Payment::getStatusOptions($payment->status).' to '.Payment::getStatusOptions($newStatus);

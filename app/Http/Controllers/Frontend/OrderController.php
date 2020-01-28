@@ -1095,17 +1095,30 @@ class OrderController extends Controller
         /** @var PaymentMethod $paymentMethod */
         $paymentMethod = $payment->paymentMethod;
 
+        $error = null;
         try {
             $processedPayment = $paymentMethod->getProcessor()->handleExternalNotification($request, $payment);
         } catch (\Throwable $e) {
             \Log::error($e->getMessage());
-
-            return response($e->getMessage(), 400);
+            $error = $e;
         }
 
         // If payment is failing or cancelled, redirect to checkout
         if ($processedPayment->status === Payment::STATUS_FAILED) {
-            return redirect()->route('frontend.order.onepage_checkout');
+            $errorMessage = trans(LanguageHelper::getTranslationKey('frontend.checkout.empty_order'));
+            if ($error) {
+                $errorMessage = $e->getMessage();
+            }
+
+            if ($processedPayment->order->isCheckout()) {
+                return redirect()
+                    ->route('frontend.order.invoice.view', ['public_id' => $payment->invoice->public_id])
+                    ->withErrors([$errorMessage]);
+            }
+
+            return redirect()
+                ->route('frontend.order.onepage_checkout')
+                ->withErrors([$errorMessage]);
         }
 
         // Only complete order if payment status changes
