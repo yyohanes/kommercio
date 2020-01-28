@@ -1105,7 +1105,7 @@ class OrderController extends Controller
 
         // If payment is failing or cancelled, redirect to checkout
         if ($processedPayment->status === Payment::STATUS_FAILED) {
-            $errorMessage = trans(LanguageHelper::getTranslationKey('frontend.checkout.empty_order'));
+            $errorMessage = trans(LanguageHelper::getTranslationKey('frontend.checkout.payment.error'));
             if ($error) {
                 $errorMessage = $e->getMessage();
             }
