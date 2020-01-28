@@ -1110,7 +1110,7 @@ class OrderController extends Controller
                 $errorMessage = $e->getMessage();
             }
 
-            if ($processedPayment->order->isCheckout()) {
+            if ($processedPayment->order->isCheckout) {
                 return redirect()
                     ->route('frontend.order.invoice.view', ['public_id' => $payment->invoice->public_id])
                     ->withErrors([$errorMessage]);
