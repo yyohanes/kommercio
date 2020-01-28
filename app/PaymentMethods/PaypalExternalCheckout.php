@@ -292,9 +292,9 @@ class PaypalExternalCheckout extends PaymentMethodAbstract implements PaymentMet
 
                     if ($paypalPayment->getState() !== 'approved') {
                         $error = new \Exception('Payment is not approved.');
+                    } else {
+                        $newStatus = Payment::STATUS_SUCCESS;
                     }
-
-                    $newStatus = Payment::STATUS_SUCCESS;
                 } catch (\Throwable $e) {
                     $options['response'] = json_encode($paypalPayment->toArray(), JSON_PRETTY_PRINT);
                     $error = $e;
