@@ -1089,6 +1089,10 @@ class OrderController extends Controller
 
         // If payment is not initiating, redirect to checkout
         if ($payment->status !== Payment::STATUS_INITIATE) {
+            if ($payment->order->isCheckout) {
+                return redirect()->route('frontend.order.invoice.view', ['public_id' => $payment->invoice->public_id]);
+            }
+
             return redirect()->route('frontend.order.onepage_checkout');
         }
 
