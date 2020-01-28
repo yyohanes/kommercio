@@ -270,9 +270,8 @@ class PaypalExternalCheckout extends PaymentMethodAbstract implements PaymentMet
             $details = new Details();
 
             $details
-                ->setShipping($order->calculateShippingTotal())
                 ->setTax($order->calculateTaxTotal())
-                ->setSubtotal($order->calculateSubtotal() + $order->calculateDiscountTotal());
+                ->setSubtotal($order->calculateSubtotal() + $order->calculateShippingTotal() + $order->calculateDiscountTotal());
 
             $amount
                 ->setCurrency($currencyIso)
