@@ -171,7 +171,7 @@ class PaypalExternalCheckout extends PaymentMethodAbstract implements PaymentMet
                         ->setPrice($lineitem->calculateNet(false));
 
                     $itemList->addItem($item);
-                }else if(!$lineitem->isTax){
+                }else if($lineitem->isFee || $lineitem->isShipping){
                     $item = new Item();
                     $item->setName($lineitem->name)
                         ->setCurrency($currencyIso)
