@@ -1128,12 +1128,20 @@ class OrderController extends Controller
         // Only complete order if payment status changes
         if ($payment->status !== $processedPayment->status && $processedPayment->status === Payment::STATUS_SUCCESS) {
             $order = $processedPayment->order;
-            $completedOrder = $this->processPlaceOrder($order, new Request());
 
-            return redirect()
-                ->route('frontend.order.checkout.complete')
-                ->with('order_id', $completedOrder->id)
-                ->with('success', [trans(LanguageHelper::getTranslationKey('frontend.checkout.checkout_complete'))]);
+            if ($order->isCheckout) {
+                return redirect()
+                    ->route('frontend.order.invoice.view')
+                    ->with('public_id', $payment->invoice->public_id)
+                    ->with('success', [trans(LanguageHelper::getTranslationKey('frontend.order.invoice.payment.success'))]);
+            } else {
+                $completedOrder = $this->processPlaceOrder($order, new Request());
+
+                return redirect()
+                    ->route('frontend.order.checkout.complete')
+                    ->with('order_id', $completedOrder->id)
+                    ->with('success', [trans(LanguageHelper::getTranslationKey('frontend.checkout.checkout_complete'))]);
+            }
         }
 
         return response('Nothing happened', 400);
