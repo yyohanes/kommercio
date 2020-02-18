@@ -80,9 +80,10 @@ class PaypalExternalCheckout extends PaymentMethodAbstract implements PaymentMet
         $flowConfig->setUserAction('commit');
         $flowConfig->setReturnUriHttpMethod('GET');
 
+        $countryLocale = config('app.locale') === 'en' ? 'us' : config('app.locale');
         $presentation
             ->setBrandName(ProjectHelper::getConfig('client_name'))
-            ->setLocaleCode('US')
+            ->setLocaleCode(strtoupper($countryLocale))
             ->setReturnUrlLabel('Return')
             ->setNoteToSellerLabel('Thank you for shopping with us!');
 
