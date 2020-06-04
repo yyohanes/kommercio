@@ -338,6 +338,9 @@ class CatalogController extends Controller
             case 'name':
                 $qb->orderBy('T.name', $options['sort_dir']);
                 break;
+            case 'featured':
+                $qb->orderBy('D.sort_order', $options['sort_dir']);
+                break;
             default:
                 $qb->orderBy('D.sort_order', $options['sort_dir']);
                 break;
